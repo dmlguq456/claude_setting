@@ -51,6 +51,7 @@ Determine the mode based on the prompt/context:
    - Does the change order correctly reflect dependency relationships?
    - Are any steps missing (caller updates, import fixes, etc.)?
    - Are side effects reflected in the risk section?
+   - Does the Verification section contain **concrete, executable test commands**? Vague descriptions like "test later" or empty sections are 🔴.
 4. **If a review output path is specified in the prompt:**
    - Write the full review results to the specified file path.
    - Return ONLY the file path and a one-line verdict (e.g., "✅ No 🔴 issues" or "🔴 N issues found"). Do NOT return the full review content.
