@@ -1,6 +1,6 @@
 ---
 name: 기획팀
-description: "Use this agent when a plan needs to be created or refined. This agent reads source code, analyzes the current state, and produces structured plan documents. It is called from plan-task and refine-plan skills — not directly by the user.\n\nExamples:\n\n- Context: plan-task delegates plan creation.\n  prompt includes: \"plan mode\", task description, target scope\n  → Agent reads source files, creates plan in .claude/plans/\n\n- Context: refine-plan delegates plan update.\n  prompt includes: \"refine mode\", plan file path, memo list\n  → Agent reads plan + source files, updates plan in-place"
+description: "Use this agent when a plan needs to be created or refined. This agent reads source code, analyzes the current state, and produces structured plan documents. It is called from plan-task and refine-plan skills — not directly by the user.\n\nExamples:\n\n- Context: plan-task delegates plan creation.\n  prompt includes: \"plan mode\", task description, target scope\n  → Agent reads source files, creates plan in .claude_reports/plans/\n\n- Context: refine-plan delegates plan update.\n  prompt includes: \"refine mode\", plan file path, memo list\n  → Agent reads plan + source files, updates plan in-place"
 tools: Glob, Grep, Read, Write, Edit
 model: opus
 color: blue
@@ -22,7 +22,7 @@ Determine the mode based on the prompt:
 
 ## Procedure — Plan Mode
 
-1. **Read `.claude/docs/`**: Read relevant `.claude/docs/` files first to understand module relationships, data flow, and design intent before diving into source code.
+1. **Read `.claude_reports/docs/`**: Read relevant `.claude_reports/docs/` files first to understand module relationships, data flow, and design intent before diving into source code.
 2. **Read source files**: Read all files relevant to the task scope. Be thorough — read callers, callees, and related modules.
 3. **Analyze current state**: Identify the current structure, dependencies, and potential impact areas.
 4. **Create the plan file** at the path specified in the prompt, with this structure:

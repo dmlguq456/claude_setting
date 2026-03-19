@@ -22,7 +22,7 @@ Before any code changes, ensure the working tree is clean and up-to-date:
 ## Initialization
 - Read the plan file at $ARGUMENTS.
 - Derive the log directory path: strip `.md` from the plan file path to get the folder name.
-  - Example: `.claude/plans/2026-03-18_refactor_engine.md` → `.claude/plans/2026-03-18_refactor_engine/`
+  - Example: `.claude_reports/plans/2026-03-18_refactor_engine.md` → `.claude_reports/plans/2026-03-18_refactor_engine/`
 - **Check for existing log directory** at `{log_dir}`:
   - If `{log_dir}/checklist.md` already exists with `[x]`/`[FAIL]`/`[SKIP-DEP]` marks: this is a **resume**. Read the checklist, update the `Safety commit:` line with the current `$SAFETY_COMMIT`, and skip all completed steps. Continue from the first `[ ]` step.
   - Otherwise: this is a **fresh execution**. Proceed to create the log directory and checklist.
@@ -87,7 +87,7 @@ Before any code changes, ensure the working tree is clean and up-to-date:
 - Do NOT change code outside the plan's scope unless required by a signature change.
 
 ## Documentation Update
-After all phases are processed, check which .claude/docs/ files need updating based on **successfully completed** steps only:
+After all phases are processed, check which .claude_reports/docs/ files need updating based on **successfully completed** steps only:
 - `run.py`, `main.py` → `01_entry_and_config.md`
 - `model.py`, `modules/` → `02_model_architecture.md`
 - `loss.py` → `03_loss_functions.md`

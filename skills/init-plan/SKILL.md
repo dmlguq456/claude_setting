@@ -9,7 +9,7 @@ argument-hint: "<task description>"
 - When explaining something to the user, write in Korean.
 
 ## Pre-Check
-- Check if a similar plan already exists in `.claude/plans/`:
+- Check if a similar plan already exists in `.claude_reports/plans/`:
   - `active`: Notify the user and ask whether to continue it or create a new one. Do NOT proceed until confirmed.
   - `partial`: Notify the user that a previous attempt partially completed. Ask whether to create a new plan covering the failed steps or start fresh. Do NOT proceed until confirmed.
   - `done`/`failed`: Note it for reference, proceed with new plan creation.
@@ -21,7 +21,7 @@ Invoke the **plan-team** (기획팀) agent as a subagent with the following prom
 Plan mode. Create a new implementation plan.
 
 Task: {$ARGUMENTS}
-Save English plan to: .claude/plans/{YYYY-MM-DD}_{short-task-name}.md
+Save English plan to: .claude_reports/plans/{YYYY-MM-DD}_{short-task-name}.md
 Date: {YYYY-MM-DD}
 {If a done/failed/partial plan exists: "Reference previous plan: [path], status: [status]"}
 {If partial: "Failed steps from previous execution: [list from plan frontmatter failed_steps]"}
@@ -35,7 +35,7 @@ Write the plan files directly. Return ONLY the file paths and a 3-5 line Korean 
 ## Post-Plan Review Loop (max 3 rounds)
 
 Derive the review directory from the plan path: strip `.md` to get the folder name.
-- Example: `.claude/plans/2026-03-18_task.md` → `.claude/plans/2026-03-18_task/`
+- Example: `.claude_reports/plans/2026-03-18_task.md` → `.claude_reports/plans/2026-03-18_task/`
 - `mkdir -p {review_dir}` before invoking QA.
 
 After the 기획팀 agent returns:
