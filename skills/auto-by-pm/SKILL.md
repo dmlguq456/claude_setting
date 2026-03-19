@@ -1,6 +1,6 @@
 ---
-name: auto-task
-description: Fully automated task pipeline — plan, execute, and test without user intervention
+name: auto-by-pm
+description: Fully automated task pipeline via PM agent — init-plan → refine-plan (by PM) → execute-plan → run-test
 argument-hint: "<task description>"
 ---
 
@@ -16,7 +16,7 @@ Autonomous task execution.
 Task: {$ARGUMENTS}
 Date: {YYYY-MM-DD}
 
-Read relevant project documentation, assess complexity, and run the full pipeline autonomously.
+Run the full pipeline: init-plan → refine-plan (1 round, you act as the user) → execute-plan → run-test.
 Report results when complete.
 ```
 
