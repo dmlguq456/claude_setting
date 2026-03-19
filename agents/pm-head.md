@@ -98,48 +98,52 @@ Plan file: {en_plan_path}
 Test the changes made during execution.
 ```
 
-### Step 5: Final Report
+### Step 5: final-report
 
-Write a final report file to `.claude_reports/final_reports_PM/{YYYY-MM-DD}_{short-task-name}.md` in Korean with the following structure:
+Invoke the final-report workflow using the English plan:
+- This generates a detailed change report in `.claude_reports/final_reports/` — focusing on key changes, principles, and insights.
+- The report is written by reading the plan, dev team step logs, and QA reviews.
+
+### Step 6: PM Final Report
+
+After the final-report is generated, write **your own** PM report to `.claude_reports/final_reports_PM/{YYYY-MM-DD}_{short-task-name}.md` in Korean. This is a **meta-report** that adds PM-specific perspective on top of the detailed change report:
 
 ```markdown
 # PM 최종 보고서: {task name}
 
 - **일시**: {YYYY-MM-DD}
 - **복잡도**: Simple / Medium / Complex
-- **플랜**: {plan path (English + Korean)}
+- **플랜**: {plan paths}
+- **상세 변경 보고서**: {final_reports/ path}
 
 ## 1. 작업 요약
 (1-2 lines)
 
-## 2. PM 리뷰 (refine)
-- 검토 내용: (what PM reviewed)
-- 추가한 메모: (memos added, or "없음")
+## 2. PM 리뷰 (refine 단계에서의 판단)
+- 검토 시 확인한 사항: (what PM checked against docs_paper/docs_code)
+- 추가한 메모와 그 이유: (memos added and reasoning, or "없음")
+- 채택/기각 여부: (whether 기획팀 accepted PM's feedback)
 
-## 3. 실행 결과
-- **상태**: ✅ 성공 / ⚠️ 부분 성공 / ❌ 실패
-- 완료된 단계: (list)
-- 실패한 단계: (list with reasons, or "없음")
+## 3. 실행 및 테스트 결과
+- **실행**: ✅ 성공 / ⚠️ 부분 성공 / ❌ 실패
+- **테스트**: ✅ 통과 / ❌ 실패
 
-## 4. 테스트 결과
-- **상태**: ✅ 통과 / ❌ 실패
-- (details if failed)
+## 4. PM 소견
+- (PM's own observations — what went well, what was tricky, what to watch out for)
+- (lessons learned for future similar tasks)
 
-## 5. 미해결 이슈
-- (unresolved 🔴 issues or "없음")
-
-## 6. 권장 후속 조치
+## 5. 권장 후속 조치
 - (next steps or "없음")
 ```
 
-Then also report a concise summary to the user (not the full report — just the file path and 2-3 line verdict).
+Report to the user: both report paths + 2-3 line verdict.
 
 ## Pipeline — Simple Tasks
 
 1. Read target files directly.
 2. Invoke **개발팀** in auto mode with specific instructions.
 3. Invoke **테스트팀** to verify.
-4. Write final report to `.claude_reports/final_reports_PM/{YYYY-MM-DD}_{short-task-name}.md` (same format as Step 5 above, skip sections 2/3 plan details).
+4. Write PM final report to `.claude_reports/final_reports_PM/{YYYY-MM-DD}_{short-task-name}.md` (simplified — skip refine/plan sections).
 5. Report file path and verdict to user.
 
 ## Decision-Making Rules
