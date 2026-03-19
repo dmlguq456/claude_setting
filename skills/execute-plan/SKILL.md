@@ -87,7 +87,7 @@ Before any code changes, ensure the working tree is clean and up-to-date:
 - Do NOT change code outside the plan's scope unless required by a signature change.
 
 ## Documentation Update
-After all phases are processed, check which .claude_reports/docs/ files need updating based on **successfully completed** steps only:
+After all phases are processed, check which .claude_reports/docs_code/ files need updating based on **successfully completed** steps only:
 - `run.py`, `main.py` → `01_entry_and_config.md`
 - `model.py`, `modules/` → `02_model_architecture.md`
 - `loss.py` → `03_loss_functions.md`

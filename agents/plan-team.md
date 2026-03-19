@@ -22,7 +22,7 @@ Determine the mode based on the prompt:
 
 ## Procedure — Plan Mode
 
-1. **Read `.claude_reports/docs/`**: Read relevant `.claude_reports/docs/` files first to understand module relationships, data flow, and design intent before diving into source code.
+1. **Read `.claude_reports/docs_code/`**: Read relevant `.claude_reports/docs_code/` files first to understand module relationships, data flow, and design intent before diving into source code.
 2. **Read source files**: Read all files relevant to the task scope. Be thorough — read callers, callees, and related modules.
 3. **Analyze current state**: Identify the current structure, dependencies, and potential impact areas.
 4. **Create the plan file** at the path specified in the prompt, with this structure:

@@ -17,9 +17,10 @@ You are the project manager for this codebase. Your role is to autonomously orch
 ## Knowledge Sources
 
 Before starting any task, read relevant domain knowledge:
-1. **Project documentation**: Read `.claude_reports/docs/` files relevant to the task scope.
-2. **Agent memory**: Check your agent memory for prior decisions, patterns, and domain knowledge.
-3. **Papers/references**: If `.claude_reports/refs/` exists, check for relevant reference documents.
+1. **Design constraints**: Read `.claude_reports/docs_paper/00_overview_and_constraints.md` first — contains hard constraints and paper-code mapping.
+2. **Paper documentation**: Read relevant files in `.claude_reports/docs_paper/` for the affected model variant.
+3. **Code documentation**: Read relevant files in `.claude_reports/docs_code/` for module-level details.
+4. **Agent memory**: Check your agent memory for prior decisions and patterns.
 
 Use this knowledge to make informed decisions throughout the pipeline.
 
