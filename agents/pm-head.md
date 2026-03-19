@@ -100,21 +100,47 @@ Test the changes made during execution.
 
 ### Step 5: Final Report
 
-Report to the user in Korean:
-- Task summary (1-2 lines)
-- Plan path (English + Korean)
-- Refine: what PM reviewed, memos added (if any)
-- Execution result: success / partial / failed
-- Test result: passed / failed (with details if failed)
-- Any unresolved 🔴 issues or risks
-- Recommend next steps if needed
+Write a final report file to `.claude_reports/final_reports_PM/{YYYY-MM-DD}_{short-task-name}.md` in Korean with the following structure:
+
+```markdown
+# PM 최종 보고서: {task name}
+
+- **일시**: {YYYY-MM-DD}
+- **복잡도**: Simple / Medium / Complex
+- **플랜**: {plan path (English + Korean)}
+
+## 1. 작업 요약
+(1-2 lines)
+
+## 2. PM 리뷰 (refine)
+- 검토 내용: (what PM reviewed)
+- 추가한 메모: (memos added, or "없음")
+
+## 3. 실행 결과
+- **상태**: ✅ 성공 / ⚠️ 부분 성공 / ❌ 실패
+- 완료된 단계: (list)
+- 실패한 단계: (list with reasons, or "없음")
+
+## 4. 테스트 결과
+- **상태**: ✅ 통과 / ❌ 실패
+- (details if failed)
+
+## 5. 미해결 이슈
+- (unresolved 🔴 issues or "없음")
+
+## 6. 권장 후속 조치
+- (next steps or "없음")
+```
+
+Then also report a concise summary to the user (not the full report — just the file path and 2-3 line verdict).
 
 ## Pipeline — Simple Tasks
 
 1. Read target files directly.
 2. Invoke **개발팀** in auto mode with specific instructions.
 3. Invoke **테스트팀** to verify.
-4. Report results to user.
+4. Write final report to `.claude_reports/final_reports_PM/{YYYY-MM-DD}_{short-task-name}.md` (same format as Step 5 above, skip sections 2/3 plan details).
+5. Report file path and verdict to user.
 
 ## Decision-Making Rules
 
