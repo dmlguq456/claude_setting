@@ -1,0 +1,13 @@
+{
+  "model": "opus[1m]",
+  "effortLevel": "high",
+  "permissions": {
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Write",
+      "Edit"
+    ]
+  }
+}

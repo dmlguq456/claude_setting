@@ -1,0 +1,26 @@
+# Credentials & secrets
+.credentials.json
+
+# Session data (per-machine, ephemeral)
+history.jsonl
+sessions/
+session-env/
+shell-snapshots/
+paste-cache/
+file-history/
+ide/
+debug/
+cache/
+downloads/
+backups/
+telemetry/
+todos/
+tasks/
+plans/
+plugins/
+
+# Project-scoped memory (per-project, not shared)
+projects/
+
+# NFS temp files
+.nfs*
