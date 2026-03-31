@@ -9,6 +9,12 @@ argument-hint: "[target directory or scope]"
 - Write documentation files (.claude_reports/docs_code/) in English.
 - When explaining something to the user, write in Korean.
 
+## Argument Parsing
+
+Parse flags from $ARGUMENTS before starting:
+- `--skip-qa` — skip Phase 5 QA Verification entirely
+- Remaining text after flag removal is treated as the target directory or scope
+
 ## Phase 1: Codebase Analysis
 Read all code in $ARGUMENTS and identify:
 - Role and interface of each file/module
@@ -44,3 +50,13 @@ CLAUDE.md should minimize code content and contain only:
 ## Phase 4: Verify Documentation Coverage
 - Check that every code file in models/ and utils/ is covered by at least one .claude_reports/docs_code/ document.
 - Documentation updates are handled as an explicit step in execute-plan, not by hooks.
+
+## Phase 5: QA Verification (optional, skipped with --skip-qa)
+
+After documentation is written, invoke 품질관리팀 in code review mode to cross-check Interface Reference entries against actual source code.
+
+**QA scope**: Documentation files updated in the current run only.
+
+**Minimum verification**: At least 2 Interface Reference entries per file — check signature, file path, and line number against actual source.
+
+**QA model**: Light QA using sonnet — documentation is not as critical as code changes.

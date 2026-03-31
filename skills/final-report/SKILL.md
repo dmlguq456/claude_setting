@@ -1,90 +1,105 @@
 ---
 name: final-report
 description: Generate a detailed change report from plan + dev logs — focuses on key changes, principles, and insights for future reference
-argument-hint: "<path to plan file>"
+argument-hint: "<plan name or path>"
 ---
 
+## Plan Resolution (canonical — keep in sync with execute-plan, run-test, final-report, refine-plan, autopilot-dev, autopilot-audit)
+Resolve `$ARG` to a plan file path:
+1. If it ends with `.md` → use as-is
+2. If it's a directory path → append `/plan/plan.md`
+3. Otherwise, fuzzy search: `ls -d .claude_reports/plans/*$ARG* 2>/dev/null`
+   - **1 match** → use `{match}/plan/plan.md`
+   - **Multiple matches** → prefer folder without `_audit`/`_fix_` suffix; if still multiple, ask user
+   - **No match** → report error
+
 ## Language Rule
-- Write the report in Korean.
-- Code identifiers, file paths, and technical terms stay in English.
+- Think and reason in English internally. Write all user-facing output in Korean.
+
+## QA Scaling
+Use `qa_level` from plan frontmatter if present; otherwise auto-detect:
+
+| Level | Auto-detect condition | Action |
+|---|---|---|
+| **Light** | ≤5 steps, single variant | 1× 품질관리팀 (`model: "sonnet"`) |
+| **Standard** | 6-15 steps, moderate scope | 1× 품질관리팀 (default opus) |
+| **Thorough** | >15 steps, cross-variant, or architectural | 1× 품질관리팀 (opus), sequential only |
+
+**Thorough does NOT parallelize** — report generation is a synthesis task (all changes into one narrative). QA Scaling here affects model choice and applies only to the optional QA review step, not to report generation itself.
+
+> `--qa` flag overrides auto-detect. `qa_level` in frontmatter overrides `--qa`.
+
+## Delegate to 품질관리팀
+Assess QA level from the plan scope (step count, variants affected) per the QA Scaling table above, then invoke the **qa-team** (품질관리팀) agent (with `model: "sonnet"` for Light level) as a subagent with the following prompt:
+
+```
+Generate a final change report.
+
+Plan file: {$ARG} (resolved via Plan Resolution above)
+Log directory: {task root folder — grandparent of plan/plan.md}
+Korean plan: {same directory as plan.md}/plan_ko.md
+Report output: {log_directory}/final_report.md
+Date: {YYYY-MM-DD}
+
+Follow these instructions:
 
 ## Inputs
-1. **Plan file**: the English plan at $ARGUMENTS
-2. **Log directory**: derived from plan path (strip `.md` → folder). Contains:
-   - `checklist.md` — execution status of each step
-   - `step_*.md` — dev team's step logs with old/new code and Decision fields
-   - `review_phase_*.md` — QA review results per phase
-3. **Korean plan** (`_ko.md` suffix): for section titles and user-facing descriptions
+1. **Plan file**: the English plan
+2. **Log directory**: Contains plan/ (plan.md, plan_ko.md, checklist.md), dev_logs/ (step_*.md), dev_reviews/ (phase reviews), plan_reviews/ (plan reviews), test_logs/, test_reviews/
+3. **Korean plan** (_ko.md): for section titles and user-facing descriptions
 
 ## Procedure
-
-1. **Read the plan file** to understand the goal, current state analysis, and change plan.
-2. **Read the checklist** to identify which steps succeeded, failed, or were skipped.
-3. **Read all step log files** (`step_*.md`) to extract:
-   - Every code change (old → new) with its Decision rationale
-   - Files modified and what each change accomplished
-4. **Read QA review files** (`review_phase_*.md`) to extract:
-   - Issues found during review
-   - How they were resolved (or not)
-5. **Synthesize** the information into a report. Do NOT just list changes — explain the reasoning and connect them to the bigger picture.
+1. Read the plan file to understand the goal, current state analysis, and change plan.
+2. Read the checklist (plan/checklist.md) to identify which steps succeeded, failed, or were skipped.
+3. Read all step log files (dev_logs/step_*.md) to extract every code change (old → new) with its Decision rationale, files modified, and what each change accomplished.
+4. Read QA review files (dev_reviews/phase_*.md) to extract issues found and how they were resolved.
+5. **Documentation Update**: Update .claude_reports/docs_code/ for successfully completed steps only. Mapping:
+   - model.py, modules/module.py → model_modules.md
+   - modules/network.py → network_modules.md
+   - loss.py → loss_functions.md
+   - dataset.py, util_dataset.py → dataset_pipeline.md
+   - engine.py → engine_training.md
+   - engine_infer.py, main_infer.py → engine_inference.md
+   - utils/ → utilities.md
+   - Overall design, config, data flow, cross-variant → architecture.md
+   - Project structure, doc table, file renames → CLAUDE.md
+   Update Interface Reference tables (signatures, callers, line numbers). Skip if no steps succeeded.
+   **Verification (CRITICAL)**: After editing each doc file, run `grep` on the actual source code to verify that class/function line numbers in the Interface Reference table match reality. Do NOT copy line numbers from the plan or dev logs — they may be stale. Always verify against the current code.
+6. **Confirm doc changes are real**: After step 5, run `git diff --stat -- .claude_reports/docs_code/ CLAUDE.md` to confirm that documentation files were actually modified. If the diff is empty but you expected changes, something went wrong — re-read and re-edit the files. Do NOT claim documentation was updated unless git diff confirms it.
+7. Synthesize the information into a report. Do NOT just list changes — explain the reasoning and connect them to the bigger picture.
 
 ## Report Structure
 
-Write the report to: `.claude_reports/final_reports/{YYYY-MM-DD}_{plan-short-name}.md`
-
-```markdown
+```
 # 변경 보고서: {task name}
+- **일시**: {YYYY-MM-DD} | **플랜**: {plan path} | **상태**: ✅/⚠️/❌
 
-- **일시**: {YYYY-MM-DD}
-- **플랜**: {plan path}
-- **상태**: ✅ 완료 / ⚠️ 부분 완료 / ❌ 실패
-
----
-
-## 1. 변경 개요
-(What was done and why, 3-5 sentences. Connect to the project's design philosophy if relevant.)
-
-## 2. 핵심 변경 사항
-
-### 2.1 {Change category 1} — {file or module}
-- **변경 내용**: (what changed)
-- **변경 이유**: (why — from the Decision field, but rewritten for clarity)
-- **핵심 원리**: (underlying principle or insight the user should remember)
-- **영향 범위**: (what other code is affected, callers updated, etc.)
-
-### 2.2 {Change category 2} — {file or module}
-(same structure)
-
-(... repeat for each meaningful change group. Group related small changes together.)
-
-## 3. 설계 인사이트
-Key takeaways the user should know for future work:
-- (insight 1 — e.g., "X pattern was chosen over Y because...")
-- (insight 2 — e.g., "This change reveals that module Z has implicit coupling with...")
-- (insight 3)
-
-## 4. QA 리뷰 요약
-- **발견된 이슈**: (issues found by 품질관리팀)
-- **해결 방법**: (how each was resolved)
-- **미해결**: (remaining issues, or "없음")
-
-## 5. 실패/스킵된 단계
-(If any steps failed or were skipped, explain why and what to do about them. If all succeeded: "전체 단계 성공 ✅")
-
-## 6. 향후 참고사항
-- (things to watch out for in related future changes)
-- (potential follow-up tasks identified during this work)
+## 1. 변경 개요          — what was done and why (3-5 sentences)
+## 2. 핵심 변경 사항     — grouped by logical category (not step number)
+   ### 2.N {category} — {file/module}
+   - **변경 내용** / **변경 이유** / **핵심 원리** / **영향 범위**
+## 3. 설계 인사이트      — key takeaways for future work
+## 4. QA 리뷰 요약       — 발견된 이슈 / 해결 방법 / 미해결
+## 5. 실패/스킵된 단계   — explain why, or "전체 단계 성공 ✅"
+## 6. 향후 참고사항      — watch-outs and potential follow-ups
 ```
 
 ## Quality Guidelines
-- **Do NOT just summarize** — extract insights. The user wants to understand "why" and "what to remember", not just "what happened".
-- **Group related changes** by logical category, not by step number. Multiple steps that serve the same purpose should be one section.
-- **Connect to project design** when relevant (e.g., "This aligns with the correlation-to-filter paradigm because...").
-- **Be specific about impact** — mention exact callers, tensor shapes, or config keys that were affected.
-- **Keep it concise but complete** — aim for 1-2 pages, not 5 pages.
+- Do NOT just summarize — extract insights. Focus on "why" and "what to remember".
+- Be specific about impact — mention exact callers, tensor shapes, or config keys.
+- Connect to project design when relevant.
+- Write the report in Korean. Code identifiers, file paths, and technical terms stay in English.
+- Aim for 1-2 pages total.
 
-## Output
-Return ONLY the report file path and a one-line summary. Do NOT return the full report content.
+Return ONLY the file path and a one-line summary. Do NOT return the full report content.
+```
+
+## Post-Report
+After the 품질관리팀 agent returns:
+1. Relay the report file path and a one-line summary to the user.
+2. **Optional QA review**: After report writing is complete, invoke 품질관리팀 in code review mode per QA Scaling to review the report's accuracy AND docs_code/ update correctness. QA scope: (1) report content accuracy, (2) docs_code/ Interface Reference correctness.
+
+Note: Thorough mode does NOT parallelize report generation — report generation is a synthesis task. QA Scaling applies only to the optional QA review step above, not to report generation itself.
 
 ## Task
-Generate report for: $ARGUMENTS
+Generate report for: $ARG

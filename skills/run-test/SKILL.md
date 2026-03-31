@@ -1,31 +1,42 @@
 ---
 name: run-test
 description: Run functional tests after execute-plan or on demand to verify code correctness
-argument-hint: "<plan file path or test scope description>"
+argument-hint: "<plan name, path, or test scope>"
 ---
+
+## Plan Resolution (canonical — keep in sync with execute-plan, run-test, final-report, refine-plan, autopilot-dev, autopilot-audit)
+Resolve `$ARG` to a plan file path:
+1. If it ends with `.md` → use as-is
+2. If it's a directory path → append `/plan/plan.md`
+3. Otherwise, fuzzy search: `ls -d .claude_reports/plans/*$ARG* 2>/dev/null`
+   - **1 match** → use `{match}/plan/plan.md`
+   - **Multiple matches** → prefer folder without `_audit`/`_fix_` suffix; if still multiple, ask user
+   - **No match** → fallback: treat argument as a file/directory path for direct testing
+
+Example: `/run-test inference-refactor` → `.claude_reports/plans/2026-03-18_inference-refactor/plan/plan.md`
 
 ## Language Rule
 - Think and reason in English internally.
-- When reporting results to the user, write in Korean.
+- Write all user-facing output in Korean.
 
 ## Delegate to 테스트팀
 Invoke the **test-team** (테스트팀) agent as a subagent with the following prompt:
 
-- If $ARGUMENTS points to a plan file:
+- If $ARG points to a plan file:
   ```
-  Run graduated tests for plan: {$ARGUMENTS}
-  Read the plan's 검증 방법 section and the log directory's checklist_eng.md to identify targets.
+  Run graduated tests for plan: {$ARG}
+  Read the plan's verification sections and the log directory's plan/checklist.md to identify targets.
   Execute Level 1 → 2 → 3 → 4 → 5 in order, stopping on first failure.
   ```
 
-- If $ARGUMENTS is a file/directory path:
+- If $ARG is a file/directory path:
   ```
-  Run graduated tests on: {$ARGUMENTS}
+  Run graduated tests on: {$ARG}
   Execute Level 1 → 2 → 3 → 4 → 5 in order, stopping on first failure.
   Skip levels that don't apply (e.g., Level 4 if no plan file).
   ```
 
-- If $ARGUMENTS is empty:
+- If $ARG is empty:
   ```
   Run graduated tests on recently changed files.
   Use git diff --name-only HEAD~1 to find targets.
@@ -33,26 +44,81 @@ Invoke the **test-team** (테스트팀) agent as a subagent with the following p
   Skip levels that don't apply (e.g., Level 4 if no plan file).
   ```
 
-## Post-Test
-After the test-runner agent returns:
-1. Relay the test results to the user.
-2. If all levels passed:
-   - Check `git status` for uncommitted changes. If changes exist, run `git add -A && git commit` with a commit message that accurately describes the changes (analyze the diff to write a meaningful message).
+### Test Log Requirement (CRITICAL)
+**Always** include this in the 테스트팀 prompt. Every test must record: exact command, full stdout/stderr (last 50 lines if long), and PASS/FAIL verdict with error message.
+
+```
+Write a detailed test log to: {log_dir}/test_logs/test_report.md
+
+Format:
+## Level N: [Level Name]
+### Test N.1: [description]
+**Command:** [exact command]
+**Output:** [stdout/stderr]
+**Verdict:** PASS / FAIL — [reason]
+```
+
+## QA Requirements (Mandatory Thorough)
+**run-test always uses Thorough mode (minimum 2 parallel QA agents).** The `qa_level` flag and auto-detect do NOT apply to run-test — testing rigor is non-negotiable.
+
+**Always launch 2 QA agents in parallel (opus):**
+- Agent A: "Focus on **coverage**: Were ALL changed files tested? Are any untested code paths or edge cases? Did tests use real data where available? Are behavioral changes compared before/after?"
+- Agent B: "Focus on **accuracy**: Are failures correctly diagnosed (not misdiagnosed as pre-existing)? Were correct engine_modes used? Do commands match changed code paths? Are negative tests present?"
+- Each writes to: `test_reviews/test_review_coverage.md`, `test_reviews/test_review_accuracy.md`.
+- All issues from ANY agent must be addressed before proceeding.
+
+## Post-Test: QA Review
+After the 테스트팀 agent returns:
+1. **Read the test log** (`{log_dir}/test_logs/test_report.md`).
+2. **Invoke 2× 품질관리팀 in parallel** with:
+
+   - **Agent A prompt (coverage)**:
+   ```
+   Review this test report in code review mode.
+   Test log: {log_dir}/test_logs/test_report.md
+   Changed source files: [list from plan or git diff]
+   Review focus (COVERAGE): untested files/paths, real vs. random data, missing before/after comparisons.
+   Write review to: {log_dir}/test_reviews/test_review_coverage.md
+   Return the file path and a one-line verdict.
+   ```
+
+   - **Agent B prompt (accuracy)**:
+   ```
+   Review this test report in code review mode.
+   Test log: {log_dir}/test_logs/test_report.md
+   Changed source files: [list from plan or git diff]
+   Review focus (ACCURACY): correct failure diagnosis, correct engine_modes, commands match changed paths, negative tests present.
+   Write review to: {log_dir}/test_reviews/test_review_accuracy.md
+   Return the file path and a one-line verdict.
+   ```
+
+3. **Read both QA reviews**. If either finds issues: re-invoke 테스트팀 for those items, appending to test_report.md. If both pass: proceed to result reporting.
+
+## Commit Message Convention
+- Safety checkpoint: `chore: Safety checkpoint before {plan-name} execution`
+- Success commit: `{type}: {plan goal summary}\n\n{bullet list of key changes from checklist}`
+- Type prefix: `feat` (new functionality), `fix` (bug fix), `refactor` (code restructuring), `chore` (maintenance) — determined from the plan's goal
+
+## Report Results
+1. Relay the test results to the user (concise summary table).
+2. If all levels passed and QA approved:
+   - Check `git status` for uncommitted changes. If changes exist, run `git add -A && git commit` with a success commit message following the Commit Message Convention above.
    - Report success and stop.
 3. If any level failed, enter the **Hotfix Loop** (max 2 attempts):
 
 ### Hotfix Loop
-1. **Attempt 1**: Invoke a 개발팀 (dev-team) subagent in auto mode with:
-   - The failing test level and error message
-   - The list of files involved
-   - Instruction: "Auto mode. Hotfix: fix the following test failure. Read the error, read the file, fix it directly. Write a step log to the plan's log directory if available, otherwise skip logging."
-2. After the fix, re-invoke the 테스트팀 agent to re-run from the failed level onward.
-3. If tests pass: check `git status` for uncommitted changes. If changes exist, run `git add -A && git commit` with a meaningful commit message. Report success and stop.
-4. **Attempt 2**: If still failing, repeat with the new error context.
-5. If still failing after 2 attempts: report the failure to the user with:
-   - The original error
-   - What was attempted
-   - Suggested next steps (manual investigation or new plan-task)
+> Note: This loop is self-contained within a single run-test invocation. If the calling pipeline retries, this loop resets.
+
+1. **Attempt 1**: Invoke a 개발팀 (dev-team) subagent in auto mode with the failing level, exact error, files involved, and instruction: "Auto mode. Hotfix: fix the following test failure. Read the error, read the file, fix it directly. Write a step log to the plan's log directory if available, otherwise skip logging."
+2. Re-invoke 테스트팀 from the failed level onward (same logging requirements).
+3. If tests pass AND QA approves: commit and report success.
+4. **Attempt 2**: If still failing, repeat with new error context.
+5. If still failing after 2 attempts: report failure with original error, what was attempted, and suggested next steps.
+
+## Log Directory Resolution
+- If $ARG points to a plan file: log directory is the task root (grandparent of `plan/plan.md`).
+  Example: `.claude_reports/plans/2026-03-18_refactor/plan/plan.md` → `.claude_reports/plans/2026-03-18_refactor/`
+- If no plan file: use `.claude_reports/tests/` with a date-stamped subdirectory.
 
 ## Task
-Test: $ARGUMENTS
+Test: $ARG
