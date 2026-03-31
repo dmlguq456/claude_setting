@@ -1,6 +1,4 @@
 {
-  "model": "opus[1m]",
-  "effortLevel": "high",
   "permissions": {
     "allow": [
       "Read",
@@ -10,5 +8,22 @@
       "Edit",
       "Agent"
     ]
+  },
+  "model": "opus[1m]",
+  "extraKnownMarketplaces": {
+    "cwm": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/HSUNEH/dev_sys_template.git"
+      }
+    }
+  },
+  "effortLevel": "high",
+  "enabledPlugins": {
+    "cwm@cwm": true
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "node /home/Uihyeop/.claude/plugins/cache/cwm/cwm/2.0.0/hud/cwm-hud.mjs"
   }
 }
