@@ -17,15 +17,18 @@ Resolve `$ARG` to a plan file path:
 - Think and reason in English internally. Write all user-facing output in Korean.
 
 ## QA Scaling
-Use `qa_level` from plan frontmatter if present; otherwise auto-detect:
+Use `qa_level` from plan frontmatter if present; otherwise auto-detect. Also read `autonomy_level` from plan frontmatter if present. Pass it to the 품질관리팀 prompt as context.
 
 | Level | Auto-detect condition | Action |
 |---|---|---|
 | **Light** | ≤5 steps, single variant | 1× 품질관리팀 (`model: "sonnet"`) |
 | **Standard** | 6-15 steps, moderate scope | 1× 품질관리팀 (default opus) |
 | **Thorough** | >15 steps, cross-variant, or architectural | 1× 품질관리팀 (opus), sequential only |
+| **Adversarial** | Cross-variant (SE+SS+CSS), shared modules (utils/, network.py), or >20 steps — **AND Codex available** | 1× 품질관리팀 (opus) sequential + 1× codex-review-team (`adversarial-review`) after report is written; Codex reviews the final report for missed issues and writes `{log_dir}/final_report_codex.md` |
 
-**Thorough does NOT parallelize** — report generation is a synthesis task (all changes into one narrative). QA Scaling here affects model choice and applies only to the optional QA review step, not to report generation itself.
+**Thorough and Adversarial do NOT parallelize report generation** — report generation is a synthesis task. QA Scaling here affects model choice and applies only to the optional QA review step, not to report generation itself.
+
+**Codex availability check**: Before selecting Adversarial, run `codex --version` (suppress stderr). If unavailable, fall back to Thorough silently. Skipped if `--qa adversarial` is explicit (fail loudly).
 
 > `--qa` flag overrides auto-detect. `qa_level` in frontmatter overrides `--qa`.
 
@@ -40,6 +43,7 @@ Log directory: {task root folder — grandparent of plan/plan.md}
 Korean plan: {same directory as plan.md}/plan_ko.md
 Report output: {log_directory}/final_report.md
 Date: {YYYY-MM-DD}
+Autonomy level: {autonomy_level from frontmatter, or "proactive (default)" if absent}
 
 Follow these instructions:
 
@@ -66,7 +70,8 @@ Follow these instructions:
    Update Interface Reference tables (signatures, callers, line numbers). Skip if no steps succeeded.
    **Verification (CRITICAL)**: After editing each doc file, run `grep` on the actual source code to verify that class/function line numbers in the Interface Reference table match reality. Do NOT copy line numbers from the plan or dev logs — they may be stale. Always verify against the current code.
 6. **Confirm doc changes are real**: After step 5, run `git diff --stat -- .claude_reports/docs_code/ CLAUDE.md` to confirm that documentation files were actually modified. If the diff is empty but you expected changes, something went wrong — re-read and re-edit the files. Do NOT claim documentation was updated unless git diff confirms it.
-7. Synthesize the information into a report. Do NOT just list changes — explain the reasoning and connect them to the bigger picture.
+7. **Read pipeline_summary.md** (log_directory/pipeline_summary.md) if it exists. Extract the Decision Points table for section 4.5. If the file does not exist or the table is empty, write "자율 판단 이벤트 없음 (proactive 모드, 클린 실행)" for section 4.5.
+8. Synthesize the information into a report. Do NOT just list changes — explain the reasoning and connect them to the bigger picture.
 
 ## Report Structure
 
@@ -80,6 +85,7 @@ Follow these instructions:
    - **변경 내용** / **변경 이유** / **핵심 원리** / **영향 범위**
 ## 3. 설계 인사이트      — key takeaways for future work
 ## 4. QA 리뷰 요약       — 발견된 이슈 / 해결 방법 / 미해결
+## 4.5 자율 판단 기록    — pipeline_summary.md의 Decision Points 테이블을 서사적 요약으로 합성. 자율 판단 이벤트가 없으면 "자율 판단 이벤트 없음 (proactive 모드, 클린 실행)"
 ## 5. 실패/스킵된 단계   — explain why, or "전체 단계 성공 ✅"
 ## 6. 향후 참고사항      — watch-outs and potential follow-ups
 ```

@@ -1,7 +1,7 @@
 ---
 name: autopilot-dev
 description: "Development pipeline — init-plan → refine-plan → execute-plan → run-test → final-report. Main Claude orchestrates via skills; research-team reviews plans as user proxy."
-argument-hint: "<task description> [--from <step>] [--qa light|standard|thorough]"
+argument-hint: "<task description> [--from <step>] [--qa light|standard|thorough] [--autonomy proactive|standard|passive]"
 ---
 
 ## Language Rule
@@ -24,9 +24,34 @@ Parse `$ARGUMENTS` for optional flags:
 - If omitted, each skill auto-detects level based on scope.
 - **Propagation**: Pass `--qa <level>` to init-plan and refine-plan as a flag. For execute-plan, run-test, and final-report, write `qa_level: <level>` into the English plan's frontmatter at Step 1 or Step 3 initialization.
 
+**`--autonomy <level>`** — control how often the pipeline asks for user decisions:
+- `--autonomy proactive` → system decides almost everything; only asks when no safe default exists (default)
+- `--autonomy standard` → system pauses at significant decision points (medium-risk choices)
+- `--autonomy passive` → system asks more frequently (all meaningful choices, not trivial ones)
+- If the value is not one of `proactive|standard|passive`, treat as `proactive` and warn the user: "유효하지 않은 autonomy level '{value}'. proactive로 기본 설정합니다."
+- **Propagation**: Pass `--autonomy <level>` to init-plan and refine-plan as a flag. Write `autonomy_level: <level>` into the English plan's frontmatter at Step 1 or Step 3 initialization.
+- **Mid-pipeline switching**: When starting from Step 2+ (`--from refine|execute|test|report`) AND `--autonomy` is explicitly passed, update `autonomy_level` in the existing plan's YAML frontmatter before invoking the sub-skill. Explicit CLI flag always overrides frontmatter. If `--autonomy` is NOT passed on resume, preserve the existing frontmatter value (or default to `proactive` if absent).
+
 The remaining text (after removing flags) is the task description or plan name.
 
 **When starting from Step 2+**, the argument must be a plan name (not a task description). Use the Plan Resolution section below to locate the plan folder.
+
+## Autonomy Gating
+
+| Decision Point | Severity | proactive | standard | passive |
+|---|---|---|---|---|
+| Test failure → retry or stop | Critical | auto-retry (current) | ask user | ask user |
+| Pipeline failure → stop | Critical | ask user | ask user | ask user |
+| Final retry failure → stop | Critical | auto-stop (current) | ask user | ask user |
+| Research team added many memos (≥5) | Significant | auto-refine | ask: "연구팀이 {N}개 메모를 추가했습니다. 검토 후 refine을 진행할까요?" | ask |
+| init-plan detected existing plan (active) | Critical | ask (current — no safe default for active plan) | ask | ask |
+| init-plan detected existing plan (done/partial/failed) | Significant | auto-decide (done/failed → proceed, partial → create new) | ask (current) | ask |
+
+When the pipeline reaches a gated decision point:
+- If the current autonomy level includes that severity → **pause and ask** the user.
+- Otherwise → **proceed with the default action** (described in the proactive column).
+- All "ask" prompts must include: (1) the situation summary, (2) available options, (3) the default action if no response.
+- **Logging**: After each decision (auto or user), record in memory: `{step} | {decision description} | {user response or "auto"} | {action taken}`. These records are written to the Decision Points table in `pipeline_summary.md` when it is created at pipeline end.
 
 ## Plan Resolution (canonical — keep in sync with execute-plan, run-test, final-report, refine-plan, autopilot-dev, autopilot-audit)
 Resolve `$ARG` to a plan file path:
@@ -65,7 +90,9 @@ Wait for completion before proceeding.
    Return a summary of memos added (or "no issues found").
    ```
 
-3. If memos were added: Invoke Skill: `refine-plan` with the Korean plan path as args.
+3. If memos were added:
+   - **Autonomy gate (Significant)**: If `standard` or `passive`, ask: "연구팀이 {N}개 메모를 추가했습니다. 검토 후 refine을 진행할까요? (기본값: 진행)". If `proactive`, auto-proceed.
+   - Invoke Skill: `refine-plan` with the Korean plan path as args.
 4. If no memos: Skip to Step 3.
 
 ### Step 3: execute-plan
@@ -90,6 +117,8 @@ Wait for completion before proceeding.
 
 #### Test Failure → Retry Loop (max 1 pipeline-level retry)
 If run-test reports failure (after its internal hotfix loop of 2 attempts):
+
+**Autonomy gate (Critical)**: If `autonomy_level` is `standard` or `passive`, ask: "테스트가 실패했습니다. 재시도할까요, 중단할까요? (기본값: 재시도)". If `proactive`, auto-retry.
 
 1. **Collect failure context**: Read `test_logs/test_report.md`, `test_reviews/test_review_coverage.md`, `test_reviews/test_review_accuracy.md`, and `plan/checklist.md`. Synthesize a concise failure summary (keep in memory).
 
@@ -120,12 +149,15 @@ Invoke Skill: `final-report` with the plan name/path as args.
 
 This is a process log and artifact index — NOT a change analysis (that's final-report's job).
 
+When writing pipeline_summary.md, populate the Decision Points table from the in-memory decision records accumulated during the pipeline run. If no decisions were recorded (proactive mode, clean run), write a single row: `| - | No gated decisions triggered | - | - |`.
+
 ```markdown
 # Pipeline Summary: {task name}
 
 - **Date**: {YYYY-MM-DD}
 - **Plan**: {en_plan_path}
 - **Status**: done / partial / failed
+- **Autonomy**: {autonomy_level} (proactive / standard / passive)
 
 ## Process Log
 | Step | Skill | Result | Notes |
@@ -142,6 +174,11 @@ This is a process log and artifact index — NOT a change analysis (that's final
 - Dev logs/reviews: {plan_folder}/dev_logs/, dev_reviews/
 - Test report/reviews: {test_log_path}
 - Final report: {final_report_path}
+
+## Decision Points
+| Step | Decision | User Response | Action Taken |
+|---|---|---|---|
+| (filled from orchestrator's in-memory decision log) |
 ```
 
 Then report to the user: pipeline_summary.md path + 2-3 line verdict.

@@ -1,7 +1,7 @@
 ---
 name: autopilot-paper
 description: "Paper strategy pipeline — analyze-refs → init-paper-strategy → review → refine-paper-strategy. Supports modes: rebuttal, write, review, survey."
-argument-hint: "<mode> <task description> [--refs <folder>] [--qa light|standard|thorough]"
+argument-hint: "<mode> <task description> [--refs <folder>] [--qa light|standard|thorough] [--autonomy proactive|standard|passive]"
 ---
 
 ## Language Rule
@@ -27,7 +27,28 @@ Parse `$ARGUMENTS` for mode, flags, and task description:
 - If omitted, defaults to `thorough`.
 - **Propagation**: Pass `--qa <level>` to init-paper-strategy and refine-paper-strategy as an argument flag.
 
+**`--autonomy <level>`** — same as autopilot-dev. Default: `proactive`.
+Same validation rules as autopilot-dev (invalid value → fallback to `proactive`, with warning).
+Pass `--autonomy <level>` to init-paper-strategy and refine-paper-strategy as an argument flag.
+
+> **Note on paper sub-skills**: `init-paper-strategy` and `refine-paper-strategy` do NOT need to parse `--autonomy` themselves — they don't have user-facing decision points. The flag is passed through but they simply ignore it. Unlike `refine-plan` (which has path resolution that could be corrupted), paper sub-skills use positional args so an unrecognized `--autonomy` flag is harmless.
+
 The remaining text (after removing mode and flags) is the task description.
+
+## Autonomy Gating
+
+| Decision Point | Severity | proactive | standard | passive |
+|---|---|---|---|---|
+| Confirm material analysis | Routine | auto-proceed | auto-proceed | ask (current) |
+| Missing refs folder | Critical | ask (always) | ask | ask |
+| No reviewer comments for rebuttal | Significant | ask (current) | ask | ask |
+| Strategy review → many memos | Routine | auto-refine | auto-refine | ask |
+
+When the pipeline reaches a gated decision point:
+- If the current autonomy level includes that severity → **pause and ask** the user.
+- Otherwise → **proceed with the default action** (described in the proactive column).
+- All "ask" prompts must include: (1) the situation summary, (2) available options, (3) the default action if no response.
+- **Logging**: After each decision (auto or user), record in memory: `{step} | {decision description} | {user response or "auto"} | {action taken}`. These records are written to the Decision Points table in `pipeline_summary.md` when it is created at pipeline end.
 
 ## Refs Folder Convention
 The `--refs` folder is user-specified (no default). May contain PDFs, txt/md reviewer comments, notes, subdirectories. On first invocation, list contents and confirm with the user. For rebuttal mode, warn if no reviewer comments are found.
@@ -59,7 +80,9 @@ Read and catalog all materials in the refs folder.
    - **review**: Analyze target paper → `analysis/ref_analysis.md` (methodology assessment, experimental analysis)
    - **survey**: Analyze all papers → `analysis/ref_analysis.md` (categorization, timeline, methodology comparison)
 3. Read PDF files using the Read tool. For large PDFs (>10 pages), read in page ranges.
-4. Present the analysis summary to the user and confirm before proceeding.
+4. **Autonomy gate (Routine)**: Present the analysis summary.
+   - `proactive` / `standard`: auto-proceed to Step 2 after presenting the summary.
+   - `passive`: ask the user for confirmation before proceeding.
 
 ### Step 2: init-paper-strategy
 Invoke Skill: `init-paper-strategy` with args: `<mode> --refs <folder> --output <artifact-dir> <task description>`. Wait for completion.
@@ -111,6 +134,7 @@ Invoke Skill: `init-paper-strategy` with args: `<mode> --refs <folder> --output 
 # Paper Strategy Pipeline Summary: {task name}
 
 - **Date**: {YYYY-MM-DD} | **Mode**: {mode} | **Status**: done / reviewed / draft
+- **Autonomy**: {autonomy_level}
 - **Refs folder**: {refs_folder}
 
 ## Process Log
@@ -125,7 +149,14 @@ Invoke Skill: `init-paper-strategy` with args: `<mode> --refs <folder> --output 
 - Strategy (EN/KO): {en_path} / {ko_path}
 - Analysis: {reviewer_analysis or ref_analysis path}
 - Material Index: {path} | Research Review: {path}
+
+## Decision Points
+| Step | Decision | User Response | Action Taken |
+|---|---|---|---|
+| (filled from orchestrator's in-memory decision log) |
 ```
+
+When writing pipeline_summary.md, populate the Decision Points table from the in-memory decision records. If no decisions were recorded (proactive mode, clean run), write: `| - | No gated decisions triggered | - | - |`. Note: autopilot-paper typically has fewer decision points (material analysis confirmation at passive level is the main one).
 
 Then report to the user: strategy file paths + 2-3 line summary of the strategy.
 
@@ -133,7 +164,7 @@ Then report to the user: strategy file paths + 2-3 line summary of the strategy.
 - Do NOT fabricate citations or invent paper results — only reference materials actually present in the refs folder.
 - Do NOT generate full paper text (that's the user's job) — output is strategy/plan only.
 - For rebuttal mode: ensure EVERY reviewer point is addressed — missing a point is a critical error.
-- Always confirm material inventory with the user before proceeding to strategy generation.
+- Present material inventory to the user. Proceed per the Autonomy Gating table (material analysis confirmation).
 
 ## Task
 $ARGUMENTS

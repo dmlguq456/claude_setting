@@ -35,8 +35,11 @@ Include YAML frontmatter:
 ---
 status: active
 created: {YYYY-MM-DD}
+autonomy_level: {inherited from --autonomy flag, or omitted if not specified}
 ---
 ```
+
+If the calling skill passes `--autonomy <level>` in the task description, extract it and write it to frontmatter. Otherwise, do not add the field (defaults to `proactive` at runtime).
 
 Body structure (in English):
 1. **Goal**: One-line summary
@@ -48,6 +51,11 @@ Body structure (in English):
    - Independent steps within the same phase can be parallelized during execution
 4. **Risks**: Potential side effects and caveats
 5. **Verification**: Concrete, executable test commands when possible — these are consumed by `/run-test` after execution.
+6. **Decision Points** (optional): If any step involves an irreversible or high-risk action that the user might want to confirm regardless of autonomy level, tag it:
+   - In the step description, add: `[decision: critical|significant|routine] — {what to decide}`
+   - Example: "Step 3.2: Rename `get_correlation` → `compute_scot_correlation` [decision: significant — public API rename affects external callers]"
+   - The execute-plan skill uses these tags alongside its own static decision points.
+   - Do NOT over-tag — only tag steps where the plan-specific context makes the decision genuinely important. Most plans will have 0-2 tagged steps.
 
 5. **Do NOT create the Korean version yet.** It will be created after the QA review loop finalizes the plan.
 

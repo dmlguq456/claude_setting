@@ -15,6 +15,8 @@ Resolve `$ARG` to a plan file path:
 
 Example: `/run-test inference-refactor` → `.claude_reports/plans/2026-03-18_inference-refactor/plan/plan.md`
 
+Read `autonomy_level` from plan frontmatter. Default: `proactive`.
+
 ## Language Rule
 - Think and reason in English internally.
 - Write all user-facing output in Korean.
@@ -58,14 +60,21 @@ Format:
 **Verdict:** PASS / FAIL — [reason]
 ```
 
-## QA Requirements (Mandatory Thorough)
-**run-test always uses Thorough mode (minimum 2 parallel QA agents).** The `qa_level` flag and auto-detect do NOT apply to run-test — testing rigor is non-negotiable.
+## QA Requirements (Mandatory Thorough, Adversarial if Codex available)
+**run-test always uses at minimum Thorough mode (2 parallel QA agents).** The `qa_level` flag does NOT apply to run-test — testing rigor is non-negotiable.
+
+**Adversarial auto-escalation**: Before launching QA, run `codex --version 2>/dev/null`. If Codex is available and authenticated, automatically escalate to Adversarial mode (add Codex agent to the parallel batch). If Codex is unavailable, proceed with Thorough.
 
 **Always launch 2 QA agents in parallel (opus):**
 - Agent A: "Focus on **coverage**: Were ALL changed files tested? Are any untested code paths or edge cases? Did tests use real data where available? Are behavioral changes compared before/after?"
 - Agent B: "Focus on **accuracy**: Are failures correctly diagnosed (not misdiagnosed as pre-existing)? Were correct engine_modes used? Do commands match changed code paths? Are negative tests present?"
 - Each writes to: `test_reviews/test_review_coverage.md`, `test_reviews/test_review_accuracy.md`.
-- All issues from ANY agent must be addressed before proceeding.
+
+**Adversarial (when Codex available):**
+- Agent C (Codex): 1× codex-review-team (`adversarial-review --wait --scope auto`). Writes to `test_reviews/test_review_codex.md`.
+- Launched in the same parallel batch as Agent A and B.
+
+All issues from ANY agent (including Codex) must be addressed before proceeding.
 
 ## Post-Test: QA Review
 After the 테스트팀 agent returns:
@@ -102,18 +111,25 @@ After the 테스트팀 agent returns:
 ## Report Results
 1. Relay the test results to the user (concise summary table).
 2. If all levels passed and QA approved:
-   - Check `git status` for uncommitted changes. If changes exist, run `git add -A && git commit` with a success commit message following the Commit Message Convention above.
+   - Check `git status` for uncommitted changes. If changes exist:
+     - If `autonomy_level` is `proactive` or `standard`: auto-commit with a success commit message following the Commit Message Convention above.
+     - If `autonomy_level` is `passive`: ask: "테스트가 통과했습니다. 변경사항을 커밋할까요? (기본값: 커밋)"
    - Report success and stop.
 3. If any level failed, enter the **Hotfix Loop** (max 2 attempts):
 
 ### Hotfix Loop
 > Note: This loop is self-contained within a single run-test invocation. If the calling pipeline retries, this loop resets.
 
-1. **Attempt 1**: Invoke a 개발팀 (dev-team) subagent in auto mode with the failing level, exact error, files involved, and instruction: "Auto mode. Hotfix: fix the following test failure. Read the error, read the file, fix it directly. Write a step log to the plan's log directory if available, otherwise skip logging."
+1. **Attempt 1** (always automatic — low risk): Invoke a 개발팀 (dev-team) subagent in auto mode with the failing level, exact error, files involved, and instruction: "Auto mode. Hotfix: fix the following test failure. Read the error, read the file, fix it directly. Write a step log to the plan's log directory if available, otherwise skip logging."
 2. Re-invoke 테스트팀 from the failed level onward (same logging requirements).
-3. If tests pass AND QA approves: commit and report success.
-4. **Attempt 2**: If still failing, repeat with new error context.
+3. If tests pass AND QA approves: commit and report success (apply same `autonomy_level` gate as step 2 above).
+4. **Attempt 2** (autonomy-gated — repeated failure suggests a deeper issue):
+   - If `autonomy_level` is `proactive`: auto-proceed (current behavior).
+   - If `autonomy_level` is `standard` or `passive`: ask: "Hotfix 1차 시도가 실패했습니다. 2차 시도를 진행할까요? (기본값: 진행)"
+   - If proceeding: repeat with new error context.
 5. If still failing after 2 attempts: report failure with original error, what was attempted, and suggested next steps.
+
+> After each gated decision (Hotfix Attempt 2 gate, commit gate), record the decision per the Decision Point Logging Rule. run-test keeps decisions in memory; they propagate up to the pipeline skill's pipeline_summary.md.
 
 ## Log Directory Resolution
 - If $ARG points to a plan file: log directory is the task root (grandparent of `plan/plan.md`).

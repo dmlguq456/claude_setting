@@ -1,7 +1,7 @@
 ---
 name: refine-plan
 description: Reflect user memos/comments in a plan and update it (do NOT implement)
-argument-hint: "<plan name or path> [--qa light|standard|thorough]"
+argument-hint: "<plan name or path> [--qa light|standard|thorough|adversarial]"
 ---
 
 ## Plan Resolution (canonical — keep in sync with execute-plan, run-test, final-report, refine-plan, autopilot-dev, autopilot-audit)
@@ -41,15 +41,24 @@ Return which steps were changed and a brief summary.
 ```
 
 ## QA Scaling
-If `$ARGUMENTS` contains `--qa light|standard|thorough`, use that level and strip the flag. Otherwise, auto-detect from the refinement scope:
+If `$ARGUMENTS` contains `--qa light|standard|thorough|adversarial`, use that level and strip the flag.
+
+If `$ARGUMENTS` contains `--autonomy proactive|standard|passive`, strip the flag (value is discarded — refine-plan does not gate any decisions based on autonomy level; autonomy_level is already in plan frontmatter for downstream consumers).
+
+> Note: refine-plan delegates to 기획팀 and runs a QA review loop. The "3 rounds with 🔴 remaining" outcome is handled at the init-plan level and does not need separate gating here.
+
+Otherwise, auto-detect from the refinement scope:
 
 | Level | Auto-detect condition | Action |
 |---|---|---|
 | **Light** | ≤3 steps changed, mechanical | 1× 품질관리팀 (`model: "sonnet"`) |
 | **Standard** | 4-10 steps changed, logic changes | 1× 품질관리팀 (default opus) |
 | **Thorough** | >10 steps changed, architectural | 2× 품질관리팀 in parallel (A/B only) |
+| **Adversarial** | Cross-variant (SE+SS+CSS), shared modules (utils/, network.py), or >20 steps changed — **AND Codex available** | Thorough-level 품질관리팀 (A/B) + 1× codex-review-team (`adversarial-review`) in parallel; Codex writes `refine_round_{N}_codex.md` |
 
 > See `--qa` flag for manual override. When `qa_level` is set in plan frontmatter, it overrides auto-detect.
+
+**Codex availability check**: Before selecting Adversarial, run `codex --version` (suppress stderr). If the command fails or Codex is not authenticated, fall back to Thorough silently. This check is skipped if `--qa adversarial` is explicitly specified (fail loudly instead).
 
 **Thorough mode** — launch 2 QA agents in parallel:
 - Agent A: "Focus on **correctness**: Do the revised steps reference correct files/functions? Are dependencies updated?"

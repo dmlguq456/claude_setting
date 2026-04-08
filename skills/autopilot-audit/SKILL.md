@@ -1,7 +1,7 @@
 ---
 name: autopilot-audit
 description: "Audit pipeline — reviews all changes from a completed dev cycle with fresh eyes. Runs: init-plan → [review (optional)] → execute-plan → run-test → final-report"
-argument-hint: "<dev plan name or path> [--from <step>] [--qa light|standard|thorough]"
+argument-hint: "<dev plan name or path> [--from <step>] [--qa light|standard|thorough] [--autonomy proactive|standard|passive]"
 ---
 
 ## Language Rule
@@ -20,7 +20,24 @@ Parse `$ARGUMENTS` for optional flags:
 - `--qa light` / `--qa standard` / `--qa thorough`
 - Same propagation rules as autopilot-dev.
 
+**`--autonomy <level>`** — same as autopilot-dev. Default: `proactive`.
+Same propagation rules as autopilot-dev (including validation, mid-pipeline switching).
+
 The remaining text (after removing flags) is the **dev plan name or path** (not a task description).
+
+## Autonomy Gating
+
+| Decision Point | Severity | proactive | standard | passive |
+|---|---|---|---|---|
+| Existing audit plan conflict | Significant | auto-decide by status | ask (current behavior) | ask |
+| Test failure → stop (no retry) | Critical | auto-stop + report | ask: "감사 테스트가 실패했습니다. 롤백하고 중단할까요?" | ask |
+| Pipeline failure | Critical | ask | ask | ask |
+
+When the pipeline reaches a gated decision point:
+- If the current autonomy level includes that severity → **pause and ask** the user.
+- Otherwise → **proceed with the default action** (described in the proactive column).
+- All "ask" prompts must include: (1) the situation summary, (2) available options, (3) the default action if no response.
+- **Logging**: After each decision (auto or user), record in memory: `{step} | {decision description} | {user response or "auto"} | {action taken}`. These records are written to the Decision Points table in `pipeline_summary.md` when it is created at pipeline end.
 
 ## Plan Resolution (canonical — keep in sync with execute-plan, run-test, final-report, refine-plan, autopilot-dev, autopilot-audit)
 Resolve $ARG (remaining text after flag removal) to the dev plan file path:
@@ -38,8 +55,12 @@ Before creating a new audit plan, check if an audit plan already exists:
 - Search for `{dev_plan_folder_name}_audit` in `.claude_reports/plans/`
 - If found AND `--from plan` (default):
   - Read its frontmatter `status`:
-    - `active`: An incomplete audit exists. Ask the user: "기존 audit plan이 있습니다. 이어서 진행할까요, 새로 만들까요?"
-    - `done`/`partial`/`failed`: Note for reference, create a new audit plan.
+    - `active`: An incomplete audit exists.
+      - If `proactive`: auto-decide — resume existing audit plan.
+      - If `standard`/`passive`: ask the user: "기존 audit plan이 있습니다. 이어서 진행할까요, 새로 만들까요? (기본값: 이어서 진행)"
+    - `done`/`partial`/`failed`:
+      - If `proactive`: auto-decide — create a new audit plan.
+      - If `standard`/`passive`: note for reference, ask the user whether to create a new audit plan.
 - If found AND `--from` is refine/execute/test/report: use the existing audit plan.
 
 ## Pipeline
@@ -79,9 +100,11 @@ Invoke Skill: `execute-plan` with the audit plan path.
 ### Step 3: run-test
 Invoke Skill: `run-test` with the audit plan path.
 - **NO retry loop** (max 0 retries). If tests fail after the internal hotfix loop (2 attempts):
-  - Rollback audit changes only: determine changed paths from checklist or git diff. The audit plan's safety commit is stored in its own `plan/checklist.md` header, written by execute-plan during audit execution. Run `git checkout <audit-safety-commit> -- <changed paths>`
-  - This restores to post-dev state (dev changes are already committed).
-  - Write pipeline_summary.md (status: failed) FIRST, then report to user, and stop.
+  - If `proactive`: auto-rollback and stop —
+    - Rollback audit changes only: determine changed paths from checklist or git diff. The audit plan's safety commit is stored in its own `plan/checklist.md` header, written by execute-plan during audit execution. Run `git checkout <audit-safety-commit> -- <changed paths>`
+    - This restores to post-dev state (dev changes are already committed).
+    - Write pipeline_summary.md (status: failed) FIRST, then report to user, and stop.
+  - If `standard`/`passive`: ask the user: "감사 테스트가 실패했습니다. 롤백하고 중단할까요? (기본값: 롤백 후 중단)" — include: (1) which tests failed, (2) options: rollback+stop / keep changes+stop / keep changes+continue, (3) default: rollback+stop. On confirmation (or no response): proceed with rollback and stop as described above.
 
 ### Step 4: final-report
 Invoke Skill: `final-report` with the audit plan path.
@@ -99,6 +122,7 @@ Write `{audit_log_dir}/pipeline_summary.md`:
 - **Audit Plan**: {audit_en_plan_path}
 - **Dev Safety Commit**: {dev plan's checklist.md Safety commit hash}
 - **Status**: done / partial / failed
+- **Autonomy**: {autonomy_level}
 
 ## Process Log
 | Step | Skill | Result | Notes |
@@ -115,7 +139,14 @@ Write `{audit_log_dir}/pipeline_summary.md`:
 - Dev logs/reviews: {path}/dev_logs/, {path}/dev_reviews/
 - Test report + reviews: {path}
 - Final report: {path}
+
+## Decision Points
+| Step | Decision | User Response | Action Taken |
+|---|---|---|---|
+| (filled from orchestrator's in-memory decision log) |
 ```
+
+When writing pipeline_summary.md, populate the Decision Points table from the in-memory decision records. If no decisions were recorded, write: `| - | No gated decisions triggered | - | - |`.
 
 Then report to the user: pipeline_summary.md path + 2-3 line verdict.
 

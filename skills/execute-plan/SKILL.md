@@ -70,13 +70,20 @@ Before any code changes, ensure the working tree is clean and up-to-date:
 ## QA Scaling
 `qa_level` in plan frontmatter overrides auto-detect for ALL phases. Otherwise, detect per phase:
 
+`autonomy_level` in plan frontmatter determines decision point gating. Default: `proactive`.
+
 | Level | Auto-detect condition | Action |
 |---|---|---|
 | **Light** | ≤3 units, mechanical, single-variant | 1× 품질관리팀 (`model: "sonnet"`) |
 | **Standard** | 4–10 units, logic changes, single module | 1× 품질관리팀 (default opus) |
 | **Thorough** | >10 units, cross-module/variant, architectural | 2–3× 품질관리팀 in parallel (opus): A=correctness, B=consistency, C=safety (>20 files) |
+| **Adversarial** | Cross-variant (SE+SS+CSS), shared modules (utils/, network.py), or >20 files with architectural impact — **AND Codex available** | Thorough-level 품질관리팀 + 1× codex-review-team (`adversarial-review`) in parallel |
 
 Thorough mode — A: bugs/logic/signature mismatches; B: naming/conventions/dead code; C: tensor shapes/None edge cases. Each writes to `dev_reviews/phase_{NN}_{focus}.md`. All 🔴 from ANY agent must be addressed.
+
+Adversarial mode — runs all Thorough agents PLUS an additional `codex-review-team` agent in the same parallel batch. The Codex agent runs `adversarial-review --wait --scope auto` and writes to `dev_reviews/phase_{NN}_codex.md`. All 🔴 from ANY agent (including Codex) must be addressed.
+
+**Codex availability check**: Before selecting Adversarial, run `codex --version` (suppress stderr). If the command fails or Codex is not authenticated, fall back to Thorough silently. This check is skipped if `--qa adversarial` is explicitly specified (fail loudly instead).
 
 ## Change Log & Phase Review
 - Each 개발팀 subagent writes its own step log file in `{log_dir}/dev_logs/`.
@@ -88,18 +95,30 @@ Thorough mode — A: bugs/logic/signature mismatches; B: naming/conventions/dead
      - **Light/Standard**: 1 agent. Prompt must include: the step log file names for THIS phase (in dev_logs/), the log directory path, the list of changed source files, and the review output file name. For Light mode, explicitly pass `model: 'sonnet'` when invoking 품질관리팀.
      - Example: "Review this phase in code review mode. Log dir: [path]. Step logs for this phase: [file list]. Changed source files: [file list]. Write review results to: [path]/dev_reviews/phase_01.md. Return the file path and a one-line verdict only."
      - **Thorough**: 2-3 agents in parallel (single message, multiple Agent tool calls). Same base prompt, each with a different focus suffix and output file name.
+     - **Adversarial**: same as Thorough, plus 1× `codex-review-team` agent in the same parallel batch. Codex prompt: "Run adversarial-review on the current changes. Write results to: {log_dir}/dev_reviews/phase_{NN}_codex.md. Return the file path and a one-line verdict."
      - `mkdir -p {log_dir}/dev_reviews` before first invocation.
      - The 품질관리팀 reads step logs (including Decision fields) and source files directly, then writes the review report to the specified file.
   2. **Read the review file** to determine next action:
      - 🟡 only: log in checklist and continue.
      - 🔴 minor: fix once via 개발팀 → re-verify (output `phase_{NN}_fix.md`). If still 🔴, treat as major.
-     - 🔴 major: rollback this phase and skip it.
+     - 🔴 major: **Autonomy gate (Significant)**:
+       - If `proactive`: auto-rollback phase and continue (proceed immediately to step 1 below).
+       - If `standard`: ask the user: "Phase N에서 🔴 major 이슈가 발견되었습니다. 롤백할까요, 수정을 시도할까요? (a) 롤백, (b) 수정 1회 시도, (c) 건너뛰기 (기본값: 롤백)" — wait for response before acting.
+       - If `passive`: ask the user with full issue detail (list all 🔴 issues found, which files are affected, and what the reviewer recommends), then ask: "어떻게 진행할까요? (a) 롤백, (b) 수정 1회 시도, (c) 건너뛰기 (기본값: 롤백)" — wait for response before acting.
        1. Delegate rollback to 개발팀 — restore every `old_string` from the phase's step logs.
        2. If rollback fails: read `$SAFETY_COMMIT` from checklist header → `git checkout .` (reverts ALL uncommitted changes including prior phases). Mark ALL steps `[FAIL]` ("Reverted by git checkout due to rollback failure in Phase N"). **Stop and go to Final Report.**
        3. If rollback succeeded: mark all steps in this phase `[FAIL]` with reason.
        4. Continue to the next phase. If it depends on the failed phase, mark those steps `[SKIP-DEP]`.
+
+> After each gated decision, record the decision per the Decision Point Logging Rule. Decisions propagate up to the pipeline skill's pipeline_summary.md.
+
 - For plans ≤3 steps, skip phase grouping — invoke reviewer once after all steps complete.
-- **On Total Failure** (ALL steps `[FAIL]`/`[SKIP-DEP]` after Plan Status Update): read `$SAFETY_COMMIT` → `git diff --name-only $SAFETY_COMMIT HEAD -- ':!.claude_reports'` → `git checkout $SAFETY_COMMIT -- <changed files>` (preserves `.claude_reports/`). Verify with `git status`. Note in Final Report.
+- **On Total Failure** (ALL steps `[FAIL]`/`[SKIP-DEP]` after Plan Status Update): **Autonomy gate (Critical)**:
+  - If `proactive`: auto-rollback to safety commit (proceed immediately to the steps below).
+  - If `standard` or `passive`: ask the user: "모든 단계가 실패했습니다. Safety commit으로 롤백할까요? (기본값: 롤백)" — wait for response before acting.
+  Read `$SAFETY_COMMIT` → `git diff --name-only $SAFETY_COMMIT HEAD -- ':!.claude_reports'` → `git checkout $SAFETY_COMMIT -- <changed files>` (preserves `.claude_reports/`). Verify with `git status`. Note in Final Report.
+
+> After each gated decision, record the decision per the Decision Point Logging Rule. Decisions propagate up to the pipeline skill's pipeline_summary.md.
 
 ## Safety Rules (CRITICAL)
 - CRITICAL: Before changing any function signature (args, return type, dict keys, tensor shapes): (1) grep all call sites, (2) update every caller, (3) check implicit contracts (None checks, `.shape` assumptions, dict key access).

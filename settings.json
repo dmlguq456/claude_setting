@@ -10,20 +10,28 @@
     ]
   },
   "model": "opus[1m]",
+  "statusLine": {
+    "type": "command",
+    "command": "node /home/Uihyeop/.claude/plugins/cache/cwm/cwm/2.0.0/hud/cwm-hud.mjs"
+  },
+  "enabledPlugins": {
+    "cwm@cwm": true,
+    "codex@openai-codex": true
+  },
   "extraKnownMarketplaces": {
     "cwm": {
       "source": {
         "source": "git",
         "url": "https://github.com/HSUNEH/dev_sys_template.git"
       }
+    },
+    "openai-codex": {
+      "source": {
+        "source": "github",
+        "repo": "openai/codex-plugin-cc"
+      }
     }
   },
   "effortLevel": "high",
-  "enabledPlugins": {
-    "cwm@cwm": true
-  },
-  "statusLine": {
-    "type": "command",
-    "command": "node /home/Uihyeop/.claude/plugins/cache/cwm/cwm/2.0.0/hud/cwm-hud.mjs"
-  }
+  "skipDangerousModePermissionPrompt": true
 }
