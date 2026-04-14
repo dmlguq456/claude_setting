@@ -6,7 +6,8 @@
       "Grep",
       "Write",
       "Edit",
-      "Agent"
+      "Agent",
+      "mcp__claude_ai_Notion__notion-update-page"
     ]
   },
   "model": "opus[1m]",
