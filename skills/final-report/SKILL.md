@@ -68,7 +68,7 @@ Follow these instructions:
    - Overall design, config, data flow, cross-variant → architecture.md
    - Project structure, doc table, file renames → CLAUDE.md
    Update Interface Reference tables (signatures, callers, line numbers). Skip if no steps succeeded.
-   **Verification (CRITICAL)**: After editing each doc file, run `grep` on the actual source code to verify that class/function line numbers in the Interface Reference table match reality. Do NOT copy line numbers from the plan or dev logs — they may be stale. Always verify against the current code.
+   **Verification**: Verify every class/function line number in the Interface Reference table against the **post-edit** source (use Grep or a fresh Read of the file *after* your own Step 5 edits complete). Line numbers from pre-edit reads, the plan, or dev logs may be stale.
 6. **Confirm doc changes are real**: After step 5, run `git diff --stat -- .claude_reports/docs_code/ CLAUDE.md` to confirm that documentation files were actually modified. If the diff is empty but you expected changes, something went wrong — re-read and re-edit the files. Do NOT claim documentation was updated unless git diff confirms it.
 7. **Read pipeline_summary.md** (log_directory/pipeline_summary.md) if it exists. Extract the Decision Points table for section 4.5. If the file does not exist or the table is empty, write "자율 판단 이벤트 없음 (proactive 모드, 클린 실행)" for section 4.5.
 8. Synthesize the information into a report. Do NOT just list changes — explain the reasoning and connect them to the bigger picture.
@@ -95,7 +95,7 @@ Follow these instructions:
 - Be specific about impact — mention exact callers, tensor shapes, or config keys.
 - Connect to project design when relevant.
 - Write the report in Korean. Code identifiers, file paths, and technical terms stay in English.
-- Aim for 1-2 pages total.
+- Aim for 1-3 pages total. Length should scale with change count: small plans (≤5 steps) can be 1 page; large refactors (>20 steps) may need 3.
 
 Return ONLY the file path and a one-line summary. Do NOT return the full report content.
 ```

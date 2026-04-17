@@ -4,6 +4,8 @@ description: Create a detailed implementation plan based on actual codebase
 argument-hint: "<task description> [--qa light|standard|thorough|adversarial] [--autonomy proactive|standard|passive]"
 ---
 
+> Caller note: planning benefits from `high` or `xhigh` effort; lower effort may miss call sites in cross-file analysis.
+
 ## Language Rule
 - Think and reason in English internally. Write all user-facing output in Korean.
 
@@ -41,7 +43,7 @@ Read all relevant source files, analyze the current state, and create the plan.
 Write the plan files directly. Return ONLY the file paths and a 3-5 line Korean summary. Do NOT return the plan content itself.
 ```
 
-**IMPORTANT: Do NOT read, re-write, or duplicate the plan file yourself.** The agent writes it directly. You only receive paths and a summary.
+The agent writes the plan file directly; the orchestrator only receives paths and a summary.
 
 ## QA Scaling
 If `$ARGUMENTS` contains `--qa light|standard|thorough|adversarial`, use that level and strip the flag from the task description. Otherwise, auto-detect from the plan's scope. When `qa_level` is set in plan frontmatter, it overrides auto-detect.

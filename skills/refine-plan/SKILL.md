@@ -34,7 +34,7 @@ Read the Korean plan and find all user memos. Memos can appear in any of these f
 - `// ...` (inline comment)
 - `[memo] ...` (bracketed annotation)
 - `(**...**)` (parenthetical note)
-- Any text that clearly looks like a user-added note
+- Any other text marked as a user annotation (e.g., a distinct block inserted between plan steps, or an inline sentence addressed to the planner). Do NOT treat the plan's original author-written prose as a memo.
 
 Re-read source files if needed, update the Korean plan in-place, and sync changes to the English plan. Remove the memo comments after incorporating them.
 Return which steps were changed and a brief summary.

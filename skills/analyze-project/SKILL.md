@@ -4,6 +4,8 @@ description: Analyze codebase and generate structured documentation in .claude_r
 argument-hint: "[target directory or scope]"
 ---
 
+> Caller note: this skill performs deep cross-module analysis. Callers should invoke at `high` or `xhigh` effort when the runtime supports it; at lower effort, cross-module depth narrows automatically.
+
 ## Language Rule
 - Think and reason in English internally.
 - Write documentation files (.claude_reports/docs_code/) in English.
@@ -16,7 +18,11 @@ Parse flags from $ARGUMENTS before starting:
 - Remaining text after flag removal is treated as the target directory or scope
 
 ## Phase 1: Codebase Analysis
-Read all code in $ARGUMENTS and identify:
+Determine the scope first:
+- If `$ARGUMENTS` is a directory path → read files under that path recursively.
+- If `$ARGUMENTS` is a keyword (e.g., "engine", "inference") → map to relevant modules by reading CLAUDE.md's structure section first, then read those modules.
+- If `$ARGUMENTS` is empty or absent → read CLAUDE.md's Project Structure section if present and derive scope from it; otherwise fall back to reading top-level entry points (`*.py` / `*.ts` / `*.go` / `*.rs` / project's primary language) at the repo root plus obvious source directories (`src/`, `lib/`).
+Read the in-scope code and identify:
 - Role and interface of each file/module
 - Data flow (input → processing → output)
 - Dependencies between modules

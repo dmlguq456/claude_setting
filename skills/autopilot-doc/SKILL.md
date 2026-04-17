@@ -135,7 +135,7 @@ Schema: {"query": "string", "survey_type": "string", "date": "YYYY-MM-DD",
   "results": [{"title": "string", "url": "string", "source": "string",
     "year": int|null, "snippet": "string", "relevance_score": float|null}]}
 
-Return file path + 3-5 line Korean summary of what was found.
+Return file path + a brief Korean summary of what was found.
 ```
 
 **0c. Post-Search Validation**
@@ -172,7 +172,7 @@ Read and catalog all materials from refs folder (non-survey modes) or discovery 
    - **presentation**: Analyze source document/paper → `analysis/ref_analysis.md` (key messages, audience analysis, narrative structure)
 3. Read PDF files using the Read tool. For large PDFs (>10 pages), read in page ranges.
 4. **Autonomy gate (Routine)**: Present the analysis summary.
-   - `proactive` / `standard`: auto-proceed to Step 2 after presenting the summary.
+   - `proactive` / `standard`: auto-proceed to Step 2. Do not wait for user acknowledgment; proceed immediately after presenting the summary.
    - `passive`: ask the user for confirmation before proceeding.
 
 ### Step 2: init-doc-strategy

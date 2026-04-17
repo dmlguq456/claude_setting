@@ -254,7 +254,7 @@ Every reviewer point must appear in rebuttal strategy (missing a point is a crit
 Write the strategy file directly. Return ONLY the file path and a 3-5 line Korean summary of the strategy. Do NOT return the strategy content itself.
 ````
 
-**IMPORTANT: Do NOT read, re-write, or duplicate the strategy file yourself.** The agent writes it directly. You only receive paths and a summary.
+The agent writes the strategy file directly; the orchestrator only receives paths and a summary.
 
 ## QA Scaling
 Auto-detect from strategy scope:

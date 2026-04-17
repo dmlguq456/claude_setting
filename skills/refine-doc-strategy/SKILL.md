@@ -38,7 +38,7 @@ Read the Korean {doc_type} and find all user memos. Memos can appear in any of t
 - `// ...` (inline comment)
 - `[memo] ...` (bracketed annotation)
 - `(**...**)` (parenthetical note)
-- Any text that clearly looks like a user-added note
+- Any other text marked as a user annotation (e.g., a distinct block inserted between plan steps, or an inline sentence addressed to the planner). Do NOT treat the plan's original author-written prose as a memo.
 
 Also check the analysis/ directory for any updated materials.
 For draft refinement: also cross-check against the strategy document at {artifact_root}/strategy/ to verify the draft faithfully reflects all strategy points.

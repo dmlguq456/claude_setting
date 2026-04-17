@@ -130,7 +130,7 @@ After all phases are processed, read the English checklist and report a summary 
 - List only `[FAIL]` and `[SKIP-DEP]` steps with their reasons.
 - If all steps are `[x]`: report success, no need to list individual steps.
 - At the end of the report, recommend the user run `/run-test <plan file path>` to verify functional correctness.
-- This is the only progress report the user sees — keep it concise.
+- This is the only progress report the user sees in standalone invocation. Include FAIL/SKIP-DEP reasons, overall verdict, and next command. For success-only runs a single-line verdict is sufficient; scale length with failure count.
 
 ## Plan Status Update
 - When all steps are marked `[x]`: change the English plan's frontmatter `status` to `done`.

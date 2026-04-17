@@ -196,9 +196,7 @@ If run-test reports failure (after its internal hotfix loop of 2 attempts):
 Invoke Skill: `final-report` with the plan name/path as args.
 
 ### Step 6: Pipeline Summary Report
-**Always write** `{log_dir}/pipeline_summary.md` — both on success AND failure.
-
-**pipeline_summary.md must be written BEFORE reporting to the user, regardless of success/failure path.** This is the first action upon reaching any terminal state (success, partial, failed, or stop). Do NOT report to the user first and write the summary later.
+**Write `{log_dir}/pipeline_summary.md` as the first action on reaching any terminal state** (success, partial, failed, or stop) — before reporting to the user, on success and failure paths alike.
 
 This is a process log and artifact index — NOT a change analysis (that's final-report's job).
 
@@ -283,7 +281,7 @@ Invoke Skill: `run-test` with the audit plan path.
 Invoke Skill: `final-report` with the audit plan path.
 
 ### Step 5: Pipeline Summary Report
-**pipeline_summary.md must be written BEFORE reporting to the user, regardless of success/failure path.** This is the first action upon reaching any terminal state (success, partial, failed, or stop).
+**Write `{audit_log_dir}/pipeline_summary.md` as the first action on reaching any terminal state** (success, partial, failed, or stop) — before reporting to the user, on success and failure paths alike.
 
 Write `{audit_log_dir}/pipeline_summary.md`:
 
