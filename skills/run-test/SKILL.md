@@ -4,7 +4,7 @@ description: Run functional tests after execute-plan or on demand to verify code
 argument-hint: "<plan name, path, or test scope>"
 ---
 
-## Plan Resolution (canonical — keep in sync with execute-plan, run-test, final-report, refine-plan, autopilot-dev, autopilot-audit)
+## Plan Resolution (canonical — keep in sync with execute-plan, run-test, final-report, refine-plan, autopilot-code)
 Resolve `$ARG` to a plan file path:
 1. If it ends with `.md` → use as-is
 2. If it's a directory path → append `/plan/plan.md`
@@ -78,7 +78,7 @@ All issues from ANY agent (including Codex) must be addressed before proceeding.
 
 ## Post-Test: QA Review
 After the 테스트팀 agent returns:
-1. **Read the test log** (`{log_dir}/test_logs/test_report.md`).
+1. **Read the test log** (skill-level read — permitted per DESIGN_PRINCIPLES 3.3) (`{log_dir}/test_logs/test_report.md`).
 2. **Invoke 2× 품질관리팀 in parallel** with:
 
    - **Agent A prompt (coverage)**:
@@ -101,7 +101,7 @@ After the 테스트팀 agent returns:
    Return the file path and a one-line verdict.
    ```
 
-3. **Read both QA reviews**. If either finds issues: re-invoke 테스트팀 for those items, appending to test_report.md. If both pass: proceed to result reporting.
+3. **Read both QA reviews** (skill-level read — permitted per DESIGN_PRINCIPLES 3.3). If either finds issues: re-invoke 테스트팀 for those items, appending to test_report.md. If both pass: proceed to result reporting.
 
 ## Commit Message Convention
 - Safety checkpoint: `chore: Safety checkpoint before {plan-name} execution`

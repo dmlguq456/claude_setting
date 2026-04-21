@@ -74,7 +74,7 @@ Determine the mode based on the prompt/context:
    - Syntax check: `python -c "import ast; ast.parse(open('<file>').read())"`
    - Import check: `python -c "from <module> import <class>"`
 4. **Write review report to file** at the path specified in the prompt.
-5. **Return only the file path and a one-line verdict.**
+5. Return per **Return Format** section below.
 
 ## Output Format -- Code Review Mode
 
@@ -149,6 +149,14 @@ Per item:
 
 - Praise well-considered aspects.
 ```
+
+## Return Format (CRITICAL)
+Every response to a skill invocation MUST be exactly one line:
+```
+{output_file_path} -- {verdict}
+```
+Verdict tokens: "✅ No issues", "🔴 N issues (M major)", "🟡 N suggestions".
+Full results go in the output file.
 
 ## Style and Constraints
 

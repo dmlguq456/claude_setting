@@ -4,7 +4,7 @@ description: Generate a detailed change report from plan + dev logs — focuses 
 argument-hint: "<plan name or path>"
 ---
 
-## Plan Resolution (canonical — keep in sync with execute-plan, run-test, final-report, refine-plan, autopilot-dev, autopilot-audit)
+## Plan Resolution (canonical — keep in sync with execute-plan, run-test, final-report, refine-plan, autopilot-code)
 Resolve `$ARG` to a plan file path:
 1. If it ends with `.md` → use as-is
 2. If it's a directory path → append `/plan/plan.md`
@@ -16,24 +16,23 @@ Resolve `$ARG` to a plan file path:
 ## Language Rule
 - Think and reason in English internally. Write all user-facing output in Korean.
 
-## QA Scaling
-Use `qa_level` from plan frontmatter if present; otherwise auto-detect. Also read `autonomy_level` from plan frontmatter if present. Pass it to the 품질관리팀 prompt as context.
+## Model & QA Policy
+
+**Writer: always sonnet.** The final report is a synthesis over artifacts that were already verified by prior pipeline stages (plan reviews in init-plan/refine-plan, code reviews in execute-plan phase gates, test reviews in run-test). The final-report content itself does NOT require a QA/review pass — inaccuracies (line-number drift, outdated follow-ups) are user-facing and can be corrected on read, without affecting the committed code. Spending opus/codex budget here is wasted.
 
 | Level | Auto-detect condition | Action |
 |---|---|---|
-| **Light** | ≤5 steps, single variant | 1× 품질관리팀 (`model: "sonnet"`) |
-| **Standard** | 6-15 steps, moderate scope | 1× 품질관리팀 (default opus) |
-| **Thorough** | >15 steps, cross-variant, or architectural | 1× 품질관리팀 (opus), sequential only |
-| **Adversarial** | Cross-variant (SE+SS+CSS), shared modules (utils/, network.py), or >20 steps — **AND Codex available** | 1× 품질관리팀 (opus) sequential + 1× codex-review-team (`adversarial-review`) after report is written; Codex reviews the final report for missed issues and writes `{log_dir}/final_report_codex.md` |
+| **Light** | ≤5 steps, single variant | 1× 품질관리팀 (`model: "sonnet"`) writes the report |
+| **Standard** | 6-15 steps, moderate scope | 1× 품질관리팀 (`model: "sonnet"`) writes the report |
+| **Thorough** | >15 steps, cross-variant, or architectural | 1× 품질관리팀 (`model: "sonnet"`) writes the report |
+| **Adversarial** | Cross-variant / shared modules / >20 steps | 1× 품질관리팀 (`model: "sonnet"`) writes the report |
 
-**Thorough and Adversarial do NOT parallelize report generation** — report generation is a synthesis task. QA Scaling here affects model choice and applies only to the optional QA review step, not to report generation itself.
+QA level from plan frontmatter `qa_level` or `--qa` flag still flows in (for context logging), but in final-report it affects **only the prompt's context**, not the model or any post-write review. No codex review of the report. No parallel writers. No review loop.
 
-**Codex availability check**: Before selecting Adversarial, run `codex --version` (suppress stderr). If unavailable, fall back to Thorough silently. Skipped if `--qa adversarial` is explicit (fail loudly).
-
-> `--qa` flag overrides auto-detect. `qa_level` in frontmatter overrides `--qa`.
+Read `autonomy_level` from plan frontmatter if present. Pass it to the 품질관리팀 prompt as context.
 
 ## Delegate to 품질관리팀
-Assess QA level from the plan scope (step count, variants affected) per the QA Scaling table above, then invoke the **qa-team** (품질관리팀) agent (with `model: "sonnet"` for Light level) as a subagent with the following prompt:
+Invoke the **qa-team** (품질관리팀) agent with `model: "sonnet"` (all levels) as a subagent with the following prompt:
 
 ```
 Generate a final change report.
@@ -100,12 +99,26 @@ Follow these instructions:
 Return ONLY the file path and a one-line summary. Do NOT return the full report content.
 ```
 
-## Post-Report
+## Post-Report — Memory × Report Reconciliation
 After the 품질관리팀 agent returns:
-1. Relay the report file path and a one-line summary to the user.
-2. **Optional QA review**: After report writing is complete, invoke 품질관리팀 in code review mode per QA Scaling to review the report's accuracy AND docs_code/ update correctness. QA scope: (1) report content accuracy, (2) docs_code/ Interface Reference correctness.
 
-Note: Thorough mode does NOT parallelize report generation — report generation is a synthesis task. QA Scaling applies only to the optional QA review step above, not to report generation itself.
+1. **Read the produced `final_report.md` once.** The file is short (1-3 pages, ≲1500 tokens) — cheap.
+
+2. **Reconcile with your orchestration memory.** You already carry rich context from running init-plan → refine-plan → execute-plan → run-test through subagent returns and your own Bash/Edit/Read calls. Compare the report against that memory:
+   - **Numbers**: step counts, 🔴 resolution rounds, test pass/fail counts, commit hashes, file counts.
+   - **Line numbers**: if the report cites `file.py:NNN`, verify you remember the same location (drift is common).
+   - **Status of follow-ups**: report may claim an item is "pending" when memory says it was resolved in a later round.
+   - **Deviations**: did any subagent flag a deviation from the plan that the report missed?
+   
+3. **Relay a concise Korean brief to the user** (2-3 paragraphs, NOT just the file path). The brief should:
+   - State the final status (done/partial/failed) and final commit hash
+   - Highlight 3-5 concrete deliverables / changes
+   - Flag any discrepancies between memory and report explicitly (e.g., "리포트 본문엔 L1195로 기재됐는데 실제 HEAD 기준 L1207 — 리포트 오기")
+   - Suggest obvious next steps
+
+4. **Do NOT run another QA review on the report.** Inaccuracies are user-facing and can be corrected on read. The reconciliation step (2) is the lightweight safety net.
+
+Rationale: the main Claude's memory is the richest orchestration-time record, and the report is the fact-checked persistent artifact. A cheap cross-check between the two gives the user a summary that benefits from both sources — without paying for a full QA/codex pass on the report itself.
 
 ## Task
 Generate report for: $ARG

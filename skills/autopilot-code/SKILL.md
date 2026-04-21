@@ -89,7 +89,7 @@ When the pipeline reaches a gated decision point:
 | Fix verification failed → stop | Critical | auto-rollback + report | ask | ask |
 | Environment issue (not code bug) | Significant | auto-report env steps | ask: "환경 문제로 확인됩니다. 코드 수정 대신 환경 조치 안내만 할까요?" | ask |
 
-## Plan Resolution (canonical — keep in sync with execute-plan, run-test, final-report, refine-plan, autopilot-code)
+## Plan Resolution (canonical — keep in sync with execute-plan, run-test, final-report, refine-plan)
 Resolve `$ARG` to a plan file path:
 1. If it ends with `.md` → use as-is
 2. If it's a directory path → append `/plan/plan.md`
@@ -123,30 +123,12 @@ Invoke Skill: `init-plan` with the task description as args.
 Wait for completion before proceeding.
 
 ### Step 2: refine-plan (연구팀 as user proxy)
-1. Resolve the plan paths from the init-plan output:
-   - `plan_folder` = `.claude_reports/plans/{YYYY-MM-DD}_{short-task-name}/`
-   - `en_plan_path` = `{plan_folder}/plan/plan.md`
-   - `ko_plan_path` = `{plan_folder}/plan/plan_ko.md`
-   - `log_dir` = `{plan_folder}/`
-
-2. Invoke the **연구팀** (research-team) agent:
-   ```
-   Review this plan as the user's proxy.
-
-   Korean plan file: {ko_plan_path}
-   English plan file: {en_plan_path}
-   Review log file: {log_dir}/plan_reviews/research_review.md
-
-   Read the Korean plan, cross-check against papers and domain knowledge,
-   and write review memos as `<!-- memo: ... -->` comments in the Korean plan.
-   Also write a structured review log to the specified log file path.
-   Return a summary of memos added (or "no issues found").
-   ```
-
-3. If memos were added:
-   - **Autonomy gate (Significant)**: If `standard` or `passive`, ask: "연구팀이 {N}개 메모를 추가했습니다. 검토 후 refine을 진행할까요? (기본값: 진행)". If `proactive`, auto-proceed.
-   - Invoke Skill: `refine-plan` with the Korean plan path as args.
-4. If no memos: Skip to Step 3.
+1. Resolve plan paths from init-plan output: `en_plan_path`, `ko_plan_path`, `log_dir`.
+2. Invoke **연구팀** (research-team) agent: "Review this plan as user proxy. Korean plan: {ko_plan_path}. English plan: {en_plan_path}. Review log: {log_dir}/plan_reviews/research_review.md."
+3. If memos added:
+   - **Autonomy gate (Significant)**: If `standard`/`passive`, ask: "연구팀이 {N}개 메모를 추가했습니다. 검토 후 refine을 진행할까요? (기본값: 진행)". If `proactive`, auto-proceed.
+   - Invoke Skill: `refine-plan` with the Korean plan path.
+4. If no memos: skip to Step 3.
 
 ### Step 3: execute-plan
 Invoke Skill: `execute-plan` with the plan name/path as args.
@@ -173,14 +155,14 @@ If run-test reports failure (after its internal hotfix loop of 2 attempts):
 
 **Autonomy gate (Critical)**: If `autonomy_level` is `standard` or `passive`, ask: "테스트가 실패했습니다. 재시도할까요, 중단할까요? (기본값: 재시도)". If `proactive`, auto-retry.
 
-1. **Collect failure context**: Read `test_logs/test_report.md`, `test_reviews/test_review_coverage.md`, `test_reviews/test_review_accuracy.md`, and `plan/checklist.md`. Synthesize a concise failure summary (keep in memory).
+1. **Collect failure context**: Note the test failure verdict from run-test's return. Failure details are in `test_logs/test_report.md` and `test_reviews/` — these will be consumed by refine-plan's agent, not by the orchestrator.
 
 2. **Rollback source code only** (preserve plan/log files):
    - Read Safety commit hash from `plan/checklist.md` header: `Safety commit: {hash}`
    - Run: `git checkout <safety-commit> -- <changed paths>` (NOT `.claude_reports/`)
    - Verify with `git status`
 
-3. **Write failure memos into Korean plan**: Append `<!-- memo: [테스트 실패] Level N 실패. 에러: {error summary}. Hotfix 2회 실패. 대안 필요. 참조: test_logs/test_report.md -->` at relevant steps in `plan/plan_ko.md`.
+3. **Write failure memos into Korean plan**: Append `<!-- memo: [테스트 실패] run-test 실패. 상세: test_logs/test_report.md, test_reviews/. 대안 필요. -->` at relevant steps in `plan/plan_ko.md`.
 
 4. **Reset checklist**: Reset all step marks in `plan/checklist.md` to `[ ]`.
 
@@ -196,65 +178,17 @@ If run-test reports failure (after its internal hotfix loop of 2 attempts):
 Invoke Skill: `final-report` with the plan name/path as args.
 
 ### Step 6: Pipeline Summary Report
-**Write `{log_dir}/pipeline_summary.md` as the first action on reaching any terminal state** (success, partial, failed, or stop) — before reporting to the user, on success and failure paths alike.
-
-This is a process log and artifact index — NOT a change analysis (that's final-report's job).
-
-When writing pipeline_summary.md, populate the Decision Points table from the in-memory decision records accumulated during the pipeline run. If no decisions were recorded (proactive mode, clean run), write a single row: `| - | No gated decisions triggered | - | - |`.
-
-```markdown
-# Pipeline Summary: {task name}
-
-- **Date**: {YYYY-MM-DD}
-- **Plan**: {en_plan_path}
-- **Status**: done / partial / failed
-- **Autonomy**: {autonomy_level} (proactive / standard / passive)
-
-## Process Log
-| Step | Skill | Result | Notes |
-|---|---|---|---|
-| 1 | init-plan | | |
-| 2 | refine-plan | | |
-| 3 | execute-plan | | |
-| 4 | run-test | | |
-| 4R | retry (refine→execute→test) | | |
-| 5 | final-report | | |
-
-## Artifacts
-- Plan (EN/KO), Checklist: {plan_folder}/plan/
-- Dev logs/reviews: {plan_folder}/dev_logs/, dev_reviews/
-- Test report/reviews: {test_log_path}
-- Final report: {final_report_path}
-
-## Decision Points
-| Step | Decision | User Response | Action Taken |
-|---|---|---|---|
-| (filled from orchestrator's in-memory decision log) |
-```
-
+Write `pipeline_summary.md` per the **Pipeline Summary Template (mode=dev)** (see below).
 Then report to the user: pipeline_summary.md path + 2-3 line verdict.
 
 ## Pipeline: Mode audit
 
 ### Step 1: Generate audit task + init-plan
-Construct the audit task description:
-```
-Audit changes from: {dev_en_plan_path}
-Git diff: {dev-safety-commit}..HEAD
+Invoke Skill: `init-plan` with an audit task description that includes:
+- Source: `Audit changes from: {dev_en_plan_path}` and `Git diff: {dev-safety-commit}..HEAD`
+- Review scope (5 areas): Bugs, Consistency, Safety, Missed spots, Suboptimal patterns. Scope: ONLY files changed in the dev cycle.
 
-Review all code changes and identify:
-1. Bugs — logic errors, off-by-one, wrong variable, missing edge cases
-2. Consistency — naming, style, patterns inconsistent with surrounding code
-3. Safety — tensor shape mismatches, unchecked None/empty, device mismatches
-4. Missed spots — callers not updated, dead code left behind, stale comments
-5. Suboptimal patterns — unnecessary copies, redundant operations, unclear logic
-
-Scope: ONLY files changed in the dev cycle.
-```
-
-Invoke Skill: `init-plan` with the audit task description.
-- Plan folder: `.claude_reports/plans/{YYYY-MM-DD}_{original-task-name}_audit/`
-- Wait for completion.
+Plan folder: `.claude_reports/plans/{YYYY-MM-DD}_{original-task-name}_audit/`. Wait for completion.
 
 ### Step 1.5: Quick review (optional)
 
@@ -281,44 +215,7 @@ Invoke Skill: `run-test` with the audit plan path.
 Invoke Skill: `final-report` with the audit plan path.
 
 ### Step 5: Pipeline Summary Report
-**Write `{audit_log_dir}/pipeline_summary.md` as the first action on reaching any terminal state** (success, partial, failed, or stop) — before reporting to the user, on success and failure paths alike.
-
-Write `{audit_log_dir}/pipeline_summary.md`:
-
-```markdown
-# Audit Pipeline Summary: {task name}
-
-- **Date**: {YYYY-MM-DD}
-- **Dev Plan**: {dev_en_plan_path}
-- **Audit Plan**: {audit_en_plan_path}
-- **Dev Safety Commit**: {dev plan's checklist.md Safety commit hash}
-- **Status**: done / partial / failed
-- **Autonomy**: {autonomy_level}
-
-## Process Log
-| Step | Skill | Result | Notes |
-|---|---|---|---|
-| 1 | init-plan (audit) | created / resumed | plan path |
-| 1.5 | 연구팀 review | done / skipped | trigger: step count >10 / hard constraint files / n/a |
-| 2 | execute-plan (audit) | done / partial / failed | [x] N, [FAIL] N, [SKIP-DEP] N |
-| 3 | run-test (audit) | pass / fail | levels passed, hotfix attempts if any |
-| 4 | final-report (audit) | generated | report path |
-
-## Artifacts
-- Audit Plan (EN/KO): {path}
-- Checklist: {path}
-- Dev logs/reviews: {path}/dev_logs/, {path}/dev_reviews/
-- Test report + reviews: {path}
-- Final report: {path}
-
-## Decision Points
-| Step | Decision | User Response | Action Taken |
-|---|---|---|---|
-| (filled from orchestrator's in-memory decision log) |
-```
-
-When writing pipeline_summary.md, populate the Decision Points table from the in-memory decision records. If no decisions were recorded, write: `| - | No gated decisions triggered | - | - |`.
-
+Write `pipeline_summary.md` per the **Pipeline Summary Template (mode=audit)** (see below).
 Then report to the user: pipeline_summary.md path + 2-3 line verdict.
 
 ## Pipeline: Mode debug
@@ -398,34 +295,46 @@ Invoke Skill: `final-report` with the fix plan path.
 
 **pipeline_summary.md must be written BEFORE reporting to the user, regardless of success/failure path.** This is the first action upon reaching any terminal state (fixed, partial, unresolved, or stop). On failure path (Step 5 rollback), pipeline_summary.md is written as part of that failure path — do NOT skip it.
 
-Write `{log_dir}/pipeline_summary.md`:
-```markdown
-# Debug Pipeline Summary: {error name}
+Write `pipeline_summary.md` per the **Pipeline Summary Template (mode=debug)** (see below).
+Report to user: summary + verdict.
 
-- **Date**: {YYYY-MM-DD} | **Status**: fixed / partial / unresolved | **Attempts**: {N}
-- **Error**: {error type and message}
-- **Root Cause**: {diagnosis}
-- **Fix Plan**: {plan path}
+## Pipeline Summary Template (all modes)
+
+**Write `{log_dir}/pipeline_summary.md` as the FIRST action on reaching any terminal state** (success, partial, failed, stop) — before reporting to the user, on all paths.
+
+This is a process log and artifact index — NOT a change analysis (that's final-report's job).
+
+Populate the Decision Points table from in-memory decision records. If none: `| - | No gated decisions triggered | - | - |`.
+
+```markdown
+# {mode_title}: {task_or_error_name}
+
+- **Date**: {YYYY-MM-DD}
+- **Status**: done / partial / failed{debug: " / unresolved"}
+{mode_specific_fields}
 - **Autonomy**: {autonomy_level}
 
 ## Process Log
-| Step | Action | Result |
-|---|---|---|
-| 1 | Diagnosis | {root cause} @ {file:line} |
-| 2 | init-plan + QA | {plan path} |
-| 4 | execute-plan | done / partial / failed |
-| 5 | run-test | pass / fail |
-| 6 | final-report | {report path} |
+| Step | Skill/Action | Result | Notes |
+|---|---|---|---|
+{mode_specific_rows}
+
+## Artifacts
+{mode_specific_artifacts}
 
 ## Decision Points
 | Step | Decision | User Response | Action Taken |
 |---|---|---|---|
-| (filled from orchestrator's in-memory decision log) |
 ```
 
-When writing pipeline_summary.md, populate the Decision Points table from the in-memory decision records. If no decisions were recorded, write: `| - | No gated decisions triggered | - | - |`.
+### Mode-specific fields
 
-Report to user: summary + verdict.
+| Field | dev | audit | debug |
+|---|---|---|---|
+| Title prefix | "Pipeline Summary" | "Audit Pipeline Summary" | "Debug Pipeline Summary" |
+| Extra header fields | `Plan: {en_plan_path}` | `Dev Plan: {path}` + `Audit Plan: {path}` + `Dev Safety Commit: {hash}` | `Error: {msg}` + `Root Cause: {diagnosis}` + `Fix Plan: {path}` + `Attempts: {N}` |
+| Process Log rows | Steps 1-5 + 4R (retry: refine→execute→test) | Steps 1, 1.5, 2-4 | Steps 1-6 (Step 1=Diagnosis, no row for Step 3) |
+| Artifacts | plan/, dev_logs/, dev_reviews/, test_logs/, test_reviews/, final_report | same + audit-specific prefixes | same minus research artifacts |
 
 ## Safety Rules
 

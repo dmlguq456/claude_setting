@@ -82,7 +82,7 @@ Test whether a URL is accessible (returns full content vs abstract-only vs block
 3. Classify: `full_access` / `abstract_only` / `blocked` / `captcha`
 4. Return classification + evidence (screenshot path + text sample)
 
-## Output Format
+## Output File Format
 
 Always return a JSON-like summary:
 ```
@@ -97,6 +97,14 @@ Failed URLs:
   - https://... — CAPTCHA detected
   - https://... — timeout after 30s
 ```
+
+## Return Format (CRITICAL)
+Every response to a skill invocation MUST be exactly one line:
+```
+{output_dir} -- {verdict}
+```
+Verdict examples: "✅ N/N URLs extracted", "⚠️ N/N URLs extracted (M failed)", "❌ All URLs failed".
+Full extraction details go in the output files per the Output File Format above.
 
 ## Constraints
 - Rate limit: Wait 3s between page loads (same domain)

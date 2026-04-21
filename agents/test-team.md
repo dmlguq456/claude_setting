@@ -83,6 +83,14 @@ Each level: list items with pass (OK), fail (error description), or skip (reason
 - **권장 조치**: (if failed, suggest what to fix)
 ```
 
+## Return Format (CRITICAL)
+Every response to a skill invocation MUST be exactly one line:
+```
+{test_report_path} -- {verdict}
+```
+Verdict tokens: "✅ All N levels passed", "❌ Failed at Level N: {reason}".
+Full test details are in the report file.
+
 ## Rules
 - **Do NOT modify any code.** Read-only verification only.
 - Stop at the first failing level — do not proceed to higher levels.

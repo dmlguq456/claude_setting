@@ -4,7 +4,7 @@ description: Execute an implementation plan with progress tracking
 argument-hint: "<plan name or path>"
 ---
 
-## Plan Resolution (canonical — keep in sync with execute-plan, run-test, final-report, refine-plan, autopilot-dev, autopilot-audit)
+## Plan Resolution (canonical — keep in sync with execute-plan, run-test, final-report, refine-plan, autopilot-code)
 Resolve `$ARG` to a plan file path:
 1. If it ends with `.md` → use as-is
 2. If it's a directory path → append `/plan/plan.md`
@@ -98,7 +98,7 @@ Adversarial mode — runs all Thorough agents PLUS an additional `codex-review-t
      - **Adversarial**: same as Thorough, plus 1× `codex-review-team` agent in the same parallel batch. Codex prompt: "Run adversarial-review on the current changes. Write results to: {log_dir}/dev_reviews/phase_{NN}_codex.md. Return the file path and a one-line verdict."
      - `mkdir -p {log_dir}/dev_reviews` before first invocation.
      - The 품질관리팀 reads step logs (including Decision fields) and source files directly, then writes the review report to the specified file.
-  2. **Read the review file** to determine next action:
+  2. **Read the review file** (skill-level read — permitted per DESIGN_PRINCIPLES 3.3) to determine next action:
      - 🟡 only: log in checklist and continue.
      - 🔴 minor: fix once via 개발팀 → re-verify (output `phase_{NN}_fix.md`). If still 🔴, treat as major.
      - 🔴 major: **Autonomy gate (Significant)**:

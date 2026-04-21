@@ -4,7 +4,7 @@ description: Reflect user memos/comments in a plan and update it (do NOT impleme
 argument-hint: "<plan name or path> [--qa light|standard|thorough|adversarial]"
 ---
 
-## Plan Resolution (canonical — keep in sync with execute-plan, run-test, final-report, refine-plan, autopilot-dev, autopilot-audit)
+## Plan Resolution (canonical — keep in sync with execute-plan, run-test, final-report, refine-plan, autopilot-code)
 Resolve `$ARGUMENTS` to plan file paths. Always resolve BOTH `plan.md` and `plan_ko.md`:
 1. If it ends with `.md` → use as-is; derive the other file by path swap (`plan.md` ↔ `plan_ko.md`)
 2. If it's a directory path → append `/plan/plan.md` (English) and `/plan/plan_ko.md` (Korean)

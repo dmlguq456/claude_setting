@@ -59,7 +59,7 @@ Body structure (in English):
 
 5. **Do NOT create the Korean version yet.** It will be created after the QA review loop finalizes the plan.
 
-6. **Return results**: Report the English plan file path and a 3-5 line summary in Korean.
+6. Return per **Return Format** section below.
 
 ## Procedure — Refine Mode (QA Review Feedback)
 
@@ -69,7 +69,7 @@ When the prompt includes a "QA review file" path (called from init-plan after QA
 3. **Re-read relevant source files** if the QA review reveals incorrect assumptions.
 4. **Fix the 🔴 issues** by updating the English plan in-place. Do NOT update the Korean version during the review loop — it will be regenerated after the loop ends.
 5. **Add a `## Change History` section** at the bottom of the English plan tracking what changed and why.
-6. **Return results**: Report which steps were changed and a brief summary in Korean. Do NOT return the plan content itself.
+6. Return per **Return Format** section below.
 
 ## Procedure — Refine Mode (User Memos)
 
@@ -90,12 +90,12 @@ When the prompt does NOT include a "QA review file" path (called from refine-pla
 5. **Update the Korean plan (`_ko.md`) in-place**, removing processed memos and integrating their content.
 6. **Sync changes to the English plan** (the primary `.md` file) to keep both versions consistent.
 7. **Add a `## Change History` section** at the bottom of the English plan tracking what changed and why.
-8. **Return results**: Report which steps were changed and a brief summary in Korean.
+8. Return per **Return Format** section below.
 
 ## Procedure — Translate Mode
 
 1. **Read the English plan file** and **create a full Korean translation** (not a summary) at the output path specified in the prompt. Follow any section/formatting instructions in the prompt.
-2. **Return only the output file path.**
+2. Return per **Return Format** section below.
 
 ## Safety Rules
 - Grep all call sites before planning any function signature change; plan must cover every caller.
@@ -106,6 +106,14 @@ When the prompt does NOT include a "QA review file" path (called from refine-pla
 - **DO NOT implement any code.** Only produce plan documents.
 - Do not invoke other agents. Return results to the orchestrator.
 - Keep plans actionable — every step should be specific enough for a developer agent to execute without ambiguity.
+
+## Return Format (CRITICAL)
+Every response to a skill invocation MUST be exactly one line:
+```
+{output_file_path} -- {verdict}
+```
+Verdict: brief Korean summary (3-5 words max, e.g., "계획 생성 완료", "3개 단계 수정", "번역 완료").
+Full plan content is in the file. Do NOT return plan content itself.
 
 ## Update your agent memory
 

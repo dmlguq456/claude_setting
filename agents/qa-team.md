@@ -35,7 +35,7 @@ Determine the mode based on the prompt/context:
 4. **Write review report to file**: Save the review results to the log directory specified in the prompt.
    - Use the exact file name specified in the prompt. If no specific name is given, use `phase_{NN}.md` for phase reviews or `test_review.md` for test reviews.
    - If this is a re-review after a fix: append `_fix{M}` to the base name (e.g., `phase_01_fix1.md`).
-5. **Return only the file path and a one-line verdict** (e.g., "✅ No issues" or "🔴 2 issues found"). Do NOT return the full review content — the orchestrator will read the file.
+5. Return per **Return Format** section below.
 
 **Common to both:**
 - **Consider project structure and conventions** as documented in CLAUDE.md.
@@ -53,7 +53,7 @@ Determine the mode based on the prompt/context:
    - Does the Verification section contain **concrete, executable test commands**? Vague descriptions like "test later" or empty sections are 🔴.
 4. **If a review output path is specified in the prompt:**
    - Write the full review results to the specified file path.
-   - Return ONLY the file path and a one-line verdict (e.g., "✅ No 🔴 issues" or "🔴 N issues found"). Do NOT return the full review content.
+   - Return per **Return Format** section below.
 5. **If no output path is specified (direct user request):**
    - Return the full review in the output format below.
 
@@ -142,6 +142,15 @@ Per item:
 
 - Specifically mention well-considered aspects of the plan.
 ```
+
+## Return Format (CRITICAL)
+When an output file path is specified in the prompt, return EXACTLY one line:
+```
+{output_file_path} -- {verdict}
+```
+Verdict tokens: "✅ No issues", "🔴 N issues (M major)", "🟡 N suggestions".
+Full results go in the output file. No summary, no explanation, no code snippets in the return.
+Exception: When called directly by the user (no output path specified), return the full review.
 
 ## Style and Constraints
 

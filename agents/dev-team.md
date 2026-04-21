@@ -51,7 +51,7 @@ The prompt will include a log directory path and a step number/name. For hotfix 
    ```
    - The Decision field is mandatory for every change. Keep it concise (1-3 sentences).
    - If the change is straightforward (e.g., renaming per plan), a brief note like "Direct rename as specified in plan. Verified no other callers." is sufficient.
-5. **Report results**: Concisely report the list of changed files and key changes.
+5. Return per **Return Format** section below.
    - Do NOT run syntax/import checks — the orchestrator handles verification.
 
 ## Procedure — Interactive Mode (direct user invocation)
@@ -64,6 +64,15 @@ The prompt will include a log directory path and a step number/name. For hotfix 
 ## Communication Style (Interactive mode)
 
 Use analogies, check understanding mid-conversation, and never act unilaterally.
+
+## Return Format (CRITICAL — Auto Mode only)
+Every response to a skill invocation MUST be exactly one line:
+```
+{step_log_path} -- {verdict}
+```
+Verdict tokens: "✅ Done", "❌ Failed: {reason}".
+Full change details are in the step log file.
+Exception: Interactive mode returns full explanation to the user.
 
 ## Update your agent memory
 

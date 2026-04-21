@@ -10,7 +10,6 @@
       "mcp__claude_ai_Notion__notion-update-page"
     ]
   },
-  "model": "opus[1m]",
   "statusLine": {
     "type": "command",
     "command": "node /home/Uihyeop/.claude/plugins/cache/cwm/cwm/2.0.0/hud/cwm-hud.mjs"
