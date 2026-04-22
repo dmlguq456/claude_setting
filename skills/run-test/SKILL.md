@@ -65,9 +65,9 @@ Format:
 
 **Adversarial auto-escalation**: Before launching QA, run `codex --version 2>/dev/null`. If Codex is available and authenticated, automatically escalate to Adversarial mode (add Codex agent to the parallel batch). If Codex is unavailable, proceed with Thorough.
 
-**Always launch 2 QA agents in parallel (opus):**
-- Agent A: "Focus on **coverage**: Were ALL changed files tested? Are any untested code paths or edge cases? Did tests use real data where available? Are behavioral changes compared before/after?"
-- Agent B: "Focus on **accuracy**: Are failures correctly diagnosed (not misdiagnosed as pre-existing)? Were correct engine_modes used? Do commands match changed code paths? Are negative tests present?"
+**Always launch 2 QA agents in parallel** (Agent A with `model: 'sonnet'` for the coverage checklist; Agent B with default opus for accuracy diagnosis):
+- Agent A (sonnet): "Focus on **coverage**: Were ALL changed files tested? Are any untested code paths or edge cases? Did tests use real data where available? Are behavioral changes compared before/after?"
+- Agent B (opus): "Focus on **accuracy**: Are failures correctly diagnosed (not misdiagnosed as pre-existing)? Were correct engine_modes used? Do commands match changed code paths? Are negative tests present?"
 - Each writes to: `test_reviews/test_review_coverage.md`, `test_reviews/test_review_accuracy.md`.
 
 **Adversarial (when Codex available):**
@@ -79,7 +79,7 @@ All issues from ANY agent (including Codex) must be addressed before proceeding.
 ## Post-Test: QA Review
 After the 테스트팀 agent returns:
 1. **Read the test log** (skill-level read — permitted per DESIGN_PRINCIPLES 3.3) (`{log_dir}/test_logs/test_report.md`).
-2. **Invoke 2× 품질관리팀 in parallel** with:
+2. **Invoke 2× 품질관리팀 in parallel** (Agent A with `model: 'sonnet'`, Agent B with default opus):
 
    - **Agent A prompt (coverage)**:
    ```

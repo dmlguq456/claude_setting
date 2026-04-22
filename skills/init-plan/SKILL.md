@@ -54,7 +54,7 @@ If `$ARGUMENTS` contains `--autonomy proactive|standard|passive`, store that lev
 |---|---|---|
 | **Light** | ≤3 steps, mechanical, single-variant | 1× 품질관리팀 (`model: "sonnet"`) |
 | **Standard** | 4-10 steps, logic changes, single module | 1× 품질관리팀 (default opus) |
-| **Thorough** | >10 steps, cross-module/variant, architectural | 2-3× 품질관리팀 in parallel (opus): Agent A correctness, B completeness, C risk (optional, >15 steps); each writes `round_{N}_{focus}.md`; all 🔴 issues must be resolved |
+| **Thorough** | >10 steps, cross-module/variant, architectural | 2-3× 품질관리팀 in parallel: Agent A correctness (opus), B completeness (sonnet), C risk (opus, optional, >15 steps); each writes `round_{N}_{focus}.md`; all 🔴 issues must be resolved |
 | **Adversarial** | Cross-variant (SE+SS+CSS), shared modules (utils/, network.py), or >20 steps with architectural impact — **AND Codex available** | Thorough-level 품질관리팀 + 1× codex-review-team (`adversarial-review`) in parallel; Codex writes `round_{N}_codex.md`; all 🔴 from ANY agent (including Codex) must be resolved |
 
 **Codex availability check**: Before selecting Adversarial, run `codex --version` (suppress stderr). If the command fails or Codex is not authenticated, fall back to Thorough silently. This check is skipped if `--qa adversarial` is explicitly specified (fail loudly instead).
@@ -70,7 +70,7 @@ The log directory is the task root folder (parent of `plan/`). Example: `.claude
 After the 기획팀 agent returns:
 1. **Assess QA level** from plan scope per the QA Scaling table above.
 2. **Invoke 품질관리팀:** Prompt: "Review this plan in plan review mode for feasibility. Plan file: [plan_path]. Write review results to: [log_dir]/plan_reviews/round_{N}.md. Return ONLY the file path and a one-line verdict."
-   - Light: pass `model: 'sonnet'`. Thorough: 2-3 parallel agents with focus suffix and separate output files. Do NOT read the review file unless relaying verdict to user.
+   - Light: pass `model: 'sonnet'`. Thorough: 2-3 parallel agents with focus suffix and separate output files; pass `model: 'sonnet'` for the B (completeness) agent, default opus for A (correctness) and C (risk). Do NOT read the review file unless relaying verdict to user.
 3. **Check one-line verdict:**
    - **No 🔴**: Loop ends → proceed to Korean Version Generation.
    - **🔴 found**: Re-invoke 기획팀: "Refine mode. Plan file: {plan_path}. QA review: {log_dir}/plan_reviews/round_{N}.md. Fix 🔴 issues. Return only changed steps + brief Korean summary." Increment `round`, re-invoke 품질관리팀. Repeat until no 🔴 or `round >= 3`.

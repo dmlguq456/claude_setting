@@ -53,7 +53,7 @@ Otherwise, auto-detect from the refinement scope:
 |---|---|---|
 | **Light** | ≤3 steps changed, mechanical | 1× 품질관리팀 (`model: "sonnet"`) |
 | **Standard** | 4-10 steps changed, logic changes | 1× 품질관리팀 (default opus) |
-| **Thorough** | >10 steps changed, architectural | 2× 품질관리팀 in parallel (A/B only) |
+| **Thorough** | >10 steps changed, architectural | 2× 품질관리팀 in parallel: A correctness (opus), B completeness (sonnet) |
 | **Adversarial** | Cross-variant (SE+SS+CSS), shared modules (utils/, network.py), or >20 steps changed — **AND Codex available** | Thorough-level 품질관리팀 (A/B) + 1× codex-review-team (`adversarial-review`) in parallel; Codex writes `refine_round_{N}_codex.md` |
 
 > See `--qa` flag for manual override. When `qa_level` is set in plan frontmatter, it overrides auto-detect.
@@ -70,7 +70,7 @@ Log dir = task root folder (parent of `plan/`). Run `mkdir -p {log_dir}/plan_rev
 
 After 기획팀 returns, assess QA level (changed step count, nature) per the table above, then:
 - **Light/Standard**: 1 agent — "Review changed steps. Plan: [path], Changed: [list]. Write to: {log_dir}/plan_reviews/refine_round_{N}.md. Return file path + one-line verdict." (Light: pass `model: 'sonnet'`)
-- **Thorough**: 2 agents in parallel (A/B), each with different focus suffix and output file.
+- **Thorough**: 2 agents in parallel (A/B), each with different focus suffix and output file. Pass `model: 'sonnet'` for the B (completeness) agent; A (correctness) uses default opus.
 
 **Check verdict:**
 - **No 🔴**: Loop ends. Report changed steps and review results to user.
