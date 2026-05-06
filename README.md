@@ -39,15 +39,17 @@ flowchart LR
 | **1. 분야 조사** | (없음) | `/autopilot-research <주제>` → `research/` | — |
 | **2. 기반 논문 정독** | 받은 PDF | `/analyze-papers` → `docs_paper/` | — |
 | **3. 코드베이스 파악** | 코드 | `/analyze-project` → `docs_code/` | — |
-| **4. 가설·실험 설계** | 본인 idea (memo) | `/autopilot-doc --mode proposal --refs <idea_dir>` (research artifact 폴더 + 본인 메모 함께) | — |
-| **5. 코드 구현** | 코드베이스 | `/autopilot-code --mode dev --user-refine "<task>"` (debug/audit 모드도 동일) | — |
-| **6. 실험 실행·결과 수집** | 실험 결과 (logs, ckpt, plots) | **자동화 없음** | 사용자가 직접 실행. 결과 정리 후 `Agent(기록팀)`로 노션 로깅, 또는 본인 폴더에 모음 |
-| **7. 논문 초안** | 본인 결과 + research artifact + 본인 노트 | `/autopilot-doc --mode write --refs <combined_dir> --user-refine` → 전략 + 초안 markdown 생성 | **최종 작성은 사용자가 마무리** (실험 표·그림 수동 삽입, LaTeX 빌드, 인용 정리) |
-| **8. 발표자료** | 논문 + research artifact | `/autopilot-doc --mode presentation --refs <combined_dir> --user-refine` | 슬라이드 시각화 마무리 |
-| **9. 리뷰 대응** | reviewer comments | `/autopilot-doc --mode rebuttal --refs <reviewer_comments> --user-refine` | 추가 실험 필요 시 5–6단계 재진입 |
-| **10. Camera-ready** | 최종 논문 | `/autopilot-doc --mode write --refs <기존_doc_dir> --user-refine` (write mode 재사용) | 최종 빌드 |
+| **4. 코드 구현** | 코드베이스 | `/autopilot-code --mode dev --user-refine "<task>"` (debug/audit 모드도 동일) | — |
+| **5. 실험 실행·결과 수집** | 실험 결과 (logs, ckpt, plots) | **자동화 없음** | 사용자가 직접 실행. 결과 정리 후 `Agent(기록팀)`로 노션 로깅, 또는 본인 폴더에 모음 |
+| **6. 논문 초안** | 본인 결과 + research artifact + 본인 노트 | `/autopilot-doc --mode write --refs <combined_dir> --user-refine` → **전략 + 초안 markdown** 생성 | **최종 작성은 사용자가 마무리** (실험 표·그림 수동 삽입, 본인 결과 narrative, LaTeX 빌드, 인용 정리) |
+| **7. 발표자료** | 논문 + research artifact | `/autopilot-doc --mode presentation --refs <combined_dir> --user-refine` → **슬라이드 흐름·내용 markdown** | 슬라이드 시각화·디자인 마무리 |
+| **8. 리뷰 대응** | reviewer comments | `/autopilot-doc --mode rebuttal --refs <reviewer_comments> --user-refine` → **응답 전략 + 초안 markdown** | 응답 톤 다듬기, 추가 실험 필요 시 4–5단계 재진입 |
+| **9. Camera-ready** | 최종 논문 + 변경 의도 | `/autopilot-doc --mode write --refs <기존_doc_dir> --user-refine` (write mode 재사용) → **수정 전략 + 가이드 markdown** | **최종 작성·빌드는 사용자가 마무리** (논문 초안과 동일 패턴) |
+| **(연구 grant 신청 시)** | 본인 idea + preliminary results | `/autopilot-doc --mode proposal --refs <idea+research_dir> --user-refine` → 전략 + 초안 markdown | NRF/NSF/기관 양식에 맞게 사용자 마무리 |
 
-> **핵심 갭**: 6번(실험 실행)은 Claude가 대신할 수 없음 — 코드 구현(5)과 결과 정리(7) 사이에 사용자 본인이 실험을 돌리고, 결과를 모아 다음 skill의 `--refs`에 함께 넣어 줘야 합니다. 실험 결과 정리·기록은 `Agent(기록팀)`로 위임 가능.
+> **autopilot-doc의 모든 모드는 같은 패턴**: 전략(strategy) + 초안/가이드(draft) markdown 산출 → **사용자가 최종 작성을 마무리**. skill은 방향과 구조를 잡아주는 역할.
+
+> **핵심 갭**: 5번(실험 실행)은 Claude가 대신할 수 없음 — 코드 구현(4)과 결과 정리(6) 사이에 사용자 본인이 실험을 돌리고, 결과를 모아 다음 skill의 `--refs`에 함께 넣어 줘야 합니다. 실험 결과 정리·기록은 `Agent(기록팀)`로 위임 가능.
 
 > **`--refs` 사용 팁**: 논문 작성·발표자료 같은 '본인 자료가 핵심'인 단계에서는 단일 폴더에 (a) `autopilot-research`의 artifact_dir, (b) 본인 결과 표·그림, (c) 본인 노트를 함께 모아 두고 그 폴더를 `--refs`로 지정. 두 종류의 자료가 모두 들어가야 강한 draft가 나옵니다.
 
@@ -62,8 +64,8 @@ flowchart LR
 | **새 기능 개발** | `/autopilot-code --mode dev --user-refine "<task>"` (pause 후 `--from refine <plan>`) |
 | **코드 사후 감사** | `/autopilot-code --mode audit <plan-name>` |
 | **디버그** | `/autopilot-code --mode debug "<error / log path>"` |
-| **연구 제안** | `/autopilot-doc --mode proposal --refs <idea_dir> --user-refine` |
-| **논문 초안·camera-ready** | `/autopilot-doc --mode write --refs <combined_dir> --user-refine` |
+| **논문 초안·camera-ready** | `/autopilot-doc --mode write --refs <combined_dir> --user-refine` (전략 + 초안 markdown — 최종 작성은 사용자) |
+| **연구 grant 신청서** | `/autopilot-doc --mode proposal --refs <idea+research_dir> --user-refine` (NRF/NSF 등) |
 | **발표자료** | `/autopilot-doc --mode presentation --refs <combined_dir> --user-refine` |
 | **리뷰 응답** | `/autopilot-doc --mode rebuttal --refs <reviewer_comments> --user-refine` |
 | **분야 서베이 작성** | `/autopilot-doc --mode survey --refs <research_dir> --user-refine` |
