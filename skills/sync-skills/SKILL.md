@@ -89,9 +89,9 @@ Agents:  변경 0 / 신규 0 / 삭제 0 / 동일 8
 
 ### Step 4: Generate dashboard sections (공통 — README와 Notion 상단 모두 사용)
 
-#### 4a. Workflow Map (Mermaid)
-SKILL.md의 argument-hint에서 `--mode` / `--from` 값을 매번 다시 추출하여 노드 라벨 자동 갱신:
+#### 4a. 두 다이어그램으로 분리 (시각적 잡음 최소화)
 
+**Diagram 1: 사용자 워크플로우** — Skills + 산출물만. 본문 상단 `## 사용자 워크플로우` 섹션에 박음.
 ```mermaid
 flowchart LR
     subgraph PREP["📋 사전 준비 (최초 1회)"]
@@ -104,17 +104,6 @@ flowchart LR
         ARES["[1] autopilot-research<br/>--depth shallow/medium/deep<br/>--from search/analyze/report"]
         ACODE["[2] autopilot-code<br/>--mode dev/audit/debug<br/>--from plan/refine/execute/test/report<br/>--user-refine"]
         ADOC["[3] autopilot-doc<br/>--mode rebuttal/write/review/survey/<br/>report/proposal/presentation<br/>--from analyze/strategy/strategy-refine/<br/>draft/draft-refine/finalize<br/>--user-refine"]
-    end
-    subgraph AGENTS["🤝 Agents (skills가 호출)"]
-        direction TB
-        PT["기획팀 (plan-team)<br/>opus"]
-        QT["품질관리팀 (qa-team)<br/>opus"]
-        RT["연구팀 (research-team)<br/>opus"]
-        TT["테스트팀 (test-team)<br/>opus"]
-        DT["개발팀 (dev-team)<br/>sonnet"]
-        BT["탐색팀 (browser-team)<br/>sonnet"]
-        REC["기록팀 (record-team)<br/>sonnet"]
-        CRT["codex-review-team<br/>opus"]
     end
     subgraph OUT["📦 산출물"]
         direction TB
@@ -129,17 +118,50 @@ flowchart LR
     ACODE --> PL
     ARES --> RS
     ADOC --> DO
-    ACODE --> PT
-    ACODE --> RT
-    ACODE --> QT
-    ACODE --> TT
-    ARES --> RT
-    ARES --> BT
-    ADOC --> RT
-    ADOC --> QT
-    ACODE -.qa adversarial.-> CRT
     ACODE -.final-report auto-update.-> AP
 ```
+
+**Diagram 2: Agent 호출 구조** — Agents Cheat-Sheet 표 직후 `### Agent 호출 구조 (참고용)` 섹션에 박음.
+```mermaid
+flowchart LR
+    USER(("사용자"))
+    subgraph SKILLS["Skills (오케스트레이터)"]
+        direction TB
+        ARES["autopilot-research"]
+        ACODE["autopilot-code"]
+        ADOC["autopilot-doc"]
+    end
+    subgraph AUTO["자동 위임 (skills가 호출)"]
+        direction TB
+        PT["기획팀"]
+        QT["품질관리팀"]
+        RT["연구팀"]
+        TT["테스트팀"]
+        BT["탐색팀"]
+        CRT["codex-review-team"]
+    end
+    subgraph DIRECT["사용자 직접 호출"]
+        direction TB
+        DT["개발팀<br/>(작은 리팩토링)"]
+        REC["기록팀<br/>(노션 작업)"]
+    end
+    USER --> ARES
+    USER --> ACODE
+    USER --> ADOC
+    USER -. 직접 .-> DT
+    USER -. 직접 .-> REC
+    ARES --> RT
+    ARES --> BT
+    ACODE --> PT
+    ACODE --> QT
+    ACODE --> RT
+    ACODE --> TT
+    ACODE -. qa adversarial .-> CRT
+    ADOC --> RT
+    ADOC --> QT
+```
+
+> 매 sync 시 argument-hint에서 `--mode` / `--from` 옵션 값을 추출해 Diagram 1의 노드 라벨을 자동 갱신.
 
 #### 4b. Quickstart (자주 쓰는 워크플로우 4종 — 고정 텍스트, sync 시 그대로 박음)
 
@@ -269,79 +291,56 @@ flowchart LR
 *sync 명령*: `/sync-skills` (변경 감지 시 README + Notion 갱신) / `/sync-skills --check` (drift만 확인)
 ```
 
-### Step 6: Update Notion 대문 상단
+### Step 6: Update Notion 대문 상단 (기록팀 위임)
 
 페이지 id: `34987c2b-b753-80d6-8df4-d6ce4d469bff`
 
-#### 6a. Fetch current content
-`mcp__claude_ai_Notion__notion-fetch`로 현재 마크다운 받기.
+**원칙**: Notion MCP 도구를 직접 호출하지 않고 **기록팀(record-team) 에이전트에 위임**한다. 이유:
+- 자식 페이지 보존 등의 도메인 안전 규칙을 agent 시스템 프롬프트에 박아 둘 수 있음
+- 메인 컨텍스트가 Notion API 응답·HTML로 오염되지 않음
+- 향후 사고(2026-05-06 트래시 사고 같은) 구조적 차단
 
-#### 6b. 영역 식별
-페이지 구조:
+#### 6a. 기록팀 호출
 ```
-# 전체 워크플로우          ← 갱신 대상 (대시보드 시작)
-{mermaid}
-### 흐름 읽는 법
-{설명 텍스트}
----
-<columns>                   ← 보존 (서브페이지 링크)
-  ## Skills | ## Agents
-</columns>
-{하단 메모, 마지막 업데이트 라인 등}    ← 보존 / 마지막 업데이트만 갱신
-```
+Agent(subagent_type="기록팀"):
+  "노션 대시보드 동기화 모드.
 
-`---` (구분선)이 대시보드 영역과 columns 영역 사이의 마커. 이를 기준으로 search-and-replace.
+   대상 페이지: https://www.notion.so/34987c2bb75380d68df4d6ce4d469bff
+   페이지 제목: Agents/Skills
 
-#### 6c. 새 대시보드 콘텐츠
-교체할 새 블록은 다음 마크다운:
+   ## 작업
+   페이지 상단의 대시보드 영역만 교체. 페이지 구조:
+   ```
+   # 전체 워크플로우 (또는 # 📊 Dashboard...)        ← 교체 대상 시작
+   {대시보드 본문 — 워크플로우 + Quickstart + cheat-sheet + 가이드라인}
+   ---                                              ← 교체 대상 끝 (columns 직전 구분선)
+   <columns>                                        ← 보존 (절대 건드리지 X)
+   ...
+   </columns>
+   {하단 메모, 페이지 링크, 마지막 업데이트 라인}    ← 보존 (마지막 업데이트만 날짜 갱신)
+   ```
 
-```markdown
-# 전체 워크플로우
+   ## 새 대시보드 콘텐츠
+   다음 마크다운 블록을 시작 헤더부터 columns 직전 `---`까지 교체:
 
-> 마지막 sync: {ISO8601 KST} (자동) — Source: ~/.claude/skills + ~/.claude/agents
-> 직접 편집 금지. 수정은 SKILL.md/agent.md 후 `/sync-skills`.
+   {Step 4a Diagram 1 + 4b Quickstart + 4c Skills cheat-sheet + 4d Agents cheat-sheet + 4a Diagram 2 + 4e 통합 가이드라인}
 
-{Step 4a Mermaid}
+   ## 안전 규칙 (반드시 준수)
+   1. **`update_content`만 사용**. `replace_content`는 사용 금지 — 자식 페이지 삭제 위험.
+   2. **`<columns>` 안의 `<page>` / `<database>` 자식 링크는 절대 삭제 X**. old_str에 그 영역을 포함시키지 말 것.
+   3. **search-and-replace는 두 단계로 분리**:
+      - (1) 상단 대시보드 영역 교체 (시작 헤더 ~ columns 직전 `---`)
+      - (2) 페이지 하단 `*마지막 업데이트: ...*` 라인의 날짜만 갱신
+   4. fetch로 현재 콘텐츠를 받아 정확한 old_str을 만든 뒤 교체. old_str은 fetch 결과의 워딩과 한 글자도 어긋나면 실패하므로 정확히.
+   5. 첫 시도 실패(validation_error 등) 시 재시도하되, `allow_deleting_content`는 절대 true로 설정 X.
 
-{Step 4b Quickstart}
-
-## 📋 Skills Cheat-Sheet
-
-{Step 4c table}
-
-## 🤝 Agents Cheat-Sheet
-
-{Step 4d table}
-
-{Step 4e 통합 가이드라인}
-
----
+   완료 후 변경된 영역 요약과 페이지 URL을 한국어로 보고."
 ```
 
-(끝의 `---`가 columns 영역 시작 마커.)
+기록팀은 위 프롬프트의 안전 규칙을 따라 `mcp__claude_ai_Notion__notion-fetch` → `mcp__claude_ai_Notion__notion-update-page (update_content)`를 자체 실행한다.
 
-#### 6d. update_content 호출
-```
-mcp__claude_ai_Notion__notion-update-page(
-  page_id = "34987c2b-b753-80d6-8df4-d6ce4d469bff",
-  command = "update_content",
-  content_updates = [{
-    old_str = "# 전체 워크플로우\n...{현재 대시보드 전체}...\n---",
-    new_str = "{새 대시보드 + ---}"
-  }]
-)
-```
-
-`<page url=...>` / `<database url=...>` 자식 링크는 columns 안에 있어 영향 받지 않음 — 안전.
-
-#### 6e. 페이지 하단 "마지막 업데이트" 라인도 갱신
-별도 content_update 항목으로:
-```
-old_str: "*마지막 업데이트: 2026-04-21 — 서브스킬·에이전트 팀별 페이지 분리*"
-new_str: "*마지막 업데이트: {YYYY-MM-DD} — `/sync-skills`로 자동 갱신*"
-```
-
-(현재 라인 텍스트는 fetch 결과에서 추출.)
+#### 6b. 결과 확인
+기록팀의 보고를 받아 변경 영역과 보존 영역을 사용자에게 한 줄로 요약. 실패 시 (예: old_str 불일치) 사용자에게 보고하고 종료 — 직접 재시도 X.
 
 ### Step 7: Update sync state
 `~/.claude/skills/.sync_state.json`을 새 SHA + 시각으로 저장.

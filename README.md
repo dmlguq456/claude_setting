@@ -6,7 +6,7 @@
 
 ---
 
-## 📊 전체 워크플로우
+## 📊 사용자 워크플로우 — Skills + 산출물
 
 ```mermaid
 flowchart LR
@@ -21,17 +21,6 @@ flowchart LR
         ACODE["[2] autopilot-code<br/>--mode dev/audit/debug<br/>--from plan/refine/execute/test/report<br/>--user-refine"]
         ADOC["[3] autopilot-doc<br/>--mode rebuttal/write/review/survey/<br/>report/proposal/presentation<br/>--from analyze/strategy/strategy-refine/<br/>draft/draft-refine/finalize<br/>--user-refine"]
     end
-    subgraph AGENTS["🤝 Agents (skills가 호출)"]
-        direction TB
-        PT["기획팀<br/>opus"]
-        QT["품질관리팀<br/>opus"]
-        RT["연구팀<br/>opus"]
-        TT["테스트팀<br/>opus"]
-        DT["개발팀<br/>sonnet"]
-        BT["탐색팀<br/>sonnet"]
-        REC["기록팀<br/>sonnet"]
-        CRT["codex-review-team<br/>opus"]
-    end
     subgraph OUT["📦 산출물"]
         direction TB
         PL[".claude_reports/plans/"]
@@ -45,15 +34,6 @@ flowchart LR
     ACODE --> PL
     ARES --> RS
     ADOC --> DO
-    ACODE --> PT
-    ACODE --> RT
-    ACODE --> QT
-    ACODE --> TT
-    ARES --> RT
-    ARES --> BT
-    ADOC --> RT
-    ADOC --> QT
-    ACODE -.qa adversarial.-> CRT
     ACODE -.final-report auto-update.-> AP
 ```
 
@@ -110,6 +90,47 @@ flowchart LR
 | 탐색팀 (browser-team) | Playwright 기반 paywall/JS 사이트 접근 | sonnet | autopilot-research |
 | 기록팀 (record-team) | Notion CRUD (페이지·DB·실험 로그) | sonnet | **사용자 직접 호출** ("노션에 기록해") |
 | codex-review-team | Codex CLI 기반 외부 리뷰 | opus | `--qa adversarial` 시 autopilot-code |
+
+### Agent 호출 구조 (참고용)
+
+```mermaid
+flowchart LR
+    USER(("사용자"))
+    subgraph SKILLS["Skills (오케스트레이터)"]
+        direction TB
+        ARES["autopilot-research"]
+        ACODE["autopilot-code"]
+        ADOC["autopilot-doc"]
+    end
+    subgraph AUTO["자동 위임 (skills가 호출)"]
+        direction TB
+        PT["기획팀"]
+        QT["품질관리팀"]
+        RT["연구팀"]
+        TT["테스트팀"]
+        BT["탐색팀"]
+        CRT["codex-review-team"]
+    end
+    subgraph DIRECT["사용자 직접 호출"]
+        direction TB
+        DT["개발팀<br/>(작은 리팩토링)"]
+        REC["기록팀<br/>(노션 작업)"]
+    end
+    USER --> ARES
+    USER --> ACODE
+    USER --> ADOC
+    USER -. 직접 .-> DT
+    USER -. 직접 .-> REC
+    ARES --> RT
+    ARES --> BT
+    ACODE --> PT
+    ACODE --> QT
+    ACODE --> RT
+    ACODE --> TT
+    ACODE -. qa adversarial .-> CRT
+    ADOC --> RT
+    ADOC --> QT
+```
 
 ---
 
