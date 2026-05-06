@@ -185,22 +185,65 @@ Write the strategy file directly. Return ONLY the file path and a 3-5 line Korea
 The agent writes the strategy file directly; the orchestrator only receives paths and a summary.
 
 ## QA Scaling
-Auto-detect from strategy scope:
+Auto-detect from strategy scope. Two reviewer roles run **in parallel** at Standard+:
+- **Quality reviewer**: completeness / logical soundness / venue norms / reviewer-coverage (rebuttal)
+- **Fact-checker** (NEW): refs/cards/PDFs verbatim 대조, citation/venue/metric/year 검증
 
-| Level | Condition | Action |
-|---|---|---|
-| **Light** | review/presentation mode, or report with ≤3 refs | 1× 품질관리팀 (`model: "sonnet"`) |
-| **Standard** | write/report/proposal mode, or rebuttal with ≤3 reviewers | 1× 품질관리팀 (default opus) |
-| **Thorough** | rebuttal with ≥4 reviewers, or report/proposal with ≥10 refs | 2× 품질관리팀 in parallel (opus) |
+| Level | Condition | Quality reviewer | Fact-checker (parallel) |
+|---|---|---|---|
+| **Light** | review/presentation mode, or report with ≤3 refs | 1× 품질관리팀 (`model: "sonnet"`) | _skip_ |
+| **Standard** | write/report/proposal mode, or rebuttal with ≤3 reviewers | 1× 품질관리팀 (default opus) | **1× 품질관리팀 fact-check (`model: "sonnet"`)** |
+| **Thorough** | rebuttal with ≥4 reviewers, or report/proposal with ≥10 refs | 2× 품질관리팀 in parallel (opus) | **1× 품질관리팀 fact-check (`model: "sonnet"`)** |
+
+**Why Sonnet for fact-checker**: refs/cards verbatim 대조는 _창의적 판단_이 아닌 _단순 매칭 작업_이라 Sonnet으로 충분, 비용 효율적.
 
 ## Post-Strategy Review Loop (max 2 revision rounds)
 The log directory is the artifact root folder (parent of `strategy/`).
 - `mkdir -p {log_dir}/strategy_reviews` before invoking QA.
 
 After the 연구팀 agent returns:
-1. **Invoke 품질관리팀:** "Review this document strategy for completeness and logical soundness. Strategy file: [path]. Mode: {mode}. For rebuttal mode, verify ALL reviewer points are addressed. Write review to: {log_dir}/strategy_reviews/round_{N}.md. Return ONLY the file path and a one-line verdict."
-2. **Check verdict:** No 🔴 issues → proceed to Korean Version Generation. 🔴 issues found → re-invoke 연구팀 to revise (max 2 rounds).
-3. **If 🔴 issues remain after 2 rounds**: Add to `## 미해결 이슈` section in the strategy, report to user.
+1. **Invoke quality + fact-check reviewers in parallel** (single message with multiple Agent calls per QA Scaling):
+
+   **Quality reviewer prompt** (opus or sonnet per level):
+   ```
+   Review this document strategy for completeness and logical soundness.
+   Strategy file: [path]. Mode: {mode}.
+   For rebuttal mode, verify ALL reviewer points are addressed.
+   Do NOT verify individual fact citations (model venue/year/metric) — that's the fact-checker's role.
+   Write review to: {log_dir}/strategy_reviews/round_{N}_quality.md.
+   Return ONLY the file path and a one-line verdict.
+   ```
+
+   **Fact-checker prompt** (sonnet, parallel — Standard/Thorough only):
+   ```
+   You are a fact-check focused reviewer — NOT narrative quality.
+   Strategy file: [path]. Mode: {mode}. Refs folder: {refs_folder}.
+
+   For every domain claim in the strategy (citation / model name / venue / year /
+   metric / dataset / lineage / classification), open the corresponding ground-truth
+   source and verbatim compare:
+   - Paper cards: {refs_folder}/cards/*.md (if exists)
+   - Reference PDFs: {refs_folder}/*.pdf (only if cards lack the specific fact)
+   - Reviewer comments (rebuttal mode): {analysis_dir}/reviewer_analysis.md
+
+   Output a single table (no narrative):
+   | Section | Claim in strategy | Source (file:line or section) | Match (✅/❌) | Severity (🔴/🟡) |
+
+   Do NOT comment on completeness, narrative arc, or strategic soundness
+   — that's the quality reviewer's job. Stay narrowly on fact verification.
+
+   Cost-aware mode (sonnet): table-only output. Limit to ~30 most material claims.
+
+   Write to: {log_dir}/strategy_reviews/round_{N}_factcheck.md.
+   Return ONLY path + one-line verdict.
+   ```
+
+2. **Check verdict (both reviewers):**
+   - **No 🔴 from either**: proceed to Korean Version Generation.
+   - **🔴 from quality reviewer**: re-invoke 연구팀 with quality findings (max 2 rounds).
+   - **🔴 from fact-checker**: re-invoke 연구팀 with **mandatory ref-grounding** (re-read named cards/PDFs). Max 2 rounds.
+   - **🔴 from both**: re-invoke 연구팀 with combined findings.
+3. **If 🔴 issues remain after 2 rounds**: Add to `## 미해결 이슈` section in the strategy, report to user. Tag fact-check residuals with `[FACT-RESIDUAL]`.
 
 ## Korean Version Generation
 After review loop completes, invoke 연구팀 one final time:

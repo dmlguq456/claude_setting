@@ -14,7 +14,7 @@ Parse `$ARGUMENTS` for optional flags:
 - **--mode**: `academic` (default) | `technology` | `market` — investigation type (see Modes below)
 - **--depth**: `shallow` | `medium` (default) | `deep`
 - **--refs \<folder\>**: path to local reference PDFs (user must specify, no default)
-- **--qa**: `light` | `standard` (default) | `thorough` — override QA intensity for report QA loop
+- **--qa**: `light` | `standard` (default) | `thorough` — override QA intensity for report QA loop. Standard+ runs a parallel **fact-checker** (sonnet) alongside quality reviewer(s) for cards verbatim 대조 (citation/venue/year/metric verification).
 - **--from**: `search` | `analyze` | `report` — resume the pipeline at a specific stage (see Resume below)
 - **--no-clarify**: skip Step 0 Scope Clarification (force-run with current query as-is)
 
@@ -590,18 +590,57 @@ Agent(subagent_type="연구팀"):
 #### Step 4b: QA Loop (max 2 rounds)
 QA level: `--qa` flag if provided, else auto-detect (<=10 papers: light, 11-25: standard, >25 or deep: thorough).
 
-| Level | Model | Reviewers |
+**Two reviewer roles run in parallel** at standard+:
+- **Quality reviewer(s)**: coverage / no-fabrication / progressive disclosure / actionable roadmap
+- **Fact-checker** (NEW): cards/ verbatim 대조 — reports에 인용된 venue/year/metric/lineage가 source cards와 일치하는지 narrow 검증
+
+| Level | Quality reviewer | Fact-checker (parallel) |
 |---|---|---|
-| light | sonnet | 1 |
-| standard | opus | 1 |
-| thorough | opus | 2 parallel (completeness + accuracy) |
+| **light** | 1× 품질관리팀 (sonnet) | _skip_ (quality reviewer covers basic spot-checks) |
+| **standard** | 1× 품질관리팀 (opus) | **1× 품질관리팀 fact-check (sonnet)** |
+| **thorough** | 2× 품질관리팀 parallel (opus, completeness + accuracy) | **1× 품질관리팀 fact-check (sonnet)** |
+
+**Why Sonnet for fact-checker**: cards verbatim 대조는 _창의적 판단_이 아닌 _단순 매칭 작업_이라 Sonnet으로 충분. 비용 효율적.
 
 ```
 round = 0, review_dir = {artifact_dir}/report_reviews/
 Loop:
   round += 1
-  Invoke 품질관리팀: "Review research survey report. Topic: {topic}. Verify: coverage, no fabrication, progressive disclosure, actionable roadmap. Write to: {review_dir}/round_{round}.md."
-  No 🔴 → exit. 🔴 + round < 2 → re-invoke 연구팀 to fix. round >= 2 + 🔴 → write unresolved.md, exit.
+
+  # Parallel reviewer invocation (single message with multiple Agent calls per QA Scaling)
+
+  Quality reviewer prompt (opus or sonnet per level):
+    "Review research survey report — _coverage / no-fabrication / disclosure / roadmap_ focus.
+     Topic: {topic}. Reports dir: {artifact_dir}.
+     Verify: coverage, no fabrication, progressive disclosure, actionable roadmap.
+     Do NOT individually verify each citation (model venue/year/metric) — that's the fact-checker's role at standard+.
+     Write to: {review_dir}/round_{round}_quality.md (or round_{round}.md at light level).
+     Return ONLY path + one-line verdict."
+
+  Fact-checker prompt (sonnet, parallel — standard/thorough only):
+    "You are a fact-check focused reviewer — NOT report quality.
+     Topic: {topic}. Reports dir: {artifact_dir}. Cards: {artifact_dir}/cards/.
+
+     For every domain claim in the reports (model name / venue / year / metric / dataset /
+     lineage / classification mentioned in 00_briefing through last report), open the
+     corresponding card and verbatim compare:
+     - Single source of truth: {artifact_dir}/cards/*.md
+     - If a report claim has no matching card → flag as 🔴 (fabrication risk)
+
+     Do NOT comment on coverage, narrative, or roadmap quality — that's the quality reviewer's job.
+     Cost-aware mode (sonnet): table-only output. Limit to ~30 most material claims (prioritize Tier 1 papers + key models in user-prompt).
+
+     Output table:
+     | Report | Section | Claim | Source card (file:line) | Match (✅/❌) | Severity (🔴/🟡) |
+
+     Write to: {review_dir}/round_{round}_factcheck.md.
+     Return ONLY path + one-line verdict."
+
+  No 🔴 from any reviewer → exit.
+  🔴 from quality + round < 2 → re-invoke 연구팀 with quality findings.
+  🔴 from fact-checker + round < 2 → re-invoke 연구팀 with mandatory ref-grounding (re-read named cards).
+  🔴 from both + round < 2 → re-invoke 연구팀 with combined findings.
+  round >= 2 + 🔴 remain → write unresolved.md (tag fact-check residuals as [FACT-RESIDUAL]), exit.
 ```
 
 #### Step 4c: Status Check

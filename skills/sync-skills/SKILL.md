@@ -18,7 +18,7 @@ argument-hint: "[--check] [--readme-only] [--notion-only] [--force]"
 ## Targets
 
 ### 입력
-- **Skills**: `~/.claude/skills/*/SKILL.md` (현재 12개: autopilot-research/code/doc, init-plan, refine-plan, execute-plan, run-test, final-report, init-doc-strategy, refine-doc-strategy, analyze-project, analyze-papers, sync-skills 자기 자신)
+- **Skills**: `~/.claude/skills/*/SKILL.md` (현재 12개: autopilot-research/code/doc, init-plan, refine-plan, execute-plan, run-test, final-report, init-doc-strategy, refine-doc, analyze-project, analyze-papers, sync-skills 자기 자신)
 - **Agents**: `~/.claude/agents/*.md` (현재 8개: 기획팀/품질관리팀/개발팀/테스트팀/연구팀/탐색팀/기록팀/codex-review-team)
 
 자동 발견: `ls ~/.claude/skills/*/SKILL.md ~/.claude/agents/*.md`. 위 목록은 현재 알려진 항목.

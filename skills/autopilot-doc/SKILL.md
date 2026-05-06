@@ -36,14 +36,15 @@ Parse `$ARGUMENTS` for mode, flags, and task description:
 
 **`--qa <level>`** — override QA intensity for the pipeline:
 - `--qa light` → 연구팀 review uses sonnet, single-pass review
-- `--qa standard` → 연구팀 review uses opus, single-pass review
-- `--qa thorough` → 연구팀 review uses opus, parallel reviewers (domain expert + methodology reviewer), cross-validation against all reference materials **(default)**
+- `--qa standard` → 연구팀 quality reviewer (opus) **+ 연구팀 fact-checker (sonnet, parallel)** — fact-checker performs verbatim cards/PDFs 대조
+- `--qa thorough` → 2× 연구팀 quality reviewers in parallel (opus, domain expert + methodology) **+ 연구팀 fact-checker (sonnet, parallel)**, cross-validation against all reference materials **(default)**
 - If omitted, defaults to `thorough`.
-- **Propagation**: Pass `--qa <level>` to init-doc-strategy and refine-doc-strategy as an argument flag.
+- **Why a separate fact-checker**: quality reviewers focus on narrative/coverage/logic; fact-checker narrowly verifies citation/venue/year/metric/lineage against ground-truth sources (cards/PDFs). Sonnet is sufficient because fact-check is a matching task, not creative judgment.
+- **Propagation**: Pass `--qa <level>` to init-doc-strategy and refine-doc as an argument flag.
 
-**`--user-refine`** (boolean flag) — pause at refine points so the user can add their own `<!-- memo: ... -->` comments on top of 연구팀's memos before refine-doc-strategy runs.
+**`--user-refine`** (boolean flag) — pause at refine points so the user can add their own `<!-- memo: ... -->` comments on top of 연구팀's memos before refine-doc runs.
 
-Pause behavior: after 연구팀 writes memos at Step 3 (strategy review) or Step 5 (draft review), do NOT invoke refine-doc-strategy. Instead:
+Pause behavior: after 연구팀 writes memos at Step 3 (strategy review) or Step 5 (draft review), do NOT invoke refine-doc. Instead:
 1. Update `pipeline_state.yaml` at `{strategy_folder}/` with `user_refine: true`, `paused_at_stage: <strategy-refine|draft-refine>`.
 2. Print to user (Korean) the memo file path and the resume command:
    ```
@@ -58,9 +59,9 @@ If 연구팀 added no memos, the pause is skipped (nothing to refine).
 **`--from <stage>`** — resume the pipeline at a specific stage. Stages:
 - `analyze` — Step 1 (Material Analysis)
 - `strategy` — Step 2 (init-doc-strategy)
-- `strategy-refine` — Step 3 wrapper: 연구팀 review + (user memos if `--user-refine`) + refine-doc-strategy on the strategy
+- `strategy-refine` — Step 3 wrapper: 연구팀 review + (user memos if `--user-refine`) + refine-doc on the strategy
 - `draft` — Step 4 (Draft Generation)
-- `draft-refine` — Step 5 wrapper: 연구팀 review + (user memos if `--user-refine`) + refine-doc-strategy on the draft
+- `draft-refine` — Step 5 wrapper: 연구팀 review + (user memos if `--user-refine`) + refine-doc on the draft
 - `finalize` — Step 6 (Pipeline Summary)
 
 When resuming with `--from`, the positional argument should be either the artifact directory path or a fuzzy-matchable short name. The orchestrator resolves it via the same fuzzy lookup used by Plan Resolution in autopilot-code: `ls -d .claude_reports/documents/*$ARG* 2>/dev/null`. Read `pipeline_state.yaml` to recover `mode`, `qa_level`, `refs_folder`, `user_refine`. CLI flags override state file; missing flags inherit from state.
@@ -213,41 +214,66 @@ Invoke Skill: `init-doc-strategy` with args: `<mode> --refs <folder> --output <a
    - `en_strategy_path` = `{strategy_folder}/strategy/strategy.md`
    - `ko_strategy_path` = `{strategy_folder}/strategy/strategy_ko.md`
 
-2. Invoke reviewers based on `--qa` level:
+2. Invoke reviewers based on `--qa` level. **Quality reviewer(s) and fact-checker run in parallel** at standard+:
 
-   **`light`** — Single 연구팀 agent (sonnet model):
+   **`light`** — Single 연구팀 quality reviewer (sonnet):
    - One-pass review focusing on critical issues only.
    - Review log: `{strategy_folder}/strategy_reviews/research_review.md`
 
-   **`standard`** — Single 연구팀 agent (opus model):
-   - Thorough single-pass review.
-   - Review log: `{strategy_folder}/strategy_reviews/research_review.md`
+   **`standard`** — 1× 연구팀 quality reviewer (opus) + 1× 연구팀 fact-checker (sonnet, parallel):
+   - Quality review log: `{strategy_folder}/strategy_reviews/research_review_quality.md`
+   - Fact-check log: `{strategy_folder}/strategy_reviews/research_review_factcheck.md`
 
-   **`thorough`** (default) — Two parallel 연구팀 agents (opus model):
-   - **Reviewer A (Domain Expert)**: Cross-checks strategy against reference materials, domain conventions (academic venues for paper modes: NeurIPS, ICML, ICLR, ICASSP, Interspeech, T-ASLP; industry standards for report/proposal/presentation modes), and completeness of coverage.
+   **`thorough`** (default) — 2× 연구팀 quality reviewers (opus, parallel) + 1× 연구팀 fact-checker (sonnet, parallel):
+   - **Quality Reviewer A (Domain Expert)**: Cross-checks strategy against reference materials, domain conventions (academic venues for paper modes: NeurIPS, ICML, ICLR, ICASSP, Interspeech, T-ASLP; industry standards for report/proposal/presentation modes), and completeness of coverage.
      - Review log: `{strategy_folder}/strategy_reviews/research_review_domain.md`
-   - **Reviewer B (Methodology Reviewer)**: Evaluates logical consistency, persuasiveness of arguments, experimental design soundness, and identifies potential weaknesses an adversarial reviewer would exploit.
+   - **Quality Reviewer B (Methodology Reviewer)**: Evaluates logical consistency, persuasiveness of arguments, experimental design soundness, and identifies potential weaknesses an adversarial reviewer would exploit.
      - Review log: `{strategy_folder}/strategy_reviews/research_review_methodology.md`
-   - Both reviewers write `<!-- memo: ... -->` comments in the Korean strategy.
-   - After both complete, merge memos and deduplicate.
+   - **Fact-checker (sonnet, parallel)**: Verbatim cross-check of citation/venue/year/metric/lineage against cards/PDFs.
+     - Review log: `{strategy_folder}/strategy_reviews/research_review_factcheck.md`
+   - All reviewers write `<!-- memo: ... -->` comments in the Korean strategy.
+   - After all complete, merge memos and deduplicate.
 
-   Common prompt for all levels:
+   **Quality reviewer prompt** (light/standard/thorough A & B):
    ```
-   Review this document strategy as the user's domain expert proxy.
+   Review this document strategy as the user's domain expert proxy — _quality / cohesion / coverage_ focus.
    Mode: {mode} | KO strategy: {ko_strategy_path} | EN strategy: {en_strategy_path}
    Analysis: {strategy_folder}/analysis/ | Refs: {refs_folder} | Log: {review_log_path}
 
    Cross-check: actual refs/reviewer comments, domain conventions,
    logical consistency, completeness (any missed reviewer points or gaps?).
+   Do NOT verify individual fact citations (model venue/year/metric) — that's the fact-checker's role at standard+.
    Write memos as `<!-- memo: ... -->` in the Korean strategy.
    Write a structured review log to the log file.
    Return a summary of memos added (or "no issues found").
    ```
 
+   **Fact-checker prompt** (sonnet, parallel — standard/thorough only):
+   ```
+   You are a fact-check focused reviewer — NOT narrative quality.
+   Mode: {mode} | KO strategy: {ko_strategy_path} | Refs: {refs_folder} | Log: {fact_log_path}
+
+   For every domain claim in the strategy (citation / model name / venue / year /
+   metric / dataset / lineage / classification), open the corresponding ground-truth
+   source and verbatim compare:
+   - Paper cards: {refs_folder}/cards/*.md (if exists; this is single source of truth)
+   - Reference PDFs: {refs_folder}/*.pdf (only if cards lack the specific fact)
+   - Reviewer comments (rebuttal mode): {strategy_folder}/analysis/reviewer_analysis.md
+
+   Do NOT comment on completeness, narrative arc, or strategic soundness — that's the quality reviewer's job.
+   Stay narrowly on fact verification. Cost-aware mode (sonnet): table-only output. Limit to ~30 most material claims.
+
+   Output the review log as a single table:
+   | Section | Claim in strategy | Source (file:line or section) | Match (✅/❌) | Severity (🔴/🟡) |
+
+   For 🔴/🟡 mismatches, also write `<!-- memo: [FACT] section X — claim Y conflicts with source Z -->` in the Korean strategy.
+   Return ONLY path + one-line verdict.
+   ```
+
 3. If memos were added:
-   - **`--user-refine` pause**: if the flag is set, update `pipeline_state.yaml` (`user_refine: true`, `paused_at_stage: strategy-refine`), print the resume command (`/autopilot-doc --mode {mode} --from strategy-refine {strategy_folder}`), and exit. Do NOT invoke refine-doc-strategy.
-   - Otherwise: invoke Skill `refine-doc-strategy` with the Korean strategy path as args.
-4. If no memos: Skip to Step 4. (When resumed via `--from strategy-refine`, the orchestrator skips the 연구팀 review and runs refine-doc-strategy directly using the pre-existing memos.)
+   - **`--user-refine` pause**: if the flag is set, update `pipeline_state.yaml` (`user_refine: true`, `paused_at_stage: strategy-refine`), print the resume command (`/autopilot-doc --mode {mode} --from strategy-refine {strategy_folder}`), and exit. Do NOT invoke refine-doc.
+   - Otherwise: invoke Skill `refine-doc` with the Korean strategy path as args.
+4. If no memos: Skip to Step 4. (When resumed via `--from strategy-refine`, the orchestrator skips the 연구팀 review and runs refine-doc directly using the pre-existing memos.)
 
 ### Step 4: Draft Generation
 **Applicable modes**: rebuttal, write, report, proposal, review, presentation. (All 6 modes generate drafts.)
@@ -455,44 +481,68 @@ Write both files directly. Return ONLY the file paths and a 3-5 line Korean summ
    - `en_draft_path` = `{strategy_folder}/draft/draft.md`
    - `ko_draft_path` = `{strategy_folder}/draft/draft_ko.md`
 
-2. Invoke reviewers based on `--qa` level (same scaling as Step 3 strategy review):
+2. Invoke reviewers based on `--qa` level (same scaling as Step 3). **Quality reviewer(s) and fact-checker run in parallel** at standard+:
 
-   **`light`** — Single 연구팀 agent (sonnet model):
+   **`light`** — Single 연구팀 quality reviewer (sonnet):
    - One-pass review focusing on critical issues only.
    - Review log: `{strategy_folder}/draft_reviews/draft_review.md`
 
-   **`standard`** — Single 연구팀 agent (opus model):
-   - Thorough single-pass review.
-   - Review log: `{strategy_folder}/draft_reviews/draft_review.md`
+   **`standard`** — 1× 연구팀 quality reviewer (opus) + 1× 연구팀 fact-checker (sonnet, parallel):
+   - Quality review log: `{strategy_folder}/draft_reviews/draft_review_quality.md`
+   - Fact-check log: `{strategy_folder}/draft_reviews/draft_review_factcheck.md`
 
-   **`thorough`** — Two parallel 연구팀 agents (opus model):
-   - **Reviewer A (Content Expert)**: Cross-checks draft against strategy, verifies all strategy points are addressed, checks factual accuracy against refs.
+   **`thorough`** — 2× 연구팀 quality reviewers (opus, parallel) + 1× 연구팀 fact-checker (sonnet, parallel):
+   - **Quality Reviewer A (Content Expert)**: Cross-checks draft against strategy, verifies all strategy points are addressed, checks high-level factual coherence.
      - Review log: `{strategy_folder}/draft_reviews/draft_review_content.md`
-   - **Reviewer B (Quality Reviewer)**: Evaluates writing quality, logical flow, completeness, identifies gaps and weak arguments.
+   - **Quality Reviewer B (Writing Quality)**: Evaluates writing quality, logical flow, completeness, identifies gaps and weak arguments.
      - Review log: `{strategy_folder}/draft_reviews/draft_review_quality.md`
-   - Both reviewers write `<!-- memo: ... -->` comments in the Korean draft.
-   - After both complete, merge memos and deduplicate.
+   - **Fact-checker (sonnet, parallel)**: Verbatim cross-check of citation/venue/year/metric/lineage against cards/PDFs — _independent_ of strategy/quality concerns.
+     - Review log: `{strategy_folder}/draft_reviews/draft_review_factcheck.md`
+   - All reviewers write `<!-- memo: ... -->` comments in the Korean draft.
+   - After all complete, merge memos and deduplicate.
 
-   Common prompt for all levels:
+   **Quality reviewer prompt** (light/standard/thorough A & B):
    ```
-   Review this document draft as the user's domain expert proxy.
+   Review this document draft as the user's domain expert proxy — _strategy coverage / writing quality / logic_ focus.
    Mode: {mode} | KO draft: {ko_draft_path} | EN draft: {en_draft_path}
    Strategy: {en_strategy_path} | Analysis: {strategy_folder}/analysis/ | Refs: {refs_folder}
    Log: {review_log_path}
 
-   Cross-check: strategy coverage (all points addressed?), factual accuracy against refs,
-   logical flow, writing quality, completeness, [TODO] items.
+   Cross-check: strategy coverage (all points addressed?), logical flow, writing quality, completeness, [TODO] items.
    For rebuttal: verify every reviewer point has a response.
+   Do NOT individually verify each fact citation (model venue/year/metric) — that's the fact-checker's role at standard+.
    Write memos as `<!-- memo: ... -->` in the Korean draft.
    Write a structured review log to the log file.
    Return a summary of memos added (or "no issues found").
    ```
 
+   **Fact-checker prompt** (sonnet, parallel — standard/thorough only):
+   ```
+   You are a fact-check focused reviewer — NOT narrative quality.
+   Mode: {mode} | KO draft: {ko_draft_path} | Refs: {refs_folder} | Log: {fact_log_path}
+
+   For every domain claim in the draft (citation / model name / venue / year /
+   metric / dataset / lineage / classification), open the corresponding ground-truth
+   source and verbatim compare:
+   - Paper cards: {refs_folder}/cards/*.md (if exists; this is single source of truth)
+   - Reference PDFs: {refs_folder}/*.pdf (only if cards lack the specific fact)
+   - Strategy: {en_strategy_path} (only to confirm consistent claim, not as primary source)
+
+   Do NOT comment on writing quality, narrative arc, or strategy coverage — that's the quality reviewer's job.
+   Stay narrowly on fact verification. Cost-aware mode (sonnet): table-only output. Limit to ~30 most material claims.
+
+   Output the review log as a single table:
+   | Slide/Section | Claim in draft | Source (file:line or section) | Match (✅/❌) | Severity (🔴/🟡) |
+
+   For 🔴/🟡 mismatches, also write `<!-- memo: [FACT] slide X — claim Y conflicts with source Z -->` in the Korean draft.
+   Return ONLY path + one-line verdict.
+   ```
+
 3. If memos were added:
-   - **`--user-refine` pause**: if the flag is set, update `pipeline_state.yaml` (`user_refine: true`, `paused_at_stage: draft-refine`), print the resume command (`/autopilot-doc --mode {mode} --from draft-refine {strategy_folder}`), and exit. Do NOT invoke refine-doc-strategy.
-   - Otherwise: invoke Skill `refine-doc-strategy` with the Korean draft path as args.
-   - Note: refine-doc-strategy handles draft paths (draft/draft.md ↔ draft/draft_ko.md) via auto-detection.
-4. If no memos: Skip to Step 6. (When resumed via `--from draft-refine`, run refine-doc-strategy directly on the pre-existing memos.)
+   - **`--user-refine` pause**: if the flag is set, update `pipeline_state.yaml` (`user_refine: true`, `paused_at_stage: draft-refine`), print the resume command (`/autopilot-doc --mode {mode} --from draft-refine {strategy_folder}`), and exit. Do NOT invoke refine-doc.
+   - Otherwise: invoke Skill `refine-doc` with the Korean draft path as args.
+   - Note: refine-doc handles draft paths (draft/draft.md ↔ draft/draft_ko.md) via auto-detection.
+4. If no memos: Skip to Step 6. (When resumed via `--from draft-refine`, run refine-doc directly on the pre-existing memos.)
 
 ### Step 6: Pipeline Summary
 **Always write** `{strategy_folder}/pipeline_summary.md` before reporting to the user.
@@ -511,10 +561,10 @@ Write both files directly. Return ONLY the file paths and a 3-5 line Korean summ
 | 1 | Material Analysis | completed | {N} files |
 | 2 | init-doc-strategy | created | {strategy path} |
 | 3 | Strategy Review (연구팀) | memos added / no issues | {memo count} |
-| 3b | refine-doc-strategy | refined / skipped | |
+| 3b | refine-doc | refined / skipped | |
 | 4 | Draft Generation | created | {draft path} |
 | 5 | Draft Review (연구팀) | memos added / no issues | {memo count} |
-| 5b | refine-doc-strategy (draft) | refined / skipped | |
+| 5b | refine-doc (draft) | refined / skipped | |
 
 ## Artifacts
 - Strategy (EN/KO): {en_path} / {ko_path}
