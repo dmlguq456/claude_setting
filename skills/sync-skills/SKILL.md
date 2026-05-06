@@ -19,7 +19,7 @@ argument-hint: "[--check] [--readme-only] [--notion-only] [--force]"
 
 ### 입력
 - **Skills**: `~/.claude/skills/*/SKILL.md` (현재 12개: autopilot-research/code/doc, init-plan, refine-plan, execute-plan, run-test, final-report, init-doc-strategy, refine-doc, analyze-project, analyze-papers, sync-skills 자기 자신)
-- **Agents**: `~/.claude/agents/*.md` (현재 8개: 기획팀/품질관리팀/개발팀/테스트팀/연구팀/탐색팀/기록팀/codex-review-team)
+- **Agents**: `~/.claude/agents/*.md` (현재 7개: 기획팀/품질관리팀/개발팀/테스트팀/연구팀/탐색팀/codex-review-team — 기록팀 제거됨, Notion 작업은 메인 Claude가 `~/.claude/notion_guide.md` 참조해 직접 수행)
 
 자동 발견: `ls ~/.claude/skills/*/SKILL.md ~/.claude/agents/*.md`. 위 목록은 현재 알려진 항목.
 
@@ -132,13 +132,11 @@ flowchart LR
     subgraph DIRECT["사용자 직접 호출"]
         direction TB
         DT["개발팀<br/>(작은 리팩토링)"]
-        REC["기록팀<br/>(노션 작업)"]
     end
     USER --> ARES
     USER --> ACODE
     USER --> ADOC
     USER -. 직접 .-> DT
-    USER -. 직접 .-> REC
     ARES --> RT
     ARES --> BT
     ACODE --> PT
@@ -174,56 +172,53 @@ flowchart LR
 ### Step 5: Write README.md
 `~/.claude/README.md`를 4b의 layout 그대로 통째로 작성. 현행 README가 reference이므로 큰 구조 변경 없이는 sync 시점 데이터(시각, SHA 기반 변경 표시 등)만 갱신한다. argument-hint 변화로 옵션 값이 바뀌었으면 Skills 표의 "주요 옵션" 컬럼을 갱신.
 
-### Step 6: Update Notion 대문 상단 (기록팀 위임)
+### Step 6: Update Notion 대문 상단 (메인 컨텍스트 직접 호출)
 
 페이지 id: `34987c2b-b753-80d6-8df4-d6ce4d469bff`
 
-**원칙**: Notion MCP 도구를 직접 호출하지 않고 **기록팀(record-team) 에이전트에 위임**한다. 이유:
-- 자식 페이지 보존 등의 도메인 안전 규칙을 agent 시스템 프롬프트에 박아 둘 수 있음
-- 메인 컨텍스트가 Notion API 응답·HTML로 오염되지 않음
-- 향후 사고(2026-05-06 트래시 사고 같은) 구조적 차단
+**원칙**: 메인 컨텍스트에서 Notion MCP 도구를 직접 호출. 기존에는 기록팀에 위임했으나, sub-agent runtime에서 MCP 도구 미접근 이슈가 확인되어 (2026-05-06) 직접 호출로 전환. 자식 페이지 보존 등의 안전 규칙은 본 SKILL.md + `~/.claude/notion_guide.md`에 명시.
 
-#### 6a. 기록팀 호출
+> 노션 운영 가이드 참조: `~/.claude/notion_guide.md` (페이지 타입 템플릿 + workspace 구조 + 일반 운영 규칙)
+
+#### 6a. MCP 도구 로드
+
+deferred tool 로드:
 ```
-Agent(subagent_type="기록팀"):
-  "노션 대시보드 동기화 모드.
-
-   대상 페이지: https://www.notion.so/34987c2bb75380d68df4d6ce4d469bff
-   페이지 제목: Agents/Skills
-
-   ## 작업
-   페이지 상단의 대시보드 영역만 교체. 페이지 구조:
-   ```
-   # 전체 워크플로우 (또는 # 📊 Dashboard...)        ← 교체 대상 시작
-   {대시보드 본문 — 워크플로우 + Quickstart + cheat-sheet + 가이드라인}
-   ---                                              ← 교체 대상 끝 (columns 직전 구분선)
-   <columns>                                        ← 보존 (절대 건드리지 X)
-   ...
-   </columns>
-   {하단 메모, 페이지 링크, 마지막 업데이트 라인}    ← 보존 (마지막 업데이트만 날짜 갱신)
-   ```
-
-   ## 새 대시보드 콘텐츠
-   다음 마크다운 블록을 시작 헤더부터 columns 직전 `---`까지 교체:
-
-   {Step 4a Diagram 1 + 4b Quickstart + 4c Skills cheat-sheet + 4d Agents cheat-sheet + 4a Diagram 2 + 4e 통합 가이드라인}
-
-   ## 안전 규칙 (반드시 준수)
-   1. **`update_content`만 사용**. `replace_content`는 사용 금지 — 자식 페이지 삭제 위험.
-   2. **`<columns>` 안의 `<page>` / `<database>` 자식 링크는 절대 삭제 X**. old_str에 그 영역을 포함시키지 말 것.
-   3. **search-and-replace는 두 단계로 분리**:
-      - (1) 상단 대시보드 영역 교체 (시작 헤더 ~ columns 직전 `---`)
-      - (2) 페이지 하단 `*마지막 업데이트: ...*` 라인의 날짜만 갱신
-   4. fetch로 현재 콘텐츠를 받아 정확한 old_str을 만든 뒤 교체. old_str은 fetch 결과의 워딩과 한 글자도 어긋나면 실패하므로 정확히.
-   5. 첫 시도 실패(validation_error 등) 시 재시도하되, `allow_deleting_content`는 절대 true로 설정 X.
-
-   완료 후 변경된 영역 요약과 페이지 URL을 한국어로 보고."
+ToolSearch(query="select:mcp__claude_ai_Notion__notion-fetch,mcp__claude_ai_Notion__notion-update-page")
 ```
 
-기록팀은 위 프롬프트의 안전 규칙을 따라 `mcp__claude_ai_Notion__notion-fetch` → `mcp__claude_ai_Notion__notion-update-page (update_content)`를 자체 실행한다.
+#### 6b. 페이지 fetch + update
 
-#### 6b. 결과 확인
-기록팀의 보고를 받아 변경 영역과 보존 영역을 사용자에게 한 줄로 요약. 실패 시 (예: old_str 불일치) 사용자에게 보고하고 종료 — 직접 재시도 X.
+```python
+# 1. fetch 현재 콘텐츠
+mcp__claude_ai_Notion__notion-fetch(id="34987c2b-b753-80d6-8df4-d6ce4d469bff")
+
+# 2. update_content 두 단계로 분리:
+#    - (a) 상단 대시보드 영역 교체 (시작 헤더 ~ columns 직전 `---`)
+#    - (b) 페이지 하단 `*마지막 업데이트: ...*` 라인의 날짜만 갱신
+mcp__claude_ai_Notion__notion-update-page(
+    page_id="34987c2b-b753-80d6-8df4-d6ce4d469bff",
+    command="update_content",
+    properties={},
+    content_updates=[
+        {"old_str": "<현재 대시보드 영역의 정확한 워딩>", "new_str": "<새 대시보드 콘텐츠>"},
+        {"old_str": "*마지막 업데이트: <기존 날짜>*", "new_str": "*마지막 업데이트: <새 날짜 + 변경 요약>*"}
+    ]
+)
+```
+
+#### 6c. 안전 규칙 (반드시 준수)
+
+1. **`update_content`만 사용**. `replace_content`는 사용 금지 — 자식 페이지 삭제 위험.
+2. **`<columns>` 안의 `<page>` / `<database>` 자식 링크는 절대 삭제 X**. old_str에 그 영역을 포함시키지 말 것.
+3. **search-and-replace는 두 단계로 분리** (위 6b 참조).
+4. fetch 결과의 워딩과 old_str이 한 글자도 어긋나면 실패. 정확히 복사.
+5. 첫 시도 실패(validation_error 등) 시 재시도하되, `allow_deleting_content`는 절대 true 설정 X.
+6. 작은 부분만 변경하면 _전체 대시보드 교체_ 대신 _변경된 줄만_ 다중 update_content 작업으로 처리 — 안전성 ↑.
+
+#### 6d. 결과 확인
+
+update_content 성공 응답 (`{"page_id": "..."}`)을 받으면 변경 영역을 사용자에게 한 줄 요약. 실패 시 사용자에게 보고하고 종료 — 자동 재시도는 1회까지만 (old_str 정정 후).
 
 ### Step 7: Update sync state
 `~/.claude/skills/.sync_state.json`을 새 SHA + 시각으로 저장.

@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "last_readme_sync": "2026-05-06T18:00:00+09:00",
-  "last_notion_sync": "2026-05-06T18:00:00+09:00",
+  "last_readme_sync": "2026-05-06T18:30:00+09:00",
+  "last_notion_sync": "2026-05-06T18:30:00+09:00",
   "items": {
     "skills/analyze-papers": {"sha256": "f41e8de114d485a55a0110be29f6dd97e7524abec4f84f01855bdee9b579c6b7", "synced_at": "2026-05-06T14:27:45+09:00"},
     "skills/analyze-project": {"sha256": "9ccb9b5f1dfa8ee3e3939d88880ea45de45e2745f70d04e281ff06bfef777aa7", "synced_at": "2026-05-06T14:27:45+09:00"},
@@ -15,13 +15,12 @@
     "skills/refine-doc": {"sha256": "7e6a3c67b0f162f87f975194579c27d0c6b455d1725ce1ff3d54641b7fe2913f", "synced_at": "2026-05-06T18:00:00+09:00"},
     "skills/refine-plan": {"sha256": "1d69802f7c34b3c737b4c6bee1e0e1d23c4dda190cc6478ea1dd2db080b2b770", "synced_at": "2026-05-06T14:27:45+09:00"},
     "skills/run-test": {"sha256": "f59a0340f449ac9afe8fa3b9fd3f85ed3d912d484e279fbca38883ed695ced3f", "synced_at": "2026-05-06T14:27:45+09:00"},
-    "skills/sync-skills": {"sha256": "37105c20fd3d2c274deb6d21212bb0c6cd588993518f737b1b693adbd6dcc98f", "synced_at": "2026-05-06T18:00:00+09:00"},
+    "skills/sync-skills": {"sha256": "197eedc020e56ae88fc3102e2fa95540da0c0f828d46202a8bb3f61c771031b7", "synced_at": "2026-05-06T18:30:00+09:00"},
     "agents/browser-team": {"sha256": "7f61dccea5d1f13e0a9b41104aae7d614a53b7ba0319571711ce94bcda4ff879", "synced_at": "2026-05-06T14:27:45+09:00"},
     "agents/codex-review-team": {"sha256": "b54d24dacf8d7bc6a733a35c8fa4c0671745d74a0121092b0b0785eed3561a9d", "synced_at": "2026-05-06T14:27:45+09:00"},
     "agents/dev-team": {"sha256": "7248959c587c17a3d2da8425fa32580ab96134258074a678334c1777f6e0263b", "synced_at": "2026-05-06T14:27:45+09:00"},
     "agents/plan-team": {"sha256": "974e75aff84cf4977a90c455a9e6c407222b8daf1f5714413f512c06f88e708c", "synced_at": "2026-05-06T14:27:45+09:00"},
     "agents/qa-team": {"sha256": "3ae5c36ca1fb6ce37c21b641f842dcc90ccd8913fffe87a3c7c0d93ef6e6d900", "synced_at": "2026-05-06T14:27:45+09:00"},
-    "agents/record-team": {"sha256": "0673bb7b73f8df2d00a52763ba9963da3fa92ac49ec5bfefb0164ee8e9c0be8f", "synced_at": "2026-05-06T14:27:45+09:00"},
     "agents/research-team": {"sha256": "208b3df343c94457668c770c23b7800aa31f3752fcc6fb3196db506d7a4328a2", "synced_at": "2026-05-06T14:27:45+09:00"},
     "agents/test-team": {"sha256": "aa84a4a3d52fb7fb0491326caca2e398fa835f36ce72d3d392ebf4129aef521d", "synced_at": "2026-05-06T14:27:45+09:00"}
   }

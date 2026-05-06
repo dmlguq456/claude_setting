@@ -1,8 +1,9 @@
 # Claude Setting
 
 > Source: `~/.claude/skills/*/SKILL.md` + `~/.claude/agents/*.md`
-> 마지막 sync: 2026-05-06 18:00 KST (`/sync-skills` 자동) — 직접 편집 금지.
+> 마지막 sync: 2026-05-06 18:30 KST (`/sync-skills` 자동) — 직접 편집 금지.
 > Notion 대문: [Agents/Skills](https://www.notion.so/34987c2bb75380d68df4d6ce4d469bff) (본 README와 동일 콘텐츠)
+> Notion 운영 가이드: [`notion_guide.md`](notion_guide.md) (페이지 타입 템플릿 + workspace 구조)
 
 ---
 
@@ -40,7 +41,7 @@ flowchart LR
 | **2. 기반 논문 정독** | 받은 PDF | `/analyze-papers` → `docs_paper/` | — |
 | **3. 코드베이스 파악** | 코드 | `/analyze-project` → `docs_code/` | — |
 | **4. 코드 구현** | 코드베이스 | `/autopilot-code --mode dev --user-refine "<task>"` (debug/audit 모드도 동일) | — |
-| **5. 실험 실행·결과 수집** | 실험 결과 (logs, ckpt, plots) | **자동화 없음** | 사용자가 직접 실행. 결과 정리 후 `Agent(기록팀)`로 노션 로깅, 또는 본인 폴더에 모음 |
+| **5. 실험 실행·결과 수집** | 실험 결과 (logs, ckpt, plots) | **자동화 없음** | 사용자가 직접 실행. 결과 정리 후 메인 Claude에게 "노션에 기록해" → `notion_guide.md` 트리거, 또는 본인 폴더에 모음 |
 | **6. 논문 초안** | 본인 결과 + research artifact + 본인 노트 | `/autopilot-doc --mode write --refs <combined_dir> --user-refine` → **전략 + 초안 markdown** 생성 | **최종 작성은 사용자가 마무리** (실험 표·그림 수동 삽입, 본인 결과 narrative, LaTeX 빌드, 인용 정리) |
 | **7. 발표자료** | 논문 + research artifact | `/autopilot-doc --mode presentation --refs <combined_dir> --user-refine` → **슬라이드 흐름·내용 markdown** | 슬라이드 시각화·디자인 마무리 |
 | **8. 리뷰 대응** | reviewer comments | `/autopilot-doc --mode rebuttal --refs <reviewer_comments> --user-refine` → **응답 전략 + 초안 markdown** | 응답 톤 다듬기, 추가 실험 필요 시 4–5단계 재진입 |
@@ -49,7 +50,7 @@ flowchart LR
 
 > **autopilot-doc의 모든 모드는 같은 패턴**: 전략(strategy) + 초안/가이드(draft) markdown 산출 → **사용자가 최종 작성을 마무리**. skill은 방향과 구조를 잡아주는 역할.
 
-> **핵심 갭**: 5번(실험 실행)은 Claude가 대신할 수 없음 — 코드 구현(4)과 결과 정리(6) 사이에 사용자 본인이 실험을 돌리고, 결과를 모아 다음 skill의 `--refs`에 함께 넣어 줘야 합니다. 실험 결과 정리·기록은 `Agent(기록팀)`로 위임 가능.
+> **핵심 갭**: 5번(실험 실행)은 Claude가 대신할 수 없음 — 코드 구현(4)과 결과 정리(6) 사이에 사용자 본인이 실험을 돌리고, 결과를 모아 다음 skill의 `--refs`에 함께 넣어 줘야 합니다. 실험 결과의 노션 로깅은 메인 Claude에게 직접 부탁 (`notion_guide.md` 자동 참조).
 
 > **`--refs` 사용 팁**: 논문 작성·발표자료 같은 '본인 자료가 핵심'인 단계에서는 단일 폴더에 (a) `autopilot-research`의 artifact_dir, (b) 본인 결과 표·그림, (c) 본인 노트를 함께 모아 두고 그 폴더를 `--refs`로 지정. 두 종류의 자료가 모두 들어가야 강한 draft가 나옵니다.
 
@@ -85,7 +86,7 @@ flowchart LR
 | 작성 중인 발표자료/논문 초안 **타당성·논리 검토** | `Agent(연구팀)` | research artifact 안 만들고 cross-check만 |
 | 코드/문서 **diff 단발성 리뷰** | `Agent(품질관리팀)` | run-test loop 없이 리뷰만 |
 | 외부 의견(Codex) 빠른 추가 | `Agent(codex-review-team)` | `--qa adversarial`보다 가볍게 |
-| **노션 페이지·DB 갱신, 실험 결과 로깅** | `Agent(기록팀)` | "노션에 기록해" 한 줄로 |
+| **노션 페이지·DB 갱신, 실험 결과 로깅** | 메인 컨텍스트에서 Notion MCP 도구 직접 호출 ([`notion_guide.md`](notion_guide.md) 참조) | sub-agent X (MCP 도구 접근 제약) |
 | 특정 paywall 논문 1편 fetch | `Agent(탐색팀)` | autopilot-research 안 돌리고 단발성 |
 | 단계별 테스트만 실행 | `/run-test <plan>` skill | autopilot-code 전체 X |
 
@@ -132,7 +133,8 @@ flowchart LR
 | 탐색팀 (browser-team) | sonnet | autopilot-research | 단발성 paywall 페이지 fetch |
 | codex-review-team | opus | `--qa adversarial` | 단발성 Codex 외부 의견 |
 | 개발팀 (dev-team) | sonnet | (autopilot 내부) | **작은 리팩토링/정리** ("이 함수 이름 바꿔줘") |
-| 기록팀 (record-team) | sonnet | (없음) | **Notion 작업** ("노션에 기록해", 실험 결과 로깅) |
+
+> **Notion 작업**은 sub-agent로 위임하지 않음 — sub-agent runtime의 MCP 도구 접근 제약 때문. 메인 컨텍스트에서 `mcp__claude_ai_Notion__*` 도구를 직접 호출하고, 운영 가이드는 [`notion_guide.md`](notion_guide.md) 참조.
 
 <details>
 <summary>호출 구조 다이어그램</summary>
@@ -155,13 +157,11 @@ flowchart LR
     end
     subgraph DIRECT["직접 호출 가능"]
         DT["개발팀"]
-        REC["기록팀"]
     end
     USER --> ARES
     USER --> ACODE
     USER --> ADOC
     USER -. 작은 작업 .-> DT
-    USER -. 노션 .-> REC
     USER -. 단발성 검토 .-> QT
     USER -. 도메인 cross-check .-> RT
     USER -. 외부 의견 .-> CRT

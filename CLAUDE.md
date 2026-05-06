@@ -1,0 +1,73 @@
+# CLAUDE.md — Session Bootstrap
+
+> 이 파일은 Claude Code 세션 시작 시 **자동 로드**됩니다. 본 문서는 *얇은 부트스트랩* 역할만 하고, 실제 워크플로우 맵 / cheat-sheet / 가이드라인은 **`~/.claude/README.md`**에 있습니다 (sync-skills로 자동 동기화).
+>
+> **세션 시작 시 권장 행동**: skills/agents 흐름이 필요한 작업이면 먼저 `Read ~/.claude/README.md`로 전체 그림 확인.
+
+---
+
+## Source of Truth
+
+- **Skills 정의**: `~/.claude/skills/*/SKILL.md` (각 skill invoke 시 자동 로드)
+- **Agents 정의**: `~/.claude/agents/*.md`
+- **Autopilot family 아키텍처 헌법**: `~/.claude/DESIGN_PRINCIPLES.md` (3-tier separation, interface contract, anti-pattern — autopilot-* skill 설계·재설계 시 참고)
+- **워크플로우 맵 / cheat-sheet / 통합 가이드**: `~/.claude/README.md` (자동 동기화)
+- **Notion 운영 가이드**: `~/.claude/notion_guide.md` (workspace 구조 + 페이지 타입 템플릿 + 작성 원칙 + 안전 규칙 — Notion 작업 시 반드시 참조)
+- **사용자 메모리**: `~/.claude/projects/-home-nas-user-Uihyeop/memory/` (`MEMORY.md` 자동 로드)
+
+위 6개가 권위 있는 source. 본 CLAUDE.md는 그것들을 *가리키는 표지*에 불과합니다.
+
+---
+
+## 도메인 트리거 (작업 시작 전 자동 참조)
+
+특정 도메인 작업을 인지하면 _작업 시작 전에_ 해당 가이드를 먼저 Read하고 그 규칙을 따르세요. sub-agent에 위임 안 함 (메인 Claude가 직접 수행).
+
+| 트리거 | 자동 참조 가이드 | 비고 |
+|---|---|---|
+| **Notion 작업** ("노션에 기록", "Notion 업데이트", 페이지 CRUD, DB 항목 관리, 실험 결과 로깅, 회의록 정리, 논문 작업 추적, Agents/Skills 페이지 갱신 등) | `~/.claude/notion_guide.md` | 메인 Claude가 `mcp__claude_ai_Notion__*` 도구 직접 호출. **sub-agent로 위임 X** (sub-agent runtime의 MCP 도구 접근 제약). 작성 원칙 (concise / uniform / short breath) + 페이지 타입 4종 (실험·회의·논문·보고) + 안전 규칙 (replace_content 금지, columns 자식 페이지 보존) 준수. |
+
+> 이 표는 의도적으로 **작게** 유지. 새 도메인 트리거 추가 시 `(트리거, 가이드 파일, 준수 규칙 한 줄)` 형식으로 한 행만 추가.
+
+---
+
+## Drift-Free Essentials
+
+아래는 skill 변경에 따라 흔들리지 않는 **불변 사실**만:
+
+### 3개 autopilot 파이프라인의 산출물 위치
+
+| Pipeline | Artifact Dir |
+|---|---|
+| `autopilot-research` | `.claude_reports/research/{topic}/` |
+| `autopilot-doc` | `.claude_reports/documents/{YYYY-MM-DD}_{name}/` |
+| `autopilot-code` | `.claude_reports/plans/{YYYY-MM-DD}_{name}/` |
+
+### Scope 경계 (절대 침범 금지)
+
+- `autopilot-research` = **markdown 분석 리포트만**. 슬라이드 본문, paper draft, code, PPTX 절대 만들지 말 것.
+- `autopilot-doc` = **strategy + draft (markdown만)**. PPTX export 안 함, 코드 실행 안 함.
+- `autopilot-code` = **code + tests + plan/dev logs**. paper/slide 작성 안 함.
+
+산출물이 두 pipeline에서 중복되거나, 정의된 산출물 외 추가 생성하면 즉시 멈추고 사용자에게 확인.
+
+### 공통 플래그 패턴
+
+- `--refs <folder>` — 입력 자료. research artifact_dir도 doc의 `--refs`로 그대로 사용 가능.
+- `--qa light|standard|thorough` — QA 강도.
+- `--from <stage>` — pipeline 재개 (`pipeline_state.yaml` 기반).
+- `--user-refine` (doc 전용) — refine 시점 일시정지.
+
+### 자주 빠지는 함정
+
+- pipeline이 sub-skill을 이미 호출 중인데 사용자/Claude가 sub-skill을 또 부르기 → 중복/덮어쓰기.
+- artifact_dir 경로 오타 (research vs documents vs plans).
+- PPTX 자동 생성 시도 (presentation mode는 markdown만; PPTX는 사용자 수동).
+- `--qa thorough`를 1차 시도부터 사용 (시간/비용 큼; standard부터).
+
+---
+
+## 운영 정책
+
+- 본 CLAUDE.md를 **확장하지 말 것**. skill 추가/변경은 README.md(자동 동기화)에 반영되고, 본 파일은 그 표지로만 유지.
+- 본 파일을 업데이트할 시점: (a) source-of-truth 위치가 바뀔 때, (b) artifact_dir 컨벤션이 바뀔 때, (c) scope 경계가 근본적으로 변경될 때, (d) **도메인 트리거 표에 새 행 추가/제거**할 때. 그 외엔 README.md만 sync.
