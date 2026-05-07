@@ -46,7 +46,7 @@ flowchart LR
     REF["autopilot-refine"]
     OUT[("📦 .claude_reports/")]
     IN --> OUT
-    OUT -- --refs --> PROD
+    OUT -->|--refs| PROD
     PROD --> OUT
     OUT <--> REF
 ```
