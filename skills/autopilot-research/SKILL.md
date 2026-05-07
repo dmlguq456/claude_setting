@@ -4,6 +4,8 @@ description: "Research survey pipeline — multi-mode investigation (academic / 
 argument-hint: "<query> [--mode academic|technology|market] [--depth shallow|medium|deep] [--refs <folder>] [--qa quick|light|standard|thorough] [--no-clarify] [--from search|analyze|report]"
 ---
 
+> **산출물 폴더 컨벤션**: [SKILL_OUTPUT_CONVENTION.md](../../SKILL_OUTPUT_CONVENTION.md) (3-tier: T1 root / T2 named subdir / T3 `_internal/`). 본 skill의 raw metadata (`search_results.json`, `phase_a_*.json`, `chaining_results.md`, `code_search.md` 등) + reviews는 모두 `_internal/` 하위로 격리. T1/T2 chapter 파일과 `cards/`는 root.
+
 ## Language Rule
 - When explaining something to the user, write in Korean.
 
@@ -154,6 +156,7 @@ Agent(subagent_type="연구팀"):
    Original query: {original_query}
    Query type: {detected_type}
    Output directory: {artifact_dir}
+   **Routing**: All raw metadata files (search_results.json, phase_a_*.json, access_classification.json, browser_extracts/) → write to `{artifact_dir}/_internal/`. T1/T2 deliverables (cards/, chapter .md files, analysis_summary.md) → root `{artifact_dir}/`. mkdir -p `_internal` before first write if absent.
    Max results per source per query: 10
    {If --refs: 'Reference folder: {refs_path}'}
    {If hf_results_json: 'HF paper_search results (pre-fetched): {hf_results_json}'}
@@ -182,7 +185,7 @@ Agent(subagent_type="연구팀"):
 ```
 
 #### Step 2d: Post-Search Validation
-1. Read `{artifact_dir}/search_results.json`
+1. Read `{artifact_dir}/_internal/search_results.json`
 2. Verify valid JSON — if parse fails, re-invoke Agent once: "Your search_results.json was invalid. Fix and rewrite."
 3. Verify `papers` array non-empty, each paper has `title`
 4. If still fails after retry: pipeline_summary(failed) → STOP
@@ -209,8 +212,9 @@ Agent(subagent_type="연구팀"):
       Queries: {new_queries_only}
       Original query: {original_query} (for context, do NOT re-search)
       Output directory: {artifact_dir}
+      **Routing**: raw metadata → `{artifact_dir}/_internal/` (search_results.json, etc.).
       Max results per source per query: 10
-      MERGE mode: append to existing search_results.json — update discovery_count for duplicates, add new papers.
+      MERGE mode: append to existing _internal/search_results.json — update discovery_count for duplicates, add new papers.
       ..."
    ```
 4. 병합 후 Post-Search Validation 재실행
@@ -237,22 +241,22 @@ Bash: ls ~/.cache/ms-playwright/chromium_headless_shell-*/ > /dev/null 2>&1 && e
 Set `playwright_available = true/false`.
 
 If `playwright_available == true`:
-  Read `search_results.json` and identify paywall papers (no arXiv ID AND no oa_url → likely paywall).
+  Read `_internal/search_results.json` and identify paywall papers (no arXiv ID AND no oa_url → likely paywall).
   If paywall papers exist, invoke 탐색팀 to pre-fetch their content:
   ```
   Agent(subagent_type="탐색팀"):
     "Mode: fetch_papers
      URLs: {paywall_url_list}
      Output directory: {artifact_dir}
-     Extract full text from each URL. Write to browser_extracts/{filename}.txt.
+     Extract full text from each URL. Write to `_internal/browser_extracts/{filename}.txt` (T3 raw metadata).
      Return summary of successes and failures."
   ```
   The extracted texts will be available for 연구팀 to Read during Phase A skimming.
   If 탐색팀 fails or playwright unavailable: proceed without — 연구팀 will fall through to abstract-only.
 
 #### Step 3b: Phase A — Parallel Skimming Batches
-Read `search_results.json`. Classify each paper's access type FIRST:
-- **accessible**: has `arxiv_id` OR `oa_url` OR matching file in `browser_extracts/`
+Read `_internal/search_results.json`. Classify each paper's access type FIRST:
+- **accessible**: has `arxiv_id` OR `oa_url` OR matching file in `_internal/browser_extracts/`
 - **paywall-only**: no `arxiv_id`, no `oa_url`, no browser extract → abstract/metadata only
 
 Construct batches (accessible papers only get full-read treatment):
@@ -269,7 +273,7 @@ Agent(subagent_type="연구팀"):
    Papers: {batch_json}
    Output directory: {artifact_dir}
    Refs folder: {refs_path or 'none'}
-   Browser extracts: {artifact_dir}/browser_extracts/ (pre-fetched by 탐색팀, if available)
+   Browser extracts: {artifact_dir}/_internal/browser_extracts/ (pre-fetched by 탐색팀, if available)
 
    ## CRITICAL RULES
    - Per-paper timeout: 60초 이내에 본문을 얻지 못하면 즉시 다음 논문으로. 절대 한 논문에 60초 이상 소비 금지.
@@ -292,9 +296,9 @@ If `depth == shallow`: SKIP Phase B entirely.
 Agent(subagent_type="연구팀"):
   "Research survey mode: Reference chaining.
    Paper cards: {artifact_dir}/cards/
-   Search results: {artifact_dir}/search_results.json
+   Search results: {artifact_dir}/_internal/search_results.json
    Depth: {depth}
-   Output: {artifact_dir}/chaining_results.md
+   Output: {artifact_dir}/_internal/chaining_results.md
    Follow your Role 2b reference chaining procedure. Return file paths + Korean summary."
 ```
 
@@ -313,7 +317,7 @@ Agent(subagent_type="연구팀"):
   "Research survey mode: Code and model search.
    Paper cards: {artifact_dir}/cards/
    Output: {artifact_dir}/code_resources/
-   Aggregate: {artifact_dir}/code_search.md
+   Aggregate: {artifact_dir}/_internal/code_search.md
    Follow your Role 2c procedure. Return file paths + Korean summary."
 ```
 
@@ -321,7 +325,7 @@ Agent(subagent_type="연구팀"):
 ```
 Agent(subagent_type="연구팀"):
   "Research survey mode: Compile analysis summary.
-   Compile from: cards/, chaining_results.md (if exists), code_search.md (if exists).
+   Compile from: cards/, _internal/chaining_results.md (if exists), _internal/code_search.md (if exists).
    Set phase flags: chaining_available, code_search_available.
    Output: {artifact_dir}/analysis_summary.md
    Return file path + Korean summary."
@@ -342,13 +346,14 @@ Agent(subagent_type="연구팀"):
    Analysis directory: {artifact_dir}
    Topic: {topic}
    Output directory: {artifact_dir}
+   **Routing**: T1/T2 chapter files (00_briefing.md ~ NN_*.md, analysis_summary.md) → root `{artifact_dir}/`. Reviews/raw metadata are written elsewhere by other steps — do not touch _internal/ here.
    Date: {YYYY-MM-DD}
 
    ## Source Files to Read
    - analysis_summary.md (MUST READ — taxonomy, core papers, themes, evolution, gaps)
-   - chaining_results.md (foundational dependencies, if exists)
-   - code_search.md (code/model resources)
-   - search_results.json (paper metadata)
+   - _internal/chaining_results.md (foundational dependencies, if exists)
+   - _internal/code_search.md (code/model resources)
+   - _internal/search_results.json (paper metadata)
    - Read key card files from cards/ (at least top 15-20 by discovery_count)
 
    ## Report Structure (mode-specific)
@@ -604,7 +609,7 @@ QA level: `--qa` flag if provided, else auto-detect (<=10 papers: light, 11-25: 
 **Why Sonnet for fact-checker**: cards verbatim 대조는 _창의적 판단_이 아닌 _단순 매칭 작업_이라 Sonnet으로 충분. 비용 효율적.
 
 ```
-round = 0, review_dir = {artifact_dir}/report_reviews/
+round = 0, review_dir = {artifact_dir}/_internal/reviews/
 Loop:
   round += 1
 
@@ -669,7 +674,7 @@ Write `{artifact_dir}/pipeline_summary.md` BEFORE reporting:
 | 4 | Report Generation (Agent + QA) | {N} files (mode={mode}: academic=9 / technology=7 / market=5) | QA: {level}, rounds: {N} |
 
 ## Artifacts
-- Search: {artifact_dir}/search_results.json
+- Search: {artifact_dir}/_internal/search_results.json
 - Analysis: {artifact_dir}/analysis_summary.md
 - Reports: {artifact_dir}/00_briefing.md ~ {last_report.md} (mode-aware: academic→08_reading_guide / technology→07_resources / market→04_opportunities)
 

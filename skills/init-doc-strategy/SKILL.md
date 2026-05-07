@@ -201,7 +201,7 @@ Auto-detect from strategy scope. Two reviewer roles run **in parallel** at Stand
 
 ## Post-Strategy Review Loop (max 2 revision rounds; quick = 1 round)
 The log directory is the artifact root folder (parent of `strategy/`).
-- `mkdir -p {log_dir}/strategy_reviews` before invoking QA.
+- `mkdir -p {log_dir}/_internal/strategy_reviews` before invoking QA.
 
 After the 연구팀 agent returns:
 1. **Invoke quality + fact-check reviewers in parallel** (single message with multiple Agent calls per QA Scaling):
@@ -212,7 +212,7 @@ After the 연구팀 agent returns:
    Strategy file: [path]. Mode: {mode}.
    For rebuttal mode, verify ALL reviewer points are addressed.
    Do NOT verify individual fact citations (model venue/year/metric) — that's the fact-checker's role.
-   Write review to: {log_dir}/strategy_reviews/round_{N}_quality.md.
+   Write review to: {log_dir}/_internal/strategy_reviews/round_{N}_quality.md.
    Return ONLY the file path and a one-line verdict.
    ```
 
@@ -236,7 +236,7 @@ After the 연구팀 agent returns:
 
    Cost-aware mode (sonnet): table-only output. Limit to ~30 most material claims.
 
-   Write to: {log_dir}/strategy_reviews/round_{N}_factcheck.md.
+   Write to: {log_dir}/_internal/strategy_reviews/round_{N}_factcheck.md.
    Return ONLY path + one-line verdict.
    ```
 

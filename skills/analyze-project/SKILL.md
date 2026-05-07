@@ -6,6 +6,8 @@ argument-hint: "[target directory or scope]"
 
 > Caller note: this skill performs deep cross-module analysis. Callers should invoke at `high` or `xhigh` effort when the runtime supports it; at lower effort, cross-module depth narrows automatically.
 
+> **산출물 폴더 컨벤션**: [SKILL_OUTPUT_CONVENTION.md](../../SKILL_OUTPUT_CONVENTION.md) (3-tier). `.claude_reports/docs_code/` 산출물의 모듈별 분석 .md는 root (T1·T2). raw scan log/메타가 생기면 `_internal/`. QA 결과 등은 `_internal/reviews/`.
+
 ## Language Rule
 - Think and reason in English internally.
 - Write documentation files (.claude_reports/docs_code/) in English.

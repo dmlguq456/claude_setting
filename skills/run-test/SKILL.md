@@ -68,10 +68,10 @@ Format:
 **Always launch 2 QA agents in parallel** (Agent A with `model: 'sonnet'` for the coverage checklist; Agent B with default opus for accuracy diagnosis):
 - Agent A (sonnet): "Focus on **coverage**: Were ALL changed files tested? Are any untested code paths or edge cases? Did tests use real data where available? Are behavioral changes compared before/after?"
 - Agent B (opus): "Focus on **accuracy**: Are failures correctly diagnosed (not misdiagnosed as pre-existing)? Were correct engine_modes used? Do commands match changed code paths? Are negative tests present?"
-- Each writes to: `test_reviews/test_review_coverage.md`, `test_reviews/test_review_accuracy.md`.
+- Each writes to: `_internal/test_reviews/test_review_coverage.md`, `_internal/test_reviews/test_review_accuracy.md`.
 
 **Adversarial (when Codex available):**
-- Agent C (Codex): 1× codex-review-team (`adversarial-review --wait --scope auto`). Writes to `test_reviews/test_review_codex.md`.
+- Agent C (Codex): 1× codex-review-team (`adversarial-review --wait --scope auto`). Writes to `_internal/test_reviews/test_review_codex.md`.
 - Launched in the same parallel batch as Agent A and B.
 
 All issues from ANY agent (including Codex) must be addressed before proceeding.
@@ -87,7 +87,7 @@ After the 테스트팀 agent returns:
    Test log: {log_dir}/test_logs/test_report.md
    Changed source files: [list from plan or git diff]
    Review focus (COVERAGE): untested files/paths, real vs. random data, missing before/after comparisons.
-   Write review to: {log_dir}/test_reviews/test_review_coverage.md
+   Write review to: {log_dir}/_internal/test_reviews/test_review_coverage.md
    Return the file path and a one-line verdict.
    ```
 
@@ -97,7 +97,7 @@ After the 테스트팀 agent returns:
    Test log: {log_dir}/test_logs/test_report.md
    Changed source files: [list from plan or git diff]
    Review focus (ACCURACY): correct failure diagnosis, correct engine_modes, commands match changed paths, negative tests present.
-   Write review to: {log_dir}/test_reviews/test_review_accuracy.md
+   Write review to: {log_dir}/_internal/test_reviews/test_review_accuracy.md
    Return the file path and a one-line verdict.
    ```
 

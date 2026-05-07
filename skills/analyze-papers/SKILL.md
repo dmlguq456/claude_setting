@@ -4,6 +4,8 @@ description: Read reference papers (PDFs in .claude_reports/refs/) and generate/
 argument-hint: "[specific paper or 'all']"
 ---
 
+> **산출물 폴더 컨벤션**: [SKILL_OUTPUT_CONVENTION.md](../../SKILL_OUTPUT_CONVENTION.md) (3-tier). `docs_paper/` 산출물의 `00_overview_and_constraints.md` (T1) + per-paper 분석 (T2)은 root. raw notes나 재분석 메타가 생기면 `_internal/`.
+
 ## Language Rule
 - Think and reason in English internally. Write all user-facing output in Korean.
 

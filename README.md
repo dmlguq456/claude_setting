@@ -1,7 +1,7 @@
 # Claude Setting
 
 > Source: `~/.claude/skills/*/SKILL.md` + `~/.claude/agents/*.md`
-> 마지막 sync: 2026-05-07 KST (`/sync-skills` 자동) — 직접 편집 금지. (latest: 워크플로우를 2개 다이어그램으로 분리 — skill 흐름 + 산출물 I/O)
+> 마지막 sync: 2026-05-07 KST (`/sync-skills` 자동) — 직접 편집 금지. (latest: 산출물 폴더 컨벤션 3-tier 도입 — T1/T2 root, T3 `_internal/` 격리. 새 산출물 적용)
 > Notion 대문: [Agents/Skills](https://www.notion.so/34987c2bb75380d68df4d6ce4d469bff) (본 README와 동일 콘텐츠)
 > Notion 운영 가이드: [`notion_guide.md`](notion_guide.md) (페이지 타입 템플릿 + workspace 구조)
 
@@ -52,8 +52,10 @@ flowchart LR
 ```
 
 > 모든 skill 산출물은 `.claude_reports/` 하위 5개 폴더에 누적 (`docs_code/`, `docs_paper/`, `research/`, `documents/`, `plans/`). 자료 수집 결과는 산출 단계의 `--refs`로 전달. autopilot-refine만 read+write 양방향.
+>
+> **산출물 폴더 컨벤션 (3-tier)**: 각 artifact는 [SKILL_OUTPUT_CONVENTION.md](SKILL_OUTPUT_CONVENTION.md) 기준 **T1 (root)** = entry/메인 산출물 (`pipeline_summary.md`, `draft/`, `00_briefing.md`, research chapters `01_*.md~NN_*.md`은 root flat 배치) / **T2 (named subdir)** = 필요 시 검토 (`strategy/`, `analysis/`, `cards/`, `dev_logs/`, `test_logs/`) / **T3 (`_internal/` 격리)** = audit·raw·versions (reviewer 로그, search_results.json 같은 raw metadata, 버전 스냅샷). 사용자는 보통 T1만 보면 됨.
 
-> **산출물 사후 수정**: research/doc 산출물의 routine 정정·refine은 `/autopilot-refine "<prompt>" [--refs <artifact_dir>]` (prompt-driven, 자동 파일 체계 파악, diff preview, 버전 + CHANGELOG, 기본 `--qa quick`). `--refs` 생략 시 prompt 키워드로 fuzzy match. file-memo 기반 `/refine-doc`은 deferred review가 필요할 때만 opt-in. code 산출물은 `/refine-plan` / `/autopilot-code` 사용.
+> **산출물 사후 수정**: research/doc 산출물의 routine 정정·refine은 `/autopilot-refine "<prompt>" [--refs <artifact_dir>]` (prompt-driven, 자동 파일 체계 파악, diff preview, 적용 시 버전 + 통합 history `pipeline_summary.md`에 누적, 기본 `--qa quick`). `--refs` 생략 시 prompt 키워드로 fuzzy match. file-memo 기반 `/refine-doc`은 deferred review가 필요할 때만 opt-in. code 산출물은 `/refine-plan` / `/autopilot-code` 사용.
 
 ---
 
@@ -151,7 +153,7 @@ flowchart LR
 | `autopilot-research` | 분야 조사 — mode별 보고서 (academic 9 / technology 7 / market 5) | `--mode academic/technology/market` · `--depth shallow/medium/deep` · `--qa quick/light/standard/thorough` · `--from search/analyze/report` · `--no-clarify` |
 | `autopilot-code` | 코드 dev/audit/debug | `--mode dev/audit/debug` · `--qa quick/light/standard/thorough/adversarial` · `--from plan/refine/execute/test/report` · `--user-refine` |
 | `autopilot-doc` | 문서 strategy + draft (markdown) | `--mode rebuttal/write/review/report/proposal/presentation` · `--refs <dir>` · `--format-ref <path>` (universal — review 필수, 나머지 mode는 권장; 자동 탐색 fallback) · `--qa quick/light/standard/thorough` · `--from analyze/strategy/strategy-refine/draft/draft-refine/finalize` · `--user-refine` · `--no-clarify` |
-| `autopilot-refine` | autopilot family — research/doc 산출물 prompt 기반 사후 수정 (auto-discover 파일 체계 → diff preview → 적용 + 버전 + CHANGELOG). code 제외. | `"<prompt>"` · `--refs <artifact_dir>` (생략 시 prompt에서 fuzzy match) · `--qa quick(default)/light/standard/thorough` · `--review-only` (검수만) · `--memo <file>` (memo fallback) |
+| `autopilot-refine` | autopilot family — research/doc 산출물 prompt 기반 사후 수정 (auto-discover 파일 체계 → diff preview → 적용 + 버전 + `pipeline_summary.md`에 통합 history 누적). code 제외. | `"<prompt>"` · `--refs <artifact_dir>` (생략 시 prompt에서 fuzzy match) · `--qa quick(default)/light/standard/thorough` · `--review-only` (검수만) · `--memo <file>` (memo fallback) |
 | `sync-skills` | 본 README + 노션 대시보드 동기화 | `--check` · `--readme-only` · `--notion-only` · `--force` |
 
 > sub-skill (`init-plan`, `refine-plan`, `init-doc-strategy`, `refine-doc`, `execute-plan`, `run-test`, `final-report`)은 autopilot 내부에서 자동 호출 — 직접 사용은 pause 재개 시점에만. `autopilot-refine`은 autopilot family의 4번째 멤버 (사후 수정 전용 top-level skill).

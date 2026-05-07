@@ -65,16 +65,16 @@ Otherwise, auto-detect from the refinement scope:
 - Each writes to a separate review file. All 🔴 issues from ANY agent must be addressed.
 
 ## Post-Refine Review Loop (max 3 rounds; quick = 1 round)
-Log dir = task root folder (parent of `plan/`). Run `mkdir -p {log_dir}/plan_reviews` before invoking QA.
+Log dir = task root folder (parent of `plan/`). Run `mkdir -p {log_dir}/_internal/plan_reviews` before invoking QA.
 
 After 기획팀 returns, assess QA level (changed step count, nature) per the table above, then:
-- **Light/Standard**: 1 agent — "Review changed steps. Plan: [path], Changed: [list]. Write to: {log_dir}/plan_reviews/refine_round_{N}.md. Return file path + one-line verdict." (Light: pass `model: 'sonnet'`)
+- **Light/Standard**: 1 agent — "Review changed steps. Plan: [path], Changed: [list]. Write to: {log_dir}/_internal/plan_reviews/refine_round_{N}.md. Return file path + one-line verdict." (Light: pass `model: 'sonnet'`)
 - **Thorough**: 2 agents in parallel (A/B), each with different focus suffix and output file. Pass `model: 'sonnet'` for the B (completeness) agent; A (correctness) uses default opus.
 
 **Check verdict:**
 - **No 🔴**: Loop ends. Report changed steps and review results to user.
 - **qa_level == quick AND 🔴 found**: Loop ends after round 1. Add 🔴 issues to plan's **리스크** section under `## 미해결 이슈` (no fix-round). Report to user.
-- **🔴 found**: Re-invoke 기획팀 — "Refine mode. Fix QA issues. Plan: {plan_path}, QA review: {log_dir}/plan_reviews/refine_round_{N}.md. Re-read sources if needed. Return changed steps + summary." Then re-invoke QA. Repeat until clear or max rounds.
+- **🔴 found**: Re-invoke 기획팀 — "Refine mode. Fix QA issues. Plan: {plan_path}, QA review: {log_dir}/_internal/plan_reviews/refine_round_{N}.md. Re-read sources if needed. Return changed steps + summary." Then re-invoke QA. Repeat until clear or max rounds.
 - **After 3 rounds with 🔴 remaining**: Add to plan's **리스크** section under `## 미해결 이슈`. Report to user: changed steps, resolved issues, unresolved issues and why.
 
 ## Task

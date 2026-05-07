@@ -48,14 +48,14 @@ Follow these instructions:
 
 ## Inputs
 1. **Plan file**: the English plan
-2. **Log directory**: Contains plan/ (plan.md, plan_ko.md, checklist.md), dev_logs/ (step_*.md), dev_reviews/ (phase reviews), plan_reviews/ (plan reviews), test_logs/, test_reviews/
+2. **Log directory**: Contains plan/ (plan.md, plan_ko.md, checklist.md) [T1], dev_logs/ (step_*.md) [T2], test_logs/ [T2], _internal/{plan_reviews,dev_reviews,test_reviews}/ [T3]
 3. **Korean plan** (_ko.md): for section titles and user-facing descriptions
 
 ## Procedure
 1. Read the plan file to understand the goal, current state analysis, and change plan.
 2. Read the checklist (plan/checklist.md) to identify which steps succeeded, failed, or were skipped.
 3. Read all step log files (dev_logs/step_*.md) to extract every code change (old → new) with its Decision rationale, files modified, and what each change accomplished.
-4. Read QA review files (dev_reviews/phase_*.md) to extract issues found and how they were resolved.
+4. Read QA review files (`_internal/dev_reviews/phase_*.md`) to extract issues found and how they were resolved.
 5. **Documentation Update**: Update .claude_reports/docs_code/ for successfully completed steps only. Mapping:
    - model.py, modules/module.py → model_modules.md
    - modules/network.py → network_modules.md

@@ -1,8 +1,10 @@
 ---
 name: autopilot-refine
-description: Autopilot family — post-creation iteration pipeline for research and doc artifacts (NOT code). Prompt-driven: auto-discovers the artifact's file structure (from `--refs <dir>` or fuzzy-matched from prompt), plans edits, shows a diff preview in chat, and on user confirm applies edits with versioning + CHANGELOG logging. Default `--qa quick` (1-pass review, fastest path); escalate to light/standard/thorough for multi-round review or fact-check. Optional `--memo <file>` falls back to file-memo style for deferred reviews.
+description: Autopilot family — post-creation iteration pipeline for research and doc artifacts (NOT code). Prompt-driven: auto-discovers the artifact's file structure (from `--refs <dir>` or fuzzy-matched from prompt), plans edits, shows a diff preview in chat, and on user confirm applies edits with versioning + integrated history logging in `pipeline_summary.md` (single source of truth — no separate CHANGELOG). Default `--qa quick` (1-pass review, fastest path); escalate to light/standard/thorough for multi-round review or fact-check. Optional `--memo <file>` falls back to file-memo style for deferred reviews.
 argument-hint: "\"<prompt>\" [--refs <artifact_dir>] [--qa quick|light|standard|thorough] [--review-only | --memo <file>]"
 ---
+
+> **산출물 폴더 컨벤션**: [SKILL_OUTPUT_CONVENTION.md](../../SKILL_OUTPUT_CONVENTION.md) (3-tier). 버전 스냅샷은 `_internal/versions/v{N}/` (modern, research·doc 공통) 또는 `_v{N}.md` 형제 (legacy doc). 자동 감지.
 
 ## Position in autopilot family
 
@@ -61,7 +63,7 @@ If `--refs` is provided AND prompt keywords also match a different artifact, `--
 
 ## Language Rule
 
-Reason internally in English. All user-facing output (chat diffs, CHANGELOG entries, reports) in **Korean**.
+Reason internally in English. All user-facing output (chat diffs, pipeline_summary entries, reports) in **Korean**.
 
 ---
 
@@ -137,48 +139,79 @@ End turn. Wait for user reply.
 Parse the user's reply, then:
 
 1. **Determine version**:
-   - Read `{artifact_dir}/CHANGELOG.md` if exists; find the highest `## v{N}` heading.
-   - If no CHANGELOG → current state is implicit v1; next version = v2.
+   - Read `{artifact_dir}/pipeline_summary.md`; find the highest `**v{N}**` row in the `## 버전 히스토리` table (or `**Latest version**` line).
+   - If no version markers exist (artifact was never refined) → current state is implicit v1; next version = v2.
    - Else → next version = max + 1.
 
-2. **Snapshot pre-edit state** (only files about to change):
-   - **Research** type: copy current file to `{artifact_dir}/versions/v{prev}/{relative-path}`
-     - e.g., `.claude_reports/research/topic/versions/v1/01_landscape.md`
+2. **Snapshot pre-edit state** (only files about to change). Detect convention from artifact:
+   - **Modern** (`{artifact_dir}/_internal/` exists OR artifact is new) — use `_internal/versions/v{N}/`:
+     ```
+     {artifact_dir}/_internal/versions/v{prev}/{relative-path}
+     ```
+     - Research: e.g. `_internal/versions/v1/01_landscape.md`, `_internal/versions/v1/cards/2024_*.md`
+     - Doc: e.g. `_internal/versions/v1/strategy/strategy.md`, `_internal/versions/v1/strategy/strategy_ko.md`, `_internal/versions/v1/draft/draft_ko.md`
      - `mkdir -p` parent dirs as needed.
-   - **Doc** type: copy current file to `{file_dir}/{stem}_v{prev}.{ext}` (refine-doc convention, backward compatible)
-     - e.g., `.../strategy/strategy_v1.md`
+   - **Legacy** (artifact has `_v{N}.md` siblings already AND no `_internal/` dir) — preserve existing pattern (refine-doc legacy):
+     ```
+     {file_dir}/{stem}_v{prev}.{ext}
+     ```
+     - e.g. `strategy/strategy_v3.md`
    - If a snapshot for the same prev version already exists, do NOT overwrite (don't double-snap).
+   - On first apply to a fully-new artifact (no `_internal/`, no `_v{N}.md`): create `_internal/` dir and use modern pattern.
 
 3. **Apply edits** via the Edit tool. Exact-string match. Never use `replace_all` unless explicitly stated in a proposal.
 
-4. **Append to CHANGELOG**:
-   - Path: `{artifact_dir}/CHANGELOG.md`
-   - Create with header `# Quick-Refine CHANGELOG\n` if absent.
-   - Insert NEW entry at top (newest first), below the header:
-     ```
-     ## v{N} — {YYYY-MM-DD HH:MM} — {prompt 요약 ≤80자}
-     - Mode: {Quick chat-loop | Quick auto-applied | Memo}
-     - Prompt: "{prompt verbatim, ≤200자 trim}"
-     - Reason: {1-2줄}
-     - Files touched:
-       - `{path}:{line}` — {짧은 설명}
-       - `{path}:{line}` — {짧은 설명}
-     - Skipped (if any):
-       - `{path}` — {SKIP 사유}
-     - Snapshot: `versions/v{prev}/` (research) | `{stem}_v{prev}.md` (doc)
-     - Downstream sync needed: {Yes / No}
-       - If Yes: `{dependent_artifact_path}` — {왜 영향받는지}
-     ```
+4. **Update `pipeline_summary.md`** (single source of truth — no separate CHANGELOG):
+
+   The artifact's `pipeline_summary.md` was created by the original autopilot-{research,doc} run. autopilot-refine accumulates version history into the same file rather than spawning a sibling log. Three places to touch:
+
+   **(a) Top-level metadata** — update or add lines (idempotent):
+   ```
+   - **Latest version**: **v{N}** ({YYYY-MM-DD} — {prompt 한줄 요약 ≤60자})
+   - **Status**: ✅ done (v{N}, 사용자 후속 검토 대기)
+   ```
+   If `**Latest version**` line doesn't exist (artifact was never refined), insert it just below the existing `**Date**` / `**Mode**` / `**Status**` block.
+
+   **(b) `## 버전 히스토리` table** — insert NEW row at top of the table body:
+   ```
+   ## 버전 히스토리
+
+   | 버전 | 일시 | 핵심 변경 |
+   |---|---|---|
+   | **v{N}** | {YYYY-MM-DD} | **{prompt 요약 + 핵심 변경 압축, ≤120자}** |
+   | v{N-1} | ... | ... (기존 행 보존) |
+   | v1 | ... | autopilot-{research,doc,...} 초기 생성 |
+   ```
+   If the section doesn't exist yet (this is the first refine), CREATE it right after the metadata block. The first row should be the initial creation: `| v1 | {creation date from frontmatter} | autopilot-{mode} 초기 생성 |`. Then the new v{N} row above it.
+
+   **(c) `## v{N} 변경 사항` section** — append at end of file (or before `## 미해결 이슈` if exists):
+   ```
+   ## v{N} 변경 사항
+
+   - **Mode**: {Quick chat-loop | Quick auto-applied | Memo}
+   - **Prompt**: "{prompt verbatim, ≤200자 trim}"
+   - **Reason**: {1-2줄}
+   - **Files touched**:
+     - `{path}:{line}` — {짧은 설명}
+     - `{path}:{line}` — {짧은 설명}
+   - **Skipped** (if any):
+     - `{path}` — {SKIP 사유}
+   - **Snapshot**: `_internal/versions/v{prev}/` (modern, both types) | `{stem}_v{prev}.md` (legacy doc)
+   - **Downstream sync needed**: {Yes / No}
+     - If Yes: `{dependent_artifact_path}` — {왜 영향받는지}
+   ```
+
+   These three updates together reproduce the integrated pattern users observe in manually-curated pipeline_summary files (single file = full lifecycle).
 
 5. **Report** to user (≤6 lines):
    ```
-   ✓ Quick refine 완료 — v{prev} → v{N}
+   ✓ autopilot-refine 완료 — v{prev} → v{N}
    • Files touched: {count}
-   • Snapshot: {versions/v{prev}/ or _v{prev}.md}
-   • CHANGELOG: {artifact_dir}/CHANGELOG.md
+   • Snapshot: {_internal/versions/v{prev}/ (modern) or _v{prev}.md (legacy doc)}
+   • Updated: {artifact_dir}/pipeline_summary.md (버전 히스토리 + v{N} 변경 사항)
    {if downstream sync needed:}
    ⚠ Downstream sync 필요:
-     /autopilot-refine {dependent_path} "CHANGELOG v{N} 반영"
+     /autopilot-refine "{dependent} pipeline_summary v{N} 반영" --refs {dependent_path}
    ```
 
 ### Stage E — Memo mode (`--memo <file>`)
@@ -186,17 +219,17 @@ Parse the user's reply, then:
 1. Read the memo file. Detect format:
    - **Structured** (per-file proposals like refine-doc memo style) → parse directly into Stage B's change list.
    - **Free-form** (just prose) → treat the body as the prompt, run Stage A-B-C internally.
-2. Proceed to Stage D (with `Mode: Memo` in CHANGELOG).
+2. Proceed to Stage D (with `Mode: Memo` recorded in pipeline_summary.md `## v{N} 변경 사항` section).
 
 ---
 
 ## Constraints
 
-- **No silent additions** — Stage D applies only what was shown in Stage C diff (or auto-mode summary). If a new issue is discovered during apply, abort that single edit and note it in CHANGELOG's `Skipped` section, but do NOT propose new edits beyond the original list.
+- **No silent additions** — Stage D applies only what was shown in Stage C diff (or auto-mode summary). If a new issue is discovered during apply, abort that single edit and note it in the v{N} 변경 사항 section's `Skipped` list, but do NOT propose new edits beyond the original list.
 - **Versioning is mandatory** when applying — every apply increments version + creates snapshot. Only `--review-only` skips this (because it doesn't apply).
 - **Cards = primary source for research** — for taxonomy/definition/coverage prompts, always re-read `cards/*.md` and cite in reasoning.
 - **Don't auto-rename historical citations** — paper titles, baseline names as published, specific challenge names. List these in Stage C as "intentionally untouched" if relevant.
-- **Cross-artifact ripple is announced, not auto-propagated** — if a research change affects a downstream doc artifact, surface this in CHANGELOG's `Downstream sync needed` field. The user invokes `/autopilot-refine` again on the doc; this skill never auto-cascades.
+- **Cross-artifact ripple is announced, not auto-propagated** — if a research change affects a downstream doc artifact, surface this in the v{N} 변경 사항 section's `Downstream sync needed` field. The user invokes `/autopilot-refine` again on the doc; this skill never auto-cascades.
 - **STRUCT escape hatch** — if changes look structural, halt with a recommendation; don't try to handle structural rewrites in this skill.
 
 ---
@@ -208,7 +241,7 @@ Parse the user's reply, then:
 /autopilot-refine "speech-enhancement-trends에서 General Restoration과 Universal SE를 task family로 통합"
 # (skill fuzzy-matches "speech-enhancement-trends" → research artifact, shows diff, ends turn)
 # user replies: "all"
-# → applies, snapshots to versions/v1/, writes CHANGELOG v2 entry
+# → applies, snapshots to _internal/versions/v1/, updates pipeline_summary.md with v2 row + 변경 사항 section
 
 # Explicit --refs (no ambiguity)
 /autopilot-refine "task family 표를 4행으로 변경" --refs .claude_reports/documents/2026-05-06_se-seminar-tfrestormer/
@@ -239,6 +272,6 @@ Parse the user's reply, then:
 ## Post-Apply Checklist
 
 After successful apply, suggest to user:
-1. If `Downstream sync needed: Yes` → run `/autopilot-refine <downstream> "CHANGELOG v{N} 반영"` for each dependent artifact.
+1. If `Downstream sync needed: Yes` → run `/autopilot-refine "{dependent} pipeline_summary v{N} 반영" --refs <dependent_path>` for each dependent artifact.
 2. Optionally `git add -A && git commit -m "autopilot-refine: {prompt summary}"` if artifact is under git.
 3. Run `/sync-skills` if this SKILL.md was just updated (rare — only when user iterates on the skill itself).

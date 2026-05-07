@@ -4,6 +4,8 @@ description: "Unified code pipeline — dev/audit/debug modes. Orchestrates init
 argument-hint: "--mode dev|audit|debug <task/plan/error description> [--from <step>] [--qa quick|light|standard|thorough|adversarial] [--user-refine]"
 ---
 
+> **산출물 폴더 컨벤션**: [SKILL_OUTPUT_CONVENTION.md](../../SKILL_OUTPUT_CONVENTION.md) (3-tier: T1 root / T2 named subdir / T3 `_internal/`). plan/ + checklist는 T1 (root). dev_logs/, test_logs/는 T2 (root). reviewer 로그(plan_reviews, dev_reviews, test_reviews)는 모두 `_internal/` 하위.
+
 ## Language Rule
 - When explaining something to the user, write in Korean.
 
@@ -122,7 +124,7 @@ Wait for completion before proceeding.
 
 Otherwise:
 1. Resolve plan paths from init-plan output: `en_plan_path`, `ko_plan_path`, `log_dir`.
-2. Invoke **연구팀** (research-team) agent: "Review this plan as user proxy. Korean plan: {ko_plan_path}. English plan: {en_plan_path}. Review log: {log_dir}/plan_reviews/research_review.md."
+2. Invoke **연구팀** (research-team) agent: "Review this plan as user proxy. Korean plan: {ko_plan_path}. English plan: {en_plan_path}. Review log: {log_dir}/_internal/plan_reviews/research_review.md."
 3. If memos added:
    - **`--user-refine` pause**: if the flag is set (CLI or plan frontmatter), update plan frontmatter (`user_refine: true`, `paused_at_stage: refine`), print the resume command, and exit. Do NOT invoke refine-plan.
    - Otherwise: invoke Skill `refine-plan` with the Korean plan path.
@@ -153,14 +155,14 @@ Wait for completion before proceeding.
 
 Otherwise (qa_level != quick), if run-test reports failure (after its internal hotfix loop of 2 attempts), auto-retry once:
 
-1. **Collect failure context**: Note the test failure verdict from run-test's return. Failure details are in `test_logs/test_report.md` and `test_reviews/` — these will be consumed by refine-plan's agent, not by the orchestrator.
+1. **Collect failure context**: Note the test failure verdict from run-test's return. Failure details are in `test_logs/test_report.md` and `_internal/test_reviews/` — these will be consumed by refine-plan's agent, not by the orchestrator.
 
 2. **Rollback source code only** (preserve plan/log files):
    - Read Safety commit hash from `plan/checklist.md` header: `Safety commit: {hash}`
    - Run: `git checkout <safety-commit> -- <changed paths>` (NOT `.claude_reports/`)
    - Verify with `git status`
 
-3. **Write failure memos into Korean plan**: Append `<!-- memo: [테스트 실패] run-test 실패. 상세: test_logs/test_report.md, test_reviews/. 대안 필요. -->` at relevant steps in `plan/plan_ko.md`.
+3. **Write failure memos into Korean plan**: Append `<!-- memo: [테스트 실패] run-test 실패. 상세: test_logs/test_report.md, _internal/test_reviews/. 대안 필요. -->` at relevant steps in `plan/plan_ko.md`.
 
 4. **Reset checklist**: Reset all step marks in `plan/checklist.md` to `[ ]`.
 
@@ -194,7 +196,7 @@ Plan folder: `.claude_reports/plans/{YYYY-MM-DD}_{original-task-name}_audit/`. W
 
 **Trigger:** run if EITHER: (1) audit plan has >10 steps, OR (2) git diff touches `model.py`, `modules/module.py`, or `modules/network.py`.
 
-**When triggered:** Invoke 연구팀 with the audit plan path for one lightweight review pass (memo insertion only — no refine-plan loop). Include: `Review log file: {log_dir}/plan_reviews/research_review.md`. Wait for completion.
+**When triggered:** Invoke 연구팀 with the audit plan path for one lightweight review pass (memo insertion only — no refine-plan loop). Include: `Review log file: {log_dir}/_internal/plan_reviews/research_review.md`. Wait for completion.
 
 **Otherwise:** skip and proceed to Step 2.
 
@@ -329,7 +331,7 @@ Populate the Decision Points table from in-memory decision records. If none: `| 
 | Title prefix | "Pipeline Summary" | "Audit Pipeline Summary" | "Debug Pipeline Summary" |
 | Extra header fields | `Plan: {en_plan_path}` | `Dev Plan: {path}` + `Audit Plan: {path}` + `Dev Safety Commit: {hash}` | `Error: {msg}` + `Root Cause: {diagnosis}` + `Fix Plan: {path}` + `Attempts: {N}` |
 | Process Log rows | Steps 1-5 + 4R (retry: refine→execute→test) | Steps 1, 1.5, 2-4 | Steps 1-6 (Step 1=Diagnosis, no row for Step 3) |
-| Artifacts | plan/, dev_logs/, dev_reviews/, test_logs/, test_reviews/, final_report | same + audit-specific prefixes | same minus research artifacts |
+| Artifacts | plan/ (T1), dev_logs/ (T2), test_logs/ (T2), _internal/{plan_reviews,dev_reviews,test_reviews}/ (T3), final_report | same + audit-specific prefixes | same minus research artifacts |
 
 ## Safety Rules
 

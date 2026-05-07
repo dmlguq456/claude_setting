@@ -39,7 +39,7 @@ Before any code changes, ensure the working tree is clean and up-to-date:
   - If `{log_dir}/plan/checklist.md` already exists with `[x]`/`[FAIL]`/`[SKIP-DEP]` marks: this is a **resume**. Read the checklist, update the `Safety commit:` line with the current `$SAFETY_COMMIT`, and skip all completed steps. Continue from the first `[ ]` step.
   - Otherwise: this is a **fresh execution**. Proceed to create the log directory and checklist.
 - **Create the log directory** and the checklist:
-  1. `mkdir -p {log_dir}/dev_logs {log_dir}/dev_reviews`
+  1. `mkdir -p {log_dir}/dev_logs {log_dir}/_internal/dev_reviews`
   2. Write `{log_dir}/plan/checklist.md` — checklist derived directly from the English plan with the following header and body:
   ```
   Safety commit: {$SAFETY_COMMIT}
@@ -79,9 +79,9 @@ Before any code changes, ensure the working tree is clean and up-to-date:
 | **Thorough** | >10 units, cross-module/variant, architectural | 2–3× 품질관리팀 in parallel: A=correctness (opus), B=consistency (sonnet), C=safety (opus, >20 files) |
 | **Adversarial** | Cross-variant (SE+SS+CSS), shared modules (utils/, network.py), or >20 files with architectural impact — **AND Codex available** | Thorough-level 품질관리팀 + 1× codex-review-team (`adversarial-review`) in parallel |
 
-Thorough mode — A: bugs/logic/signature mismatches (opus); B: naming/conventions/dead code (sonnet); C: tensor shapes/None edge cases (opus). Each writes to `dev_reviews/phase_{NN}_{focus}.md`. All 🔴 from ANY agent must be addressed.
+Thorough mode — A: bugs/logic/signature mismatches (opus); B: naming/conventions/dead code (sonnet); C: tensor shapes/None edge cases (opus). Each writes to `_internal/dev_reviews/phase_{NN}_{focus}.md`. All 🔴 from ANY agent must be addressed.
 
-Adversarial mode — runs all Thorough agents PLUS an additional `codex-review-team` agent in the same parallel batch. The Codex agent runs `adversarial-review --wait --scope auto` and writes to `dev_reviews/phase_{NN}_codex.md`. All 🔴 from ANY agent (including Codex) must be addressed.
+Adversarial mode — runs all Thorough agents PLUS an additional `codex-review-team` agent in the same parallel batch. The Codex agent runs `adversarial-review --wait --scope auto` and writes to `_internal/dev_reviews/phase_{NN}_codex.md`. All 🔴 from ANY agent (including Codex) must be addressed.
 
 **Codex availability check**: Before selecting Adversarial, run `codex --version` (suppress stderr). If the command fails or Codex is not authenticated, fall back to Thorough silently. This check is skipped if `--qa adversarial` is explicitly specified (fail loudly instead).
 
@@ -93,10 +93,10 @@ Adversarial mode — runs all Thorough agents PLUS an additional `codex-review-t
   1. **Assess QA level** from the phase's change scope (files changed, nature of changes) per the QA Scaling table above.
   2. Invoke 품질관리팀 accordingly:
      - **Light/Standard**: 1 agent. Prompt must include: the step log file names for THIS phase (in dev_logs/), the log directory path, the list of changed source files, and the review output file name. For Light mode, explicitly pass `model: 'sonnet'` when invoking 품질관리팀.
-     - Example: "Review this phase in code review mode. Log dir: [path]. Step logs for this phase: [file list]. Changed source files: [file list]. Write review results to: [path]/dev_reviews/phase_01.md. Return the file path and a one-line verdict only."
+     - Example: "Review this phase in code review mode. Log dir: [path]. Step logs for this phase: [file list]. Changed source files: [file list]. Write review results to: [path]/_internal/dev_reviews/phase_01.md. Return the file path and a one-line verdict only."
      - **Thorough**: 2-3 agents in parallel (single message, multiple Agent tool calls). Same base prompt, each with a different focus suffix and output file name. Pass `model: 'sonnet'` for the B (consistency) agent; A (correctness) and C (safety) use default opus.
-     - **Adversarial**: same as Thorough, plus 1× `codex-review-team` agent in the same parallel batch. Codex prompt: "Run adversarial-review on the current changes. Write results to: {log_dir}/dev_reviews/phase_{NN}_codex.md. Return the file path and a one-line verdict."
-     - `mkdir -p {log_dir}/dev_reviews` before first invocation.
+     - **Adversarial**: same as Thorough, plus 1× `codex-review-team` agent in the same parallel batch. Codex prompt: "Run adversarial-review on the current changes. Write results to: {log_dir}/_internal/dev_reviews/phase_{NN}_codex.md. Return the file path and a one-line verdict."
+     - `mkdir -p {log_dir}/_internal/dev_reviews` before first invocation.
      - The 품질관리팀 reads step logs (including Decision fields) and source files directly, then writes the review report to the specified file.
   2. **Read the review file** (skill-level read — permitted per DESIGN_PRINCIPLES 3.3) to determine next action:
      - 🟡 only: log in checklist and continue.

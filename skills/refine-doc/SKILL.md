@@ -1,8 +1,10 @@
 ---
 name: refine-doc
-description: Reflect user memos/review feedback in a document strategy or draft. Versioned output (`*_v1.md`, `*_v2.md`, ...) with auto-managed CHANGELOG block at top. Mandatory ref-grounding per memo (re-read source; override memo if it conflicts with source).
+description: Reflect user memos/review feedback in a document strategy or draft. Snapshots prior version under `_internal/versions/v{N}/` (modern; per SKILL_OUTPUT_CONVENTION.md) or `_v{N}.md` siblings (legacy). Auto-managed CHANGELOG block at top of the document. Mandatory ref-grounding per memo (re-read source; override memo if it conflicts with source).
 argument-hint: "<strategy or draft name or path> [--qa quick|light|standard|thorough]"
 ---
+
+> **산출물 폴더 컨벤션**: [SKILL_OUTPUT_CONVENTION.md](../../SKILL_OUTPUT_CONVENTION.md) (3-tier). 본 skill은 review 로그를 `_internal/strategy_reviews/` 또는 `_internal/draft_reviews/`에 기록. 버전 스냅샷은 modern artifact면 `_internal/versions/v{N}/`, legacy artifact면 `_v{N}.md` 형제 (자동 감지).
 
 ## Document Resolution
 Resolve `$ARGUMENTS` to document file paths. Detect whether this is a **strategy** or **draft** refinement:
@@ -25,16 +27,27 @@ Resolve `$ARGUMENTS` to document file paths. Detect whether this is a **strategy
 
 ## Pre-Refine: Versioning Setup
 
-Before invoking 연구팀, the orchestrator establishes versioning:
+Before invoking 연구팀, the orchestrator establishes versioning. Snapshots go to `{artifact_root}/_internal/versions/v{N}/<relative-path>` (per [SKILL_OUTPUT_CONVENTION.md](../../SKILL_OUTPUT_CONVENTION.md)). The legacy `_v{N}.md` sibling pattern is **deprecated** for new artifacts.
 
-1. **Determine next version number**: scan the doc directory (`{ko_path.parent}`) for existing `*_v*.md` siblings. Find max N from `{ko_path.stem}_v{N}.md`. If none found, current state is implicit v1 — set `next_version = 2`.
-2. **Snapshot current state as previous version** (only if `_v1.md` doesn't exist yet, i.e., this is the first refine):
-   ```bash
-   cp {ko_path} {ko_path.parent}/{ko_path.stem}_v1.md
-   cp {en_path} {en_path.parent}/{en_path.stem}_v1.md
-   ```
-   This preserves the original initial state.
-3. **Pass `next_version`, `prev_version`, and version archive paths to 연구팀** in the prompt below.
+1. **Determine next version number**:
+   - **Modern** (`{artifact_root}/_internal/` exists): scan `_internal/versions/` for `v{N}` subdirs. Find max N. If none → `next_version = 2`.
+   - **Legacy** (artifact has `*_v{N}.md` siblings AND no `_internal/`): scan for `{ko_path.stem}_v{N}.md` siblings. Find max N. If none → `next_version = 2`.
+   - **New**: if neither exists, treat as modern, `next_version = 2`. mkdir -p `_internal/versions/`.
+
+2. **Snapshot current state as previous version** (skip if a snapshot for `prev_version` already exists):
+   - **Modern**:
+     ```bash
+     mkdir -p {artifact_root}/_internal/versions/v{prev_version}/{ko_relative_subdir}
+     cp {ko_path} {artifact_root}/_internal/versions/v{prev_version}/{ko_relative_subdir}/{ko_filename}
+     cp {en_path} {artifact_root}/_internal/versions/v{prev_version}/{en_relative_subdir}/{en_filename}
+     ```
+     where `{ko_relative_subdir}` is e.g. `strategy/` or `draft/`.
+   - **Legacy**:
+     ```bash
+     cp {ko_path} {ko_path.parent}/{ko_path.stem}_v{prev_version}.md
+     cp {en_path} {en_path.parent}/{en_path.stem}_v{prev_version}.md
+     ```
+3. **Pass `next_version`, `prev_version`, convention mode, and snapshot paths to 연구팀** in the prompt below.
 
 ## Delegate to 연구팀
 Invoke the **research-team** (연구팀) agent as a subagent with the following prompt:
@@ -44,7 +57,10 @@ Refine mode (versioned + ref-grounded). Update an existing document {doc_type} b
 
 Korean {doc_type} file (current/latest): {ko_path}
 English {doc_type} file (current/latest): {en_path}
-Previous version archive (immutable): {ko_path.parent}/{ko_path.stem}_v{prev_version}.md (and English equivalent)
+Previous version archive (immutable, already created by Pre-Refine setup):
+- Modern: `{artifact_root}/_internal/versions/v{prev_version}/{relative-subdir}/{filename}` (where `{relative-subdir}` is `strategy/` or `draft/`)
+- Legacy: `{ko_path.parent}/{ko_path.stem}_v{prev_version}.md` (and English equivalent — only if artifact already used `_v{N}.md` siblings AND lacks `_internal/`)
+Convention mode: {modern | legacy}
 Next version: v{next_version}
 
 ## Memo Detection
@@ -76,12 +92,7 @@ For draft refinement: also cross-check against the strategy document at `{artifa
 ## Output Versioning
 
 1. **Write the new content to current files** (`{ko_path}`, `{en_path}`) — these always represent the latest version.
-2. **Also write to versioned archive** for permanent record:
-   ```
-   {ko_path.parent}/{ko_path.stem}_v{next_version}.md
-   {en_path.parent}/{en_path.stem}_v{next_version}.md
-   ```
-   Both copies have identical content (current = latest = v{next_version}).
+2. The pre-edit snapshot is already written by the Pre-Refine setup step (see "Pre-Refine: Versioning Setup" above) — to either `_internal/versions/v{prev_version}/...` (modern) or `{file}_v{prev_version}.md` (legacy). No additional snapshot needed at output time.
 3. **Remove all memo comments** (HTML comments, `// ...`, `[memo] ...`, etc.) from the new version. EXCEPT preserve/update the CHANGELOG block (see below).
 
 ## CHANGELOG Block (auto-managed, top of file)
@@ -130,8 +141,8 @@ Auto-detect from sections changed. Two reviewer roles run **in parallel** at Sta
 ## Post-Refine Review Loop (max 2 rounds; quick = 1 round)
 After 연구팀 returns:
 1. **Resolve log dir**: artifact root (e.g., `.claude_reports/documents/2026-03-25_foo/`).
-   - For strategy refinement: `mkdir -p {log_dir}/strategy_reviews`
-   - For draft refinement: `mkdir -p {log_dir}/draft_reviews`
+   - For strategy refinement: `mkdir -p {log_dir}/_internal/strategy_reviews`
+   - For draft refinement: `mkdir -p {log_dir}/_internal/draft_reviews`
 2. **Invoke quality + fact-check reviewers in parallel** (single message with multiple Agent calls per QA Scaling above):
 
    **Quality reviewer prompt** (opus or sonnet per level):

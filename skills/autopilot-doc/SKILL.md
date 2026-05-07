@@ -4,6 +4,8 @@ description: "Document strategy & draft pipeline — analyze-refs → strategy �
 argument-hint: "<task description> [--mode rebuttal|write|review|report|proposal|presentation] [--refs <folder>] [--format-ref <path>] [--qa quick|light|standard|thorough] [--user-refine] [--no-clarify] [--from analyze|strategy|strategy-refine|draft|draft-refine|finalize]"
 ---
 
+> **산출물 폴더 컨벤션**: [SKILL_OUTPUT_CONVENTION.md](../../SKILL_OUTPUT_CONVENTION.md) (3-tier: T1 root / T2 named subdir / T3 `_internal/`). reviewer 로그는 `_internal/strategy_reviews/`·`_internal/draft_reviews/`. 버전 스냅샷은 `_internal/versions/v{N}/strategy/`, `v{N}/draft/` (refine-doc의 `_v{N}.md` 형제 패턴은 폐기).
+
 ## Language Rule
 - Write user-facing output in Korean. (Material analysis results and pipeline_summary.md are written directly in the artifacts — no separate user output needed for those steps.)
 
@@ -152,19 +154,23 @@ The `--refs` folder is user-specified (no default). May contain PDFs, txt/md rev
 All outputs go to:
 ```
 .claude_reports/documents/{YYYY-MM-DD}_{short-name}/
-├─ strategy/
-│  ├─ strategy.md          (English strategy document)
-│  └─ strategy_ko.md       (Korean strategy document)
-├─ draft/                   (generated for all 6 modes)
-│  ├─ draft.md             (English draft; for presentation: slide-by-slide markdown)
-│  └─ draft_ko.md          (Korean draft)
-├─ analysis/
-│  ├─ reviewer_analysis.md  (rebuttal: per-reviewer breakdown)
-│  ├─ ref_analysis.md       (reference material analysis)
-│  └─ material_index.md     (inventory of all input materials)
-├─ strategy_reviews/        (QA and 연구팀 strategy reviews)
-├─ draft_reviews/           (QA and 연구팀 draft reviews)
-└─ pipeline_summary.md
+├─ pipeline_summary.md       (T1 — entry/index + integrated history)
+├─ draft/                    (T1 — generated for all 6 modes; latest only)
+│  ├─ draft.md              (English draft; for presentation: slide-by-slide markdown)
+│  └─ draft_ko.md           (Korean draft)
+├─ strategy/                 (T2 — latest only)
+│  ├─ strategy.md           (English strategy document)
+│  └─ strategy_ko.md        (Korean strategy document)
+├─ analysis/                 (T2)
+│  ├─ reviewer_analysis.md   (rebuttal: per-reviewer breakdown)
+│  ├─ ref_analysis.md        (reference material analysis)
+│  └─ material_index.md      (inventory of all input materials)
+└─ _internal/                (T3 — audit / reviews / version snapshots)
+   ├─ strategy_reviews/      (QA and 연구팀 strategy reviews)
+   ├─ draft_reviews/         (QA and 연구팀 draft reviews)
+   └─ versions/              (autopilot-refine snapshots)
+      ├─ v1/strategy/, draft/
+      └─ v{N}/...
 ```
 
 ## Pipeline
@@ -258,23 +264,23 @@ Invoke Skill: `init-doc-strategy` with args: `<mode> --refs <folder> --output <a
 
    **`quick`** — Single 연구팀 quality reviewer (sonnet, spot-check only):
    - One-pass review. Memos may be added but refine-doc is NOT invoked at Step 3 (see step 3 below).
-   - Review log: `{strategy_folder}/strategy_reviews/research_review.md`
+   - Review log: `{strategy_folder}/_internal/strategy_reviews/research_review.md`
 
    **`light`** — Single 연구팀 quality reviewer (sonnet):
    - One-pass review focusing on critical issues only.
-   - Review log: `{strategy_folder}/strategy_reviews/research_review.md`
+   - Review log: `{strategy_folder}/_internal/strategy_reviews/research_review.md`
 
    **`standard`** — 1× 연구팀 quality reviewer (opus) + 1× 연구팀 fact-checker (sonnet, parallel):
-   - Quality review log: `{strategy_folder}/strategy_reviews/research_review_quality.md`
-   - Fact-check log: `{strategy_folder}/strategy_reviews/research_review_factcheck.md`
+   - Quality review log: `{strategy_folder}/_internal/strategy_reviews/research_review_quality.md`
+   - Fact-check log: `{strategy_folder}/_internal/strategy_reviews/research_review_factcheck.md`
 
    **`thorough`** (default) — 2× 연구팀 quality reviewers (opus, parallel) + 1× 연구팀 fact-checker (sonnet, parallel):
    - **Quality Reviewer A (Domain Expert)**: Cross-checks strategy against reference materials, domain conventions (academic venues for paper modes: NeurIPS, ICML, ICLR, ICASSP, Interspeech, T-ASLP; industry standards for report/proposal/presentation modes), and completeness of coverage.
-     - Review log: `{strategy_folder}/strategy_reviews/research_review_domain.md`
+     - Review log: `{strategy_folder}/_internal/strategy_reviews/research_review_domain.md`
    - **Quality Reviewer B (Methodology Reviewer)**: Evaluates logical consistency, persuasiveness of arguments, experimental design soundness, and identifies potential weaknesses an adversarial reviewer would exploit.
-     - Review log: `{strategy_folder}/strategy_reviews/research_review_methodology.md`
+     - Review log: `{strategy_folder}/_internal/strategy_reviews/research_review_methodology.md`
    - **Fact-checker (sonnet, parallel)**: Verbatim cross-check of citation/venue/year/metric/lineage against cards/PDFs.
-     - Review log: `{strategy_folder}/strategy_reviews/research_review_factcheck.md`
+     - Review log: `{strategy_folder}/_internal/strategy_reviews/research_review_factcheck.md`
    - All reviewers write `<!-- memo: ... -->` comments in the Korean strategy.
    - After all complete, merge memos and deduplicate.
 
@@ -499,23 +505,23 @@ Write both files directly. Return ONLY the file paths and a 3-5 line Korean summ
 
    **`quick`** — Single 연구팀 quality reviewer (sonnet, spot-check only):
    - One-pass review. Memos may be added but refine-doc is NOT invoked at Step 5 (see step 3 below).
-   - Review log: `{strategy_folder}/draft_reviews/draft_review.md`
+   - Review log: `{strategy_folder}/_internal/draft_reviews/draft_review.md`
 
    **`light`** — Single 연구팀 quality reviewer (sonnet):
    - One-pass review focusing on critical issues only.
-   - Review log: `{strategy_folder}/draft_reviews/draft_review.md`
+   - Review log: `{strategy_folder}/_internal/draft_reviews/draft_review.md`
 
    **`standard`** — 1× 연구팀 quality reviewer (opus) + 1× 연구팀 fact-checker (sonnet, parallel):
-   - Quality review log: `{strategy_folder}/draft_reviews/draft_review_quality.md`
-   - Fact-check log: `{strategy_folder}/draft_reviews/draft_review_factcheck.md`
+   - Quality review log: `{strategy_folder}/_internal/draft_reviews/draft_review_quality.md`
+   - Fact-check log: `{strategy_folder}/_internal/draft_reviews/draft_review_factcheck.md`
 
    **`thorough`** — 2× 연구팀 quality reviewers (opus, parallel) + 1× 연구팀 fact-checker (sonnet, parallel):
    - **Quality Reviewer A (Content Expert)**: Cross-checks draft against strategy, verifies all strategy points are addressed, checks high-level factual coherence.
-     - Review log: `{strategy_folder}/draft_reviews/draft_review_content.md`
+     - Review log: `{strategy_folder}/_internal/draft_reviews/draft_review_content.md`
    - **Quality Reviewer B (Writing Quality)**: Evaluates writing quality, logical flow, completeness, identifies gaps and weak arguments.
-     - Review log: `{strategy_folder}/draft_reviews/draft_review_quality.md`
+     - Review log: `{strategy_folder}/_internal/draft_reviews/draft_review_quality.md`
    - **Fact-checker (sonnet, parallel)**: Verbatim cross-check of citation/venue/year/metric/lineage against cards/PDFs — _independent_ of strategy/quality concerns.
-     - Review log: `{strategy_folder}/draft_reviews/draft_review_factcheck.md`
+     - Review log: `{strategy_folder}/_internal/draft_reviews/draft_review_factcheck.md`
    - All reviewers write `<!-- memo: ... -->` comments in the Korean draft.
    - After all complete, merge memos and deduplicate.
 
