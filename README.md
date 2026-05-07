@@ -1,7 +1,7 @@
 # Claude Setting
 
 > Source: `~/.claude/skills/*/SKILL.md` + `~/.claude/agents/*.md`
-> 마지막 sync: 2026-05-07 KST (`/sync-skills` 자동) — 직접 편집 금지. (latest: autopilot-refine 시그니처 정리 — `"<prompt>" --refs <dir>`, `--auto` 제거)
+> 마지막 sync: 2026-05-07 KST (`/sync-skills` 자동) — 직접 편집 금지. (latest: 워크플로우 다이어그램 — analyze-* 도 `.claude_reports/`로 화살표, write/read(--refs) 시각 분리)
 > Notion 대문: [Agents/Skills](https://www.notion.so/34987c2bb75380d68df4d6ce4d469bff) (본 README와 동일 콘텐츠)
 > Notion 운영 가이드: [`notion_guide.md`](notion_guide.md) (페이지 타입 템플릿 + workspace 구조)
 
@@ -18,16 +18,17 @@ flowchart LR
     D["autopilot-doc"]
     REF["autopilot-refine<br/>(사후 수정, research/doc)"]
     OUT[("📦 .claude_reports/")]
-    AP --> C
-    ARP --> C
-    ARP --> D
-    R --> D
-    R --> C
+    AP --> OUT
+    ARP --> OUT
+    R --> OUT
+    OUT -. --refs .-> C
+    OUT -. --refs .-> D
     C --> OUT
     D --> OUT
-    R --> OUT
     OUT <--> REF
 ```
+
+> 화살표 의미: 실선(`→`) = 산출물을 `.claude_reports/`에 _쓰는_ 흐름. 점선(`-. --refs .->`) = `.claude_reports/`의 기존 산출물을 후속 skill이 _읽는_ 흐름 (`--refs <dir>`로 전달). 양방향(`↔`) = read+write (`autopilot-refine`만 해당).
 
 세 가지 자료 수집 스킬(`analyze-project`, `analyze-papers`, `autopilot-research`)은 같은 레벨 — 손에 든 자료(코드/논문)가 이미 있는지(`analyze-*`) vs 외부에서 새로 조사해야 하는지(`autopilot-research`)에 따라 선택. 그 결과를 `autopilot-code` / `autopilot-doc`이 참조해 코드 변경·문서 생성을 수행.
 
