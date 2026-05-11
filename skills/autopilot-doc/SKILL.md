@@ -662,7 +662,7 @@ Write both files directly. Return ONLY the file paths and a 3-5 line Korean summ
    ```
 5. **One-line chat alert** (Korean):
    ```
-   ⚠ Draft 사실 확인: 미검증 {N}건, 모호 {M}건, 충돌 {K}건 — /audit {artifact_short_name} --scope facts 권장
+   ⚠ Draft 사실 확인: 미검증 {N}건, 모호 {M}건, 충돌 {K}건 — `/audit {artifact_short_name} --scope facts` (점검만 하려면 `--report-only` 추가, 그렇지 않으면 자동으로 autopilot-refine fix-chain 트리거)
    ```
 
 If N + M + K == 0: emit `✅ Draft 사실 확인: 검증된 클레임 {verified}건, 문제 없음` and log accordingly.

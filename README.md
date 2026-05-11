@@ -29,6 +29,8 @@ flowchart LR
     R --> AU
     C --> AU
     B --> AU
+    AU -.->|auto-fix| D
+    AU -.->|auto-fix plans| B
 ```
 
 `analyze-project`는 사전 분석을 _세 종류_로 단일 skill에서 처리:
@@ -88,7 +90,7 @@ flowchart LR
 | 작업 | skill | 산출 |
 |---|---|---|
 | 새 기능 / 신규 모듈 개발 (plan → execute → test) | `/autopilot-code --mode dev --user-refine "<task>"` | `plans/{date}_{name}/` — 코드 + dev/test logs |
-| 사후 감사 (지난 변경의 risk / quality 점검) | `/autopilot-code --mode audit <plan>` | audit log + recommendations |
+| 사후 감사 (지난 변경의 risk / quality 점검) | `/audit <plan> --scope all` (또는 `--report-only`로 점검만) | audit log + auto-fix chain (plans → `autopilot-code --mode dev`) |
 | 디버그 (에러·로그 기반 root-cause 추적) | `/autopilot-code --mode debug "<error>"` | debug log + 원인 + fix |
 
 ### C. 문서 작성 (document deliverables)
@@ -131,12 +133,15 @@ flowchart LR
 
 | 입력 형태 | 명령 | 비고 |
 |---|---|---|
-| 산출물 경로 또는 fuzzy 이름 | `/audit <artifact_path>` | type 자동 인식 (plans/research/documents). 보고서를 `_internal/audit/`에 기록. 수정 없음. |
+| 산출물 경로 또는 fuzzy 이름 | `/audit <artifact_path>` | type 자동 인식 (plans/research/documents). 보고서를 `_internal/audit/`에 기록. 🔴/🟡 issue 발견 시 Stage E에서 fix skill 자동 트리거. |
 | 특정 측면만 | `/audit <artifact> --scope facts\|style\|structure\|cross-ref\|coverage` | facts = 모델·venue·year cards 대조 (section-context cross-check) / style = 양식 일관성 / structure = T1/T2/T3 컨벤션 / cross-ref = 인용 깨짐 / coverage = cards 중 한 번도 인용되지 않은 orphan 검출 (omission 방지) |
 | Code plan static-only 점검 | `/audit <plan> --read-only` | 테스트 실행 없이 정적 점검만 (test_report.md 읽기만) |
+| 점검만, auto-fix chain 없이 | `/audit <artifact> --report-only` | Stage E skip — 보고서만 출력하고 종료. 인계 전 검수 등 즉시 수정 없이 확인만 할 때 사용. |
 
-- **D vs E 차이**: `autopilot-refine` = 수정 흐름 (diff → confirm → apply + version). `/audit` = 점검 흐름 (report-only, 항상 read-only). E의 결과를 받아 D를 호출하는 게 일반 패턴.
-- **언제 사용**: (a) C 산출물을 20회+ refine한 후 누적 drift 점검 / (b) 다른 사람이 만든 artifact 인계 전 검수 / (c) plan 종료 후 audit-mode dev cycle 대신 가벼운 static-only 점검.
+- **D vs E 차이**: `autopilot-refine` = 수정 흐름 (diff → confirm → apply + version). `/audit` = 점검 후 기본값 auto-fix chain. Stage A-D는 read-only; Stage E는 🔴/🟡 issue 발견 시 fix skill 자동 트리거. 점검만 하려면 `--report-only`.
+- **언제 사용**: (a) C 산출물을 20회+ refine한 후 누적 drift 점검 / (b) 다른 사람이 만든 artifact 인계 전 검수 / (c) plan 종료 후 가벼운 static-only 점검.
+
+> **Auto-fix chain (default)**: `/audit` 호출 시 🔴/🟡 issue 발견되면 _자동으로_ 다음 skill 트리거 — plans는 `autopilot-code --mode dev`, research/documents는 `autopilot-refine`. 점검만 하려면 `--report-only` 옵션 추가.
 
 ### 자주 쓰는 chaining 패턴
 
@@ -177,10 +182,10 @@ flowchart LR
 |---|---|---|
 | `analyze-project` | 사전 분석 — code/paper/doc 자료를 `analysis_project/`에 영속화 (모든 후속 autopilot의 implicit input source) | `--mode code/paper/doc` (생략 시 code/doc 자동 감지; paper는 명시 필요) · `[<scope/target/input-folder>]` · `--skip-qa` |
 | `autopilot-research` | 분야 조사 — mode별 보고서 (academic 9 / technology 7 / market 5) | `--mode academic/technology/market` · `--depth shallow/medium/deep` · `--qa quick/light/standard/thorough` · `--from search/analyze/report` · `--no-clarify` |
-| `autopilot-code` | 코드 dev/audit/debug | `--mode dev/audit/debug` · `--qa quick/light/standard/thorough/adversarial` · `--from plan/refine/execute/test/report` · `--user-refine` |
+| `autopilot-code` | 코드 dev/debug | `--mode dev/debug` · `--qa quick/light/standard/thorough/adversarial` · `--from plan/refine/execute/test/report` · `--user-refine` |
 | `autopilot-doc` | 문서 strategy + draft (markdown). 입력은 `analysis_project/{paper,doc}/` + `research/{topic}/` 자동 발견 | `--mode rebuttal/write/review/report/proposal/presentation` · `--format-ref <path>` (생략 시 `analysis_project/doc/{matching}/formats/`에서 자동 탐색) · `--qa quick/light/standard/thorough` · `--from analyze/strategy/strategy-refine/draft/draft-refine/finalize` · `--user-refine` · `--no-clarify` |
 | `autopilot-refine` | **갈래 D** — research/doc 산출물 사후 정정. prompt와 사용자 메모 두 입력을 통일된 entry로 처리. artifact는 fuzzy match로 자동 식별. | `"<prompt>"` 또는 `--memo <file>` · `--qa quick(default)/light/standard/thorough/adversarial` · `--review-only` (검수만) |
-| `audit` | **갈래 E** — read-only multi-aspect 점검. plans/research/documents 자동 인식, type별 aspect set (facts/style/structure/cross-ref/coverage or cards 정합성/Tier/coverage/cross-card or test/lint/code-review/TODO). 수정 없음, 보고서만. | `<artifact_path>` · `--scope facts/style/structure/cross-ref/coverage/all` (default all) · `--read-only` (plans 정적-only) |
+| `audit` | **갈래 E** — multi-aspect 점검 + 기본 auto-fix chain. plans/research/documents 자동 인식, type별 aspect set (facts/style/structure/cross-ref/coverage or cards 정합성/Tier/coverage/cross-card or test/lint/code-review/TODO). Stage A-D read-only; Stage E는 issue 발견 시 자동으로 fix skill 트리거. | `<artifact_path>` · `--scope facts/style/structure/cross-ref/coverage/all` (default all) · `--read-only` (plans 정적-only) · `--report-only` (Stage E skip, 점검만) |
 | `sync-skills` | 본 README + 노션 대시보드 동기화 | `--check` · `--readme-only` · `--notion-only` · `--force` |
 
 > sub-skill (`init-plan`, `refine-plan`, `init-doc-strategy`, `refine-doc`, `execute-plan`, `run-test`, `final-report`)은 autopilot 내부에서 자동 호출 — 직접 사용은 pause 재개 시점에만. `autopilot-refine`은 autopilot family의 **4번째 갈래(D)** — 사후 정정 전용 top-level skill로, prompt와 memo 두 입력 형태를 단일 entry로 처리 (`refine-doc`은 그 sub-skill로 흡수).

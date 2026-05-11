@@ -1,7 +1,7 @@
 ---
 name: audit
 description: "Read-only multi-aspect audit / lint for `.claude_reports/{plans,research,documents}/*` artifacts. Single global entry — auto-detects artifact type from path prefix (plans=code; research=field-survey; documents=doc deliverable). Per-type lint aspects: doc → facts / style / structure / cross-ref / coverage; research → cards 정합성 / Tier consistency / coverage / cross-card; plans → test results / lint / code review / TODO·미구현. Default `--scope all`. Report-only — never modifies the artifact. Complementary to autopilot-refine: refine = edit flow, audit = inspect flow."
-argument-hint: "<artifact_path> [--scope facts|style|structure|cross-ref|coverage|all] [--read-only] [--no-fact-check]"
+argument-hint: "<artifact_path> [--scope facts|style|structure|cross-ref|coverage|all] [--read-only] [--report-only] [--no-fact-check]"
 ---
 
 > **산출물 폴더 컨벤션**: [SKILL_OUTPUT_CONVENTION.md](../../SKILL_OUTPUT_CONVENTION.md) (3-tier). 본 skill은 입력 artifact를 _수정하지 않음_ — 점검 보고서만 생성. 보고서는 `{artifact_dir}/_internal/audit/audit_{YYYY-MM-DDTHHMM}.md`에 기록.
@@ -33,6 +33,7 @@ Reason internally in English. All user-facing output (chat report, audit log) in
   - Fuzzy short name (e.g., `se-seminar-tfrestormer`) — resolved via `ls -d .claude_reports/{plans,research,documents}/*$ARG* 2>/dev/null`. 1 match → use; multiple → ask user; 0 → error.
 - `--scope` (default `all`): which aspect set to check. Aspect set is type-specific (see Stage B).
 - `--read-only` (default for plans): if specified for `plans` type, skip any aspect that requires _executing_ tests / lints — only static inspection (file diff, TODO grep, code review heuristics). For `research` / `documents` types, `--read-only` is implicit and the flag is a no-op (warn: "audit는 research/documents에 대해 항상 read-only").
+- `--report-only`: skip the auto-fix chain (Stage E). With this flag, `/audit` produces the report and stops — same as previous default behavior. Use when you want only inspection without follow-up edits.
 - `--no-fact-check`: opt-out flag honored per `feedback_factcheck_principles.md` Principle 0. If present, the `facts` aspect (and the `coverage` aspect's cards-set diff) are **skipped** before Stage C aspect dispatch — i.e., the aspect skip happens at the _pre-check_ stage, not via filtering after lint runs. Other aspects (style / structure / cross-ref / Tier / cross-card / test / lint / code review / TODO) still run. Stage D report emits an informational line at the top of "Aspects checked": `ℹ facts/coverage aspects: skipped via --no-fact-check flag (memory feedback_factcheck_principles Principle 0)`. This is the _only_ allowed disable mechanism for fact verification; ad-hoc prompt evasion must not be honored.
 
 ## Process
@@ -168,13 +169,38 @@ Then print to chat (Korean), in ≤8 lines:
     {if 🔴 > 0:}
     권장 후속: /autopilot-refine "{artifact short name} {fix prompt suggestion}"
 
+### Stage E — Auto-fix chain (default behavior)
+
+After Stage D's report write + chat output, **automatically trigger a fix flow** for the issues found — _unless `--report-only` was specified_.
+
+**Behavior**:
+1. **Skip conditions**: if `--report-only` is set, OR if Stage D produced 0 🔴 issues AND 0 🟡 issues (clean), skip Stage E. Print: `✓ Audit clean — no auto-fix needed.` and exit.
+2. **Generate fix prompt**: synthesize a single prompt text describing the 🔴 + significant 🟡 issues. Format:
+   ~~~
+   audit 결과 자동 fix:
+   - {issue 1 short description} → {suggested fix from report}
+   - {issue 2 short description} → {suggested fix from report}
+   ...
+   Source audit report: {audit log path}
+   ~~~
+   Each line of the prompt corresponds to one issue from Stage D's "Issues by aspect" section. Include the audit log path so downstream skill can read the full detail.
+3. **Dispatch by artifact type**:
+   - **plans (code)** → invoke `autopilot-code` skill with `--mode dev` and the generated prompt as the task description.
+   - **research** / **documents** → invoke `autopilot-refine` skill with the artifact name + generated prompt.
+4. **Chat alert before dispatch**: print `▶ Auto-fix chain 시작 — {dispatched skill} (🔴 N + 🟡 M issues 반영)`. If user wants to stop, they can interrupt before the next skill runs.
+5. **Logging**: append a single line to the audit log's "## Verdict" section: `**Auto-fix dispatched**: yes (→ {skill name}) | no (--report-only or clean)`.
+
+**Why default is auto-chain**: the user's stated incident (5 factual drifts unnoticed across 20+ refine cycles) shows that "report-only" reports get ignored. Auto-chain provides a _forcing function_ — the user must explicitly opt out via `--report-only` to skip the fix. This matches the "빈칸 > 잘못 채우기" Principle 0 spirit at the system level.
+
+**Why `--report-only` opt-out exists**: occasionally the user wants only inspection (e.g., handoff review, exploratory check) without committing to immediate edits. The flag preserves that path.
+
 ## Constraints
 
-- **Read-only** — `/audit` NEVER modifies the audited artifact. Only writes the audit report under `_internal/audit/`. If the user wants fixes applied, they invoke `/autopilot-refine`.
+- **Audit pass is read-only** — Stage A-D never modify the audited artifact (the audit log is written under `_internal/audit/`). Stage E _dispatches a separate skill_ (`autopilot-code` or `autopilot-refine`) which then makes edits per its own confirmation flow. With `--report-only`, Stage E is skipped entirely.
 - **No web fetch** — all lookups are local (`.claude_reports/*` files only). Cards grep, Style Guide read, regex scan. Cost is small.
 - **No agent invocation** — `/audit` is a single-Claude task. No 연구팀 / 품질관리팀 subagent calls. (Future enhancement may add `--qa` levels with agent-backed lint; out of scope for v1.)
 - **Type-specific aspects** — research aspects do not run on documents artifacts and vice versa. `--scope cross-ref` on plans warns and skips.
-- **Suggestion only** — every 🔴 / 🟡 finding may include a "Suggested fix" line, but the fix is _suggested_, not auto-applied. User decides whether to invoke `/autopilot-refine` (or any other action).
+- **Suggestion only (Stage A-D)** — every 🔴 / 🟡 finding may include a "Suggested fix" line. Stage E dispatches these suggestions to the appropriate skill, but the dispatched skill still requires user confirmation per its own protocol (autopilot-refine has Stage C confirm; autopilot-code has phase QA gates).
 
 ## Examples
 
@@ -190,6 +216,9 @@ Then print to chat (Korean), in ≤8 lines:
     # Read-only static audit of a code plan (skip test execution)
     /audit 2026-05-11_audit-skill-infra --scope all --read-only
 
+    # Inspection only (no auto-fix)
+    /audit 2026-05-06_se-seminar-tfrestormer --report-only
+
 ## When NOT to use
 
 - 산출물을 _수정_하고 싶은 경우 → `/autopilot-refine`.
@@ -199,7 +228,7 @@ Then print to chat (Korean), in ≤8 lines:
 
 ## Post-Audit Checklist
 
-After audit, suggest to user:
-1. If 🔴 issues exist → propose specific `/autopilot-refine` prompts that target each 🔴 cluster.
-2. If 🟡 issues only → user can defer or batch-fix later.
-3. If clean → "artifact 양식·factual 정합성 OK. 추가 조치 불필요."
+After audit, the auto-fix chain (Stage E) dispatches automatically. If you used `--report-only`:
+1. 🔴 이슈 존재 → `/autopilot-refine "<fix prompt suggested by audit log>"` 또는 `/autopilot-code --mode dev "<fix>"` 직접 호출
+2. 🟡 only → 사용자 판단으로 deferred or batch-fix
+3. clean → 추가 조치 불필요

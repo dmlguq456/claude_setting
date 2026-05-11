@@ -281,7 +281,7 @@ Parse the user's reply, then:
    {if version_count >= AUDIT_HINT_THRESHOLD:}
    ⚠ {version_count} refine cycles accumulated — recommend running an audit:
       /audit {artifact_short_name} --scope facts
-      (read-only facts/style/structure check — no edits, 1-2 minutes)
+      (점검 + 자동 fix chain; 점검만 하려면 --report-only)
    {endif}
    {if downstream sync needed:}
    ⚠ Downstream sync 필요:

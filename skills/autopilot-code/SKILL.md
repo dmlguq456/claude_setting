@@ -1,7 +1,7 @@
 ---
 name: autopilot-code
-description: "Unified code pipeline — dev/audit/debug modes. Orchestrates init-plan → refine-plan → execute-plan → run-test → final-report with mode-specific behavior."
-argument-hint: "--mode dev|audit|debug <task/plan/error description> [--from <step>] [--qa quick|light|standard|thorough|adversarial] [--user-refine]"
+description: "Unified code pipeline — dev/debug modes. Orchestrates init-plan → refine-plan → execute-plan → run-test → final-report with mode-specific behavior."
+argument-hint: "--mode dev|debug <task/plan/error description> [--from <step>] [--qa quick|light|standard|thorough|adversarial] [--user-refine]"
 ---
 
 > **산출물 폴더 컨벤션**: [SKILL_OUTPUT_CONVENTION.md](../../SKILL_OUTPUT_CONVENTION.md) (3-tier: T1 root / T2 named subdir / T3 `_internal/`). plan/ + checklist는 T1 (root). dev_logs/, test_logs/는 T2 (root). reviewer 로그(plan_reviews, dev_reviews, test_reviews)는 모두 `_internal/` 하위.
@@ -13,14 +13,12 @@ argument-hint: "--mode dev|audit|debug <task/plan/error description> [--from <st
 
 ### --mode (REQUIRED)
 - `--mode dev` — development pipeline (default if omitted)
-- `--mode audit` — audit pipeline for post-dev review
 - `--mode debug` — debug pipeline for runtime error diagnosis and fix
 - If omitted: treat as `--mode dev` and warn: "모드가 지정되지 않았습니다. dev 모드로 기본 설정합니다."
 - If invalid value: report error and stop.
 
 ### --from <step> (mode-specific)
 - dev: plan|refine|execute|test|report (5 points)
-- audit: plan|execute|test|report (4 points, no refine)
 - debug: not supported — always starts from diagnosis
 - If --from is used with debug mode: warn "debug 모드에서는 --from이 지원되지 않습니다. 진단부터 시작합니다." and ignore.
 
@@ -32,7 +30,6 @@ argument-hint: "--mode dev|audit|debug <task/plan/error description> [--from <st
 - `--qa adversarial` → opus, parallel reviewers + Codex adversarial-review.
 - Mode-specific validation:
   - dev: accepts quick|light|standard|thorough|adversarial (5 levels)
-  - audit: accepts quick|light|standard|thorough|adversarial (5 levels)
   - debug: accepts quick|light|standard|thorough only. If adversarial passed → downgrade to thorough + warn.
 - If the value is not one of the accepted levels for the mode, treat as `standard` and warn the user: "유효하지 않은 QA level '{value}'. standard로 기본 설정합니다."
 - If omitted, each skill auto-detects level based on scope.
@@ -44,7 +41,6 @@ argument-hint: "--mode dev|audit|debug <task/plan/error description> [--from <st
 When present, the orchestrator **pauses** at refine points so the user can add their own `<!-- memo: ... -->` comments on top of 연구팀's memos before refine-plan runs.
 
 - Applies to: **dev mode only** (Step 2 plan refine, and the failure-loop refine after test failure).
-- Audit mode: no refine step → flag ignored with one-line warning.
 - Debug mode: 연구팀 review skipped → flag ignored with one-line warning.
 
 **Pause behavior** (dev mode):
@@ -66,7 +62,7 @@ When `--from` is used together with `--user-refine` (dev only), `--from refine` 
 
 The remaining text (after removing flags) is the task description, plan name, or error description (depending on mode).
 
-**When starting from Step 2+** (dev/audit modes), the argument must be a plan name (not a task description). Use the Plan Resolution section below to locate the plan folder.
+**When starting from Step 2+** (dev mode), the argument must be a plan name (not a task description). Use the Plan Resolution section below to locate the plan folder.
 
 ## Decision Defaults (no autonomy gating)
 
@@ -74,15 +70,13 @@ The pipeline runs with sane defaults and only pauses on genuinely ambiguous or d
 
 | Decision Point | Default Behavior |
 |---|---|
-| Test failure (after run-test internal hotfix loop) | Auto-retry once (mode dev; mode audit auto-stops with no retry). |
+| Test failure (after run-test internal hotfix loop) | Auto-retry once (mode dev). |
 | Pipeline-level catastrophic failure (plan status = failed) | Stop and report; no retry. |
 | Final retry failure | Auto-stop, write pipeline_summary(failed), report. |
 | Research team adds many memos | Auto-refine (or pause if `--user-refine` is set). |
 | init-plan: existing plan with status `active` | **Always ask** — no safe default; user must choose resume vs. create new. |
 | init-plan: existing plan with status `done` / `failed` | Auto-create a new plan (note the previous one for reference). |
 | init-plan: existing plan with status `partial` | Auto-create a new plan covering the failed steps (read `failed_steps` from frontmatter). |
-| audit: existing audit plan conflict | Auto-decide by status — `active` → resume; `done`/`partial`/`failed` → create new. |
-| audit: test failure | Auto-rollback audit changes + stop (dev changes already committed). |
 | debug: confirm diagnosis before fix | Auto-proceed unless root cause is ambiguous. |
 | debug: ambiguous root cause (multiple possible) | **Always ask** — list candidates, ask which to investigate first. |
 | debug: fix verification failed | Auto-rollback + report. |
@@ -98,19 +92,6 @@ Resolve `$ARG` to a plan file path:
    - **1 match** → use `{match}/plan/plan.md`
    - **Multiple matches** → prefer folder without `_audit`/`_fix_` suffix; if still multiple, ask user
    - **No match** → report error
-
-### Audit-specific Post-Resolution
-(This is ONLY executed when mode=audit)
-After resolving the dev plan path: read `status` from dev plan frontmatter — if `failed`, stop. Read `$DEV_SAFETY_COMMIT` from `plan/checklist.md` header (`Safety commit:` line); fallback: `git log --oneline -1`.
-
-## Existing Audit Plan Detection (mode=audit only)
-Before creating a new audit plan, check if an audit plan already exists:
-- Search for `{dev_plan_folder_name}_audit` in `.claude_reports/plans/`
-- If found AND `--from plan` (default):
-  - Read its frontmatter `status`:
-    - `active`: An incomplete audit exists. Auto-decide — resume existing audit plan.
-    - `done`/`partial`/`failed`: Auto-decide — note for reference and create a new audit plan.
-- If found AND `--from` is execute/test/report: use the existing audit plan.
 
 ## Pipeline: Mode dev
 You (the main Claude) orchestrate by invoking each skill directly via the Skill tool. All tasks go through the full pipeline. The **연구팀** (research-team) agent is invoked only for Step 2 (plan review as user proxy) and Step 6 (meta-report).
@@ -181,41 +162,6 @@ Invoke Skill: `final-report` with the plan name/path as args.
 
 ### Step 6: Pipeline Summary Report
 Write `pipeline_summary.md` per the **Pipeline Summary Template (mode=dev)** (see below).
-Then report to the user: pipeline_summary.md path + 2-3 line verdict.
-
-## Pipeline: Mode audit
-
-### Step 1: Generate audit task + init-plan
-Invoke Skill: `init-plan` with an audit task description that includes:
-- Source: `Audit changes from: {dev_en_plan_path}` and `Git diff: {dev-safety-commit}..HEAD`
-- Review scope (5 areas): Bugs, Consistency, Safety, Missed spots, Suboptimal patterns. Scope: ONLY files changed in the dev cycle.
-
-Plan folder: `.claude_reports/plans/{YYYY-MM-DD}_{original-task-name}_audit/`. Wait for completion.
-
-### Step 1.5: Quick review (optional)
-
-**Trigger:** run if EITHER: (1) audit plan has >10 steps, OR (2) git diff touches `model.py`, `modules/module.py`, or `modules/network.py`.
-
-**When triggered:** Invoke 연구팀 with the audit plan path for one lightweight review pass (memo insertion only — no refine-plan loop). Include: `Review log file: {log_dir}/_internal/plan_reviews/research_review.md`. Wait for completion.
-
-**Otherwise:** skip and proceed to Step 2.
-
-### Step 2: execute-plan
-Invoke Skill: `execute-plan` with the audit plan path.
-- Status check: same rules as Mode dev, Step 3.
-
-### Step 3: run-test
-Invoke Skill: `run-test` with the audit plan path.
-- **NO retry loop** (max 0 retries). If tests fail after the internal hotfix loop (2 attempts), auto-rollback and stop:
-  - Rollback audit changes only: determine changed paths from checklist or git diff. The audit plan's safety commit is stored in its own `plan/checklist.md` header, written by execute-plan during audit execution. Run `git checkout <audit-safety-commit> -- <changed paths>`
-  - This restores to post-dev state (dev changes are already committed).
-  - Write pipeline_summary.md (status: failed) FIRST, then report to user, and stop.
-
-### Step 4: final-report
-Invoke Skill: `final-report` with the audit plan path.
-
-### Step 5: Pipeline Summary Report
-Write `pipeline_summary.md` per the **Pipeline Summary Template (mode=audit)** (see below).
 Then report to the user: pipeline_summary.md path + 2-3 line verdict.
 
 ## Pipeline: Mode debug
@@ -326,12 +272,12 @@ Populate the Decision Points table from in-memory decision records. If none: `| 
 
 ### Mode-specific fields
 
-| Field | dev | audit | debug |
-|---|---|---|---|
-| Title prefix | "Pipeline Summary" | "Audit Pipeline Summary" | "Debug Pipeline Summary" |
-| Extra header fields | `Plan: {en_plan_path}` | `Dev Plan: {path}` + `Audit Plan: {path}` + `Dev Safety Commit: {hash}` | `Error: {msg}` + `Root Cause: {diagnosis}` + `Fix Plan: {path}` + `Attempts: {N}` |
-| Process Log rows | Steps 1-5 + 4R (retry: refine→execute→test) | Steps 1, 1.5, 2-4 | Steps 1-6 (Step 1=Diagnosis, no row for Step 3) |
-| Artifacts | plan/ (T1), dev_logs/ (T2), test_logs/ (T2), _internal/{plan_reviews,dev_reviews,test_reviews}/ (T3), final_report | same + audit-specific prefixes | same minus research artifacts |
+| Field | dev | debug |
+|---|---|---|
+| Title prefix | "Pipeline Summary" | "Debug Pipeline Summary" |
+| Extra header fields | `Plan: {en_plan_path}` | `Error: {msg}` + `Root Cause: {diagnosis}` + `Fix Plan: {path}` + `Attempts: {N}` |
+| Process Log rows | Steps 1-5 + 4R (retry: refine→execute→test) | Steps 1-6 (Step 1=Diagnosis, no row for Step 3) |
+| Artifacts | plan/ (T1), dev_logs/ (T2), test_logs/ (T2), _internal/{plan_reviews,dev_reviews,test_reviews}/ (T3), final_report | same minus research artifacts |
 
 ## Safety Rules
 
@@ -342,9 +288,6 @@ Populate the Decision Points table from in-memory decision records. If none: `| 
 
 ### Mode dev
 (No additional mode-specific rules beyond common.)
-
-### Mode audit
-- Audit failures do NOT roll back dev cycle changes — dev changes are already committed. Rollback scope is audit changes only.
 
 ### Mode debug
 - **Minimal scope**: Fix the bug only. Do not refactor, improve, or clean up surrounding code.
