@@ -370,6 +370,28 @@ Invoke Skill: `init-doc-strategy` with args: `<mode> --inputs <comma-separated-d
 ### Step 4: Draft Generation
 **Applicable modes**: rebuttal, write, report, proposal, review, presentation. (All 6 modes generate drafts.)
 
+#### Step 4.0: Figure Discovery (조사 단계 figure 자동 인지)
+
+Draft 생성 전, _research/{topic}/figures/figure_index.md_ 존재 여부를 확인하고 paper figure list를 인지:
+
+1. **Discovery**: `.claude_reports/research/*/figures/figure_index.md` glob (top match by topic relevance to task description).
+2. 존재 시: figure_index.md 파싱 → paper_id × figure path 매핑 dict 생성.
+3. 부재 시: warn "research figures 미존재. 자동 추출 옵션 — autopilot-research를 먼저 호출하여 Step 3.5 (figure extraction) 실행 권장." → 그대로 draft 진행 (figure embed 없이).
+
+#### Step 4.0b: Path Convention (자동 계산, 사용자 수동 X)
+
+Draft markdown에 figure embed 시 _상대 경로_는 **draft 파일 위치 기준 자동 계산** — 사용자가 수동으로 path 입력 X. 표준 환경:
+
+- draft 위치: `{artifact_dir}/draft/draft_ko.md` (or draft.md)
+- artifact_dir: `.claude_reports/documents/{date}_{name}/`
+- 자동 제작 가안 위치: `{artifact_dir}/assets/figures/` → draft 기준 `../assets/figures/{file}.png` (1단 위)
+- 추출 paper figure 위치: `.claude_reports/research/{topic}/figures/` → draft 기준 `../../../research/{topic}/figures/{file}.png` (3단 위 — draft → 2026-... → documents → .claude_reports → research)
+- figure_index.md: `../../../research/{topic}/figures/figure_index.md`
+
+Draft 작성 sub-agent (연구팀)에게 위 path convention을 전달; sub-agent가 잘못된 상대 경로 사용하지 않도록 명시.
+
+#### Step 4.1: Draft Generation (연구팀 호출)
+
 1. Verify strategy is finalized: `{strategy_folder}/strategy/strategy.md` exists and has no `## 미해결 이슈` section (or issues are acceptable).
 2. Invoke the **research-team** (연구팀) agent as a subagent:
 
@@ -532,6 +554,13 @@ Generate a **PPT cheatsheet markdown** — single file, optimized for human read
 - 좌측 1/2 (또는 메인): {도식·차트 설명}
 - 우측 1/2 (또는 보조): {보조 시각}
 - 또는 전체 화면: {풀 페이지 도식 설명}
+
+<!-- 자동 figure embed (Step 4.0 결과 figure_index.md 매핑이 있는 슬라이드만) -->
+<!-- 자동 제작 가안: <img src="../assets/figures/slideXX_*.png" alt="..." width="500" /> -->
+<!-- 추출 paper figure: <img src="../../../research/{topic}/figures/{paper_id}_fig{N}.png" alt="..." width="500" /> -->
+<!-- 작은 크기 (width=500) 미리보기 수준; 사용자 메모리 정책 — feedback_figure_combined_pptx_only.md 참조 -->
+<!-- Path은 draft 위치 기준 자동 계산 (Step 4.0b Path Convention) — 사용자 수동 X -->
+{자동 embed: 사용 가능 figure 목록 (figure_index.md 매핑) 중 본 슬라이드 토픽과 매치되는 figure가 있으면 inline `<img width="500" />` syntax로 자동 embed. 자동 매핑이 모호하면 placeholder만 두고 사용자 polish 영역으로 표시.}
 
 **Speaker note**:
 1. {발화 1 — 슬라이드 본문 보충, 직관 풀이, 비유, 일화}

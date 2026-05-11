@@ -336,6 +336,48 @@ Read `{artifact_dir}/analysis_summary.md`.
 - Depth-aware: `shallow` + `chaining_available == false` + `code_search_available == true` → **done** (intentional skip)
 - Otherwise partial flags → **partial**, warn user, proceed
 
+### Step 3.5: Web Figure Extraction (옵션, accessible paper 대상)
+
+Phase A skimming 직후 cards/{paper}.md가 작성되면, _accessible 분류_ paper의 figure를 web에서 자동 추출.
+
+**Scope**:
+- 대상 = `accessible` 분류 paper (Step 3b 정의: `arxiv_id` OR `oa_url` OR `_internal/browser_extracts/{filename}.txt` 존재)
+- paywall-only paper는 skip (figure도 마찬가지로 접근 불가)
+
+**Procedure** (탐색팀 호출):
+```
+Agent(subagent_type="탐색팀"):
+  Mode: extract_web_figures
+  Paper list: [{arxiv_id, paper_id (cards filename without .md), title}, ...]
+  Output dir: {artifact_dir}/figures/
+  Workflow per paper:
+    1. ar5iv URL 시도: https://ar5iv.labs.arxiv.org/html/{arxiv_id}
+       → WebFetch 또는 Playwright로 HTML 페이지 fetch (5s timeout)
+       → BeautifulSoup 또는 정규식으로 <img src="..."> 또는 <figure> 태그 파싱
+       → 각 figure URL을 image binary 다운로드 (정상 figure만, 아이콘/로고 제외 — 200×200 minimum)
+       → save as {paper_id}_fig{N}.png
+    2. ar5iv 실패 시 (페이지 없음 또는 figure 0개) → arxiv-vanity fallback (https://www.arxiv-vanity.com/papers/{arxiv_id}/)
+    3. 둘 다 실패 시 → arxiv PDF fallback: https://arxiv.org/pdf/{arxiv_id}
+       → wget/curl로 PDF 다운로드 (_internal/raw_pdfs/ 임시 저장) → pdfimages -png 추출 → {paper_id}_fig{N}.png
+       → PDF 임시 파일 삭제 (token/storage 절감)
+    4. 모두 실패 시 → 해당 paper figure 0개로 기록
+  Output:
+    - {artifact_dir}/figures/{paper_id}_fig*.png (paper마다 N개)
+    - {artifact_dir}/figures/figure_index.md (paper × figure path 매핑)
+```
+
+**cards 갱신**: 각 cards/{paper}.md 헤더 frontmatter 또는 `## Reference` 섹션 직후에 `**Figures**: ../figures/{paper_id}_fig1.png · ../figures/{paper_id}_fig2.png ...` 한 줄 추가. figure 0개면 `**Figures**: (none extracted)` 표시.
+
+**Caveats**:
+- ar5iv는 _대부분의 arxiv paper 지원_이지만 _최근 2024-26 paper 일부_는 지원 안 됨 — PDF fallback 자동 발동.
+- Vector figure는 ar5iv에서 SVG/PNG로 자동 raster 변환되어 양호. PDF fallback은 raster figure만 (vector PDF figure는 미인식).
+- _저작권_: 학술 paper figure 인용은 _발표·문서 fair use_ 영역. 본 추출 결과는 _연구 reference_로만 사용, 외부 배포 시 출처 명시 필요.
+- 추출 figure 품질 변동 — 사용자 polish 또는 직접 캡처가 더 적합한 경우 다수.
+
+**Skipping**:
+- `--qa quick` mode에서는 Step 3.5 자동 skip (fastest path 우선).
+- 또는 `--no-figures` flag 명시 시 skip (옵션 추가 권장).
+
 ### Step 4: Report Generation (direct Agent call + QA loop)
 
 #### Step 4a: Generate Reports

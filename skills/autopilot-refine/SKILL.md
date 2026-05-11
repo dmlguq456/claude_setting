@@ -163,6 +163,8 @@ Parse the user's reply, then:
 
 3. **Apply edits** via the Edit tool. Exact-string match. Never use `replace_all` unless explicitly stated in a proposal.
 
+3b. **Inline memo cleanup (memo mode 전용)**: 메모 mode (`--memo <file>` 또는 inline `<!-- memo: ... -->` 소스)에서 모든 메모가 반영된 경우, _draft 안의 inline 메모도 함께 삭제_. 메모는 사용자의 _임시 review notes_이고 반영 후에는 stale이므로 _기본 삭제_가 정합. 예외: (a) 사용자가 _보존_ 명시 / (b) 메모 안에 _작업 외 메타 제안_이 있고 사용자에게 미해결로 알릴 가치 있는 경우 — 이 두 경우만 메모 보존하고, 다른 경우는 모두 메모 + 주변 빈 줄까지 함께 제거 (구분자 `---`는 보존).
+
 4. **Update `pipeline_summary.md`** (single source of truth — no separate CHANGELOG):
 
    The artifact's `pipeline_summary.md` was created by the original autopilot-{research,doc} run. autopilot-refine accumulates version history into the same file rather than spawning a sibling log. Three places to touch:

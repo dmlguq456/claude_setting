@@ -144,6 +144,8 @@ flowchart LR
 | 외부 의견(Codex) 빠른 추가 | `Agent(codex-review-team)` | `--qa adversarial`보다 가볍게 |
 | **노션 페이지·DB 갱신, 실험 결과 로깅** | 메인 컨텍스트에서 Notion MCP 도구 직접 호출 ([`notion_guide.md`](notion_guide.md) 참조) | sub-agent X (MCP 도구 접근 제약) |
 | 특정 paywall 논문 1편 fetch | `Agent(탐색팀)` | autopilot-research 안 돌리고 단발성 |
+| **PDF figure 일괄 추출** (paper PDFs → PNG figures) | `Agent(탐색팀, mode="extract_pdf_figures")` | research/{topic}/figures/ 또는 documents/{...}/assets/figures/에 PNG + figure_index.md 적층 |
+| **인터넷 reference 그림 검색** (스타일 참고용) | `Agent(탐색팀, mode="web_reference")` | URL + caption + (옵션) image binary fetch. 저작권 fair use 안내 |
 | 단계별 테스트만 실행 | `/run-test <plan>` skill | autopilot-code 전체 X |
 | **이미 만든 research/doc 산출물 정정 (D)** | `/autopilot-refine "<prompt>"` 또는 `/autopilot-refine --memo <file>` skill | prompt·memo 동일 entry. diff preview 후 confirm, 버전+history 자동 누적. artifact는 prompt fuzzy match로 식별. |
 
@@ -188,7 +190,7 @@ flowchart LR
 | 품질관리팀 (qa-team) | opus | 모든 autopilot의 review loop | 단발성 코드/문서 diff 리뷰 |
 | 연구팀 (research-team) | opus | autopilot-research / -code / -doc / -refine (standard+ fact-check) | 단발성 도메인 cross-check, 발표자료 타당성 검토 |
 | 테스트팀 (test-team) | opus | run-test | 보통 `/run-test` skill로 |
-| 탐색팀 (browser-team) | sonnet | autopilot-research | 단발성 paywall 페이지 fetch |
+| 탐색팀 (browser-team) | sonnet | autopilot-research | 단발성 paywall 페이지 fetch · PDF figure 일괄 추출 (`extract_pdf_figures`) · reference 그림 검색 (`web_reference`) |
 | codex-review-team | opus | `--qa adversarial` | 단발성 Codex 외부 의견 |
 | 개발팀 (dev-team) | sonnet | (autopilot 내부) | **작은 리팩토링/정리** ("이 함수 이름 바꿔줘") |
 
@@ -225,7 +227,7 @@ flowchart LR
     USER -. 단발성 검토 .-> QT
     USER -. 도메인 cross-check .-> RT
     USER -. 외부 의견 .-> CRT
-    USER -. paywall fetch .-> BT
+    USER -. paywall fetch / figure 추출 .-> BT
     ARES --> RT
     ARES --> BT
     ACODE --> PT
