@@ -31,7 +31,7 @@ Reason internally in English. All user-facing output (chat report, audit log) in
 - `<artifact_path>` (REQUIRED): one of
   - Absolute path to a `.claude_reports/{plans,research,documents}/*` directory
   - Fuzzy short name (e.g., `se-seminar-tfrestormer`) — resolved via `ls -d .claude_reports/{plans,research,documents}/*$ARG* 2>/dev/null`. 1 match → use; multiple → ask user; 0 → error.
-- `--scope` (default `all`): which aspect set to check. Aspect set is type-specific (see Stage B).
+- `--scope` (default `auto`): which aspect set to check. **사용자 명시는 1순위 (override)**. 명시 없으면 audit이 artifact 특성 (mode / refine 횟수 / status / 구조)을 보고 _스스로 적절한 aspect set 선택_. 명시 값은 `facts | style | structure | cross-ref | coverage | all` 중 하나로 type-specific aspect group에 매핑 (Stage B 표 참조).
 - `--read-only` (default for plans): if specified for `plans` type, skip any aspect that requires _executing_ tests / lints — only static inspection (file diff, TODO grep, code review heuristics). For `research` / `documents` types, `--read-only` is implicit and the flag is a no-op (warn: "audit는 research/documents에 대해 항상 read-only").
 - `--report-only`: skip the auto-fix chain (Stage E). With this flag, `/audit` produces the report and stops — same as previous default behavior. Use when you want only inspection without follow-up edits.
 - `--no-fact-check`: opt-out flag honored per `feedback_factcheck_principles.md` Principle 0. If present, the `facts` aspect (and the `coverage` aspect's cards-set diff) are **skipped** before Stage C aspect dispatch — i.e., the aspect skip happens at the _pre-check_ stage, not via filtering after lint runs. Other aspects (style / structure / cross-ref / Tier / cross-card / test / lint / code review / TODO) still run. Stage D report emits an informational line at the top of "Aspects checked": `ℹ facts/coverage aspects: skipped via --no-fact-check flag (memory feedback_factcheck_principles Principle 0)`. This is the _only_ allowed disable mechanism for fact verification; ad-hoc prompt evasion must not be honored.
@@ -48,23 +48,60 @@ Reason internally in English. All user-facing output (chat report, audit log) in
    - Other → error: "audit은 .claude_reports/{plans,research,documents}/* 산출물 전용. resolved path: {path}"
 3. Print one-line to user (Korean): `Type 인식: {type} — {artifact short name}`.
 
-### Stage B — Identify aspects to check
+### Stage B — Determine effective scope
 
-Per type, the aspect set is:
+**우선순위**:
+1. **사용자가 `--scope <value>`를 명시한 경우 (1순위, override)** — 그 값을 그대로 사용. type-specific aspect group으로 매핑하여 적용 (아래 표 참조). 매핑이 N/A인 경우(예: `--scope coverage` on plans) 한 줄 warn 후 빈 aspect set 반환.
+2. **명시 없음 (default = `auto`)** — Stage B.1 자동 판단 로직 실행.
 
-| Type | Aspects (when `--scope all`) |
-|---|---|
-| `documents` | facts / style / structure / cross-ref / **coverage** |
-| `research` | cards 정합성 / Tier consistency / coverage / cross-card |
-| `plans` | test results / lint / code review / TODO·미구현 |
+#### Stage B.1 — Auto-scope detection (artifact 특성 기반)
 
-If `--scope` is restrictive (e.g., `--scope facts`), filter the aspect set down to matching aspects only. `--scope` values map to aspect groups as:
-- `facts` → facts (documents), cards 정합성 (research), test results + TODO·미구현 (plans)
-- `style` → style (documents), Tier consistency (research), lint (plans)
-- `structure` → structure (documents), coverage (research), code review (plans)
-- `cross-ref` → cross-ref (documents), cross-card (research) — N/A for plans (warn).
-- `coverage` → coverage (documents + research), omission check — N/A for plans (warn).
-- `all` → full set.
+artifact의 다음 단서를 _순차적으로_ 읽어 적절한 aspect set 결정:
+
+**documents type:**
+| 단서 | 우선 aspect | 이유 |
+|---|---|---|
+| `pipeline_summary.md` frontmatter `mode: presentation` | facts + cross-ref + coverage | slide claim 정확성 + cards 인용 완전성 (omission 방지) 우선 |
+| `mode: write` or `mode: rebuttal` | facts + style + cross-ref | 논문/반박문 citation 양식 + claim 검증 |
+| `mode: review` | structure + cross-ref | review form 양식 + reviewer point 대응 |
+| `mode: report` or `mode: proposal` | style + structure | 양식 일관성 + 산출물 구조 |
+| `pipeline_summary.md` 버전 히스토리 행 수 ≥ 10 (누적 drift 의심) | **all** | refine 다회 누적 → 종합 점검 |
+| 위 단서 미발견 / 정보 부족 | **all** | 안전 default |
+
+**research type:**
+| 단서 | 우선 aspect | 이유 |
+|---|---|---|
+| chapters (`01_*.md ~ NN_*.md`) 존재 + `cards/` 존재 | **all** | 종합 (Tier + coverage + cards 정합성 + cross-card) |
+| `cards/` only (chapters 없음) | cards 정합성 + cross-card | 카드 자체 점검 |
+| chapters only (cards 없음) | Tier consistency + coverage | 인용 정합성 |
+
+**plans type:**
+| 단서 | 우선 aspect | 이유 |
+|---|---|---|
+| `status: done` + `test_logs/test_report.md` 존재 | test results + code review | 완료된 plan의 실행 정합성 |
+| `status: done` + test_logs 부재 | code review + TODO·미구현 | dev review 잔존 issue + 미완료 항목 |
+| `status: partial` or `status: failed` | TODO·미구현 + code review | 실패 항목 + reviewer 의견 우선 |
+| `status: active` | TODO·미구현 | 진행 중 — 다른 aspect는 미완료 상태 |
+
+**Output to chat** (자동 판단 시):
+```
+Auto-scope: {aspect 1} + {aspect 2} + ... ({이유 한 줄})
+```
+사용자 명시 시:
+```
+Scope: {value} (사용자 지정, override)
+```
+
+#### Stage B.2 — Type-specific aspect mapping (when `--scope <value>` is given)
+
+| `--scope` | documents | research | plans |
+|---|---|---|---|
+| `facts` | facts | cards 정합성 | test results + TODO·미구현 |
+| `style` | style | Tier consistency | lint |
+| `structure` | structure | coverage | code review |
+| `cross-ref` | cross-ref | cross-card | N/A (warn) |
+| `coverage` | coverage | coverage | N/A (warn) |
+| `all` | facts + style + structure + cross-ref + coverage | cards 정합성 + Tier + coverage + cross-card | test results + lint + code review + TODO·미구현 |
 
 **Why `coverage` is new for documents**: the Stage B.5 regex detector can only flag _present_ claims in `new_text` — it cannot, by construction, flag _absent_ claims (e.g., UniSE missing from a timeline). Omission requires a separate _set-diff_ mechanism. The `coverage` aspect fills this: reports the difference between the full cards source vs cards actually cited in the draft. Without it, UniSE-class omissions recur.
 

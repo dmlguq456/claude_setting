@@ -280,8 +280,8 @@ Parse the user's reply, then:
    • Updated: {artifact_dir}/pipeline_summary.md (버전 히스토리 + v{N} 변경 사항)
    {if version_count >= AUDIT_HINT_THRESHOLD:}
    ⚠ {version_count} refine cycles accumulated — recommend running an audit:
-      /audit {artifact_short_name} --scope facts
-      (점검 + 자동 fix chain; 점검만 하려면 --report-only)
+      /audit {artifact_short_name}
+      (auto-scope: artifact 특성으로 적절한 aspect 자동 선택. 점검만 하려면 --report-only)
    {endif}
    {if downstream sync needed:}
    ⚠ Downstream sync 필요:
