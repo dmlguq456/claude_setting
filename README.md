@@ -33,8 +33,34 @@ flowchart LR
 - **`analyze-project`** — `--mode code` (default 코드베이스) / `--mode paper` (논문 PDFs cards) / `--mode doc` (reviewer comments·템플릿·샘플)
 - **`autopilot-research`** — 외부 분야 새 조사 (검색 + 분석)
 - **`autopilot-code` / `autopilot-doc`** — 위 영속 산출물을 implicit 자동 발견
-- **`autopilot-refine`** — research/doc 산출물 사후 정정 (prompt 또는 사용자 메모 단일 entry, diff preview→confirm→version)
-- **`audit`** — 모든 산출물의 facts/style/structure 점검. `--report-only` 없으면 issue 발견 시 fix skill 자동 트리거 (doc/research → refine, plans → code)
+- **`audit`** — 모든 산출물의 facts/style/structure 점검 → (default) auto-fix chain 트리거
+- **`autopilot-refine`** — research/doc 산출물 사후 정정 (prompt + memo 단일 entry, diff preview→confirm→version)
+
+### 산출물 관점 (`.claude_reports/` I/O)
+
+```mermaid
+flowchart LR
+    subgraph IN["A. 자료 수집"]
+        ANA["analyze-project<br/>(code/paper/doc)"]
+        RES["autopilot-research"]
+    end
+    subgraph PROD["B/C. 산출"]
+        CODE["autopilot-code"]
+        DOC["autopilot-doc"]
+    end
+    AUD["D. audit<br/>(점검)"]
+    REF["E. autopilot-refine<br/>(정정)"]
+    OUT[("📦 .claude_reports/")]
+    IN --> OUT
+    OUT -.->|implicit input| PROD
+    PROD --> OUT
+    OUT --> AUD
+    AUD -.->|auto-fix plans| CODE
+    AUD -.->|auto-fix doc/research| REF
+    OUT <--> REF
+```
+
+> 첫 mermaid가 _skill ↔ skill_ 흐름이라면, 이건 _산출물 중심_. 모든 자료는 `.claude_reports/` 하위(`analysis_project/{code,paper,doc}/`, `research/{topic}/`, `documents/{date}_{name}/`, `plans/{date}_{name}/`)에 누적. 후속 skill은 점선(implicit)으로 자동 발견. **audit(D)는 OUT을 _읽기만_** (검열), **refine(E)는 OUT을 _read+write_** (수정 + 버전 누적). audit이 issue 발견 시 fix를 _자동으로_ refine/code로 dispatch (점선 화살표).
 
 > **3-tier 산출물 컨벤션** ([SKILL_OUTPUT_CONVENTION.md](SKILL_OUTPUT_CONVENTION.md)): T1 root = 메인 산출물 / T2 named subdir = 검토 자료 (`strategy/`, `cards/`, `dev_logs/` 등) / T3 `_internal/` = audit·raw·versions. 사용자는 보통 T1만 보면 됨.
 
