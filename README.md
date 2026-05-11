@@ -51,7 +51,7 @@ flowchart LR
 | 외부 분야 조사 (논문·기술표준·시장) | `/autopilot-research <주제> --mode academic\|technology\|market` | `research/{topic}/` (9/7/5 보고서) |
 | 보유한 논문 PDF | `/analyze-project --mode paper` | `analysis_project/paper/` — cards + overview |
 | 기존 코드베이스 | `/analyze-project [--mode code]` | `analysis_project/code/` — 모듈 매핑 |
-| 기타 doc 자료 | `/analyze-project --mode doc <folder>` | `analysis_project/doc/{name}/` |
+| 기타 doc 자료 (reviewer comments·templates·sample) | `/analyze-project --mode doc` (cwd 자동 발견) 또는 `--mode doc <folder>` (외부 override) | `analysis_project/doc/{name}/` |
 
 ### B. 코드 개발 & 디버그
 

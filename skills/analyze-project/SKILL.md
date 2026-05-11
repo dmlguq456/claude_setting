@@ -23,10 +23,12 @@ argument-hint: "[--mode code|paper|doc] [<scope/target/input-folder>] [--skip-qa
 
 - `--mode <X>`: explicit mode selection. If omitted → auto-detect (code vs doc only; paper requires explicit).
 - `--skip-qa`: skip Phase 5 QA Verification.
-- Remaining text after flag removal is mode-specific:
-  - `code`: target dir/keyword/scope (default: project root)
-  - `paper`: paper id or "all" (default: "all")
-  - `doc`: input folder path (REQUIRED — no default)
+- Positional `<scope/target>` (**모든 mode에서 OPTIONAL** — default = cwd 자동 발견):
+  - `code`: 범위 좁히기 — 모듈 keyword (`engine`) 또는 sub-dir (`src/models/`). Default = project root.
+  - `paper`: 외부 폴더 override (예: `~/papers/2024/`). Default = cwd + 1-level subfolders (`papers/` / `refs/` / `pdfs/`) 자동 발견.
+  - `doc`: 외부 폴더 또는 sub-task name override. Default = cwd + 1-level subfolders (`docs/` / `reviews/` / `templates/` / `reviewer_comments/`) 자동 발견. 명시 시 외부 폴더 path를 그대로 input scope로 사용.
+
+> **Workspace 원칙**: 사용자는 분석 대상 자료(PDFs / reviewer comments / templates 등)를 _프로젝트 dir 안에_ 두는 것이 표준. `cd <project>` 후 `/analyze-project --mode <X>` (positional 없이) 호출하면 90%+ 케이스 자동 처리. positional 인자는 _외부 폴더를 직접 가리키는 fallback_ 용도.
 
 ### Mode Auto-Detection (when `--mode` omitted)
 
@@ -49,7 +51,7 @@ Inspect current directory:
 | paper | `.claude_reports/analysis_project/paper/` | flat (project's paper collection accumulates) |
 | doc | `.claude_reports/analysis_project/doc/{name}/` | per-task subdir |
 
-`{name}` for doc mode: derived from the input folder name (e.g., `--mode doc tf_restormer_patent` → `analysis_project/doc/tf_restormer_patent/`). User can override by passing a different name as the second positional arg.
+`{name}` for doc mode: derived from input folder basename (positional arg) or cwd basename (default — when positional 생략, 즉 자동 발견 모드). 예: `--mode doc` (positional 없이) within `/.../tf_restormer/` cwd → `analysis_project/doc/tf_restormer/`. 명시 override: `--mode doc tf_restormer_patent` → `analysis_project/doc/tf_restormer_patent/`.
 
 ---
 
@@ -182,7 +184,14 @@ Analyzes miscellaneous doc-creation materials (reviewer comments, format templat
 
 ## Phase 1: Input Discovery & Classification
 
-Read the input folder (REQUIRED positional arg). Classify each file by heuristic:
+**Input scope resolution** (in priority order):
+1. **Positional arg 명시**: 그 folder를 input scope로 (외부 폴더 override).
+2. **Default — cwd 자동 발견**: 다음 패턴 grep within cwd + 1-level subdirs:
+   - `docs/` / `reviews/` / `templates/` / `reviewer_comments/` / `format/` / `guidelines/` (sub-folder 통째로)
+   - root에 흩어진 `*.docx` / `*.pdf` (paper로 분류되지 않는 것) / `*_review.md` / `*_template.*` / `*_sample.*`
+3. **Output sub-folder `{name}`**: positional 명시 → 그 folder name (basename) / 자동 발견 → cwd basename 또는 task description-derived
+
+Read input scope. Classify each file by heuristic:
 
 | File pattern | Category | Output target |
 |---|---|---|
@@ -274,11 +283,18 @@ analysis_project/doc/{name}/
 
 ## Typical workflow
 
+**원칙**: 분석 대상 자료(PDFs / reviewer comments / templates 등)를 _프로젝트 dir 안에_ 둔 뒤 `cd <project>` 후 호출. positional 인자 없이도 자동 발견.
+
 ```bash
-# 1. 사전 분석
+cd <project_root>     # 자료를 프로젝트에 가져다 둔 후
+
+# 1. 사전 분석 — positional 없이 (cwd 자동 발견)
 /analyze-project --mode code        # 코드베이스
-/analyze-project --mode paper       # 보유 논문 PDFs
-/analyze-project --mode doc tf_restormer_patent/  # 특허 발표 자료
+/analyze-project --mode paper       # cwd + papers/ / refs/ / pdfs/ 자동 grep
+/analyze-project --mode doc         # cwd + docs/ / reviews/ / templates/ / reviewer_comments/ 자동 발견
+
+# 1b. 또는 외부 폴더 override (rare)
+/analyze-project --mode doc ~/external_patent_folder/   # positional = 외부 path
 
 # 2. 후속 작업 (input은 자동 인지)
 /autopilot-code --mode dev "<task>"
