@@ -1,6 +1,6 @@
 ---
 name: autopilot-doc
-description: "Document strategy & draft pipeline — analyze-refs → strategy → review → draft → draft-review. 6 modes produce both strategy AND draft (markdown only). Inputs are discovered implicitly from .claude_reports/{analysis_project,research}/* (no --refs flag — pre-process external materials via /analyze-project --mode {paper|doc} first). All modes accept `--format-ref <path>` (universal flag — venue/journal/lab-specific guidelines, template, sample, or rebuttal-format file). No built-in presets (venues/years/journals differ). When omitted, agent auto-discovers a format spec inside analysis_project/doc/{matching}/formats/; review mode hard-fails if not found, other modes warn-and-fallback to a generic layout. presentation mode produces slide-by-slide markdown; PPTX export is NOT supported (use PowerPoint directly)."
+description: "Document strategy & draft pipeline — analyze-refs → strategy → review → draft → draft-review. 6 modes produce both strategy AND draft (markdown only). All inputs (refs / templates / reviewer comments / samples) are discovered implicitly from `.claude_reports/{analysis_project,research}/*` — pre-process external materials via `/analyze-project --mode {paper|doc}` first (cwd 자동 발견). Format specs (venue/journal/lab guidelines + templates + samples) are auto-loaded from `analysis_project/doc/{matching}/formats/` — no explicit `--format-ref` flag. `review` mode hard-fails if format spec missing; other modes warn-and-fallback to generic layout. `presentation` mode produces slide-by-slide markdown only (PPTX export NOT supported — use PowerPoint directly); slide template format-ref is N/A since markdown is the deliverable."
 argument-hint: "<task description> [--mode rebuttal|write|review|report|proposal|presentation] [--qa quick|light|standard|thorough] [--user-refine] [--no-clarify] [--from analyze|strategy|strategy-refine|draft|draft-refine|finalize]"
 ---
 
@@ -146,7 +146,7 @@ The pipeline runs with sane defaults and only pauses on genuinely ambiguous or d
 | No reviewer comments for rebuttal | **Always ask** at pre-flight. |
 | Strategy review → memos added | Auto-refine (or pause for user-memo if `--user-refine` is set). |
 | Draft review → memos added | Auto-refine (or pause for user-memo if `--user-refine` is set). |
-| `--format-ref` missing | Auto-discover in `analysis_project/doc/{matching}/formats/` (already classified by `analyze-project --mode doc`). If none, mode-specific fallback (review hard-fails; rebuttal prompts user; write/proposal/report/presentation warn-and-fallback to generic layout). |
+| Format spec resolution | _Always_ from `analysis_project/doc/{matching}/formats/` (classified by `analyze-project --mode doc` in advance). No `--format-ref` flag. If missing, mode-specific fallback: `review` hard-fails; `rebuttal` prompts user; `write`/`proposal`/`report` warn-and-fallback to generic layout; `presentation` N/A (markdown only). |
 | Reviewer guidelines absent in refs (review mode) | Use built-in spec only; inform user. |
 | Scope Clarification triggered | Ask 2-4 questions; auto-proceed if `--no-clarify`. |
 
@@ -242,7 +242,7 @@ Validate mode-specific required inputs. If any check fails, **abort immediately*
   - refs folder must contain at least one reviewer-comment file (txt/md/pdf with reviewer-style content detected by filename or content scan). If none found, ask the user before proceeding.
   - format-ref absent (no flag, no auto-discovery hit) → prompt user at Step 0: "(a) provide --format-ref now / (b) declare format constraints (length, sub-type, scope) inline in <task description> / (c) opt into generic conference rebuttal layout (warns quality drop)". Sub-type info (meta-only / reviewer-dialogue / response-with-revision) is extracted from the format-ref file or stated in task description — _no separate flag_.
 
-- **presentation mode** — format-ref optional. If absent, fallback to generic slide-by-slide markdown layout (warning logged).
+- **presentation mode** — format spec **N/A** (markdown deliverable, slide template은 PowerPoint 단). 사용자가 `--format-ref` 같은 flag 명시해도 무시.
 
 - **proposal / report / write modes** — format-ref optional. If absent, fallback to generic mode-specific layout. For `write` targeting an academic venue (detected from task description or refs/), strongly recommend supplying the venue's paper template.
 
