@@ -13,17 +13,6 @@
       "notion_last_edited_time": "2026-04-21T01:01:13.225Z",
       "notion_synced_sha256": null
     },
-    "skills/analyze-papers": {
-      "sha256": null,
-      "synced_at": null,
-      "readme_path": "skills/analyze-papers/README.md",
-      "readme_sha256": "bfaae932e7cf526a3ac261298c2a47feb4a843739f9803e40b81aabfeba220fb",
-      "readme_mtime": "2026-05-12T19:35:20+09:00",
-      "notion_page_id": "34987c2b-b753-8173-9e00-db18de46c62b",
-      "notion_last_edited_time": "2026-04-21T01:01:41.441Z",
-      "notion_synced_sha256": null,
-      "note": "legacy — SKILL removed, integrated into analyze-project --mode paper"
-    },
     "skills/audit": {
       "sha256": "a013d0c79ea1c0963c6e2843b850a84e80bc2c3628f870a6ed78f354ac9451d4",
       "synced_at": "2026-05-12T02:30:00+09:00",
