@@ -25,7 +25,7 @@ argument-hint: "[--check] [--readme-only] [--notion-only] [--force]"
 
 각 파일에서 추출:
 - frontmatter `name`, `description`, `argument-hint` (skills only), `tools`, `model`
-- argument-hint 파싱 → 옵션 값 (예: `--mode dev|audit|debug`, `--from analyze|strategy|...`)
+- argument-hint 파싱 → 옵션 값 (예: `--mode dev|debug`, `--from analyze|strategy|...`)
 
 ### 출력
 1. **GitHub**: `~/.claude/README.md` (repo: `git@github.com:dmlguq456/claude_setting.git`, root: `~/.claude/`)

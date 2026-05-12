@@ -2,7 +2,7 @@
 
 > 본 README는 Notion 페이지 [🔧 autopilot-code](https://www.notion.so/32787c2bb75381d48170dae1e5074b5c)의 미러. `/sync-skills`로 양방향 동기화. 권위 있는 동작 명세는 `SKILL.md`.
 
-> **autopilot-code**: 기존 3개 독립 파이프라인(autopilot-dev, autopilot-audit, autopilot-debug)을 `--mode` 파라미터로 통합한 단일 skill. 모드별 파이프라인은 원본과 100% 동일.
+> **autopilot-code**: dev/debug 2개 모드의 통합 코드 파이프라인. 기존 3개 독립 파이프라인(autopilot-dev, autopilot-audit, autopilot-debug)을 `--mode`로 통합한 후 audit 모드는 별도 `/audit` skill로 분리 (갈래 D). 현재 autopilot-code는 dev/debug만 담당.
 
 ## 파이프라인 워크플로우
 

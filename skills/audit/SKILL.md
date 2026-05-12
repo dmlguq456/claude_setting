@@ -1,7 +1,7 @@
 ---
 name: audit
-description: "Read-only multi-aspect audit / lint for `.claude_reports/{plans,research,documents}/*` artifacts. Single global entry — auto-detects artifact type from path prefix (plans=code; research=field-survey; documents=doc deliverable). Per-type lint aspects: doc → facts / style / structure / cross-ref / coverage; research → cards 정합성 / Tier consistency / coverage / cross-card; plans → test results / lint / code review / TODO·미구현. Default `--scope all`. Report-only — never modifies the artifact. Complementary to autopilot-refine: refine = edit flow, audit = inspect flow."
-argument-hint: "<artifact_path> [--scope facts|style|structure|cross-ref|coverage|all] [--read-only] [--report-only] [--no-fact-check]"
+description: "Read-only multi-aspect audit / lint for `.claude_reports/{plans,research,documents}/*` artifacts. Single global entry — auto-detects artifact type from path prefix (plans=code; research=field-survey; documents=doc deliverable). Per-type lint aspects: doc → facts / style / structure / cross-ref / coverage; research → cards 정합성 / Tier consistency / coverage / cross-card; plans → test results / lint / code review / TODO·미구현. Default `--scope auto` — artifact 특성 기반 자동 선택; 사용자 명시는 1순위 override. Report-only — never modifies the artifact. Complementary to autopilot-refine: refine = edit flow, audit = inspect flow."
+argument-hint: "<artifact_path> [--scope auto|facts|style|structure|cross-ref|coverage|all] [--read-only] [--report-only] [--no-fact-check]"
 ---
 
 > **산출물 폴더 컨벤션**: [SKILL_OUTPUT_CONVENTION.md](../../SKILL_OUTPUT_CONVENTION.md) (3-tier). 본 skill은 입력 artifact를 _수정하지 않음_ — 점검 보고서만 생성. 보고서는 `{artifact_dir}/_internal/audit/audit_{YYYY-MM-DDTHHMM}.md`에 기록.
@@ -26,7 +26,7 @@ Reason internally in English. All user-facing output (chat report, audit log) in
 
 ## Argument Parsing
 
-    /audit <artifact_path> [--scope facts|style|structure|cross-ref|coverage|all] [--read-only] [--no-fact-check]
+    /audit <artifact_path> [--scope auto|facts|style|structure|cross-ref|coverage|all] [--read-only] [--no-fact-check]
 
 - `<artifact_path>` (REQUIRED): one of
   - Absolute path to a `.claude_reports/{plans,research,documents}/*` directory
@@ -42,7 +42,7 @@ Reason internally in English. All user-facing output (chat report, audit log) in
 
 1. Resolve `<artifact_path>` to an absolute directory path.
 2. Inspect path prefix:
-   - `.claude_reports/plans/*` → **plans** type (code dev/audit/debug plan)
+   - `.claude_reports/plans/*` → **plans** type (autopilot-code dev/debug plan)
    - `.claude_reports/research/*` → **research** type (field survey)
    - `.claude_reports/documents/*` → **documents** type (doc strategy + draft)
    - Other → error: "audit은 .claude_reports/{plans,research,documents}/* 산출물 전용. resolved path: {path}"
