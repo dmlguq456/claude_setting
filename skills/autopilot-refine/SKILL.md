@@ -1,7 +1,7 @@
 ---
 name: autopilot-refine
 description: Autopilot family — post-creation iteration pipeline for research and doc artifacts (NOT code). Prompt-driven: target artifact identified via prompt fuzzy match against `.claude_reports/{research,documents}/*`, then auto-discovers the artifact's file structure, plans edits, shows a diff preview in chat, and on user confirm applies edits with versioning + integrated history logging in `pipeline_summary.md` (single source of truth — no separate CHANGELOG). Default `--qa quick` (1-pass review, fastest path); escalate to light/standard/thorough/adversarial for multi-round review, fact-check, or external Codex adversarial pass. Optional `--memo <file>` falls back to file-memo style for deferred reviews.
-argument-hint: "\"<prompt>\" [--qa quick|light|standard|thorough|adversarial] [--review-only | --memo <file>] [--no-fact-check] [--no-style-audit]"
+argument-hint: "\"<prompt>\" [--qa quick|light|standard|thorough|adversarial] [--review-only | --memo <file>] [--confirm] [--no-fact-check] [--no-style-audit]"
 ---
 
 > **산출물 폴더 컨벤션**: [SKILL_OUTPUT_CONVENTION.md](../../SKILL_OUTPUT_CONVENTION.md) (3-tier). 버전 스냅샷은 `_internal/versions/v{N}/` (modern, research·doc 공통) 또는 `_v{N}.md` 형제 (legacy doc). 자동 감지.
@@ -40,13 +40,16 @@ Higher levels add a pre-apply review pass on the planned diff — they do NOT ad
 
 | Form | Behavior |
 |---|---|
-| `autopilot-refine "<prompt>"` | **Default**: investigate → diff preview → user confirm → apply + version + log |
-| `autopilot-refine "<prompt>" --review-only` | Investigate + diff preview. No edits, no version, no log. |
-| `autopilot-refine --memo <file> "<prompt or artifact hint>"` | Read memo file as proposal source (compat with refine-doc memo style). Apply same as default. |
+| `autopilot-refine "<prompt>"` | **Default (autopilot 정신)**: investigate → diff preview (chat에 출력만) → **자동 apply** + version + log. MECH/SEM 모두 자동. STRUCT만 halt (사용자에게 heavier flow 권장). 사후 검토는 `git diff` + `_internal/versions/v{prev}/` 스냅샷 + `pipeline_summary.md` history. |
+| `autopilot-refine "<prompt>" --confirm` | Diff preview에서 chat-pause + 사용자 confirm 후 apply. _수정 전 검토_ 원할 때 명시. |
+| `autopilot-refine "<prompt>" --review-only` | Investigate + diff preview. No edits, no version, no log. _점검만_ 원할 때. |
+| `autopilot-refine --memo <file> "<prompt or artifact hint>"` | Read memo file as proposal source. Default 동작과 동일 (자동 apply). `--confirm` 추가 가능. |
 
 > **Target artifact identification**: prompt에 포함된 키워드로 `.claude_reports/{research,documents}/*` fuzzy match. 매치 1 → 사용. 다수 → 사용자에게 list 보여주고 선택 요청. 0 → "어느 산출물? prompt에 명시 부탁" 안내.
 
-> Auto-apply behavior: if the user explicitly writes "확인 없이 적용" / "자동 적용" / "그대로 적용" in the prompt AND all classified changes are MECH (no SEM/STRUCT), the skill may skip the confirm step and apply directly. Otherwise the default chat-pause-and-confirm always applies. (Translation: the prompt itself is the auto-apply signal — no separate flag.)
+> **Default = 자동 apply 근거**: family 다른 멤버(`autopilot-research/code/doc`)는 모두 confirm 없이 pipeline 끝까지 실행 — autopilot 정신. refine만 default가 confirm이면 이름과 mismatch. Safety net: (a) `_internal/versions/v{prev}/` 스냅샷, (b) `pipeline_summary.md` 통합 history, (c) `git diff` 즉시 검토, (d) Stage B.5 `⚠ Unverified/Style` marker가 본문에 박혀 사후 git diff에서 식별 가능, (e) audit auto-fix chain dispatch와 정합.
+
+> **STRUCT halt (escape hatch)**: 변경이 5+ files / 전체 section rewrite / autopilot pipeline 재실행 필요로 분류되면 _자동 apply 안 함_. halt + 사용자에게 heavier flow 권장 (`/autopilot-research --from analyze` 또는 `/autopilot-doc --from strategy`). 이건 default 변경 후에도 유지.
 
 ### Tunable constants
 
@@ -130,10 +133,16 @@ For each detected claim, look up ground truth. **Lookup source resolution (in pr
    - **Doc artifacts** (`.claude_reports/documents/*/`): grep ALL `.claude_reports/research/*/cards/*.md` files (cross-research lookup) — doc artifacts may reference cards from any research topic. Match by filename token AND by H1 / `## 메타` `**Venue**`/`**arXiv ID**` fields.
 4. **case (a) — no cards source available**: if after resolving all the above the candidate file set is _empty_ (0 cards found in any of the above locations; e.g., autopilot-refine invoked from a workspace that has no research artifacts), the detector **skips the factual-claim aspect entirely** (style lint still runs). Stage C diff preview emits one informational line at the top: `ℹ Stage B.5: no cards source available in this workspace — fact-check skipped`. No `⚠ Unverified` markers are emitted. This prevents false-positive marker flooding in non-research workspaces.
 
-For each claim (when cards are available), classify the lookup result:
-- **verified** (exact match in cards) — proceed silently.
-- **unverified** (no match, or partial match with conflicting venue/year/task) — emit `⚠ Unverified: {claim} — {one-line reason: e.g., "no cards/*.md hit for FRCRN", "cards say IS 2024 but draft says ICASSP 2024"}`.
-- **ambiguous** (multiple candidate cards, no single best match) — emit `⚠ Unverified: {claim} — multiple candidates (cards/A.md, cards/B.md); user to pick`.
+For each claim (when cards are available), classify the lookup result. **CRITICAL: name-only match ≠ full verify** (memory `feedback_factcheck_external_reverify.md`):
+
+- **cards-verbatim ✅** — the _claim itself_ (venue string / year / metric value / etc.) appears _verbatim_ in the matched card's body or `## 메타` field. Only this case may be classified silently verified.
+- **cards-name-only 🟡 + external re-verify** — card contains the model/author name (matches by filename token or H1) BUT the specific venue / year / metric is NOT verbatim in the card. Do NOT classify as ✅. Emit `⚠ Unverified (name-only match): {claim} — cards/{file}.md contains the name but no verbatim venue/metric. External reverify required (WebSearch/WebFetch)`.
+- **external-marker 🟡 + external re-verify** — the new_text contains explicit external-knowledge markers (`[외부 추정]`, `[?]`, `[unverified]`, `[cards 미등재]`). Emit `⚠ Unverified (external marker): {claim} — explicit external-estimation marker present. External reverify required`.
+- **conflict 🔴** — card has the value but it differs from claim (e.g., card says `IWAENC 2024` but new_text says `IS 2024`). Emit `⚠ Unverified: {claim} — cards say {X} but new_text says {Y} (cards/{file}.md)`.
+- **no-match 🔴** — no card hit at all. Emit `⚠ Unverified: {claim} — no cards/*.md hit`.
+- **ambiguous 🟡** (multiple candidate cards, no single best match) — emit `⚠ Unverified: {claim} — multiple candidates (cards/A.md, cards/B.md); user to pick`.
+
+**Anti-pattern (circular reference) — explicitly FORBIDDEN**: do NOT treat the artifact's own `strategy/*.md` (especially its `## Style Guide` venue mapping table) as ground truth when verifying its `draft/*.md` claims, or vice versa. Both strategy and draft must be verified against `cards/*.md` _directly_. If a fact-checker is found comparing draft↔strategy and reporting ✅ on the basis of mutual agreement, mark as 🔴 architecture violation. (Incident reference: 2026-05-12 TF-Locoformer `IS 2024` → actually `IWAENC 2024` — strategy fact-checker passed on name-only match, draft fact-checker passed on strategy mirror, error survived two layers.)
 
 **Section-heading context cross-check (MANDATORY)** — pure name matching alone lets WPE-class misclassifications (a classical method placed inside a "deep learning dereverb" table) pass through. For each detected claim, additionally:
 
@@ -195,13 +204,25 @@ Prompt: "{prompt verbatim, ≤200자 trim}"
   - "no" / "stop" → 중단
 ```
 
+**Default behavior — 자동 진행 (autopilot 정신)**: Stage C diff preview를 chat에 _출력만_ 하고, _자동으로_ Stage D 진행. Print one-line summary: `[auto-apply] {N_MECH} mech + {N_SEM} sem changes 적용 중... (STRUCT 0건)`. 사용자 _수정 가능_은 사후 `git diff` + 스냅샷에서.
+
+**STRUCT halt 예외**: 변경 중 하나라도 STRUCT (5+ files / 전체 section rewrite)이면 _자동 apply 하지 않음_ — halt + heavier flow 권장 후 종료. (Stage B에서 이미 STRUCT detected halt 적용; 여기는 잔여 안전망.)
+
+**`--confirm` mode (사용자 명시 시)**: Stage C diff 끝에 다음 instruction 추가 출력하고 chat-pause:
+```
+다음: 적용 여부?
+  - "yes" / "all" → 모두 적용
+  - "1,3" → 해당 번호만
+  - "skip 2" → 2번 제외
+  - "skip-unverified" → ⚠ Unverified marker가 붙은 모든 변경 자동 제외
+  - "edit 4: <new>" → 4번 텍스트 교체 후 적용
+  - "no" / "stop" → 중단
+```
 End turn. Wait for user reply.
 
-**Auto-apply (prompt-driven)**: if the prompt contains an explicit auto-apply signal (`자동 적용` / `확인 없이 적용` / `그대로 적용`) AND all classified changes are MECH, skip the chat pause and proceed directly to Stage D. Print a one-line summary instead: `[auto-apply] {N} mech changes 적용 중...`. If any SEM/STRUCT exists, ignore the signal and fall back to chat-pause as usual.
+**`--review-only` mode**: print Stage C output, then end. No Stage D.
 
-**`--review-only` mode exception**: print Stage C output, then end. No Stage D.
-
-### Stage D — Apply (after user confirms)
+### Stage D — Apply
 
 Parse the user's reply, then:
 

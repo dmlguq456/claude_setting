@@ -407,8 +407,21 @@ Invoke Skill: `init-doc-strategy` with args: `<mode> --inputs <comma-separated-d
    Do NOT comment on completeness, narrative arc, or strategic soundness — that's the quality reviewer's job.
    Stay narrowly on fact verification. Cost-aware mode (sonnet): table-only output. Limit to ~30 most material claims.
 
-   Output the review log as a single table:
-   | Section | Claim in strategy | Source (file:line or section) | Match (✅/❌) | Severity (🔴/🟡) |
+   **CRITICAL — verification rules** (memory `feedback_factcheck_external_reverify.md`):
+   - **name-only match ≠ ✅**. If the card contains the model/author name but the _specific venue / year / metric_ is NOT verbatim in the card, classify as 🟡 cards-name-only, NOT ✅. Use the `Source type` column.
+   - **`[외부 추정]` / `[?]` / `[unverified]` markers in the strategy** → classify as 🟡 external-marker, trigger WebSearch/WebFetch re-verification, log the external source URL upon ✅ escalation. Otherwise remain 🟡.
+   - **Circular reference FORBIDDEN**: do NOT use the strategy's own `## Style Guide` venue mapping table as ground truth when verifying body claims — both must be verified against cards _directly_.
+
+   Output the review log as a single table with a Source type column:
+   | Section | Claim in strategy | Source (file:line or section) | Match (✅/🟡/❌) | **Source type** | Severity (🔴/🟡/🟢) |
+
+   `Source type` values:
+   - `cards-verbatim` — venue/metric value itself appears verbatim in card → ✅ allowed
+   - `cards-name-only` — card has name/year but venue/metric missing → 🟡, external reverify
+   - `external-marker` — explicit external-estimation marker → 🟡, external reverify
+   - `external-reverified` — reverified via WebSearch/WebFetch (URL in log) → ✅ allowed post-reverify
+   - `conflict` — card has different value → 🔴
+   - `circular-ref` — strategy↔draft comparison only → 🔴 architecture violation
 
    For 🔴/🟡 mismatches, also write `<!-- memo: [FACT] section X — claim Y conflicts with source Z -->` in the Korean strategy.
    Return ONLY path + one-line verdict.
@@ -781,13 +794,26 @@ If N + M + K == 0: emit `✅ Draft 사실 확인: 검증된 클레임 {verified}
    source and verbatim compare:
    - Paper cards: {refs_folder}/cards/*.md (if exists; this is single source of truth)
    - Reference PDFs: {refs_folder}/*.pdf (only if cards lack the specific fact)
-   - Strategy: {en_strategy_path} (only to confirm consistent claim, not as primary source)
+   - Strategy: {en_strategy_path} — **DO NOT use as primary source**. Strategy must itself be verified against cards. Using strategy as ground truth = circular reference (forbidden).
 
    Do NOT comment on writing quality, narrative arc, or strategy coverage — that's the quality reviewer's job.
    Stay narrowly on fact verification. Cost-aware mode (sonnet): table-only output. Limit to ~30 most material claims.
 
-   Output the review log as a single table:
-   | Slide/Section | Claim in draft | Source (file:line or section) | Match (✅/❌) | Severity (🔴/🟡) |
+   **CRITICAL — verification rules** (memory `feedback_factcheck_external_reverify.md`):
+   - **name-only match ≠ ✅**. If the card contains the model/author name but the _specific venue / year / metric_ is NOT verbatim in the card, classify as 🟡 cards-name-only. Do NOT classify ✅ on name-only basis.
+   - **`[외부 추정]` / `[?]` / `[unverified]` markers in the draft** → 🟡 external-marker, trigger WebSearch/WebFetch re-verification. Log the external source URL upon ✅ escalation; otherwise remain 🟡.
+   - **Circular reference FORBIDDEN**: do NOT pass a draft claim as ✅ merely because it matches the strategy's `## Style Guide` venue mapping table. Verify against cards _directly_. If only strategy supports it, classify as 🟡 circular-ref-only.
+
+   Output the review log as a single table with a Source type column:
+   | Slide/Section | Claim in draft | Source (file:line) | Match (✅/🟡/❌) | **Source type** | Severity (🔴/🟡/🟢) |
+
+   `Source type` values (same as Step 3 fact-checker):
+   - `cards-verbatim` — venue/metric verbatim in card → ✅
+   - `cards-name-only` — card has name only → 🟡, external reverify
+   - `external-marker` — explicit marker present → 🟡, external reverify
+   - `external-reverified` — reverified via WebSearch/WebFetch (URL in log) → ✅
+   - `conflict` — card has different value → 🔴
+   - `circular-ref` — only strategy/draft mutual agreement → 🔴 architecture violation
 
    For 🔴/🟡 mismatches, also write `<!-- memo: [FACT] slide X — claim Y conflicts with source Z -->` in the Korean draft.
    Return ONLY path + one-line verdict.

@@ -123,7 +123,14 @@ For each remaining aspect in scope, run the lint and collect issues. _Each issue
 
 This shared resolution ensures the Phase 1 detector and the Phase 3 audit use the _same_ source-of-truth rule — preventing false-positive floods and yielding consistent verdicts.
 
-- **facts**: scan draft + strategy for model names / venues / years / task categories / arXiv IDs (same regex set as `autopilot-refine` Stage B.5, including section-heading context cross-check). For each detected claim, perform lookup per the cards source resolution above. Unverified → 🔴. Conflicting → 🔴 (includes section-context conflict). Ambiguous → 🟡.
+- **facts**: scan draft + strategy for model names / venues / years / task categories / arXiv IDs (same regex set as `autopilot-refine` Stage B.5, including section-heading context cross-check). For each detected claim, perform lookup per the cards source resolution above. Classification rules (memory `feedback_factcheck_external_reverify.md`):
+  - **cards-verbatim ✅** — claim value (venue string / metric / etc.) appears _verbatim_ in card body or `## 메타` field
+  - **cards-name-only 🟡** — card has the model/author name but the _specific venue / year / metric_ is NOT verbatim. **DO NOT** treat as ✅ on name-only basis. Emit 🟡 + recommend external re-verify (WebSearch). Report row: `🟡 name-only: cards/{file}.md has the name but no verbatim venue; external reverify recommended`
+  - **external-marker 🟡** — claim has explicit `[외부 추정]` / `[?]` / `[unverified]` marker in artifact body. 🟡 + external reverify
+  - **conflict 🔴** — card has the value but it differs from claim. Includes section-heading context conflict
+  - **no-match 🔴** — no card hit at all
+  - **circular-ref 🔴** — claim is supported _only_ by strategy↔draft mutual agreement (e.g., draft Slide N cites venue X, only source is strategy §10 mapping table). This is an architecture violation: both must trace back to cards. Emit 🔴 + recommend `/autopilot-refine` to trace and verify externally
+  - **ambiguous 🟡** — multiple candidate cards, no single best match
 - **style**: read `## Style Guide` section in `strategy.md` if present. For every citation / figure caption / bullet depth / speaker note in draft + strategy body, compare against Style Guide rules. Deviation → 🟡. If `## Style Guide` absent → 🔴 single issue (`Style Guide section missing — autopilot-doc strategy should always have one. Run /autopilot-refine "<artifact> Style Guide section 추가".`).
 - **structure**: check artifact directory matches the [SKILL_OUTPUT_CONVENTION.md](../../SKILL_OUTPUT_CONVENTION.md) 3-tier convention. T1 should have `pipeline_summary.md`, `draft/`, `strategy/`. T3 should be `_internal/`. Extraneous files at root → 🟡. Missing required → 🔴.
 - **cross-ref**: scan draft for inline citations referencing cards (`cards/{file}.md`) and verify the target exists. Broken link → 🔴. Cards referenced but not in `## References` (if present) → 🟡.
@@ -237,7 +244,7 @@ After Stage D's report write + chat output, **automatically trigger a fix flow**
 - **No web fetch** — all lookups are local (`.claude_reports/*` files only). Cards grep, Style Guide read, regex scan. Cost is small.
 - **No agent invocation** — `/audit` is a single-Claude task. No 연구팀 / 품질관리팀 subagent calls. (Future enhancement may add `--qa` levels with agent-backed lint; out of scope for v1.)
 - **Type-specific aspects** — research aspects do not run on documents artifacts and vice versa. `--scope cross-ref` on plans warns and skips.
-- **Suggestion only (Stage A-D)** — every 🔴 / 🟡 finding may include a "Suggested fix" line. Stage E dispatches these suggestions to the appropriate skill, but the dispatched skill still requires user confirmation per its own protocol (autopilot-refine has Stage C confirm; autopilot-code has phase QA gates).
+- **Suggestion only (Stage A-D)** — every 🔴 / 🟡 finding may include a "Suggested fix" line. Stage E dispatches these suggestions to the appropriate skill, which follows its own protocol (autopilot-refine: default 자동 apply + STRUCT halt + 사후 git diff 검토; autopilot-code: phase QA gates + safety commit + final report).
 
 ## Examples
 
