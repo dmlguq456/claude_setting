@@ -33,7 +33,7 @@ argument-hint: "[--check] [--readme-only] [--notion-only] [--force]"
    - **상단 대시보드 영역**(자동 갱신): H1 `# 전체 워크플로우` ~ 첫 `<columns>` 직전까지
    - **하단 세부 영역**(보존, 갱신 X): `<columns>` 안의 Skills/Agents 서브페이지 링크들 + 페이지 하단 메모
 3. **개별 skill/agent README ↔ Notion 자식 페이지** (양방향 동기화):
-   - 로컬: `~/.claude/skills/{name}/README.md`, `~/.claude/agents/{name}.README.md`
+   - 로컬: `~/.claude/skills/{name}/README.md`, `~/.claude/agents/_notion_mirror/{name}.md`
    - Notion: 대문의 `<columns>` 영역에 링크된 자식 페이지 (UUID는 `.sync_state.json`에 매핑 저장)
    - 양방향: SHA 비교 → 다르면 last_edited_time / file mtime 비교 → newer가 source. 양쪽 모두 변경(충돌) 시 사용자 확인.
 4. **상태 파일**: `~/.claude/skills/.sync_state.json` — 각 입력 파일의 SHA-256, README/Notion sync 시각, Notion 페이지 매핑
@@ -232,15 +232,16 @@ flowchart LR
 
 ### Step 5c: 개별 README ↔ Notion 자식 페이지 양방향 sync
 
-대문 README (§5)과 별개로 **각 skill/agent의 개별 설명 페이지**가 Notion에 자식 페이지로 존재한다. 본 단계는 그것들과 로컬 `~/.claude/skills/{name}/README.md`·`~/.claude/agents/{name}.README.md`를 양방향 동기화한다.
+대문 README (§5)과 별개로 **각 skill/agent의 개별 설명 페이지**가 Notion에 자식 페이지로 존재한다. 본 단계는 그것들과 로컬 `~/.claude/skills/{name}/README.md`·`~/.claude/agents/_notion_mirror/{name}.md`를 양방향 동기화한다.
 
 #### 5c-1. README ↔ Notion 매핑 발견
 
 각 SKILL.md / agent.md에 대해:
 
 1. **Local README path**:
-   - skill: `~/.claude/skills/{name}/README.md`
-   - agent: `~/.claude/agents/{name}.README.md`
+   - skill: `~/.claude/skills/{name}/README.md` — Claude Code skill loader는 `SKILL.md`만 스캔하므로 같은 폴더의 README.md는 자동 로드되지 않아 안전.
+   - agent: `~/.claude/agents/_notion_mirror/{name}.md` — `_notion_mirror/` 서브디렉토리로 격리 (agent loader는 `~/.claude/agents/*.md` top-level만 스캔하므로 README가 agent로 오인되지 않음).
+   - **Naming rationale**: 과거 `agents/{name}.README.md` 형태는 `*.md` glob에 매칭돼 agent loader가 잘못 로드할 위험이 있어 `_notion_mirror/{name}.md`로 격리.
 2. **Notion page id**: `.sync_state.json`의 `notion_page_id` field. 없으면:
    - 대문 페이지(id `34987c2b-b753-80d6-8df4-d6ce4d469bff`)의 `<columns>` 영역을 fetch
    - `<page url="https://www.notion.so/{uuid}">{title}</page>` 패턴에서 title↔skill name fuzzy match
