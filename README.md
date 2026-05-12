@@ -257,6 +257,18 @@ flowchart LR
 
 ---
 
+## ⚙️ 운영 룰 (자동 호출 패턴)
+
+> 메인 Claude가 slash command 명시 없이 자동 invoke하는 패턴. 단일 source of truth는 각 SKILL.md의 `## Default Invocation Rule` 섹션 — `/sync-skills`가 자동 동기화.
+
+| Skill | 트리거 | 자동 동작 | Override 1순위 |
+|---|---|---|---|
+| `autopilot-refine` | `.claude_reports/{documents,research}/*` 하위 artifact에 대한 **자연어 수정·정정·보강·스타일 변경** prompt | `autopilot-refine "<prompt>" --qa quick` 자동 invoke (사용자가 `/autopilot-refine` 명시 안 해도) | (a) 다른 qa level 명시 (`standard`/`thorough`/`adversarial`) · (b) "refine 없이 직접 edit"·"Edit으로 처리"·"versioning 없이" · (c) `--review-only` 검수만 요청 |
+
+> 새 skill에 자동 호출 룰을 도입하려면 해당 SKILL.md에 `## Default Invocation Rule` 섹션 추가 후 `/sync-skills` 실행 → 본 표에 자동 등재.
+
+---
+
 ## 🔁 동기화
 
 - `/sync-skills` — README + 노션 대시보드 갱신

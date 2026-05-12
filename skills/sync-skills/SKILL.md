@@ -160,17 +160,33 @@ flowchart LR
 4. **Skills 표** — name / 역할 / 주요 옵션. 옵션 값은 각 SKILL.md의 argument-hint에서 자동 추출. sub-skill은 표 하단 한 줄로 요약.
 5. **핵심 옵션 3가지** — `--user-refine`, `--from`, `--qa`. 한 줄씩.
 6. **Agents** — "직접 호출 2개" 짧은 설명 + 표 (name / 모델 / 호출자) + `<details>` 안에 호출 구조 mermaid (Diagram 2)
-7. **동기화** — `/sync-skills` 두 명령 + GitHub 링크
+7. **운영 룰 (자동 호출 패턴)** — 각 SKILL.md의 `## Default Invocation Rule` 섹션을 모아 한 표로 정리 (skill 이름 / 트리거 / 자동 동작 / override 조건). 메인 Claude가 slash command 명시 없이 자동 invoke하는 패턴의 단일 reference. 해당 섹션이 없는 skill은 표에 등재 X.
+8. **동기화** — `/sync-skills` 두 명령 + GitHub 링크
 
 원칙:
 - prose는 최소화. 표·bullet 우선.
 - 같은 정보를 두 군데 반복하지 않음 (예: 옵션 값은 Skills 표에 한 번만).
 - 디렉토리 구조나 파이프라인별 prose 같은 "참고용" 섹션은 넣지 않음 — 표 하나로 대체.
+- 운영 룰 섹션(§7)은 **SKILL.md의 `## Default Invocation Rule` 섹션이 단일 source of truth** — sync 시 grep으로 추출, README 표에 자동 반영. 새 skill에 자동 호출 룰을 도입하려면 해당 SKILL.md에 같은 이름 섹션 추가 후 `/sync-skills` 실행.
 
 현행 README가 이 layout의 reference. 대규모 변경 시 README를 먼저 손보고 본 SKILL.md를 동기화.
 
 ### Step 5: Write README.md
 `~/.claude/README.md`를 4b의 layout 그대로 통째로 작성. 현행 README가 reference이므로 큰 구조 변경 없이는 SHA 기반 변경 부분만 갱신한다. argument-hint 변화로 옵션 값이 바뀌었으면 Skills 표의 "주요 옵션" 컬럼을 갱신. **sync 시각/이력은 README 본문에 쓰지 않음** (git commit log가 단일 출처).
+
+#### Step 5b: 운영 룰 섹션 추출 (§7)
+
+각 `~/.claude/skills/*/SKILL.md`에서 `## Default Invocation Rule` heading 하위 본문을 grep으로 추출 → README §7 "운영 룰" 표에 다음 컬럼으로 채움:
+
+| Skill | 트리거 | 자동 동작 | Override 조건 |
+|---|---|---|---|
+
+- **Skill**: SKILL.md 디렉토리명
+- **트리거**: 룰 본문 첫 문단(언제 자동 invoke되는지)을 1-2 sentence로 압축
+- **자동 동작**: 어떤 명령이 자동 invoke되는지 (예: `autopilot-refine "<prompt>" --qa quick`)
+- **Override 조건**: 룰 본문 "Override 1순위" 항목을 bullet 한 줄로 압축
+
+`## Default Invocation Rule` 섹션이 없는 skill은 표 등재 X. 새 skill이 자동 호출 룰을 도입하려면 SKILL.md에 같은 이름 섹션을 추가하면 다음 sync에서 자동 반영.
 
 ### Step 6: Update Notion 대문 상단 (메인 컨텍스트 직접 호출)
 

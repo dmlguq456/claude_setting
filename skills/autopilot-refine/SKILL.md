@@ -14,6 +14,21 @@ argument-hint: "\"<prompt>\" [--qa quick|light|standard|thorough|adversarial] [-
 
 Naming consistency: same `--qa quick|light|standard|thorough|adversarial` flag as the rest of the family, but with `quick` as the **default** (because the skill targets routine, scoped edits — not full re-creation).
 
+## Default Invocation Rule (메인 Claude 자동 라우팅)
+
+메인 Claude는 사용자가 `.claude_reports/{documents,research}/*` 하위 artifact에 대한 **자연어 수정·정정·보강·스타일 변경**을 prompt로 요청하면, `/autopilot-refine` slash command 명시 없이도 **자동으로 본 skill을 `--qa quick`로 invoke**한다.
+
+**Scope**: `.claude_reports/{documents,research}/*` 엄격 한정. project root의 임의 `.md`/`.txt`나 코드 산출물(`.claude_reports/plans/*`)은 적용 X — 전자는 일반 Edit, 후자는 `/refine-plan` 또는 `/autopilot-code`.
+
+**Override 1순위** (다음 중 하나가 prompt에 있으면 자동 룰 무시):
+- 다른 qa level 명시 — `standard`/`thorough`/`adversarial`
+- "refine 없이 직접 edit" / "Edit으로 처리" / "versioning 없이"
+- `--review-only` 검수만 요청
+
+**Why**: 사용자가 doc/research 산출물에 자잘한 수정 지침을 매우 자주 내림 — 매번 slash command 명시는 friction. 본 skill은 자동 versioning(`_internal/versions/v{N}/`) + `pipeline_summary.md` 통합 history라 직접 Edit보다 추적성·복구성 우위. `--qa quick`은 1-pass라 latency도 직접 편집에 가까움.
+
+> 본 섹션은 `/sync-skills`가 `~/.claude/README.md`의 "운영 룰" 섹션으로 자동 반영한다.
+
 ## Scope
 
 - **Targets**: `.claude_reports/research/*` and `.claude_reports/documents/*`

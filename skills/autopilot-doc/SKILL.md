@@ -457,16 +457,38 @@ Draft 생성 전, figure_index.md 또는 figure asset이 있을 수 있는 _세 
 2. **PDF input set이 비어 있지 않으면 → 탐색팀 호출**:
    ```
    Agent(subagent_type="탐색팀",
-         description="PDF figure extraction for doc",
+         description="PDF figure/table extraction for doc",
          prompt="extract_pdf_figures mode. Input PDFs: {pdf_paths}.
                  Output: .claude_reports/analysis_project/paper/figures/ (또는 적합한 공용 위치).
                  figure_index.md 생성 — paper_id × figure path 매핑.
-                 본 doc draft에서 자동 embed 용도.")
+                 본 doc draft에서 자동 embed 용도.
+
+                 **고해상도 정책 (memory feedback_presentation_figure_embed.md 강제)**:
+                 - DPI 600-800 (default 800) — publication / PPT zoom-in quality
+                 - Caption-aware crop (figure body + caption만, 본문/footer noise 제거)
+                 - Two-column paper: column-width 표/figure는 _해당 column만_ crop (이웃 column 잔영 제거)
+                 - Page-wide 표 (computational cost 같은): page-wide bbox 유지
+                 - 표 (table) 추출도 동일 정책 적용 — 메인 결과 표는 markdown 텍스트보다 paper PNG embed가 _기본_")
    ```
 3. **추출 완료 후** figure_index.md를 다시 파싱하여 매핑 dict에 추가 (Source 2 위치).
 4. **PDF source도 없으면** warn "figure source 부재 — analyze-project --mode paper 또는 autopilot-research 먼저 호출 권장" → 그대로 draft 진행 (figure embed 없이).
 
 이로써 _autopilot-research를 거치지 않은 doc artifact_도 figure 자동 embed 가능.
+
+#### Step 4.0b-quality: 해상도·crop 정책 (영구 — 메모리 강제)
+
+본 정책은 **모든 PDF 기반 figure / table 추출에 강제 적용** (memory `feedback_presentation_figure_embed.md` Round-3 update, 2026-05-12):
+
+| 항목 | 값 | 비고 |
+|---|---|---|
+| **Paper figure / table (PDF embedded)** | **DPI 600-800 (default 800)** | publication quality, PPT zoom 200%까지 sharp |
+| **Caption-aware crop bbox** | `caption.y_top - 5 ~ next_significant_element.y_top - 5` | caption + body만, 본문/footer noise 제거 |
+| **Two-column paper layout** | column-width 표/figure는 _해당 column만_ x bbox 좁히기 | 이웃 column 잔영 제거 (예: ICML left col = x∈[50,303], right col = x∈[315,562]) |
+| **Page-wide element** | x_full = [50, page_w-50] 유지 | wide table / wide figure (예: computational cost) |
+| **Slide-source render** (samsung seminar 같은 _이미 slide_인 PDF) | DPI 160-180 full page | 페이지 전체 = 한 slide, 추가 crop 불필요 |
+| **표 embed default** | _paper crop PNG_ > markdown table | 메인 성능 표 (Table 1/3/9 등) 발표용 — markdown re-typing 대신 paper 직접 캡쳐가 _신뢰성_ 우선 |
+
+**Visual sanity check (orchestrator 측)**: 추출 후 _최소 1-2개 PNG_를 Read tool로 시각 검증. 다른 column 잔영 / footer noise / 텍스트 흐림이 있으면 _즉시 재추출_ (bbox 조정 + DPI 상향).
 
 #### Step 4.0c: Path Convention (자동 계산, 사용자 수동 X)
 

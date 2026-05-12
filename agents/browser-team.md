@@ -86,17 +86,29 @@ Test whether a URL is accessible (returns full content vs abstract-only vs block
 **Input**: PDF file paths (`paper_pdfs: list[str]`) + output dir (default `{artifact_dir}/figures/`)
 
 **Procedure**:
-1. For each PDF, run `pdfimages -png -p {pdf} {out_prefix}` to extract embedded raster images.
-   - Higher fidelity option: `pymupdf` (fitz) for page → image render + figure region detection.
-2. Apply heuristic filters (size > 200×200, aspect ratio sane, exclude small logos).
-3. Save as `{out_dir}/{paper_id}_fig{N}.png` (paper_id from cards filename or PDF metadata).
-4. Build `figure_index.md` listing extracted figures with thumbnail path + paper_id + page + (best-effort) figure caption (extract via `pdftotext` near image position, or leave blank).
-5. (optional) Skip duplicates if PDF already processed (cache via SHA-1 of PDF).
+1. For each PDF, prefer **pymupdf (fitz) caption-aware bbox crop** over `pdfimages` (pdfimages는 raster만, vector figure 누락).
+2. **고해상도 정책 (memory `feedback_presentation_figure_embed.md` Round-3 강제 — 사용자 영구 지침 2026-05-12)**:
+   - **DPI 600-800 (default 800)** for paper figure/table crops — publication / PPT zoom-in quality
+   - 절대 _full page render with default DPI 72/96_ 사용 금지 (저화질 결과 → 사용자 재요청 비용)
+3. **Caption-aware crop bbox**:
+   - `page.search_for("Figure N:")` or `page.search_for("Table N.")` (학회별 caption 형식 다양 — `:`, `.`, 또는 둘 다 시도)
+   - Caption rect 중 **최적 선택**: x0 < 100 (left-margin start) AND lowest y0 (real caption, not body inline reference)
+   - clip: `y_top = caption.y0 - 5`, `y_bot = next_caption.y0 - 5` 또는 `end of body content` (text block analysis)
+4. **Two-column paper layout 자동 인식**:
+   - ICML/NeurIPS/ICASSP/T-ASLP/IS standard: page width ≈ 612pt, column width ≈ 234pt, gap ≈ 26pt
+   - Column-width 표/figure: x bbox _해당 column만_ (`x0=50, x1=303` left col / `x0=315, x1=562` right col) — 이웃 column 잔영 _제거_
+   - Page-wide 표/figure: x full `[50, page_w-50]` 유지
+5. Apply heuristic filters (size > 200×200, aspect ratio sane, exclude small logos).
+6. Save as `{out_dir}/{paper_id}_fig{N}.png` or `{paper_id}_table{N}_*.png` (paper_id from cards filename or PDF metadata).
+7. Build `figure_index.md` listing extracted figures/tables with thumbnail path + paper_id + page + caption + **resolution column** (DPI used).
+8. (optional) Skip duplicates if PDF already processed (cache via SHA-1 of PDF).
+9. **Visual sanity check**: 최소 1-2개 PNG를 호출자 (orchestrator)가 Read tool로 시각 검증하도록 결과에 _권고_ 명시. 다른 column 잔영 / footer noise / 텍스트 흐림이 있으면 재추출 trigger.
 
 **Caveats**:
-- Many papers have figures as _vector_ (PDF native) not raster. `pdfimages` misses these. Fallback: `pymupdf` page render OR leave for user manual capture (capture instructions list — user/main Claude task).
-- Quality varies — some figures are small thumbnails or cropped. User polish required for final use.
-- _NOT a replacement for hand-curated figures_ — this is a _draft asset pool_.
+- DPI 800에서 figure 1개 PNG는 평균 200-500 KB. 페이지 wide table은 400-700 KB. PNG 압축이라 폭증 위험 낮음.
+- Caption text encoding이 PDF마다 다름 (`Figure 1:` vs `Figure 1.` vs `Figure 1`). 1차 패턴 fail 시 fallback 시도.
+- Page indexing은 0-based (pymupdf), 사용자 노출 시 1-based 변환.
+- _NOT a replacement for hand-curated figures_ — this is a _draft asset pool_, 사용자 PPT polish 시 추가 fine-crop 가능.
 
 **Output**: `{out_dir}/{paper_id}_fig*.png` + `figure_index.md`
 
