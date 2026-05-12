@@ -10,7 +10,10 @@ argument-hint: "[--check] [--readme-only] [--notion-only] [--force]"
 ## Purpose
 스킬·에이전트를 수정한 후 매번 GitHub과 Notion에 일관된 정보가 반영되어 있는지 확인하는 도구.
 
-**Source of Truth**: `~/.claude/skills/*/SKILL.md` + `~/.claude/agents/*.md` (frontmatter)
+**Source of Truth**:
+- `~/.claude/skills/*/SKILL.md` + `~/.claude/agents/*.md` — 각 skill·agent의 frontmatter + 본문
+- **`~/.claude/QA_LEVELS.md`** — `--qa` 5단계 정의의 _공통 source_. 각 SKILL.md의 QA 표는 본 문서와 cross-doc 일치해야 함 (sync 시 Step 5b.5에서 검사).
+
 **파생 산출물**: GitHub README.md, Notion 대문 페이지 상단 대시보드
 
 이 스킬은 Source of Truth로부터 README와 노션 대시보드를 재생성한다. 사용자가 두 파생물을 직접 편집해서는 안 된다 (자동 생성 표지 있음).
@@ -229,6 +232,60 @@ flowchart LR
 - **Override 조건**: 룰 본문 "Override 1순위" 항목을 bullet 한 줄로 압축
 
 `## Default Invocation Rule` 섹션이 없는 skill은 표 등재 X. 새 skill이 자동 호출 룰을 도입하려면 SKILL.md에 같은 이름 섹션을 추가하면 다음 sync에서 자동 반영.
+
+### Step 5b.5: Cross-doc invariant scan (QA 정의 & family-wide 규칙)
+
+QA level / model 표기 / family-wide invariant은 `~/.claude/QA_LEVELS.md`가 **단일 source of truth**. 각 SKILL.md / README / `_notion_mirror`의 QA 표 wording은 본 문서와 의미상 일치해야 함.
+
+#### 5b.5-1. Canonical 정의 로드
+
+```bash
+canonical_qa_defs=$(grep -E "^\| \*\*(quick|light|standard|thorough|adversarial)\*\*" ~/.claude/QA_LEVELS.md)
+```
+
+이로부터 5단계 정의(quick/light/standard/thorough/adversarial)의 _구성_을 추출 (Quality reviewer / Fact-checker / Codex 컬럼 wording).
+
+#### 5b.5-2. 모든 .md 파일에서 QA wording 추출
+
+대상 파일:
+- `~/.claude/skills/*/SKILL.md`
+- `~/.claude/skills/*/README.md`
+- `~/.claude/agents/*.md`
+- `~/.claude/agents/_notion_mirror/*.md`
+- `~/.claude/README.md`
+
+각 파일에서 다음 패턴 grep:
+- `adversarial` 정의 문장 (예: `adversarial = ...`, `Adversarial | ...`, `adversarial.*Codex`)
+- `quick`/`light`/`standard`/`thorough` 정의 표 행
+- "fact-checker" 적용 여부
+- model 표기 (`opus`, `sonnet`, 가변 표기)
+
+#### 5b.5-3. Invariance 검사 (drift 보고)
+
+각 추출된 wording을 canonical 정의와 비교. 다음 drift 패턴을 _하드 검사_:
+
+| Invariant | 검사 패턴 | drift 시 보고 |
+|---|---|---|
+| **adversarial = thorough + Codex** | `adversarial.*standard.*Codex` 또는 `adversarial.*=.*standard` | 🔴 `잘못된 정의: adversarial은 thorough + Codex이지 standard + Codex가 아님` |
+| **autopilot-code는 fact-checker 없음** | autopilot-code/SKILL.md or autopilot-code/README.md에서 `fact-checker` 언급 (단, "doc/research에만"이라는 negative 안내는 OK) | 🔴 `code 파이프라인은 fact-checker 미적용` |
+| **adversarial은 autopilot-code · autopilot-refine 전용** | autopilot-doc/SKILL.md or autopilot-research/SKILL.md의 argument-hint에 `adversarial` | 🔴 `doc/research는 adversarial 미지원` |
+| **quick은 refine skip + 1라운드 강제 종료** | quick 정의에서 위 둘 중 하나 누락 | 🟡 `quick 정의 incomplete` |
+| **`--no-fact-check` / `--no-style-audit`는 autopilot-refine·audit 전용** | 다른 skill의 argument-hint에 노출 | 🔴 `해당 flag는 refine·audit 외 노출 금지` |
+
+#### 5b.5-4. 보고 형식
+
+drift 발견 시 Step 8 final report에 별도 섹션:
+```
+[QA invariant drift]
+🔴 skills/autopilot-refine/SKILL.md:46 — adversarial 정의가 'standard + Codex'로 잘못 적힘 (canonical: 'thorough + Codex')
+🟡 skills/autopilot-research/SKILL.md:632 — quick 정의에 'refine skip' 명시 누락
+```
+
+자동 fix는 _안 함_ (정의 wording은 의미 미세 차이를 가질 수 있어 사람 확인 필요). 단 다음 sync에서 동일 drift 반복되면 1라인 warning 추가.
+
+`--check` 모드에서는 invariant drift만 보고하고 종료.
+
+> **새 invariant 추가**: QA_LEVELS.md `## Cross-doc invariance` 섹션에 한 행 추가하면 sync 시 자동 검사 list에 포함.
 
 ### Step 5c: 개별 README ↔ Notion 자식 페이지 양방향 sync
 
