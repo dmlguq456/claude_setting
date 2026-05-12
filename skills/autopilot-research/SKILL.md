@@ -525,7 +525,7 @@ Agent(subagent_type="연구팀"):
    | write | `/autopilot-doc "<task>" --mode write` | Full paper draft (Abstract → Conclusion) generation. |
    | research | `/autopilot-doc "<task>" --mode proposal` (or stay in research-only mode) | Proposal mode covers hypothesis + experiment design framing. |
    | adopt | `/autopilot-doc "<task>" --mode report` (or `--mode proposal` for go/no-go decision) | Tech adoption is a structured report/proposal. |
-   | review | `/autopilot-doc "<task>" --mode review --format-ref <path>` (REQUIRED; path-only, no built-in presets — venues differ year-to-year) | Reviewer report draft following the venue's review form. |
+   | review | `/autopilot-doc "<task>" --mode review` (REQUIRED: pre-process the venue's review form via `/analyze-project --mode doc <folder>` first — no built-in presets, venues differ year-to-year) | Reviewer report draft following the venue's review form. |
 
    Include the recommended next command verbatim in this section so the user can copy-paste it. autopilot-doc은 `research/{topic}/` 산출물을 prompt 키워드 fuzzy match로 자동 인지하므로 별도 path 인자 불요.
 

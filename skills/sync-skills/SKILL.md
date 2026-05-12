@@ -18,10 +18,10 @@ argument-hint: "[--check] [--readme-only] [--notion-only] [--force]"
 ## Targets
 
 ### 입력
-- **Skills**: `~/.claude/skills/*/SKILL.md` (현재 12개: autopilot-research/code/doc, init-plan, refine-plan, execute-plan, run-test, final-report, init-doc-strategy, refine-doc, analyze-project, analyze-papers, sync-skills 자기 자신)
+- **Skills**: `~/.claude/skills/*/SKILL.md` (현재 14개: analyze-project, autopilot-research, autopilot-code, autopilot-doc, autopilot-refine, audit, sync-skills, init-plan, refine-plan, execute-plan, run-test, final-report, init-doc-strategy, refine-doc — `analyze-papers`는 `analyze-project --mode paper`로 통합되어 제거됨)
 - **Agents**: `~/.claude/agents/*.md` (현재 7개: 기획팀/품질관리팀/개발팀/테스트팀/연구팀/탐색팀/codex-review-team — 기록팀 제거됨, Notion 작업은 메인 Claude가 `~/.claude/notion_guide.md` 참조해 직접 수행)
 
-자동 발견: `ls ~/.claude/skills/*/SKILL.md ~/.claude/agents/*.md`. 위 목록은 현재 알려진 항목.
+자동 발견: `ls ~/.claude/skills/*/SKILL.md ~/.claude/agents/*.md`. 위 카운트는 참고용 — 실제 sync 시점에 발견된 파일 list가 진실.
 
 각 파일에서 추출:
 - frontmatter `name`, `description`, `argument-hint` (skills only), `tools`, `model`
@@ -29,18 +29,24 @@ argument-hint: "[--check] [--readme-only] [--notion-only] [--force]"
 
 ### 출력
 1. **GitHub**: `~/.claude/README.md` (repo: `git@github.com:dmlguq456/claude_setting.git`, root: `~/.claude/`)
-2. **Notion 대문**: `Agents/Skills` 페이지 (id: `34987c2b-b753-80d6-8df4-d6ce4d469bff`)
+2. **Notion 대문 상단 대시보드**: `Agents/Skills` 페이지 (id: `34987c2b-b753-80d6-8df4-d6ce4d469bff`)
    - **상단 대시보드 영역**(자동 갱신): H1 `# 전체 워크플로우` ~ 첫 `<columns>` 직전까지
    - **하단 세부 영역**(보존, 갱신 X): `<columns>` 안의 Skills/Agents 서브페이지 링크들 + 페이지 하단 메모
-3. **상태 파일**: `~/.claude/skills/.sync_state.json` — 각 입력 파일의 SHA-256, 마지막 README/Notion sync 시각
+3. **개별 skill/agent README ↔ Notion 자식 페이지** (양방향 동기화):
+   - 로컬: `~/.claude/skills/{name}/README.md`, `~/.claude/agents/{name}.README.md`
+   - Notion: 대문의 `<columns>` 영역에 링크된 자식 페이지 (UUID는 `.sync_state.json`에 매핑 저장)
+   - 양방향: SHA 비교 → 다르면 last_edited_time / file mtime 비교 → newer가 source. 양쪽 모두 변경(충돌) 시 사용자 확인.
+4. **상태 파일**: `~/.claude/skills/.sync_state.json` — 각 입력 파일의 SHA-256, README/Notion sync 시각, Notion 페이지 매핑
 
 ## Argument Parsing
 - `--check`: drift만 보고하고 종료. 쓰기 작업 X.
-- `--readme-only`: README.md만 갱신, Notion은 건드리지 않음.
-- `--notion-only`: Notion 대문 상단만 갱신, README는 건드리지 않음.
+- `--readme-only`: README.md (대문) + 개별 README만 갱신, Notion은 건드리지 않음.
+- `--notion-only`: Notion 대문 상단 + 자식 페이지만 갱신, 로컬 README는 건드리지 않음.
 - `--force`: SHA가 같아도 재생성 (포맷 일괄 적용·서식 수정에 사용).
+- `--prefer-local`: 충돌 시 자동으로 local README가 source (Notion 덮어쓰기).
+- `--prefer-notion`: 충돌 시 자동으로 Notion이 source (local README 덮어쓰기).
 
-기본(인자 없음): drift 감지 → 변경 있으면 README + Notion 모두 갱신.
+기본(인자 없음): drift 감지 → 변경 있으면 README + Notion 모두 갱신. 개별 README ↔ Notion 양방향은 newer side가 source, 충돌 시 사용자 확인.
 
 ## Pipeline
 
@@ -58,15 +64,39 @@ ls ~/.claude/skills/*/SKILL.md ~/.claude/agents/*.md
 스키마:
 ```json
 {
-  "version": 2,
+  "version": 3,
   "last_readme_sync": "ISO8601",
   "last_notion_sync": "ISO8601",
   "items": {
-    "skills/autopilot-code": {"sha256": "...", "synced_at": "ISO8601"},
-    "agents/research-team": {"sha256": "...", "synced_at": "ISO8601"}
+    "skills/autopilot-code": {
+      "sha256": "...",
+      "synced_at": "ISO8601",
+      "readme_path": "skills/autopilot-code/README.md",
+      "readme_sha256": "...",
+      "readme_mtime": "ISO8601",
+      "notion_page_id": "32787c2b-b753-81d4-8170-dae1e5074b5c",
+      "notion_last_edited_time": "ISO8601",
+      "notion_synced_sha256": "..."
+    },
+    "agents/research-team": {
+      "sha256": "...",
+      "synced_at": "ISO8601",
+      "readme_path": "agents/research-team.README.md",
+      "readme_sha256": "...",
+      "readme_mtime": "ISO8601",
+      "notion_page_id": "34987c2b-b753-818a-a2c0-cd5a9a0b3237",
+      "notion_last_edited_time": "ISO8601",
+      "notion_synced_sha256": "..."
+    }
   }
 }
 ```
+
+- `sha256` / `synced_at` — SKILL.md 자체 (frontmatter parsing source)
+- `readme_path` / `readme_sha256` / `readme_mtime` — 로컬 README의 동기화 상태
+- `notion_page_id` / `notion_last_edited_time` / `notion_synced_sha256` — Notion 자식 페이지 매핑과 마지막 동기화 시점의 본문 SHA. `notion_synced_sha256`은 _마지막 sync 시점의 Notion 본문 hash_로, 다음 sync에서 변경 감지 기준으로 사용.
+
+> **version migration**: v2 state JSON 로드 시 `readme_path` / `notion_page_id` 자동 채움 (skill name 기반 fuzzy lookup + Agents/Skills 대문 페이지의 columns에서 child page URL parsing).
 
 ### Step 3: Drift report
 **신규 / 변경 / 삭제 / 동일** 4 분류. 한국어 출력:
@@ -91,21 +121,26 @@ Agents:  변경 0 / 신규 0 / 삭제 0 / 동일 8
 
 #### 4a. 두 다이어그램 (워크플로우는 단순화, agent 호출은 별도)
 
-**Diagram 1: 워크플로우** — 5노드 단순 구조. 옵션 플래그는 노드 라벨에 박지 않고 본문 prose로 풀어쓴다.
+**Diagram 1: 워크플로우** — A(사전조사) → B(코드)/C(문서) → D(점검) → E(정정) 5갈래. 옵션 플래그는 노드 라벨에 박지 않고 본문 prose로 풀어쓴다.
 ```mermaid
 flowchart LR
-    PREP["📋 사전 준비<br/>analyze-project · analyze-papers"]
-    R["[1] autopilot-research"]
-    C["[2] autopilot-code"]
-    D["[3] autopilot-doc"]
-    OUT[("📦 .claude_reports/")]
-    PREP --> C
-    PREP --> D
-    R --> D
-    R --> C
-    C --> OUT
-    R --> OUT
-    D --> OUT
+    ANA["analyze-project<br/>(code/paper/doc)"]
+    RES["autopilot-research"]
+    CODE["autopilot-code"]
+    DOC["autopilot-doc"]
+    REF["autopilot-refine<br/>(doc + research 정정)"]
+    AUD["audit<br/>(모든 산출물 점검)"]
+    ANA --> CODE
+    ANA --> DOC
+    RES --> CODE
+    RES --> DOC
+    RES --> REF
+    DOC --> REF
+    RES --> AUD
+    DOC --> AUD
+    CODE --> AUD
+    AUD -.->|auto-fix doc/research| REF
+    AUD -.->|auto-fix plans| CODE
 ```
 
 다이어그램 직후 본문에 **파이프라인별 역할 (4 paragraphs)** + **자주 쓰는 체이닝 패턴 (5 bullets)** + **사용자 개입 지점 (--user-refine, --from)** 섹션을 prose로 작성.
@@ -119,6 +154,8 @@ flowchart LR
         ARES["autopilot-research"]
         ACODE["autopilot-code"]
         ADOC["autopilot-doc"]
+        AREF["autopilot-refine"]
+        AUD["audit"]
     end
     subgraph AUTO["자동 위임 (skills가 호출)"]
         direction TB
@@ -136,6 +173,8 @@ flowchart LR
     USER --> ARES
     USER --> ACODE
     USER --> ADOC
+    USER --> AREF
+    USER --> AUD
     USER -. 직접 .-> DT
     ARES --> RT
     ARES --> BT
@@ -146,6 +185,9 @@ flowchart LR
     ACODE -. qa adversarial .-> CRT
     ADOC --> RT
     ADOC --> QT
+    AREF --> QT
+    AREF -. fact-check .-> RT
+    AREF -. qa adversarial .-> CRT
 ```
 
 > 매 sync 시 argument-hint에서 `--mode` / `--from` 옵션 값을 추출해 Diagram 1의 노드 라벨을 자동 갱신.
@@ -188,6 +230,90 @@ flowchart LR
 
 `## Default Invocation Rule` 섹션이 없는 skill은 표 등재 X. 새 skill이 자동 호출 룰을 도입하려면 SKILL.md에 같은 이름 섹션을 추가하면 다음 sync에서 자동 반영.
 
+### Step 5c: 개별 README ↔ Notion 자식 페이지 양방향 sync
+
+대문 README (§5)과 별개로 **각 skill/agent의 개별 설명 페이지**가 Notion에 자식 페이지로 존재한다. 본 단계는 그것들과 로컬 `~/.claude/skills/{name}/README.md`·`~/.claude/agents/{name}.README.md`를 양방향 동기화한다.
+
+#### 5c-1. README ↔ Notion 매핑 발견
+
+각 SKILL.md / agent.md에 대해:
+
+1. **Local README path**:
+   - skill: `~/.claude/skills/{name}/README.md`
+   - agent: `~/.claude/agents/{name}.README.md`
+2. **Notion page id**: `.sync_state.json`의 `notion_page_id` field. 없으면:
+   - 대문 페이지(id `34987c2b-b753-80d6-8df4-d6ce4d469bff`)의 `<columns>` 영역을 fetch
+   - `<page url="https://www.notion.so/{uuid}">{title}</page>` 패턴에서 title↔skill name fuzzy match
+   - 매칭 발견 시 UUID 추출해 state에 저장. 없으면 sync 대상에서 skip + 사용자에게 안내 ("Notion 자식 페이지 없음 — 수동 생성 권장").
+
+#### 5c-2. 변경 감지 (3-way)
+
+각 매핑된 pair에 대해 현재 상태 hash 계산:
+
+- `local_now_sha` — `shasum -a 256 {local_readme_path}` (없으면 null)
+- `notion_now_sha` — `notion-fetch` 후 `<content>...</content>` 본문만 추출해 SHA-256
+- 비교 baseline: state JSON의 `readme_sha256` (지난 sync 시점 local hash) + `notion_synced_sha256` (지난 sync 시점 notion hash)
+
+변경 분류:
+
+| local 변경 | notion 변경 | 처리 |
+|---|---|---|
+| ✅ | ❌ | local → notion push (local이 source) |
+| ❌ | ✅ | notion → local pull (notion이 source) |
+| ✅ | ✅ | **충돌**. `--prefer-local`/`--prefer-notion` 명시 시 자동 처리, 아니면 사용자에게 양쪽 diff 보여주고 선택 요청 |
+| ❌ | ❌ | skip (동일) |
+| local null + notion ✅ | — | notion → local 1회 마이그레이션 (로컬 README 신규 생성) |
+| local ✅ + notion null | — | local → notion 1회 마이그레이션 (Notion 자식 페이지 신규 생성; 새 페이지 ID를 state에 저장) |
+
+`--force` 시: 변경 감지 결과 무시하고 양쪽 모두 local → notion 방향으로 갱신 (또는 사용자가 명시한 방향).
+
+#### 5c-3. README → Notion push
+
+- `update_content`로 페이지 본문 교체. 본문은 ancestor-path / properties wrapper를 제외한 markdown 그대로.
+- 큰 본문은 `replace_content` 유혹이 있지만 **사용 금지**. 자식 페이지 삭제 위험. 대신 두 단계:
+  1. fetch 후 현재 본문을 정확히 capture
+  2. `update_content`로 _전체 본문_ 단일 (old_str, new_str) 쌍으로 교체
+- 페이지 본문에 `<page>` / `<database>` 자식 링크가 있으면 (예: autopilot-code 페이지의 sub-skill 링크) **그 라인은 new_str에 포함시켜 보존**.
+- 성공 시 state의 `notion_synced_sha256` = new_str의 SHA, `notion_last_edited_time` = update 응답의 시각.
+
+#### 5c-4. Notion → README pull
+
+- `notion-fetch`로 본문 가져옴 → ancestor-path / properties wrapper 제거 → `Write`로 local README 갱신.
+- 첫 마이그레이션 시 README 상단에 `> 본 README는 Notion 페이지 [{title}]({url})의 미러. /sync-skills로 양방향 동기화` 헤더 추가.
+- state의 `readme_sha256` / `readme_mtime` 갱신.
+
+#### 5c-5. 새 페이지 생성 (local-only → Notion)
+
+local README는 있는데 Notion에 매칭 페이지 없음:
+
+1. `mcp__claude_ai_Notion__notion-create-pages` 호출
+2. parent: 대문 페이지의 `<columns>` 영역 (skill은 첫 컬럼, agent는 두 번째 컬럼). 단, 컬럼 안에 새 페이지 추가는 MCP가 직접 지원 안 할 수 있음 — 그 경우 대문 페이지 직속 자식으로 생성 후 사용자에게 "컬럼에 이동 필요" 안내.
+3. 생성 응답의 page_id를 `.sync_state.json`에 저장.
+
+#### 5c-6. 충돌 처리 (양쪽 모두 변경)
+
+```
+[충돌 감지] skills/autopilot-doc
+  Local README:  마지막 수정 2026-05-12 14:30 (5분 전)
+  Notion 페이지: 마지막 수정 2026-05-12 14:25 (10분 전)
+  
+어느 쪽을 source로 할까요?
+  (a) Local (Notion 덮어쓰기)
+  (b) Notion (Local 덮어쓰기)
+  (c) Skip (이번 sync에서 둘 다 두기)
+  (d) Diff 보기
+```
+
+`--prefer-local` / `--prefer-notion` flag로 자동화. CI/script에서 사용.
+
+#### 5c-7. 안전 규칙
+
+1. **content_updates는 항상 두 단계 이상으로 분리** (전체 본문 교체 + 마지막 업데이트 라인). 단일 큰 교체는 part-of-match 실패 위험.
+2. **`<page>` / `<database>` 자식 링크는 항상 new_str에 포함**. 누락 시 자식 페이지 분리.
+3. local README 신규 생성 시 같은 디렉토리에 `SKILL.md` 또는 `.md`가 존재하는지 먼저 확인. 잘못된 디렉토리에 생성하지 말 것.
+4. Notion fetch 실패 (404 / 권한) → 해당 pair는 sync 대상에서 skip + 사용자 보고. state는 변경 안 함.
+5. 본문이 매우 큰 페이지 (`>50KB`) 는 `update_content`가 실패할 수 있음. 그 경우 사용자에게 안내 + 수동 동기화 요청.
+
 ### Step 6: Update Notion 대문 상단 (메인 컨텍스트 직접 호출)
 
 페이지 id: `34987c2b-b753-80d6-8df4-d6ce4d469bff`
@@ -198,9 +324,9 @@ flowchart LR
 
 #### 6a. MCP 도구 로드
 
-deferred tool 로드:
+deferred tool 로드 (5c와 공유):
 ```
-ToolSearch(query="select:mcp__claude_ai_Notion__notion-fetch,mcp__claude_ai_Notion__notion-update-page")
+ToolSearch(query="select:mcp__claude_ai_Notion__notion-fetch,mcp__claude_ai_Notion__notion-update-page,mcp__claude_ai_Notion__notion-create-pages")
 ```
 
 #### 6b. 페이지 fetch + update
@@ -237,14 +363,24 @@ mcp__claude_ai_Notion__notion-update-page(
 update_content 성공 응답 (`{"page_id": "..."}`)을 받으면 변경 영역을 사용자에게 한 줄 요약. 실패 시 사용자에게 보고하고 종료 — 자동 재시도는 1회까지만 (old_str 정정 후).
 
 ### Step 7: Update sync state
-`~/.claude/skills/.sync_state.json`을 새 SHA + 시각으로 저장.
+`~/.claude/skills/.sync_state.json`을 새 SHA + 시각으로 저장. v3 스키마 필드 모두 갱신:
+
+- SKILL.md / agent.md: `sha256`, `synced_at`
+- 로컬 README: `readme_sha256`, `readme_mtime`
+- Notion 자식 페이지: `notion_page_id` (신규 매핑 시), `notion_last_edited_time`, `notion_synced_sha256`
+- 전역: `last_readme_sync`, `last_notion_sync`
 
 ### Step 8: Final report
 ```
 ✅ Sync 완료
 ─────────────────────────────────────
-Skills 변경: 3 (autopilot-code, autopilot-doc, init-plan)
-Agents 변경: 0
+SKILL.md/agent.md 변경: 3 (autopilot-code, autopilot-doc, init-plan)
+README ↔ Notion 자식 페이지:
+  - local → notion push: 2 (autopilot-doc, qa-team)
+  - notion → local pull: 1 (browser-team)
+  - 신규 매핑: 1 (audit — Notion 페이지 생성)
+  - 충돌 (사용자 결정): 0
+대문 페이지 갱신: Agents/Skills
 README.md 갱신: ~/.claude/README.md
 Notion 대문 갱신: Agents/Skills (workflow + cheat-sheets)
 
@@ -280,6 +416,9 @@ Notion 대문 갱신: Agents/Skills (workflow + cheat-sheets)
 - sync state JSON parse 실패 시 backup으로 옮기고 빈 dict로 재시작 (모든 항목을 변경으로 처리).
 - Notion MCP 호출 실패 시 README 갱신은 진행, `last_notion_sync`만 갱신 보류 (다음 호출에서 재시도).
 - 자기 자신(`sync-skills/SKILL.md`) 갱신도 동일하게 처리 (메타 — `sync-skills`가 자기 hash를 state에 기록).
+- **개별 README ↔ Notion 양방향**: 충돌(양쪽 모두 last_sync 이후 변경) 시 자동 해결 금지 — `--prefer-local`/`--prefer-notion` 명시 또는 사용자 응답이 있어야 진행.
+- **README 신규 마이그레이션**: 로컬에 README 없고 Notion에만 있는 경우 (또는 그 반대) 사용자 확인 _없이_ 자동 생성 (1회성 양방향 부트스트랩 — 그래야 #5 같은 수동 마이그레이션이 불필요).
+- 본문이 매우 긴 페이지 (> 50KB) 는 update_content 실패 가능 — 사용자에게 안내하고 수동 sync 권장. state는 변경 안 함.
 
 ## Task
 $ARGUMENTS

@@ -76,10 +76,10 @@ Read the Korean {doc_type} and find all user memos. Memos can appear in any of t
 
 For EACH memo found, before applying any change:
 1. **Identify the relevant source(s)** the memo pertains to:
-   - Paper card (`{refs}/cards/*.md`) — for citation, venue, score, NFE, RTF, dataset facts
+   - Paper analyses (`.claude_reports/analysis_project/paper/*.md`) — for citation, venue, score, NFE, RTF, dataset facts (single source of truth, produced by `/analyze-project --mode paper`)
    - Strategy document (`{artifact_root}/strategy/strategy.md`) — for narrative arc, slide outline alignment
    - Analysis files (`{artifact_root}/analysis/*.md`) — for audience, key messages, visual strategy
-   - Reference PDFs (`{refs}/`) — for nuanced claims requiring re-reading the original paper
+   - Original PDFs (in user's source folder if available) — only for nuanced claims requiring re-reading; paper analyses are preferred
 2. **Re-read the identified source** before applying the change. Do not rely on the memo's claim alone.
 3. **Compare memo claim vs source**:
    - If memo agrees with source → apply the change as memo suggests.
@@ -162,8 +162,8 @@ After 연구팀 returns:
    For every domain claim in the changed sections (model name / venue / year /
    metric / lineage / classification), open the corresponding ground-truth source
    and verbatim compare against the deliverable:
-   - Paper cards: {refs}/cards/*.md
-   - Reference PDFs: {refs}/*.pdf (only if cards lack the specific fact)
+   - Paper analyses: `.claude_reports/analysis_project/paper/*.md` (single source of truth, produced by `/analyze-project --mode paper`)
+   - Original PDFs: only if paper analyses lack the specific fact
    - Strategy/analysis: {artifact_root}/strategy|analysis/
 
    Output a single table (no narrative):

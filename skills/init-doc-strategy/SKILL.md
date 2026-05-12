@@ -282,8 +282,8 @@ After the 연구팀 agent returns:
    For every domain claim in the strategy (citation / model name / venue / year /
    metric / dataset / lineage / classification), open the corresponding ground-truth
    source and verbatim compare:
-   - Paper cards: {refs_folder}/cards/*.md (if exists)
-   - Reference PDFs: {refs_folder}/*.pdf (only if cards lack the specific fact)
+   - Paper analyses: `.claude_reports/analysis_project/paper/*.md` (if exists — single source of truth, produced by `/analyze-project --mode paper`)
+   - Original PDFs: only if listed in `--inputs` AND paper analyses lack the specific fact
    - Reviewer comments (rebuttal mode): {analysis_dir}/reviewer_analysis.md
 
    Output a single table (no narrative):
