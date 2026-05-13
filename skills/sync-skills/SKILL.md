@@ -12,7 +12,7 @@ argument-hint: "[--check] [--readme-only] [--notion-only] [--force]"
 
 **Source of Truth**:
 - `~/.claude/skills/*/SKILL.md` + `~/.claude/agents/*.md` — 각 skill·agent의 frontmatter + 본문
-- **본 SKILL.md `## QA Levels (canonical)` 섹션** — `--qa` 5단계 정의의 _공통 source_. 본 skill이 invariant scan 주체이므로 정의도 본 파일이 보유. 각 SKILL.md의 QA 표는 본 섹션과 cross-doc 일치해야 함 (Step 5b.5에서 검사).
+- **`~/.claude/CONVENTIONS.md`** — family-wide 운영 규칙의 단일 source (QA 5단계 정의 / agent model 표기 / 폐기 flag·name / cross-doc invariants). 본 skill의 Step 5b.5가 본 문서를 canonical로 cross-doc grep해 drift 보고·자동 fix.
 
 **파생 산출물**: GitHub README.md, Notion 대문 페이지 상단 대시보드
 
@@ -48,6 +48,7 @@ argument-hint: "[--check] [--readme-only] [--notion-only] [--force]"
 - `--force`: SHA가 같아도 재생성 (포맷 일괄 적용·서식 수정에 사용).
 - `--prefer-local`: 충돌 시 자동으로 local README가 source (Notion 덮어쓰기).
 - `--prefer-notion`: 충돌 시 자동으로 Notion이 source (local README 덮어쓰기).
+- `--auto-fix`: Step 5b.5에서 발견한 cross-doc invariant drift를 CONVENTIONS.md canonical wording으로 자동 교체 (default는 report-only). `--dry-run`과 조합 시 미리보기.
 
 기본(인자 없음): drift 감지 → 변경 있으면 README + Notion 모두 갱신. 개별 README ↔ Notion 양방향은 newer side가 source, 충돌 시 사용자 확인.
 
@@ -235,12 +236,17 @@ flowchart LR
 
 ### Step 5b.5: Cross-doc invariant scan (QA 정의 & family-wide 규칙)
 
-QA level / model 표기 / family-wide invariant은 **본 SKILL.md의 `## QA Levels (canonical)` 섹션**이 단일 source of truth (아래 참조). 각 SKILL.md / README / `_notion_mirror`의 QA 표 wording은 본 섹션과 의미상 일치해야 함.
+QA level / model 표기 / family-wide invariant은 **`~/.claude/CONVENTIONS.md`**가 단일 source of truth. 각 SKILL.md / README / `_notion_mirror`의 QA 표 wording은 본 문서와 의미상 일치해야 함.
 
 #### 5b.5-1. Canonical 정의 로드
 
 ```bash
-canonical_qa_defs=$(grep -E "^\| \*\*(quick|light|standard|thorough|adversarial)\*\*" ~/.claude/skills/sync-skills/SKILL.md)
+# Read CONVENTIONS.md fully; then parse:
+#   §1.1 5단계 공통 정의 표 → QA wording (canonical)
+#   §2 Agent Model 표기 → agent model 정의
+#   §3 Removed Flags → 폐기 flag list
+#   §4 Deprecated Names → 폐기 name list
+#   §5 Hard Cross-Doc Invariants → invariant rule list
 ```
 
 이로부터 5단계 정의(quick/light/standard/thorough/adversarial)의 _구성_을 추출 (Quality reviewer / Fact-checker / Codex 컬럼 wording).
@@ -281,11 +287,13 @@ drift 발견 시 Step 8 final report에 별도 섹션:
 🟡 skills/autopilot-research/SKILL.md:632 — quick 정의에 'refine skip' 명시 누락
 ```
 
-자동 fix는 _안 함_ (정의 wording은 의미 미세 차이를 가질 수 있어 사람 확인 필요). 단 다음 sync에서 동일 drift 반복되면 1라인 warning 추가.
+자동 fix 정책 (CONVENTIONS.md §6):
+- **default (report-only)**: drift 보고만, 수정 안 함
+- **`--auto-fix`** flag 시: CONVENTIONS.md §5 hard invariants 위반은 canonical wording으로 강제 교체. 단 _wording 자체_가 다를 경우 (의미 동일·표현 차이): skip (사람 결정). _의미가 다른_ 명백한 drift만 propagate.
+- **`--auto-fix --dry-run`**: 미리보기 (실제 write 안 함)
+- `--check` 모드에서는 invariant drift만 보고하고 종료 (auto-fix 자동 적용 안 함).
 
-`--check` 모드에서는 invariant drift만 보고하고 종료.
-
-> **새 invariant 추가**: QA_LEVELS.md `## Cross-doc invariance` 섹션에 한 행 추가하면 sync 시 자동 검사 list에 포함.
+> **새 invariant 추가**: CONVENTIONS.md §5에 한 행 추가하면 sync 시 자동 검사 list에 포함.
 
 ### Step 5c: 개별 README ↔ Notion 자식 페이지 양방향 sync
 
@@ -448,65 +456,6 @@ Notion 대문 갱신: Agents/Skills (workflow + cheat-sheets)
   git commit -m "skills+agents: <변경 요약>"
   git push
 ```
-
-## QA Levels (canonical)
-
-> 본 섹션이 `--qa` 옵션 5단계의 _공통 정의_(reviewer 구성·model·fact-checker 적용 등)에 대한 **단일 source of truth**. 각 SKILL.md / README / Notion mirror에서 QA 표를 직접 hard-code하지 말고 _본 섹션 참조_. skill-specific override(default level, max level, fact-checker on/off 등)만 자기 SKILL.md에 명시. `/sync-skills --check` (Step 5b.5)가 본 정의와 다른 곳의 QA 표를 cross-doc grep해 drift 보고.
-
-### 5단계 공통 정의
-
-| Level | Quality reviewer | Fact-checker (parallel) | Codex (parallel) | 비고 |
-|---|---|---|---|---|
-| **quick** | 1× sonnet, 1-pass | skip | skip | refine entire skip / loop 1라운드 강제 종료 / 🔴 잔존 시 `unresolved.md`에 기록만 |
-| **light** | 1× sonnet, single-pass | skip (quality reviewer가 spot-check 커버) | skip | 경량 리뷰 |
-| **standard** | 1× opus, single-pass | 1× sonnet, parallel¹ | skip | _doc/research/refine 한정_ — fact-checker는 cards/PDFs verbatim 대조 (venue/year/metric/citation) |
-| **thorough** | 2× opus, parallel (다른 focus²) | 1× sonnet, parallel¹ | skip | 고위험 산출물 (final-version paper draft, public-facing report 등) |
-| **adversarial** | 2× opus, parallel (= thorough quality) | 1× sonnet, parallel¹ | 1× `Agent(codex-review-team)` parallel — Codex CLI (GPT-5) external review | _autopilot-code · autopilot-refine 전용_ — autopilot-doc / autopilot-research는 지원 X (thorough까지) |
-
-¹ Fact-checker는 _doc/research/refine 파이프라인_에만 적용. autopilot-code 계열 (init-plan / refine-plan / execute-plan / run-test)은 fact-checker 없음 — code는 ground-truth source가 코드 자신이므로 quality reviewer만 운용.
-
-² thorough에서 2개 quality reviewer는 _다른 axes_ 분담: 예: A=domain expert + methodology / B=content expert + quality / C=safety. 각 skill SKILL.md가 자기 axis 분담 명시.
-
-### Codex availability 정책 (adversarial 전용)
-
-- Adversarial 선택 전 `codex --version 2>/dev/null` 실행
-- 실패 시: `--qa adversarial` _명시_ 호출 → fail loudly / auto-detect로 adversarial 선택 → Thorough로 silent fallback
-- Codex agent는 `adversarial-review --wait --scope auto` 실행 → `_internal/{stage}_reviews/round_{N}_codex.md` 작성
-
-### opt-out flags (orthogonal)
-
-- `--no-fact-check` — 모든 level에서 fact-checker 단독 skip (`quick`/`light`는 어차피 skip이라 무의미)
-- `--no-style-audit` — Stage B.5 style aspect skip (refine 계열만)
-
-이 두 flag는 `--qa` level 무관하게 적용되며, fact-checker / style audit을 끄는 _유일한_ 메커니즘 (ad-hoc prompt로 무시 불가). **autopilot-refine · audit 전용** — 다른 skill의 argument-hint에 노출되면 drift.
-
-### Skill별 사용 매트릭스
-
-| Skill | Supported levels | Default | Adversarial | Fact-checker | 비고 |
-|---|---|---|---|---|---|
-| `autopilot-research` | quick/light/standard/thorough | `standard` | X | standard+ | thorough max |
-| `autopilot-code` | quick/light/standard/thorough/**adversarial** | `standard` | ✓ (dev only; debug는 thorough로 downgrade) | **X** (code는 fact-checker 없음) | adversarial 전용 |
-| `autopilot-doc` | quick/light/standard/thorough | `thorough` | X | standard+ | thorough max, default thorough |
-| `autopilot-refine` | quick/light/standard/thorough/**adversarial** | `quick` | ✓ | standard+ | adversarial 전용 + default quick |
-| `audit` | — | — | — | `--no-fact-check` flag | `--qa` 대신 `--scope` 사용; fact-check는 Stage B.5에서 별도 |
-| `init-plan` (sub) | quick/light/standard/thorough/adversarial | auto-detect from scope (plan frontmatter override) | ✓ | X | autopilot-code 내부 |
-| `refine-plan` (sub) | quick/light/standard/thorough/adversarial | inherit from plan frontmatter | ✓ | X | autopilot-code 내부 |
-| `execute-plan` (sub) | inherit | inherit | inherit | X | autopilot-code 내부 |
-| `run-test` (sub) | **forced thorough** (`--qa` 무시) | thorough | auto-upgrade if Codex available | X | 항상 2팀 병렬, Codex 가용 시 자동 상향 |
-| `final-report` (sub) | sonnet 1× (level-independent) | — | — | — | 모든 level에서 writer는 항상 sonnet |
-| `init-doc-strategy` (sub) | quick/light/standard/thorough | inherit from autopilot-doc | X | standard+ | autopilot-doc 내부 |
-| `refine-doc` (sub) | quick/light/standard/thorough | inherit | X | standard+ | autopilot-doc 내부 |
-
-> _Sub-skill_ (init-plan / refine-plan / execute-plan / run-test / final-report / init-doc-strategy / refine-doc): orchestrator가 결정한 `--qa` 값을 그대로 받음. 직접 호출 시는 자체 default 사용.
-
-### Hard cross-doc invariants (sync `--check`가 자동 검사)
-
-1. 각 SKILL.md / README / `_notion_mirror`/*에서 위 5단계 정의의 **Quality reviewer / Fact-checker / Codex 컬럼 wording**은 본 섹션과 의미 일치 (사소한 표현 차이는 허용, 의미가 다르면 drift).
-2. **adversarial** 정의는 반드시 `thorough + 1× codex-review-team`. 자주 잘못 적힌 패턴: `standard + Codex` — _틀림_.
-3. autopilot-code의 QA 표에 fact-checker가 적힌 곳이 있으면 drift (code는 fact-checker 없음).
-4. `--no-fact-check` / `--no-style-audit`는 autopilot-refine / audit 외 다른 skill에 노출되면 안 됨.
-
-새 invariant 추가는 본 섹션 list에 한 행 추가하면 Step 5b.5가 자동 검사 list에 포함.
 
 ## Hook integration (옵션)
 `~/.claude/settings.json`에 다음 추가하면 세션 종료 시 drift 알림:

@@ -11,11 +11,12 @@
 - **Skills 정의**: `~/.claude/skills/*/SKILL.md` (각 skill invoke 시 자동 로드)
 - **Agents 정의**: `~/.claude/agents/*.md`
 - **Autopilot family 아키텍처 헌법**: `~/.claude/DESIGN_PRINCIPLES.md` (3-tier separation, interface contract, anti-pattern — autopilot-* skill 설계·재설계 시 참고)
+- **Family-wide 운영 규칙**: `~/.claude/CONVENTIONS.md` (QA 5단계 정의 / agent model 표기 / 폐기 flag·name / cross-doc invariants — QA·model·family-wide 작업 시 반드시 참조)
 - **워크플로우 맵 / cheat-sheet / 통합 가이드**: `~/.claude/README.md` (자동 동기화)
 - **Notion 운영 가이드**: `~/.claude/notion_guide.md` (workspace 구조 + 페이지 타입 템플릿 + 작성 원칙 + 안전 규칙 — Notion 작업 시 반드시 참조)
 - **사용자 메모리**: `~/.claude/projects/-home-nas-user-Uihyeop/memory/` (`MEMORY.md` 자동 로드)
 
-위 6개가 권위 있는 source. 본 CLAUDE.md는 그것들을 *가리키는 표지*에 불과합니다.
+위 7개가 권위 있는 source. 본 CLAUDE.md는 그것들을 *가리키는 표지*에 불과합니다.
 
 ---
 
@@ -27,6 +28,7 @@
 |---|---|---|
 | **Notion 작업** ("노션에 기록", "Notion 업데이트", 페이지 CRUD, DB 항목 관리, 실험 결과 로깅, 회의록 정리, 논문 작업 추적, Agents/Skills 페이지 갱신 등) | `~/.claude/notion_guide.md` | 메인 Claude가 `mcp__claude_ai_Notion__*` 도구 직접 호출. **sub-agent로 위임 X** (sub-agent runtime의 MCP 도구 접근 제약). 작성 원칙 (concise / uniform / short breath) + 페이지 타입 4종 (실험·회의·논문·보고) + 안전 규칙 (replace_content 금지, columns 자식 페이지 보존) 준수. |
 | **doc/research 산출물 수정 요청** (`.claude_reports/{documents,research}/*` 자연어 수정·정정·보강 prompt) | `~/.claude/README.md` §7 "운영 룰" + autopilot-refine SKILL.md `## Default Invocation Rule` | 메인 Claude가 `/autopilot-refine` 명시 없이도 `autopilot-refine "<prompt>" --qa quick` 자동 invoke. 상세 트리거·scope·override는 README 운영 룰 / 해당 SKILL.md 섹션이 단일 source of truth (sync-skills가 자동 동기화). |
+| **QA level·agent model·family-wide flag 정의 작업** (SKILL.md / README의 QA 표 작성·수정, agent model 표기, 신규 skill의 `--qa` 옵션 채택, `--refs`/`--format-ref` 같은 폐기 flag 검증 등) | `~/.claude/CONVENTIONS.md` | 정의 wording은 본 문서 §1~§5 그대로 사용. 신규 정의 추가·변경 시 본 문서를 먼저 수정한 후 `/sync-skills`로 다른 곳에 propagate. drift 발견 시 본 문서가 진실의 출처. |
 
 > 이 표는 의도적으로 **작게** 유지. 새 도메인 트리거 추가 시 `(트리거, 가이드 파일, 준수 규칙 한 줄)` 형식으로 한 행만 추가.
 
