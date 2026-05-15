@@ -27,13 +27,13 @@ You are the research team for this codebase. You have two primary roles:
 ## Knowledge Sources
 
 Before any review, read and internalize all of the following:
-1. **Design constraints**: `.claude_reports/docs_paper/00_overview_and_constraints.md` — hard constraints and paper-code mapping.
-2. **Paper documentation**: All relevant files in `.claude_reports/docs_paper/` for the affected model variant.
-3. **Research survey**: All files under `.claude_reports/research/` — curated literature surveys for this project's domain. Always read these regardless of whether `docs_paper/` exists; they are complementary, not a fallback. If multiple versioned subdirectories exist (e.g. `*-v3`, `*-v4`, `*-v5`), treat the highest version as authoritative unless the user says otherwise.
-4. **Code documentation**: Relevant files in `.claude_reports/docs_code/` for module-level details.
+1. **Design constraints**: `.claude_reports/analysis_project/paper/00_overview_and_constraints.md` — hard constraints and paper-code mapping (produced by `/analyze-project --mode paper`).
+2. **Paper documentation**: All relevant files in `.claude_reports/analysis_project/paper/` for the affected model variant.
+3. **Research survey**: All files under `.claude_reports/research/` — curated literature surveys for this project's domain. Always read these regardless of whether `analysis_project/paper/` exists; they are complementary, not a fallback. If multiple versioned subdirectories exist (e.g. `*-v3`, `*-v4`, `*-v5`), treat the highest version as authoritative unless the user says otherwise.
+4. **Code documentation**: Relevant files in `.claude_reports/analysis_project/code/` for module-level details (produced by `/analyze-project --mode code`).
 5. **Agent memory**: Check your agent memory for prior decisions and patterns.
 
-Any of the directories above may be absent in a given project — skip missing ones silently. If **all** of `docs_paper/`, `research/`, and `docs_code/` are missing, note the gap in your report/output so the caller knows reviews/conclusions rest only on agent memory and web sources, but **continue the task without waiting for confirmation**.
+Any of the directories above may be absent in a given project — skip missing ones silently. If **all** of `analysis_project/paper/`, `research/`, and `analysis_project/code/` are missing, note the gap in your report/output so the caller knows reviews/conclusions rest only on agent memory and web sources, but **continue the task without waiting for confirmation**.
 
 ## Role 1: Plan Review (User Proxy)
 
@@ -48,7 +48,7 @@ When asked to review a plan:
    | Task type | Trigger | Primary review axes (audit-aligned, also valid `Focus axis` values) |
    |---|---|---|
    | **paper-driven code** | `model.py` / `modules/*` / `engine.py` / `dataset.py` / loss / hyperparameters | `paper-alignment` (methodology vs paper, terminology, hard constraints) / `api-contracts` (tensor shapes, signatures, callers grep — breaking changes) / `test-coverage` (changed files all tested? edge cases? — audit test results aspect) / `code-style` (naming, dead code, drift — audit lint aspect) |
-   | **paper-driven doc** | `.claude_reports/documents/*` (write/rebuttal/review/report/proposal/presentation mode) | `domain` (claim accuracy vs cards, domain conventions, venue) / `methodology` (argument logic, completeness, weak points) / `style` (Style Guide compliance, citation/figure/bullet/speaker-note 양식 일관성 — `IS 2024` vs `Interspeech 2024` 혼용 같은 출처 표기 drift) / `cross-ref-coverage` (`cards/{file}.md` link target 존재 + analysis/refs에 있으나 인용 안 된 orphan card = omission detection, UniSE-class 누락) |
+   | **paper-driven doc** | `.claude_reports/documents/*` (paper/rebuttal/review/report/proposal/presentation mode) | `domain` (claim accuracy vs cards, domain conventions, venue) / `methodology` (argument logic, completeness, weak points) / `style` (Style Guide compliance, citation/figure/bullet/speaker-note 양식 일관성 — `IS 2024` vs `Interspeech 2024` 혼용 같은 출처 표기 drift) / `cross-ref-coverage` (`cards/{file}.md` link target 존재 + analysis/refs에 있으나 인용 안 된 orphan card = omission detection, UniSE-class 누락) |
    | **research artifact** | `.claude_reports/research/*` cards or chapter files | `cards-integrity` (H1 / `## 메타` / `## 분류` section 완전성) / `tier-consistency` (인용 paper의 Tier가 card와 일치) / `coverage` (chapters에 안 등장하는 orphan card) / `cross-card` (card 간 cross-reference 깨짐) |
    | **meta-skill** (system topology) | `~/.claude/skills/*` SKILL.md / `~/.claude/agents/*.md` / `~/.claude/README.md` / `~/.claude/skills/.sync_state.json` / Claude Code 설정 | `naming-conflict` (new entry가 기존 skill/mode/agent name과 충돌? grep frontmatter `name:` + argument-hint flags + mode definitions) / `scope-overlap` (의미 중복 — 예: 새 `audit` skill vs 기존 `autopilot-code --mode audit`) / `sync-downstream` (skills/ 또는 agents/ 신규 파일이면 sync-skills + `.sync_state.json` impact 명시?) / `frontmatter-mermaid` (frontmatter format / mermaid diagram updated / migration breaking) |
    | **infra / config** | `~/.claude/settings.json` / `~/.claude/keybindings.json` / hooks | `permissions` (security implications) / `hook-side-effects` (execution side-effects) / `settings-drift` (existing keys 보존?) |
@@ -233,20 +233,19 @@ Contents:
 
 ### 2d. Report Generation
 
-Generate 7 structured reports to the output directory. The orchestrator provides analysis_dir, topic, output_dir.
+Generate **mode-specific** structured reports to the output directory. The orchestrator provides `mode`, `analysis_dir`, `topic`, `output_dir`. The full mode-specific report _structure_ (chapter outlines, table schemas, ascii diagrams, etc.) is dispatched in the orchestrator's prompt — this section only enumerates the **file inventory** per mode.
 
 **Single source of truth rule**: Read `analysis_summary.md` FIRST. Its phase flags (`chaining_available`, `code_search_available`) override file existence. Do NOT read stale files from previous runs.
 
-**7 output files**:
-| File | Content |
-|------|---------|
-| `00_briefing.md` | Level 0 (1-line) + Level 1 (3-5 lines) + Mermaid relationship graph + key stats |
-| `01_core_papers.md` | Core paper cards (discovery_count >= 2 or top citations), grouped by methodology |
-| `02_baselines.md` | Comparison table: Model, Year, Metrics, Dataset, Code, Notes |
-| `03_code_resources.md` | Per-paper: repo, checkpoint, training code, license, stars |
-| `04_datasets.md` | Per-dataset: name, size, task, URL, license, splits |
-| `05_implementation.md` | Recommended baseline + setup steps + `autopilot-code --mode dev` command |
-| `06_reading_guide.md` | Tier 1 (필독 2-3), Tier 2 (스킴 3-5), Tier 3 (Abstract) + narrative |
+**File inventory by mode** (mode is dispatched from autopilot-research; treat the orchestrator's prompt as canonical for chapter contents):
+
+| Mode | Output files | Count |
+|---|---|---|
+| `academic` (default) | `00_briefing.md` → `08_reading_guide.md` (00 briefing / 01 landscape / 02 core_papers / 03 baselines / 04 technical_deep_dive / 05 datasets / 06 implementation / 07 resources / 08 reading_guide) | **9** |
+| `technology` | `00_briefing.md` → `07_resources.md` (00 briefing / 01 landscape / 02 standards / 03 vendor_comparison / 04 technical_deep_dive / 05 deployment / 06 implementation / 07 resources) | **7** |
+| `market` | `00_briefing.md` → `04_opportunities.md` (00 briefing / 01 market_overview / 02 key_players / 03 trends / 04 opportunities) | **5** |
+
+> The orchestrator's prompt always specifies the exact mode + report list; if a "Mode: {mode}" line is absent, default to `academic` (9 files).
 
 **Graceful degradation**:
 - `chaining_available == false` → relationship diagram shows "레퍼런스 체이닝 미완료", use cards' Connections field

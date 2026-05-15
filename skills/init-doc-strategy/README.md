@@ -3,7 +3,7 @@
 > 본 README는 Notion 페이지 [📄 init-doc-strategy](https://www.notion.so/34987c2bb75381589391df16f1b6eb74)의 미러. `/sync-skills`로 양방향 동기화. 권위 있는 동작 명세는 `SKILL.md`.
 
 ## 개요
-분석된 참고 자료를 기반으로 초기 문서 전략(rebuttal/write/review/report/proposal/presentation)을 생성하는 skill. 연구팀에 위임 + QA 루프 (quality + fact-checker 병렬) + 한국어 번역.
+분석된 참고 자료를 기반으로 초기 문서 전략(rebuttal/paper/review/report/proposal/presentation)을 생성하는 skill. 연구팀에 위임 + QA 루프 (quality + fact-checker 병렬) + 한국어 번역.
 
 > autopilot-doc 내부에서 자동 호출. 직접 사용은 거의 없음 (autopilot-doc의 Step 2).
 
@@ -13,7 +13,7 @@
 ```
 
 ### 인자
-- **mode**: 첫 단어 — `rebuttal | write | review | report | proposal | presentation` (6개)
+- **mode**: 첫 단어 — `rebuttal | paper | review | report | proposal | presentation` (6개)
 - **--inputs**: Input Discovery 결과 path list (콤마 구분). autopilot-doc Pre-flight Step 2에서 결정.
 - **--output**: artifact 디렉토리 (`.claude_reports/documents/{date}_{name}/`)
 - 남은 텍스트: task description
@@ -25,7 +25,7 @@
 `{output_dir}/analysis/`에 분석 파일 존재 확인:
 - `material_index.md` (모든 모드 필수)
 - `reviewer_analysis.md` (rebuttal 필수)
-- `ref_analysis.md` (write/review/report/proposal/presentation 필수)
+- `ref_analysis.md` (paper/review/report/proposal/presentation 필수)
 
 누락 시 에러 — autopilot-doc Step 1이 생성했어야 함.
 
@@ -37,7 +37,7 @@ mode별 전략 템플릿으로 전략 문서 작성. 자동 발견된 format spe
 | 모드 | 핵심 섹션 |
 |---|---|
 | rebuttal | Meta-Review / Response Priority Matrix / Reviewer별 상세 / Additional Experiments / Paper Revision / Tone / Risk |
-| write | Positioning / Contribution / Outline / Key Arguments / Related Work 전략 / Experiment Design / Risk / Venue |
+| paper | Positioning / Contribution / Outline / Key Arguments / Related Work 전략 / Experiment Design / Risk / Venue |
 | review | format spec에서 추출한 섹션 (venue별 다름). 패턴: Summary / Strengths / Weaknesses / Questions / Missing References / Overall / Confidence |
 | report | Objective / Key Findings / Analysis Framework / Section Plan / Evidence / Recommendations / Risk |
 | proposal | Problem / Prior Art / Approach / Feasibility / Work Plan / Resource / Impact / Risk |
@@ -58,7 +58,7 @@ Quality reviewer + fact-checker가 **parallel**로 동작 (standard+).
 | Level | 조건 | Quality reviewer | Fact-checker (parallel) |
 |---|---|---|---|
 | Light | review/presentation 또는 ≤3 inputs | 1× 품질관리팀 (sonnet) | skip |
-| Standard | write/report/proposal 또는 rebuttal ≤3 reviewers | 1× (opus) | 1× fact-check (sonnet) |
+| Standard | paper/report/proposal 또는 rebuttal ≤3 reviewers | 1× (opus) | 1× fact-check (sonnet) |
 | Thorough | rebuttal ≥4 reviewers 또는 ≥10 inputs | 2× 병렬 (opus) | 1× fact-check (sonnet) |
 
 **Fact-checker**는 `analysis_project/paper/*.md` verbatim 대조로 venue/year/metric/citation을 narrow하게 검증. quality reviewer는 narrative arc / cohesion / 모든 reviewer point 응답 여부에 집중.

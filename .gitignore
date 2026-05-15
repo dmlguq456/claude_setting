@@ -27,3 +27,6 @@ projects/
 
 # MCP runtime cache (per-machine, ephemeral)
 mcp-needs-auth-cache.json
+
+# Cleanup timestamp (per-machine, ephemeral)
+.last-cleanup

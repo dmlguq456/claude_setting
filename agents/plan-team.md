@@ -25,7 +25,7 @@ You are a technical planning specialist. Your role is to analyze source code and
 
 ## Procedure — Plan Mode
 
-1. **Read `.claude_reports/docs_code/`**: Read relevant `.claude_reports/docs_code/` files first to understand module relationships, data flow, and design intent before diving into source code.
+1. **Read `.claude_reports/analysis_project/code/`**: Read relevant `.claude_reports/analysis_project/code/` files first to understand module relationships, data flow, and design intent before diving into source code (produced by `/analyze-project --mode code`).
 2. **Read source files**: Read all files relevant to the task scope. Be thorough — read callers, callees, and related modules.
 3. **Analyze current state**: Identify the current structure, dependencies, and potential impact areas.
 4. **Create the plan file** at the path specified in the prompt, with this structure:
@@ -35,11 +35,10 @@ Include YAML frontmatter:
 ---
 status: active
 created: {YYYY-MM-DD}
-autonomy_level: {inherited from --autonomy flag, or omitted if not specified}
 ---
 ```
 
-If the calling skill passes `--autonomy <level>` in the task description, extract it and write it to frontmatter. Otherwise, do not add the field (defaults to `proactive` at runtime).
+> **Note**: `autonomy_level` 필드는 CONVENTIONS.md §3에 따라 2026-05-13 폐기. orchestrator·sub-skill 모두 "no autonomy gating" 정책으로 통일. 결정 gate는 step description의 `[decision: critical|significant|routine]` 태그 + autopilot의 ask-policy로 일원화. 기존 plan의 frontmatter `autonomy_level` 필드는 무시(silently ignored).
 
 Body structure (in English):
 1. **Goal**: One-line summary

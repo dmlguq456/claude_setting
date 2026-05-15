@@ -15,7 +15,7 @@ execute-plan 이후 또는 온디맨드로 기능 테스트를 실행해 코드 
 2. 디렉토리 → `/plan/plan.md`
 3. 퍼지 검색 → `_audit`/`_fix_` 없는 폴더 우선. **없으면 fallback**: 인자를 파일/디렉토리 경로로 간주하여 직접 테스트
 
-Plan frontmatter에서 `autonomy_level` 읽기 (기본: `proactive`).
+> `autonomy_level`은 deprecated (CONVENTIONS.md §3, 2026-05-13). 모든 게이트(커밋·hotfix 2차 시도)는 auto-proceed.
 
 ## 위임 — 테스트팀
 프롬프트 유형별:
@@ -60,9 +60,7 @@ ANY agent의 이슈 처리 필수.
 ## 결과 보고
 1. 요약 테이블로 테스트 결과 전달
 2. 모든 레벨 통과 + QA 승인:
-   - `git status`로 미커밋 확인. 변경 존재 시:
-     - `proactive`/`standard`: 자동 커밋
-     - `passive`: "테스트 통과. 변경사항 커밋할까요? (기본:커밋)"
+   - `git status`로 미커밋 확인. 변경 존재 시 **auto-commit** (사용자 질문 없음)
    - 성공 리포트 + 중단
 3. 실패 시 **Hotfix Loop** (최대 2 시도)
 
@@ -71,10 +69,8 @@ ANY agent의 이슈 처리 필수.
 
 1. **Attempt 1** (자동 — 저위험): 개발팀 auto mode subagent, 실패 level + 에러 + 파일 제공. "Auto mode. Hotfix: fix this test failure."
 2. 실패 level부터 재호출
-3. 통과 + QA 승인 시 커밋 + 성공 리포트 (autonomy gate 적용)
-4. **Attempt 2** (autonomy-gated):
-   - proactive: 자동 진행
-   - standard/passive: "Hotfix 1차 실패. 2차 시도할까요? (기본:진행)"
+3. 통과 + QA 승인 시 auto-commit + 성공 리포트
+4. **Attempt 2** (자동 — bounded retry budget): 새 에러 컨텍스트로 재시도
 5. 여전히 실패 → 원본 에러, 시도한 내용, 권장 조치 리포트
 
 ## 로그 디렉토리 규칙

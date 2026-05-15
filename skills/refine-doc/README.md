@@ -16,7 +16,7 @@ flowchart TD
     STR --> VER["Pre-Refine: Versioning Setup"]
     DR --> VER
     VER --> RT["연구팀 위임 (메모 탐색 + ref-grounding + 적용)"]
-    RT --> WRITE["latest 파일 + v{N} archive 저장 + CHANGELOG 갱신"]
+    RT --> WRITE["latest 파일 + v{N} archive 저장 + frontmatter changelog 배열 갱신"]
     WRITE --> QA["Post-Refine Review Loop (quality + fact-check 병렬, max 2 rounds)"]
     QA -->|🔴 없음| DONE["사용자 보고"]
     QA -->|🔴 있음| RT
@@ -25,7 +25,7 @@ flowchart TD
 ## 1. 메모 탐색
 한국어 파일에서 다음 형식 탐색:
 - `<!-- memo: ... -->` (표준 메모 태그)
-- `<!-- ... -->` (HTML 주석 — CHANGELOG block 제외)
+- `<!-- ... -->` (HTML 주석 — 단 **legacy** `<!-- CHANGELOG (auto-managed by refine-doc ... -->` block은 메모가 아님; frontmatter `changelog:` 배열로 **마이그레이션 후 삭제** — 아래 §4 참조)
 - `// ...` (인라인 주석)
 - `[memo] ...` (대괄호 주석)
 - `(**...**)` (괄호 주석)
@@ -54,19 +54,40 @@ flowchart TD
 - 이전 버전은 **immutable** — 절대 수정 X
 - 첫 refine 시 현재 상태를 v1으로 스냅샷 후 작업이 v2로 진행
 
-## 4. CHANGELOG Block (자동 관리)
-파일 최상단에 다음 형식의 block:
-```
-<!-- CHANGELOG (auto-managed by refine-doc — do NOT edit manually)
-v{N} ({YYYY-MM-DDTHH:MM}, applied X memos / overrode Y memos):
-  - [Slide N | Section X] [verified <source>]: <one-line description>
-  - [Slide N | Section X] [OVERRIDDEN — memo conflicted with <source>]: <reason>
-  ...
-{previous CHANGELOG entries preserved verbatim}
--->
+## 4. Changelog (frontmatter `changelog:` 배열, 자동 관리)
+
+변경 이력은 **frontmatter 안의 YAML 배열**로 저장. 절대 파일 최상단 `<!-- CHANGELOG -->` HTML 주석으로 두지 않음.
+
+**왜 이 형식이 강제인가**:
+- HTML 주석을 frontmatter 위에 두면 `---`가 line 1을 차지하지 못해 markdown previewer (VS Code / GitHub / Obsidian / Jupyter)가 frontmatter 인식 실패 → `---`가 horizontal rule로, YAML key가 본문 글자로 렌더 → 미리보기 깨짐.
+- YAML 배열은 구조화 데이터라 audit / 다운스트림 tool이 파싱 가능.
+- Previewer가 frontmatter를 알아서 숨겨주므로 본문이 깔끔하게 보임.
+
+**불변 규칙**: 파일은 반드시 `---` (frontmatter open)으로 line 1 시작. 그 앞에 HTML 주석·빈 줄·본문 어느 것도 못 옴.
+
+**형식**:
+```yaml
+---
+{기존 domain key 보존: type, venue, status, date, tone, ...}
+changelog:
+  - version: v{N}
+    date: "{YYYY-MM-DDTHH:MM}"
+    applied: X
+    overridden: Y
+    entries:
+      - |
+        [Slide N | Section X] [verified <source>]: <one-line description>
+      - |
+        [Slide N | Section X] [OVERRIDDEN — memo conflicted with <source>]: <reason>
+  - version: v{N-1}
+    {이전 entry 보존}
+---
 ```
 
-- 새 v{N+1} entry는 *기존 block 위에* prepend (newest first)
+- `changelog:`는 frontmatter 의 **마지막** key (domain key 가독성 유지)
+- 새 v{N+1} entry는 *기존 entries 위에* prepend (newest first)
+- 각 entry는 literal block scalar (`|`) 사용 — backtick/backslash/콜론/대괄호/이모지 escaping 불필요
+- **Legacy 마이그레이션 (필수)**: 기존 `<!-- CHANGELOG (auto-managed by refine-doc ... -->` HTML block이 있으면 같은 refine pass에서 frontmatter 배열로 변환 후 HTML block 삭제 (ko/en 양쪽)
 - 사용자가 직접 편집 금지 — autopilot이 관리
 
 ## 5. Post-Refine Review Loop

@@ -68,12 +68,13 @@ Before any code changes, ensure the working tree is clean and up-to-date:
 - Do NOT stop until all processable steps are done (marked `[x]` or `[FAIL]`).
 
 ## QA Scaling
-`qa_level` in plan frontmatter overrides auto-detect for ALL phases. Otherwise, detect per phase:
+`qa_level` in plan frontmatter overrides auto-detect for ALL phases. Otherwise, detect per phase.
 
-`autonomy_level` in plan frontmatter determines decision point gating. Default: `proactive`.
+> **Note**: `autonomy_level` is deprecated (CONVENTIONS.md §3, 2026-05-13). All decision gates auto-proceed per the policy below; no per-level branching.
 
 | Level | Auto-detect condition | Action |
 |---|---|---|
+| **Quick** | (manual via `--qa quick` only — inherited from autopilot-code) | 1× 품질관리팀 (`model: "sonnet"`), single pass; major 🔴 issues are logged but the pipeline does NOT branch to rollback retry — issues propagate to `pipeline_summary.md` Decision Points instead |
 | **Light** | ≤3 units, mechanical, single-variant | 1× 품질관리팀 (`model: "sonnet"`) |
 | **Standard** | 4–10 units, logic changes, single module | 1× 품질관리팀 (default opus) |
 | **Thorough** | >10 units, cross-module/variant, architectural | 2–3× 품질관리팀 in parallel: A=correctness (opus), B=consistency (sonnet), C=safety (opus, >20 files) |
@@ -101,24 +102,17 @@ Adversarial mode — runs all Thorough agents PLUS an additional `codex-review-t
   2. **Read the review file** (skill-level read — permitted per DESIGN_PRINCIPLES 3.3) to determine next action:
      - 🟡 only: log in checklist and continue.
      - 🔴 minor: fix once via 개발팀 → re-verify (output `phase_{NN}_fix.md`). If still 🔴, treat as major.
-     - 🔴 major: **Autonomy gate (Significant)**:
-       - If `proactive`: auto-rollback phase and continue (proceed immediately to step 1 below).
-       - If `standard`: ask the user: "Phase N에서 🔴 major 이슈가 발견되었습니다. 롤백할까요, 수정을 시도할까요? (a) 롤백, (b) 수정 1회 시도, (c) 건너뛰기 (기본값: 롤백)" — wait for response before acting.
-       - If `passive`: ask the user with full issue detail (list all 🔴 issues found, which files are affected, and what the reviewer recommends), then ask: "어떻게 진행할까요? (a) 롤백, (b) 수정 1회 시도, (c) 건너뛰기 (기본값: 롤백)" — wait for response before acting.
+     - 🔴 major: **auto-rollback phase and continue** (no user gating — per "no autonomy gating" policy, CONVENTIONS.md §3):
        1. Delegate rollback to 개발팀 — restore every `old_string` from the phase's step logs.
        2. If rollback fails: read `$SAFETY_COMMIT` from checklist header → `git checkout .` (reverts ALL uncommitted changes including prior phases). Mark ALL steps `[FAIL]` ("Reverted by git checkout due to rollback failure in Phase N"). **Stop and go to Final Report.**
        3. If rollback succeeded: mark all steps in this phase `[FAIL]` with reason.
        4. Continue to the next phase. If it depends on the failed phase, mark those steps `[SKIP-DEP]`.
 
-> After each gated decision, record the decision per the Decision Point Logging Rule. Decisions propagate up to the pipeline skill's pipeline_summary.md.
+> Record each rollback decision per the Decision Point Logging Rule. Decisions propagate up to the pipeline skill's pipeline_summary.md.
 
 - For plans ≤3 steps, skip phase grouping — invoke reviewer once after all steps complete.
-- **On Total Failure** (ALL steps `[FAIL]`/`[SKIP-DEP]` after Plan Status Update): **Autonomy gate (Critical)**:
-  - If `proactive`: auto-rollback to safety commit (proceed immediately to the steps below).
-  - If `standard` or `passive`: ask the user: "모든 단계가 실패했습니다. Safety commit으로 롤백할까요? (기본값: 롤백)" — wait for response before acting.
+- **On Total Failure** (ALL steps `[FAIL]`/`[SKIP-DEP]` after Plan Status Update): **auto-rollback to safety commit** (no user gating).
   Read `$SAFETY_COMMIT` → `git diff --name-only $SAFETY_COMMIT HEAD -- ':!.claude_reports'` → `git checkout $SAFETY_COMMIT -- <changed files>` (preserves `.claude_reports/`). Verify with `git status`. Note in Final Report.
-
-> After each gated decision, record the decision per the Decision Point Logging Rule. Decisions propagate up to the pipeline skill's pipeline_summary.md.
 
 ## Safety Rules (CRITICAL)
 - CRITICAL: Before changing any function signature (args, return type, dict keys, tensor shapes): (1) grep all call sites, (2) update every caller, (3) check implicit contracts (None checks, `.shape` assumptions, dict key access).

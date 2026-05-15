@@ -1,7 +1,7 @@
 ---
 name: autopilot-research
 description: "Research survey pipeline — multi-mode investigation (academic / technology / market). Mode-specific search sources and report templates. Field intelligence only; no PPT/paper drafts. Hand off to autopilot-doc (writing/slides) or autopilot-code (build) for actual document/code creation."
-argument-hint: "<query> [--mode academic|technology|market] [--depth shallow|medium|deep] [--qa quick|light|standard|thorough] [--no-clarify] [--from search|analyze|report]"
+argument-hint: "<query> [--mode academic|technology|market] [--depth shallow|medium|deep] [--qa quick|light|standard|thorough] [--no-clarify] [--no-figures] [--from search|analyze|report]"
 ---
 
 > **산출물 폴더 컨벤션**: [SKILL_OUTPUT_CONVENTION.md](../../SKILL_OUTPUT_CONVENTION.md) (3-tier: T1 root / T2 named subdir / T3 `_internal/`). 본 skill의 raw metadata (`search_results.json`, `phase_a_*.json`, `chaining_results.md`, `code_search.md` 등) + reviews는 모두 `_internal/` 하위로 격리. T1/T2 chapter 파일과 `cards/`는 root.
@@ -19,6 +19,7 @@ Parse `$ARGUMENTS` for optional flags:
 - **--qa**: `quick` | `light` | `standard` (default) | `thorough` — override QA intensity for report QA loop. Standard+ runs a parallel **fact-checker** (sonnet) alongside quality reviewer(s) for cards verbatim 대조 (citation/venue/year/metric verification). `quick`은 review loop를 1라운드로 강제 종료하는 fastest path — 1× 품질관리팀(sonnet) 단일 패스 후 🔴 잔존 시에도 재호출 없이 unresolved.md만 기록하고 종료. fact-checker 비활성, refine-style re-invoke 비활성.
 - **--from**: `search` | `analyze` | `report` — resume the pipeline at a specific stage (see Resume below)
 - **--no-clarify**: skip Step 0 Scope Clarification (force-run with current query as-is)
+- **--no-figures**: skip Step 3.5 Web Figure Extraction (figure 자동 추출 단계 건너뜀; cards 본문은 그대로 생성, 단 `**Figures**:` 줄만 누락)
 
 ## Modes
 
@@ -376,7 +377,7 @@ Agent(subagent_type="탐색팀"):
 
 **Skipping**:
 - `--qa quick` mode에서는 Step 3.5 자동 skip (fastest path 우선).
-- 또는 `--no-figures` flag 명시 시 skip (옵션 추가 권장).
+- `--no-figures` flag 명시 시 skip.
 
 ### Step 4: Report Generation (direct Agent call + QA loop)
 

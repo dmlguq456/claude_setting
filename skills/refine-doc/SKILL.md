@@ -1,6 +1,6 @@
 ---
 name: refine-doc
-description: Reflect user memos/review feedback in a document strategy or draft. Snapshots prior version under `_internal/versions/v{N}/` (modern; per SKILL_OUTPUT_CONVENTION.md) or `_v{N}.md` siblings (legacy). Auto-managed CHANGELOG block at top of the document. Mandatory ref-grounding per memo (re-read source; override memo if it conflicts with source).
+description: Reflect user memos/review feedback in a document strategy or draft. Snapshots prior version under `_internal/versions/v{N}/` (modern; per SKILL_OUTPUT_CONVENTION.md) or `_v{N}.md` siblings (legacy). Auto-managed `changelog:` array inside YAML frontmatter (NOT a top-of-file HTML comment — that breaks markdown preview when frontmatter is also present). Mandatory ref-grounding per memo (re-read source; override memo if it conflicts with source).
 argument-hint: "<strategy or draft name or path> [--qa quick|light|standard|thorough]"
 ---
 
@@ -66,7 +66,7 @@ Next version: v{next_version}
 ## Memo Detection
 Read the Korean {doc_type} and find all user memos. Memos can appear in any of these formats:
 - `<!-- memo: ... -->` (standard memo tag)
-- `<!-- ... -->` (HTML comment — treat any HTML comment as a user memo, EXCEPT the CHANGELOG block at top-of-file which is auto-managed)
+- `<!-- ... -->` (HTML comment — treat any HTML comment as a user memo, EXCEPT a **legacy** `<!-- CHANGELOG (auto-managed by refine-doc ... -->` block at top-of-file. Such legacy blocks are NOT memos; they must be **migrated** into the frontmatter `changelog:` array and then deleted from the body (see "Changelog (frontmatter `changelog:` array)" below).
 - `// ...` (inline comment)
 - `[memo] ...` (bracketed annotation)
 - `(**...**)` (parenthetical note)
@@ -93,28 +93,103 @@ For draft refinement: also cross-check against the strategy document at `{artifa
 
 1. **Write the new content to current files** (`{ko_path}`, `{en_path}`) — these always represent the latest version.
 2. The pre-edit snapshot is already written by the Pre-Refine setup step (see "Pre-Refine: Versioning Setup" above) — to either `_internal/versions/v{prev_version}/...` (modern) or `{file}_v{prev_version}.md` (legacy). No additional snapshot needed at output time.
-3. **Remove all memo comments** (HTML comments, `// ...`, `[memo] ...`, etc.) from the new version. EXCEPT preserve/update the CHANGELOG block (see below).
+3. **Remove all memo comments** (HTML comments, `// ...`, `[memo] ...`, etc.) from the new version. EXCEPT preserve/update the frontmatter `changelog:` array (see below).
 
-## CHANGELOG Block (auto-managed, top of file)
+## Changelog (frontmatter `changelog:` array — NEVER an HTML comment)
 
-The very first content of both Korean and English latest files is the CHANGELOG, in this exact format:
+The changelog is stored as a **YAML array** inside the file's frontmatter, NOT as a top-of-file `<!-- CHANGELOG -->` HTML comment.
+
+**Why this form is mandatory** (do not regress to the HTML-comment form):
+- A `<!-- ... -->` block placed above the frontmatter pushes `---` off line 1. Markdown previewers (VS Code, GitHub, Obsidian, Jupyter) require frontmatter to start at line 1; otherwise they render `---` as horizontal rules and YAML keys as plain prose, breaking preview.
+- YAML arrays are structured data, parseable by tools (audit, downstream scripts).
+- The frontmatter is hidden by previewers; the body renders cleanly.
+
+### File-level invariant
+
+The file MUST begin with `---` on line 1. Nothing — no HTML comment, no blank line, no prose — may precede the frontmatter open delimiter.
+
+### Format
+
+```yaml
+---
+{existing domain keys preserved verbatim: type, venue, status, date, tone, ...}
+changelog:
+  - version: v{next_version}
+    date: "{YYYY-MM-DDTHH:MM}"
+    applied: {N}
+    overridden: {M}
+    entries:
+      - |
+        [Slide N | Section X] [verified <source>]: <one-line description of change>
+      - |
+        [Slide N | Section X] [verified <source>]: <change>
+      - |
+        [Slide N | Section X] [OVERRIDDEN — memo conflicted with <source>]: <reason>
+  - version: v{next_version - 1}
+    date: "{YYYY-MM-DD or YYYY-MM-DDTHH:MM}"
+    {applied/overridden/note as recorded previously}
+    entries:
+      - |
+        {previous entry preserved verbatim}
+---
+```
+
+### Rules
+
+1. **Placement**: `changelog:` is the **last** key in the frontmatter (after `type`, `venue`, `status`, `date`, `tone`, etc.), so domain keys stay readable at the top.
+2. **Order**: Newest version first. Prepend the new `version: v{next_version}` block above the existing entries.
+3. **Block scalars (`|`) for entries**: Each entry uses a YAML literal block scalar so backticks, backslashes, colons, brackets, and emoji inside the change description need NO escaping. Indent each entry's content one level under the `|`.
+4. **First refine (no prior changelog)**: create the `changelog:` key with both:
+   - v1 entry — `version: v1`, `date: "{creation date from existing frontmatter, or the literal string \"initial\" if unknown}"`, `note: "initial draft from autopilot-doc {mode} pipeline"`, no `entries:` required.
+   - v2 entry — this round's changes (above v1).
+5. **No frontmatter at all (rare)**: create a minimal frontmatter block at the very top of the file with at least `changelog:` (and any other keys you can derive from the document).
+6. **Legacy migration (required on first encounter)**: if the file has a `<!-- CHANGELOG (auto-managed by refine-doc ... -->` HTML block (above or below the frontmatter), convert each `vN (date, applied X / overrode Y): ...` line into a frontmatter array entry **in the same refine pass** and **delete the HTML block** (including its surrounding blank lines). After migration the file must begin with `---` on line 1. This migration applies to BOTH `{ko_path}` and `{en_path}`.
+
+### Worked example
+
+Before (legacy, broken preview):
 
 ```markdown
 <!-- CHANGELOG (auto-managed by refine-doc — do NOT edit manually)
-v{next_version} ({YYYY-MM-DDTHH:MM}, applied {N} memos / overrode {M} memos):
-  - [Slide N | Section X] [verified <source>]: <one-line description of change>
-  - [Slide N | Section X] [verified <source>]: <change>
-  - [Slide N | Section X] [OVERRIDDEN — memo conflicted with <source>]: <reason>
-  ...
-{previous CHANGELOG entries preserved verbatim}
+v2 (2026-05-14T14:00, applied 22 memos / overrode 0 memos):
+  - [M25 QUALITY 🔴] [verified .bib L366]: `\citep{defossez2023}` → `\citep{defossez2023high}`
+v1 (2026-05-14, initial draft from autopilot-doc paper pipeline): camera-ready cheatsheet ...
 -->
+
+---
+type: paper
+status: draft
+date: 2026-05-14
+---
+
+# Camera-Ready Cheatsheet ...
 ```
 
-If no CHANGELOG block exists yet (first refine), create one with:
-- v1 entry: `v1 ({creation date or "initial"}): initial draft from autopilot-doc {mode} pipeline`
-- v2 entry: this round's changes
+After (frontmatter array, preview-safe):
 
-If CHANGELOG already exists, prepend the new v{next_version} entry above the existing block content (newest first).
+```markdown
+---
+type: paper
+status: draft
+date: 2026-05-14
+changelog:
+  - version: v2
+    date: "2026-05-14T14:00"
+    applied: 22
+    overridden: 0
+    entries:
+      - |
+        [M25 QUALITY 🔴] [verified .bib L366]: `\citep{defossez2023}` → `\citep{defossez2023high}`
+  - version: v1
+    date: "2026-05-14"
+    note: "initial draft from autopilot-doc paper pipeline"
+    entries:
+      - |
+        camera-ready cheatsheet ...
+---
+
+# Camera-Ready Cheatsheet ...
+```
 
 ## Other rules
 - Do NOT touch the version archive of previous versions (`*_v{prev_version}.md` and earlier) — they are immutable historical record.

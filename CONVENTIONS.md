@@ -81,6 +81,7 @@
 | `--refs <folder>` | 2026-05-08 | implicit input discovery from `.claude_reports/{analysis_project,research}/*`. 외부 raw 자료는 `/analyze-project --mode {paper\|doc}`로 사전 영속화. |
 | `--format-ref <path>` | 2026-05-12 | `analysis_project/doc/{matching}/formats/` auto-discovery (no flag). 사전에 `/analyze-project --mode doc <folder>`로 materialize. |
 | `--autonomy proactive\|standard\|passive` | 2026-04 | `--user-refine` 패턴으로 단일화. |
+| plan frontmatter `autonomy_level` 필드 | 2026-05-13 | `--user-refine` 패턴으로 단일화 (CLI flag와 함께 일괄 제거). orchestrator(autopilot-code)는 이미 "no autonomy gating" 정책이고, sub-skill (execute-plan / run-test / final-report / plan-team)에 잔존하던 `proactive\|standard\|passive` 분기도 제거. 의사결정 gate는 plan-time `[decision: critical\|significant\|routine]` step tag + autopilot orchestrator의 ask-policy로 일원화. |
 
 위 flag가 SKILL.md / README / agent.md / notion mirror 본문에 _사용 예시_로 잔존하면 drift (취소선·"제거됨" 안내 형태는 OK).
 
@@ -95,6 +96,8 @@
 | `refine-doc-strategy` skill 이름 | 2026-05-06 | `refine-doc`로 rename (strategy + draft 양쪽 처리) |
 | `기록팀` agent | 2026-05-06 | 제거. Notion 작업은 메인 Claude가 `~/.claude/notion_guide.md` 참조해 직접 수행 |
 | Paper card 단일 ground-truth 경로 `{refs}/cards/*.md` | 2026-05-12 | `.claude_reports/analysis_project/paper/*.md` (analyze-project --mode paper 산출물; cards/ 서브디렉토리 폐기) |
+| `.claude_reports/docs_paper/*` 경로 | 2026-05-13 | `.claude_reports/analysis_project/paper/*` (`/analyze-project --mode paper` 산출물 위치). `00_overview_and_constraints.md` 포함 paper 문서는 모두 새 경로로 영속화. |
+| `.claude_reports/docs_code/*` 경로 | 2026-05-13 | `.claude_reports/analysis_project/code/*` (`/analyze-project --mode code` 산출물 위치). 모듈 매핑 / interface reference 모두 새 경로. |
 
 ---
 
@@ -107,6 +110,8 @@
 5. §3 Removed Flags 어느 것이든 SKILL.md / README / agent.md / mirror 본문에 _사용 예시_로 등장하면 drift.
 6. §4 Deprecated Names 어느 것이든 _현재 호출 명령_으로 등장하면 drift (역사 안내는 OK).
 7. `codex-review-team`의 model 표기가 `opus` 단독이면 drift — 실제 review는 Codex CLI (GPT-5). §2 매트릭스에 따라 "Codex CLI (GPT-5) + opus orchestrator" 같이 분리 표기.
+8. plan frontmatter `autonomy_level` 필드 또는 `proactive\|standard\|passive` 분기 로직이 SKILL.md / agent.md / README 본문에 _현행 동작_으로 등장하면 drift (역사 안내·deprecation note는 OK). §3 참조.
+9. `.claude_reports/docs_paper/*` 또는 `.claude_reports/docs_code/*` 경로가 SKILL.md / agent.md / README 본문에 _현행 경로_로 등장하면 drift. canonical은 `.claude_reports/analysis_project/{paper,code}/*`. §4 참조.
 
 새 invariant 추가는 본 섹션 list에 한 행 추가하면 sync-skills Step 5b.5의 자동 검사 list에 포함.
 

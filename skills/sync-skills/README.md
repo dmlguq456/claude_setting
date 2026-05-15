@@ -12,7 +12,7 @@ drift 체크 전용 모드도 지원.
 
 ## 호출 형식
 ```
-/sync-skills [--check] [--readme-only] [--notion-only] [--force] [--prefer-local] [--prefer-notion]
+/sync-skills [--check] [--readme-only] [--notion-only] [--force] [--prefer-local] [--prefer-notion] [--auto-fix [--dry-run]]
 ```
 
 ## Source of Truth
@@ -33,6 +33,7 @@ drift 체크 전용 모드도 지원.
 - `--force`: SHA가 같아도 재생성
 - `--prefer-local`: 충돌 시 자동으로 local README가 source (Notion 덮어쓰기)
 - `--prefer-notion`: 충돌 시 자동으로 Notion이 source (local README 덮어쓰기)
+- `--auto-fix`: Step 5b.5에서 발견한 cross-doc invariant drift를 `CONVENTIONS.md` canonical wording으로 자동 교체 (default는 report-only). `--dry-run`과 조합 시 미리보기.
 
 기본 (인자 없음): drift 감지 → 변경 있으면 README + Notion 모두 갱신. 충돌은 사용자 확인.
 

@@ -1,7 +1,7 @@
 ---
 name: sync-skills
 description: "Skills + Agents 정의 변경을 감지해 ~/.claude/README.md(GitHub)와 Notion 대문 페이지(Agents/Skills) 상단의 대시보드(워크플로우 map + cheat-sheet + 통합 가이드라인)를 동기화한다. drift 체크 전용 모드도 지원."
-argument-hint: "[--check] [--readme-only] [--notion-only] [--force]"
+argument-hint: "[--check] [--readme-only] [--notion-only] [--force] [--prefer-local | --prefer-notion] [--auto-fix [--dry-run]]"
 ---
 
 ## Language Rule

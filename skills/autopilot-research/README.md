@@ -9,7 +9,7 @@
 
 ## 호출 형식
 ```
-/autopilot-research <topic> --mode academic|technology|market [--depth shallow|medium|deep] [--qa quick|light|standard|thorough] [--from search|analyze|report] [--no-clarify]
+/autopilot-research <topic> --mode academic|technology|market [--depth shallow|medium|deep] [--qa quick|light|standard|thorough] [--from search|analyze|report] [--no-clarify] [--no-figures]
 ```
 
 ## 3개 모드

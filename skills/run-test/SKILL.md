@@ -15,7 +15,7 @@ Resolve `$ARG` to a plan file path:
 
 Example: `/run-test inference-refactor` → `.claude_reports/plans/2026-03-18_inference-refactor/plan/plan.md`
 
-Read `autonomy_level` from plan frontmatter. Default: `proactive`.
+> **Note**: `autonomy_level` is deprecated (CONVENTIONS.md §3, 2026-05-13). All gates (commit-on-success, hotfix attempt 2) auto-proceed. The frontmatter field, if present in older plans, is silently ignored.
 
 ## Language Rule
 - Think and reason in English internally.
@@ -111,9 +111,7 @@ After the 테스트팀 agent returns:
 ## Report Results
 1. Relay the test results to the user (concise summary table).
 2. If all levels passed and QA approved:
-   - Check `git status` for uncommitted changes. If changes exist:
-     - If `autonomy_level` is `proactive` or `standard`: auto-commit with a success commit message following the Commit Message Convention above.
-     - If `autonomy_level` is `passive`: ask: "테스트가 통과했습니다. 변경사항을 커밋할까요? (기본값: 커밋)"
+   - Check `git status` for uncommitted changes. If changes exist: **auto-commit** with a success commit message following the Commit Message Convention above (no user gating — per "no autonomy gating" policy, CONVENTIONS.md §3).
    - Report success and stop.
 3. If any level failed, enter the **Hotfix Loop** (max 2 attempts):
 
@@ -122,14 +120,11 @@ After the 테스트팀 agent returns:
 
 1. **Attempt 1** (always automatic — low risk): Invoke a 개발팀 (dev-team) subagent in auto mode with the failing level, exact error, files involved, and instruction: "Auto mode. Hotfix: fix the following test failure. Read the error, read the file, fix it directly. Write a step log to the plan's log directory if available, otherwise skip logging."
 2. Re-invoke 테스트팀 from the failed level onward (same logging requirements).
-3. If tests pass AND QA approves: commit and report success (apply same `autonomy_level` gate as step 2 above).
-4. **Attempt 2** (autonomy-gated — repeated failure suggests a deeper issue):
-   - If `autonomy_level` is `proactive`: auto-proceed (current behavior).
-   - If `autonomy_level` is `standard` or `passive`: ask: "Hotfix 1차 시도가 실패했습니다. 2차 시도를 진행할까요? (기본값: 진행)"
-   - If proceeding: repeat with new error context.
+3. If tests pass AND QA approves: auto-commit and report success.
+4. **Attempt 2** (always automatic — repeated failure but bounded retry budget): repeat with new error context.
 5. If still failing after 2 attempts: report failure with original error, what was attempted, and suggested next steps.
 
-> After each gated decision (Hotfix Attempt 2 gate, commit gate), record the decision per the Decision Point Logging Rule. run-test keeps decisions in memory; they propagate up to the pipeline skill's pipeline_summary.md.
+> Record each commit / hotfix outcome per the Decision Point Logging Rule. run-test keeps decisions in memory; they propagate up to the pipeline skill's pipeline_summary.md.
 
 ## Log Directory Resolution
 - If $ARG points to a plan file: log directory is the task root (grandparent of `plan/plan.md`).

@@ -41,10 +41,13 @@
 - 처리 가능 step 모두 끝날 때까지 중단 금지
 
 ## QA Scaling
-plan frontmatter의 `qa_level`이 모든 phase auto-detect를 override. `autonomy_level`이 의사결정 게이팅. 기본: `proactive`.
+plan frontmatter의 `qa_level`이 모든 phase auto-detect를 override.
+
+> `autonomy_level`은 deprecated (CONVENTIONS.md §3, 2026-05-13). 모든 게이트는 auto-proceed로 일원화.
 
 | Level | 조건 | 행동 |
 |---|---|---|
+| Quick | `--qa quick` 명시 시 (autopilot-code에서 전파) | 1× 품질관리팀 (sonnet), 1-pass; 🔴 이슈는 `pipeline_summary.md` Decision Points에 기록만 |
 | Light | ≤3 units, 기계적, 단일 variant | 1× 품질관리팀 (sonnet) |
 | Standard | 4-10 units, 로직, 단일 모듈 | 1× (opus) |
 | Thorough | >10 units, cross-module, 아키텍처 | 2-3× 병렬 (opus): A 정확성 / B 일관성 / C 안전 |
@@ -58,14 +61,14 @@ plan frontmatter의 `qa_level`이 모든 phase auto-detect를 override. `autonom
 2. 리뷰 파일 확인:
    - 🟡: 로그 후 계속
    - 🔴 minor: 개발팀 1회 수정 → 재검증. 여전히 🔴이면 major로 승격
-   - 🔴 major: **Autonomy gate (Significant)** — proactive 자동 롤백 / standard·passive 질문
+   - 🔴 major: **auto-rollback + continue** (사용자 질문 없음)
 3. 롤백 절차:
    1. 개발팀에 롤백 위임 (step log의 old_string 복원)
    2. 실패 시 `$SAFETY_COMMIT` → `git checkout .` (모든 미커밋 revert, 이전 phase 포함). 모든 step `[FAIL]` → Final Report
    3. 성공 시 phase step `[FAIL]` + 다음 phase. 의존 step은 `[SKIP-DEP]`
 
 - ≤3 steps → phase 그룹핑 생략, 모든 step 완료 후 한 번 리뷰
-- **Total Failure**: **Autonomy gate (Critical)** — proactive 자동 롤백 / standard·passive 질문
+- **Total Failure**: **auto-rollback to safety commit** (사용자 질문 없음)
 
 ## 안전 규칙 (중요)
 - 시그니처 변경 전: grep 모든 call site, 모든 caller 업데이트, 묵시적 계약 확인

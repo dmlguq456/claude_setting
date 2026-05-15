@@ -29,6 +29,7 @@
 | **Notion 작업** ("노션에 기록", "Notion 업데이트", 페이지 CRUD, DB 항목 관리, 실험 결과 로깅, 회의록 정리, 논문 작업 추적, Agents/Skills 페이지 갱신 등) | `~/.claude/notion_guide.md` | 메인 Claude가 `mcp__claude_ai_Notion__*` 도구 직접 호출. **sub-agent로 위임 X** (sub-agent runtime의 MCP 도구 접근 제약). 작성 원칙 (concise / uniform / short breath) + 페이지 타입 4종 (실험·회의·논문·보고) + 안전 규칙 (replace_content 금지, columns 자식 페이지 보존) 준수. |
 | **doc/research 산출물 수정 요청** (`.claude_reports/{documents,research}/*` 자연어 수정·정정·보강 prompt) | `~/.claude/README.md` §7 "운영 룰" + autopilot-refine SKILL.md `## Default Invocation Rule` | 메인 Claude가 `/autopilot-refine` 명시 없이도 `autopilot-refine "<prompt>" --qa quick` 자동 invoke. 상세 트리거·scope·override는 README 운영 룰 / 해당 SKILL.md 섹션이 단일 source of truth (sync-skills가 자동 동기화). |
 | **QA level·agent model·family-wide flag 정의 작업** (SKILL.md / README의 QA 표 작성·수정, agent model 표기, 신규 skill의 `--qa` 옵션 채택, `--refs`/`--format-ref` 같은 폐기 flag 검증 등) | `~/.claude/CONVENTIONS.md` | 정의 wording은 본 문서 §1~§5 그대로 사용. 신규 정의 추가·변경 시 본 문서를 먼저 수정한 후 `/sync-skills`로 다른 곳에 propagate. drift 발견 시 본 문서가 진실의 출처. |
+| **세션 시작 / 새 working dir 진입** (`/clear` 후 첫 사용자 메시지 포함) | `<cwd>/.claude_reports/NOTES.md` (있을 때만 — 없으면 무시) | 사용자가 `/notes` skill로 명시적으로 관리하는 per-project 메모. 메인 Claude가 즉시 Read해서 컨텍스트 적재. 갱신은 항상 `/notes` 명령으로 (Claude 자동 X — 자동 메모리 `~/.claude/projects/*/memory/`와는 별개 layer). |
 
 > 이 표는 의도적으로 **작게** 유지. 새 도메인 트리거 추가 시 `(트리거, 가이드 파일, 준수 규칙 한 줄)` 형식으로 한 행만 추가.
 

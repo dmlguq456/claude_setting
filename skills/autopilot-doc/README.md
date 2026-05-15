@@ -23,7 +23,7 @@ flowchart LR
 
 ## 명령 형식
 ```
-/autopilot-doc "<task description>" [--mode rebuttal|write|review|report|proposal|presentation] [--qa quick|light|standard|thorough] [--user-refine] [--no-clarify] [--from analyze|strategy|strategy-refine|draft|draft-refine|finalize]
+/autopilot-doc "<task description>" [--mode rebuttal|paper|review|report|proposal|presentation] [--qa quick|light|standard|thorough] [--user-refine] [--no-clarify] [--from analyze|strategy|strategy-refine|draft|draft-refine|finalize]
 ```
 
 | 플래그 | 설명 |
@@ -43,7 +43,7 @@ flowchart LR
 | 모드 | 용도 | 산출물 |
 |---|---|---|
 | rebuttal | 학회 reviewer 응답 | 포인트별 응답 strategy + draft |
-| write | 논문 / camera-ready / 백서 / 기술 블로그 / 책 챕터 / 일반 글쓰기 | 섹션별 outline + draft (markdown) |
+| paper | 학술 논문 / camera-ready / major revision / 백서 / 책 챕터 / 기술 블로그 | 섹션별 outline + draft (markdown) |
 | review | 본인이 reviewer 입장 (peer review) | review draft (format spec 기반 섹션 구성) |
 | report | 기술 보고서 / 시장 분석 / 분기 보고 / post-mortem | 분석 framework + draft |
 | proposal | 연구 grant / 사업 제안 / 내부 프로젝트 제안 | 문제 정의 + 접근법 + draft |
@@ -62,7 +62,7 @@ flowchart LR
 |---|---|
 | review | **Hard fail** — reviewer guideline 없이 진행 X |
 | rebuttal | Step 0 prompt — materialize 후 retry / inline 선언 / generic 동의 |
-| write / presentation / proposal / report | warn-and-fallback (generic layout으로 진행) |
+| paper / presentation / proposal / report | warn-and-fallback (generic layout으로 진행) |
 
 **rebuttal sub-type 3종** (format spec 또는 task description에 명시, 별도 flag 없음):
 - *meta-only* — AC/SAC만 보는 단일 응답

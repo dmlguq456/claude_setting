@@ -1,7 +1,7 @@
 ---
 name: autopilot-doc
 description: "Document strategy & draft pipeline — analyze → strategy → strategy-refine → draft → draft-refine → finalize. 6 modes produce both strategy AND draft (markdown only). All inputs (refs / templates / reviewer comments / samples) are discovered implicitly from `.claude_reports/{analysis_project,research}/*` — pre-process external materials via `/analyze-project --mode {paper|doc}` first (cwd 자동 발견). Format specs (venue/journal/lab guidelines + templates + samples) are auto-loaded from `analysis_project/doc/{matching}/formats/` — no explicit `--format-ref` flag. `review` mode hard-fails if format spec missing; other modes warn-and-fallback to generic layout. `presentation` mode produces slide-by-slide markdown only (PPTX export NOT supported — use PowerPoint directly); slide template format-ref is N/A since markdown is the deliverable."
-argument-hint: "<task description> [--mode rebuttal|write|review|report|proposal|presentation] [--qa quick|light|standard|thorough] [--user-refine] [--no-clarify] [--from analyze|strategy|strategy-refine|draft|draft-refine|finalize]"
+argument-hint: "<task description> [--mode rebuttal|paper|review|report|proposal|presentation] [--qa quick|light|standard|thorough] [--user-refine] [--no-clarify] [--from analyze|strategy|strategy-refine|draft|draft-refine|finalize]"
 ---
 
 > **산출물 폴더 컨벤션**: [SKILL_OUTPUT_CONVENTION.md](../../SKILL_OUTPUT_CONVENTION.md) (3-tier: T1 root / T2 named subdir / T3 `_internal/`). reviewer 로그는 `_internal/strategy_reviews/`·`_internal/draft_reviews/`. 버전 스냅샷은 `_internal/versions/v{N}/strategy/`, `v{N}/draft/` (refine-doc의 `_v{N}.md` 형제 패턴은 폐기).
@@ -14,7 +14,7 @@ Parse `$ARGUMENTS` for mode, flags, and task description:
 
 **`--mode` (optional, auto-inferred from query)**:
 - `rebuttal` — Rebuttal strategy for reviewer comments
-- `write` — Paper writing strategy (outline, positioning, contributions)
+- `paper` — Academic paper writing / camera-ready / major revision (outline, positioning, contributions). Covers initial submission, accepted-paper finalization, and revision cycles.
 - `review` — Paper/document review (as reviewer: strengths/weaknesses/questions). Produces strategy + full review draft (OpenReview-ready).
 - `report` — Technical report / white paper (findings, analysis, recommendations)
 - `proposal` — Research or project proposal (problem, approach, plan, budget)
@@ -26,7 +26,8 @@ Parse `$ARGUMENTS` for mode, flags, and task description:
 - "리뷰·review·peer review·reviewer 입장" → `review`
 - "보고서·report·기술 분석" → `report`
 - "제안서·proposal·연구계획·grant" → `proposal`
-- 그 외 / 명시적이지 않으면 → `write` (default for paper writing)
+- "논문·paper·camera-ready·revision·book chapter·기술 블로그" → `paper`
+- 그 외 / 명시적이지 않으면 → `paper` (default for academic longform)
 - 추론 결과를 한 줄로 사용자에게 통보 후 진행. 모호하면 Step 0 Scope Clarification에서 확인.
 
 > **Note**: `survey` mode is removed. For 학술/산업/시장 조사, use `/autopilot-research --mode academic|technology|market` first → autopilot-doc은 `research/{topic}/` artifact를 implicit으로 자동 발견.
@@ -43,7 +44,7 @@ mode별 _필수_ 입력:
 |---|---|---|
 | `rebuttal` | `analysis_project/doc/{matching}/reviewers/` (reviewer comments) | `analysis_project/paper/` (원 paper 분석), `analysis_project/doc/{matching}/formats/` (rebuttal guideline) |
 | `review` | `analysis_project/doc/{matching}/formats/` (review form) | `analysis_project/paper/` (대상 paper 분석) |
-| `write` | (없음) | `analysis_project/paper/`, `analysis_project/doc/{matching}/formats/` (venue paper template), `research/{topic}/` (분야 컨텍스트) |
+| `paper` | (없음) | `analysis_project/paper/`, `analysis_project/doc/{matching}/formats/` (venue paper template), `research/{topic}/` (분야 컨텍스트) |
 | `proposal`, `report`, `presentation` | (없음) | mode 적합한 자료들 (위 패턴 응용) |
 
 매치 0: 사용자에게 안내 — "필요 자료를 `analyze-project --mode {paper|doc} <folder>` 로 먼저 사전 분석하세요" + 진행 여부 확인.
@@ -56,7 +57,7 @@ mode별 _필수_ 입력:
 > Mode별 _자동 발견 입력 카테고리_ (Pre-flight에서 결정):
 > - rebuttal: `analysis_project/doc/{matching}/reviewers/` + `analysis_project/paper/` (선택) + `analysis_project/doc/{matching}/formats/` (선택)
 > - review: `analysis_project/doc/{matching}/formats/` (REQUIRED) + `analysis_project/paper/` (선택)
-> - write/proposal/report/presentation: 사용 가능한 `analysis_project/paper/` + `research/{topic}/` + `analysis_project/doc/{matching}/formats/` 조합
+> - paper/proposal/report/presentation: 사용 가능한 `analysis_project/paper/` + `research/{topic}/` + `analysis_project/doc/{matching}/formats/` 조합
 
 **`--qa <level>`** — override QA intensity for the pipeline:
 - `--qa quick` → fastest path: **skip Step 3 (strategy refine) and Step 5 (draft refine) entirely** + run a single sonnet quality reviewer pass at each review point with **no re-invoke** even if memos are added (memos are saved as audit trail, refine-doc is NOT invoked). `--user-refine` is silently ignored. fact-checker disabled.
@@ -103,7 +104,7 @@ When resuming with `--from`, the positional argument should be either the artifa
 |---|---|
 | `review` | review template sections / rating axes (1-N with labels) / length limit / tone / submission portal layout |
 | `rebuttal` | rebuttal length limit / allowed scope / **sub-type indication** (meta-reviewer-only one-shot vs reviewer-dialogue multi-round vs response-with-paper-revision) / submission window / examples of past-year rebuttals if available |
-| `write` | venue paper template (e.g. NeurIPS 2026 LaTeX style) / page limits / section requirements / citation style / required disclosures |
+| `paper` | venue paper template (e.g. NeurIPS 2026 LaTeX style) / page limits / section requirements / citation style / required disclosures |
 | `presentation` | lab/venue slide template / time limits / required sections / branding rules / sample past presentations |
 | `proposal` | grant body's required sections (NRF/NSF/internal) / page/word limits / required attachments / evaluation criteria |
 | `report` | company/team report template / required sections / branding / audience expectations |
@@ -121,11 +122,11 @@ When resuming with `--from`, the positional argument should be either the artifa
 | `review` | **Hard fail at pre-flight** — review mode cannot proceed without a venue review form. Abort with: "review mode requires a format file in `analysis_project/doc/{matching}/formats/` — run `/analyze-project --mode doc <folder>` first to extract it. Venues differ year-to-year — no built-in presets." |
 | `rebuttal` | **Pre-flight prompt** — ask user: (a) materialize the format via `/analyze-project --mode doc <folder>` and retry, or (b) declare format constraints inline in `<task description>` (length limit, sub-type, scope), or (c) opt into generic conference rebuttal layout (warn quality drop). |
 | `proposal` | Warn-and-fallback to generic proposal layout. Recommend running `/analyze-project --mode doc <funding_body_template_folder>` first for NRF/NSF/internal grants. |
-| `write` | Warn-and-fallback to generic paper/article layout. Strong warning if target venue is academic — Suggest: "venue paper template (e.g. NeurIPS LaTeX style) significantly improves draft quality; run `/analyze-project --mode doc <folder>` first to extract it." |
+| `paper` | Warn-and-fallback to generic paper/article layout. Strong warning if target venue is academic — Suggest: "venue paper template (e.g. NeurIPS LaTeX style) significantly improves draft quality; run `/analyze-project --mode doc <folder>` first to extract it." |
 | `presentation` | Warn-and-fallback to generic slide-by-slide markdown. Lab/venue slide templates improve fit but not blocking. |
 | `report` | Warn-and-fallback to generic report layout. Suggest internal company template if applicable (preprocess via `analyze-project --mode doc`). |
 
-> Sub-type information for rebuttal (meta-only / reviewer-dialogue / response-with-revision), section structure for review, page limits for write, etc. are all **extracted from the auto-discovered format spec file**. No separate flags. If the file lacks the info, agent asks the user at Step 0 (within fallback prompt) or proceeds with documented assumptions.
+> Sub-type information for rebuttal (meta-only / reviewer-dialogue / response-with-revision), section structure for review, page limits for paper, etc. are all **extracted from the auto-discovered format spec file**. No separate flags. If the file lacks the info, agent asks the user at Step 0 (within fallback prompt) or proceeds with documented assumptions.
 
 The remaining text (after removing mode and flags) is the task description.
 
@@ -142,7 +143,7 @@ The pipeline runs with sane defaults and only pauses on genuinely ambiguous or d
 | No reviewer comments for rebuttal | **Always ask** at pre-flight. |
 | Strategy review → memos added | Auto-refine (or pause for user-memo if `--user-refine` is set). |
 | Draft review → memos added | Auto-refine (or pause for user-memo if `--user-refine` is set). |
-| Format spec resolution | _Always_ from `analysis_project/doc/{matching}/formats/` (classified by `analyze-project --mode doc` in advance). No `--format-ref` flag. If missing, mode-specific fallback: `review` hard-fails; `rebuttal` prompts user; `write`/`proposal`/`report` warn-and-fallback to generic layout; `presentation` N/A (markdown only). |
+| Format spec resolution | _Always_ from `analysis_project/doc/{matching}/formats/` (classified by `analyze-project --mode doc` in advance). No `--format-ref` flag. If missing, mode-specific fallback: `review` hard-fails; `rebuttal` prompts user; `paper`/`proposal`/`report` warn-and-fallback to generic layout; `presentation` N/A (markdown only). |
 | Reviewer guidelines absent in refs (review mode) | Use built-in spec only; inform user. |
 | Scope Clarification triggered | Ask 2-4 questions; auto-proceed if `--no-clarify`. |
 
@@ -212,11 +213,11 @@ All outputs go to:
 Validate mode-specific required inputs. If any check fails, **abort immediately** with a clear error message — do NOT create the artifact directory or invoke any sub-skills/agents.
 
 **Universal checks** (all modes):
-1. Mode is one of the 6 supported modes (rebuttal / write / review / report / proposal / presentation) — explicit `--mode` 또는 auto-inference. Otherwise abort: "Unknown mode: {mode}. Supported: ...".
+1. Mode is one of the 6 supported modes (rebuttal / paper / review / report / proposal / presentation) — explicit `--mode` 또는 auto-inference. Otherwise abort: "Unknown mode: {mode}. Supported: ...".
 2. **Input Discovery** (replacing old `--refs` check): run fuzzy match on task description vs `.claude_reports/analysis_project/{paper,doc}/*` and `.claude_reports/research/*`. Per mode:
    - rebuttal: at least one match in `analysis_project/doc/*/reviewers/` REQUIRED. If none → abort with: "rebuttal mode needs reviewer comments. Run `/analyze-project --mode doc <folder>` first to materialize them."
    - review: at least one match in `analysis_project/doc/*/formats/` REQUIRED. If none → abort with similar message for review form.
-   - write/proposal/report/presentation: no hard requirement, but warn if no matches at all and ask user to confirm.
+   - paper/proposal/report/presentation: no hard requirement, but warn if no matches at all and ask user to confirm.
    - Stash discovered paths into orchestrator context as `{discovered_inputs}` for downstream Steps.
 
 **Mode-specific checks**:
@@ -239,7 +240,7 @@ Validate mode-specific required inputs. If any check fails, **abort immediately*
 
 - **presentation mode** — format spec **N/A** (markdown deliverable; slide template은 PowerPoint 단). 사용자가 task에 format 관련 표현을 넣어도 markdown 산출 자체에는 무시.
 
-- **proposal / report / write modes** — format spec optional. If absent, fallback to generic mode-specific layout. For `write` targeting an academic venue (detected from task description or discovered inputs), strongly recommend pre-processing the venue's paper template via `/analyze-project --mode doc`.
+- **proposal / report / paper modes** — format spec optional. If absent, fallback to generic mode-specific layout. For `paper` targeting an academic venue (detected from task description or discovered inputs), strongly recommend pre-processing the venue's paper template via `/analyze-project --mode doc`.
 
 **Abort behavior**:
 - Print the error message in Korean to the user.
@@ -261,7 +262,7 @@ After all pre-flight checks pass: create `artifact_dir` and proceed to Step 0.
 **Action**: 메인 Claude가 mode-aware 2-4개 sharp question을 던진다. 사용자 답변을 task description에 통합 후 Step 1 진행.
 
 **Mode-specific question seed**:
-- `write` / `report` / `proposal`: 청중, 길이/페이지 제한, 강조 포인트, deadline
+- `paper` / `report` / `proposal`: 청중, 길이/페이지 제한, 강조 포인트, deadline
 - `presentation`: 청중 (전공자/비전공자/임원), 시간 (30/45/60min), 핵심 메시지 1개
 - `review`: venue / 리뷰 가이드라인 / 점수 체계
 - `rebuttal`: rebuttal 길이 제한, 추가 실험 가능 여부, 톤 (defensive vs concessive)
@@ -279,7 +280,7 @@ Read and catalog all materials from refs folder.
 1. **Inventory**: List all files with brief descriptions. Write to `analysis/material_index.md`.
 2. **Analyze by mode**:
    - **rebuttal**: Parse reviewer comments → `analysis/reviewer_analysis.md` (per-reviewer, per-point breakdown with severity classification)
-   - **write**: Analyze reference papers → `analysis/ref_analysis.md` (methods, gaps, positioning opportunities)
+   - **paper**: Analyze reference papers → `analysis/ref_analysis.md` (methods, gaps, positioning opportunities)
    - **review**: Analyze target paper/document → `analysis/ref_analysis.md` (methodology assessment, quality analysis)
    - **report**: Analyze source data/papers → `analysis/ref_analysis.md` (findings, evidence assessment, data quality)
    - **proposal**: Analyze related work and context → `analysis/ref_analysis.md` (prior art, feasibility evidence, competitive landscape)
@@ -429,7 +430,7 @@ Invoke Skill: `init-doc-strategy` with args: `<mode> --inputs <comma-separated-d
 4. If no memos: Skip to Step 4. (When resumed via `--from strategy-refine`, the orchestrator skips the 연구팀 review and runs refine-doc directly using the pre-existing memos.)
 
 ### Step 4: Draft Generation
-**Applicable modes**: rebuttal, write, report, proposal, review, presentation. (All 6 modes generate drafts.)
+**Applicable modes**: rebuttal, paper, report, proposal, review, presentation. (All 6 modes generate drafts.)
 
 #### Step 4.0a: Multi-source Figure Discovery
 
@@ -543,7 +544,7 @@ This propagation is mandatory: a `tone: administrative` strategy with a heroic-p
 - Additional experiments section with preliminary descriptions
 - Revision summary table
 
-### write
+### paper
 - Frontmatter: type, venue, status: draft, date
 - Full paper outline with section drafts:
   - Abstract (structured: background → gap → method → results → impact)
@@ -624,7 +625,7 @@ Generate a **PPT cheatsheet markdown** — single file, optimized for human read
 8. **Slide-number consistency on insertion/deletion** — when inserting/removing/renumbering a slide, update ALL of the following in the same edit pass:
    - (a) All subsequent slide numbers (`Slide N+1`, `Slide N+2`, ...)
    - (b) Contents slide's chapter slide-counts ("Ch.N (M장)")
-   - (c) CHANGELOG entry at file top
+   - (c) Changelog entry inside the frontmatter `changelog:` array (per `refine-doc` convention — never a top-of-file HTML comment, which breaks markdown preview when frontmatter is present)
    - (d) Time-budget line in the top-of-file guide
    - (e) Cross-references in other slides ("Slide M의 ...")
    - (f) Chapter meta lines ("M장 중 K번째")
@@ -711,7 +712,7 @@ Generate a **PPT cheatsheet markdown** — single file, optimized for human read
 - Mark uncertain or placeholder content with `[TODO: ...]`.
 - **Mode-specific completeness criteria**:
   - **rebuttal**: 90%+ — every reviewer point MUST have a drafted response (hard constraint). Missing a point is a critical error.
-  - **write/report/proposal**: 70-80% — all sections with substantive content, no heading-only sections.
+  - **paper/report/proposal**: 70-80% — all sections with substantive content, no heading-only sections.
   - **review**: 80%+ — every required section per the auto-discovered format spec must be filled with concrete claims. Strengths/weaknesses must reference specific paper sections/figures/tables. Score justifications are mandatory.
   - **presentation**: 70-80% — every slide has 제목/부제(선택)/bullets/시각자료/Speaker note 5개 슬롯이 채워짐 (시각자료가 텍스트만 있는 슬라이드에 빠지면 cheatsheet 가치 손상). Speaker notes ≥80% of content slides. 슬라이드 카운트는 strategy outline과 ±10% 이내. `---` 구분자가 모든 슬라이드 사이에 있는지 확인.
 
@@ -741,7 +742,7 @@ Write both files directly. Return ONLY the file paths and a 3-5 line Korean summ
 If N + M + K == 0: emit `✅ Draft 사실 확인: 검증된 클레임 {verified}건, 문제 없음` and log accordingly.
 
 ### Step 5: Draft Review (연구팀 as QA)
-**Applicable modes**: rebuttal, write, report, proposal, review, presentation. (All 6 modes that generated drafts.)
+**Applicable modes**: rebuttal, paper, report, proposal, review, presentation. (All 6 modes that generated drafts.)
 
 1. Resolve draft paths:
    - `en_draft_path` = `{strategy_folder}/draft/draft.md`
