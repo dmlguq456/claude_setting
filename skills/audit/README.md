@@ -10,7 +10,18 @@ Type별 lint aspects:
 - **research** → cards 정합성 / Tier consistency / coverage / cross-card
 - **plans** → test results / lint / code review / TODO·미구현
 
-기본 `--scope all`. **Report-only** — 본 skill은 절대 artifact를 수정하지 않습니다. autopilot-refine과 보완 관계 (refine = edit flow, audit = inspect flow).
+doc / research artifact는 추가로 **dual-perspective** 점검:
+- **P1 — vs last major baseline**: `pipeline_summary.md` `## 마이너 변경 로그` + `_internal/versions/v{N}/` 스냅샷 diff. 누적된 minor가 _집합적으로_ artifact를 어디로 drift시켰는지.
+- **P2 — vs universal principles**: 현재 artifact 상태의 aspect-by-aspect 점검 (시점 무관).
+- 두 결과 cross-correlate → P2 finding의 file:line이 P1 minor entry의 Files touched에 매칭되는지 확인 → "최근 도입 (fix 우선순위 高)" vs "기존 잔존" 분류.
+
+기본 `--scope auto`. **Report-only** — 본 skill은 절대 artifact를 수정하지 않습니다. autopilot-refine과 보완 관계 (refine = edit flow, audit = inspect flow).
+
+## Cadence (언제 audit 실행)
+
+- **사용자 명시 `/audit <artifact>`** — 즉시
+- **AUDIT_HINT_THRESHOLD (default 5 minors since last major)** 도달 시 — autopilot-refine 또는 직접 Edit 작업 종료 후 chat alert로 권장 (자동 실행 X)
+- **자동 fix chain dispatch에서 spawned audit** — autopilot-refine 또는 autopilot-code의 fix routing에서
 
 ## 호출 형식
 ```

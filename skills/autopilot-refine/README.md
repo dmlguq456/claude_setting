@@ -18,12 +18,24 @@ Autopilot family — **post-creation iteration pipeline for research and doc art
 ```
 
 ## Default Invocation Rule (자동 호출 트리거)
-**메인 Claude가 slash command 명시 없이 자동 invoke** — `.claude_reports/{documents,research}/*` 하위 artifact에 대한 자연어 수정·정정·보강·스타일 변경 prompt를 받으면 `autopilot-refine "<prompt>" --qa quick`을 자동 호출.
+**메인 Claude가 slash command 명시 없이 자동 invoke되는 조건은 _major-level 변경_으로만 narrowing.** `.claude_reports/{documents,research}/*` 하위 artifact에 대한 prompt가 다음 3-criteria 중 하나에 해당할 때 `autopilot-refine "<prompt>" --qa quick`을 자동 호출:
+
+1. **사용자 명시**: "major" / "v{N+1}" / "/autopilot-refine" / "전면 재작성" / "phase 재시작"
+2. **구조적 대규모 변경**: ≥200 줄 영향 / 전체 section rewrite / mutation tier 재분류 batch
+3. **외부 검토 직전 ceremony**: "camera-ready 마무리" / "submission 직전 finalize" / "PR open 직전"
+
+**Minor-level (default — 위 미해당 시 모두)** = 직접 Edit + `pipeline_summary.md` 상세 minor log entry 추가 (snapshot X, last major snapshot이 audit baseline). 누적 minor 5건 도달 시 `/audit` 권장 alert → audit이 dual-perspective (vs last major + vs principles) batch 점검.
+
+**Minor log entry 형식** (반드시 준수 — 추적성 핵심):
+
+- `## 버전 히스토리` 표에 `| v{N}_M | YYYY-MM-DD | (minor) 한 줄 요지 |` row 추가
+- `## 마이너 변경 로그 (v{N} → next major 누적)` 섹션에 상세 entry (Trigger / Scope / Rationale / Files touched / Cross-ref / Audit-flag / Reversibility)
 
 **Override 1순위**:
-- (a) 다른 qa level 명시 (`standard`/`thorough`/`adversarial`)
-- (b) "refine 없이 직접 edit" · "Edit으로 처리" · "versioning 없이"
+- (a) 다른 qa level 명시 (`standard`/`thorough`/`adversarial`) → 강제 refine
+- (b) "refine 없이 직접 edit" · "Edit으로 처리" · "versioning 없이" → 강제 minor 경로
 - (c) `--review-only` 검수만 요청
+- (d) `/autopilot-refine` slash 명시 invoke → 강제 refine flow
 
 ## 모드
 | 플래그 | 동작 |
@@ -43,8 +55,8 @@ Autopilot family — **post-creation iteration pipeline for research and doc art
 | adversarial | thorough (2× opus + fact-checker) + Codex 외부 리뷰 (camera-ready·grant 등) |
 
 ## 버전 + 이력
-- 적용 시 `_internal/versions/v{N}/` 스냅샷
-- `pipeline_summary.md`에 통합 history 누적 (별도 CHANGELOG 없음)
+- **Major 적용 시**: `_internal/versions/v{N+1}/` 스냅샷 + `pipeline_summary.md` 통합 history 누적. Stage D는 활성 `## 마이너 변경 로그` 섹션을 _verbatim_ 으로 새 major의 `## v{N+1} 변경 사항` 안 `### 누적 마이너 변경 사항 (v{N}_1 → v{N}_M)` sub-block 으로 migrate + 활성 로그 섹션 clear.
+- **Minor 적용 시**: snapshot X — Claude가 직접 Edit + `pipeline_summary.md` `## 마이너 변경 로그` 섹션에 상세 entry. last major snapshot이 audit baseline.
 
 ---
 *원본: `~/.claude/skills/autopilot-refine/SKILL.md`*
