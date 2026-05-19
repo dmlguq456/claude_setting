@@ -55,8 +55,8 @@ Autopilot family — **post-creation iteration pipeline for research and doc art
 | adversarial | thorough (2× opus + fact-checker) + Codex 외부 리뷰 (camera-ready·grant 등) |
 
 ## 버전 + 이력
-- **Major 적용 시**: `_internal/versions/v{N+1}/` 스냅샷 + `pipeline_summary.md` 통합 history 누적. Stage D는 활성 `## 마이너 변경 로그` 섹션을 _verbatim_ 으로 새 major의 `## v{N+1} 변경 사항` 안 `### 누적 마이너 변경 사항 (v{N}_1 → v{N}_M)` sub-block 으로 migrate + 활성 로그 섹션 clear.
-- **Minor 적용 시**: snapshot X — Claude가 직접 Edit + `pipeline_summary.md` `## 마이너 변경 로그` 섹션에 상세 entry. last major snapshot이 audit baseline.
+- **Major 적용 시**: `_internal/versions/v{N+1}/` 스냅샷 + `pipeline_summary.md` 통합 history 누적. Stage D는 활성 `## 마이너 변경 로그` 섹션을 _verbatim_ 으로 새 major의 `## v{N+1} 변경 사항` 안 `### 누적 마이너 변경 사항 (v{N}_1 → v{N}_M)` sub-block 으로 migrate + 활성 로그 섹션 clear. **추가로 각 affected file의 frontmatter `changelog:` array에 v{N+1} entry insert** (in-file git-tracked lineage 보존).
+- **Minor 적용 시**: snapshot X — Claude가 직접 Edit + `pipeline_summary.md` `## 마이너 변경 로그` 섹션에 상세 entry. **추가로 각 affected file의 frontmatter `changelog:` array에 v{N}_M entry 1줄 insert**. last major snapshot이 audit baseline.
 
 ---
 *원본: `~/.claude/skills/autopilot-refine/SKILL.md`*

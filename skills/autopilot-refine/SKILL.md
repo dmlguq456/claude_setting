@@ -66,6 +66,23 @@ Naming consistency: same `--qa quick|light|standard|thorough|adversarial` flag a
 
 > **Audit-flag**는 핵심 — 누적 minor 점검 시 audit이 각 entry의 audit-flag를 collate해 dual-perspective 첫 번째 pass (vs last major)를 효율적으로 scope.
 
+**(c) 각 affected file frontmatter `changelog:` 1줄 entry** — file의 YAML frontmatter에 `changelog:` array가 정의돼 있으면, 새 version entry를 array 최상단에 insert:
+
+```yaml
+changelog:
+  - version: v{N}_M
+    date: "{YYYY-MM-DDTHH:MM}"
+    applied: {count}
+    overridden: 0
+    entries:
+      - |
+        [MINOR {scope}] [direct Edit]: {1줄 변경 요약, ≤200자}
+  - version: v{N}_{M-1}
+    ... (기존 entries 보존)
+```
+
+frontmatter `changelog:` 필드 자체가 없는 file은 skip. **이 step은 pipeline_summary 마이너 로그 entry (위 b) 와 중복 layer**지만, in-file frontmatter는 git-tracked file 자체에 남아 `git log {file}` + frontmatter scan만으로 해당 파일의 변경 lineage 추적 가능 — pipeline_summary가 손상되거나 cross-artifact reference 시점에 유용.
+
 ### Major 적용 시 동작
 
 `autopilot-refine --qa quick` (default) 자동 invoke:
@@ -385,7 +402,31 @@ Parse the user's reply, then:
 
    audit이 fix dispatch 후 major bump한 경우엔 audit log가 이미 누적분을 검토했으므로 위 sub-block 헤더에 ` — audit consumed` 마커 추가. audit 없이 사용자 직접 major refine한 경우엔 마커 생략 (단, audit 권장 alert를 Stage 5 report에 surface).
 
-   These four updates together reproduce the integrated pattern users observe in manually-curated pipeline_summary files (single file = full lifecycle, plus minor log migration trail).
+   **(e) Update in-file `changelog:` frontmatter** — 각 affected file의 YAML frontmatter에 `changelog:` array 필드가 정의돼 있으면, 새 version entry를 array 최상단(newest-first)에 insert. pipeline_summary.md의 메타 history (4(a)-4(d))와 _중복 layer_ 지만, in-file frontmatter는 _파일 자체의 git-tracked history_라 별도 보존 가치 있음 (특히 `git log {file}` + frontmatter scan만으로 해당 파일의 변경 lineage 추적 가능).
+
+   형식 (`refine-doc` 컨벤션 mirror):
+
+   ```yaml
+   changelog:
+     - version: v{N}
+       date: "{YYYY-MM-DDTHH:MM}"
+       applied: {count}
+       overridden: 0
+       entries:
+         - |
+           [{TYPE} {scope}] [verified {source}]: {1-2 line description per fix block, ≤300자}
+         - |
+           ...
+     - version: v{N-1}
+       ... (기존 entries 보존 — 절대 삭제 X)
+   ```
+
+   - `{TYPE}`: `STYLE`/`STRUCT`/`FACT`/`MEMO` 등 변경 성격. `{scope}`: section anchor or mutation ID.
+   - `{verified source}`: ground-truth (cards / baseline file / 사용자 직접 지시 등).
+   - `frontmatter changelog:` 필드 자체가 없는 file은 skip (e.g., research artifact의 일부 chapters).
+   - 신규 file (changelog 처음 만드는 경우)이면 array 신설 + 직전 version (v{N-1}) 도 `{date: ..., note: "<creation date>의 pipeline 생성"}` 형식으로 1줄 add.
+
+   These five updates together reproduce the integrated pattern users observe in manually-curated pipeline_summary files + per-file changelog (single file = full lifecycle, plus minor log migration trail, plus per-file changelog mirror).
 
 5. **Report** to user (≤6 lines):
    ```
