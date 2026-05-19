@@ -1,7 +1,7 @@
 {
   "version": 3,
-  "last_readme_sync": "2026-05-19T11:04:15+09:00",
-  "last_notion_sync": "2026-05-19T11:04:15+09:00",
+  "last_readme_sync": "2026-05-19T18:30:00+09:00",
+  "last_notion_sync": "2026-05-19T18:30:00+09:00",
   "items": {
     "skills/analyze-project": {
       "sha256": "db949ea7a6311b898accc66945d4dab552f4df925fe7ee111db71588a9100cc5",
@@ -34,14 +34,14 @@
       "notion_synced_sha256": "618666c9d87366f849fcc834915b43e5778c0fa47349e8bfb09cd440aa4d2835"
     },
     "skills/autopilot-doc": {
-      "sha256": "86267d9bcc20168745e7427c9a3e56094a5c1ecfb7603d9758412d8ac5e9aeb6",
-      "synced_at": "2026-05-14T14:30:00+09:00",
+      "sha256": "25ac39c9ef15be6479f38c9ec845982b380c92e6e381f5d83acf619ce4e93d77",
+      "synced_at": "2026-05-19T18:30:00+09:00",
       "readme_path": "skills/autopilot-doc/README.md",
-      "readme_sha256": "6db83f71df3eef7403303fb9aaf69bab231ecf3f3c6dcaf0288aca7f6e3f5c6c",
-      "readme_mtime": "2026-05-13T17:07:25+09:00",
+      "readme_sha256": "2a5de0c1f2a628b53c281466232bf9b66aca351d3e9af5d0e8f8f5d34bec2c67",
+      "readme_mtime": "2026-05-19T18:30:00+09:00",
       "notion_page_id": "33e87c2b-b753-8133-8b82-d75e34bb04c9",
-      "notion_last_edited_time": "2026-05-13T17:15:00+09:00",
-      "notion_synced_sha256": "6db83f71df3eef7403303fb9aaf69bab231ecf3f3c6dcaf0288aca7f6e3f5c6c"
+      "notion_last_edited_time": "2026-05-19T18:30:00+09:00",
+      "notion_synced_sha256": "2a5de0c1f2a628b53c281466232bf9b66aca351d3e9af5d0e8f8f5d34bec2c67"
     },
     "skills/autopilot-refine": {
       "sha256": "3d8bd271b23d8e7d970b6701d4dc0fc249bb16ad59f7514cac596ae5046b068b",
@@ -85,14 +85,14 @@
       "notion_synced_sha256": "4273e964a27bdba70ce8ba2877456cfe09b26cae15db7e4193b9f6e81f316de0"
     },
     "skills/init-doc-strategy": {
-      "sha256": "5a00a5d42f55a8cffdeae27a7ac532b59d1f1c38e6a1a4c1349e4c8a687866f5",
-      "synced_at": "2026-05-14T14:30:00+09:00",
+      "sha256": "7a9a0a61d076e8080758cc6c5b163b33161c688a87514afa9bfe6c4255a14f45",
+      "synced_at": "2026-05-19T18:30:00+09:00",
       "readme_path": "skills/init-doc-strategy/README.md",
-      "readme_sha256": "105037e0d76dce031b6f4c3d7adb94dfde2e4f1cd8cb974dfd187a88668534ab",
-      "readme_mtime": "2026-05-13T17:08:01+09:00",
+      "readme_sha256": "d702377bc6f65f96db1cff478f8ead7f8d0ec6f18151572b8a1691a4dc9423f1",
+      "readme_mtime": "2026-05-19T18:30:00+09:00",
       "notion_page_id": "34987c2b-b753-8158-9391-df16f1b6eb74",
-      "notion_last_edited_time": "2026-05-13T17:15:00+09:00",
-      "notion_synced_sha256": "105037e0d76dce031b6f4c3d7adb94dfde2e4f1cd8cb974dfd187a88668534ab"
+      "notion_last_edited_time": "2026-05-19T18:30:00+09:00",
+      "notion_synced_sha256": "d702377bc6f65f96db1cff478f8ead7f8d0ec6f18151572b8a1691a4dc9423f1"
     },
     "skills/init-plan": {
       "sha256": "240b8022b4f89d0aed7b766f4d616ae729ed5e1426220607bc5d19fb751a421f",
@@ -105,14 +105,14 @@
       "notion_synced_sha256": "bdb44f22f2aa97eb7454823e0dbff3124ecf7b1c2799d1c58fd278f5fae95834"
     },
     "skills/refine-doc": {
-      "sha256": "5a503d00d1795950e034f54979a8ba010e6ba9a8fb0d9c8fa293247535aa51a6",
-      "synced_at": "2026-05-14T14:30:00+09:00",
+      "sha256": "b9af50d874b270330b46a71b2699f9ab618a81b9c554e2cceb66a082921568ba",
+      "synced_at": "2026-05-19T18:30:00+09:00",
       "readme_path": "skills/refine-doc/README.md",
-      "readme_sha256": "c71fb07288335a5869a78137a6a1cfd4792dd20f1f8e5b1541f7921d1a198504",
-      "readme_mtime": "2026-05-14T14:13:33+09:00",
+      "readme_sha256": "84b6766d8b1178cbd32ed72ec4c5b96fe999b1ef718974887f59fdcdc86f6370",
+      "readme_mtime": "2026-05-19T18:30:00+09:00",
       "notion_page_id": "34987c2b-b753-81bf-adc3-c4c26ba6cdb6",
-      "notion_last_edited_time": "2026-05-14T14:30:00+09:00",
-      "notion_synced_sha256": "c71fb07288335a5869a78137a6a1cfd4792dd20f1f8e5b1541f7921d1a198504"
+      "notion_last_edited_time": "2026-05-19T18:30:00+09:00",
+      "notion_synced_sha256": "84b6766d8b1178cbd32ed72ec4c5b96fe999b1ef718974887f59fdcdc86f6370"
     },
     "skills/refine-plan": {
       "sha256": "5f1665434b500341ced3983ec2ff41e37e0c68699580d69fc3d4aed4839f2187",

@@ -2,6 +2,8 @@
 
 > 본 README는 Notion 페이지 [✏️ refine-doc](https://www.notion.so/34987c2bb75381bfadc3c4c26ba6cdb6)의 미러. `/sync-skills`로 양방향 동기화. 권위 있는 동작 명세는 `SKILL.md`.
 
+> **Paper mode camera-ready 특이 룰** (2026-05-19): 새 mutation 추가 또는 기존 mutation refine 시 **natural-integration rule** 적용. Single gating question — *"1-2 sentence inline rewrite로 자연 통합 가능한가?"* YES → M15-style inline rewrite. NO → drop (refine으로 polish 대신 entry 폐기). Rebuttal-format 잔존 mutation 발견 시 폐기. 상세 — `SKILL.md` Other rules.
+
 ## 개요
 autopilot-doc의 refine 단계 서브스킬. 사용자 메모 또는 review 피드백을 strategy 또는 draft에 반영. **versioned output** + **mandatory ref-grounding** (메모마다 source re-read).
 

@@ -555,6 +555,16 @@ This propagation is mandatory: a `tone: administrative` strategy with a heroic-p
   - Conclusion
 - Figure/table placeholders with captions
 
+**Camera-ready / major-revision specific — Natural-integration rule for paper-body mutations** (cross-ref: `init-doc-strategy/SKILL.md` paper mode "Natural-integration rule" — single source of truth):
+
+> When converting **reviewer concerns / rebuttal materials → paper-body mutation paste-ready blocks**, ask one question per mutation: *"Can this be naturally integrated as a 1-2 sentence inline rewrite that flows with the surrounding paragraphs?"*
+> - **YES → inline rewrite mutation** (good: subsection-head opening + body-paragraph touch-up + Figure cascade reference; experimental numbers stay in body / Appendix, not in opening/intro)
+> - **NO → drop / Appendix defer** (rebuttal-format artifacts — model-by-model comparison tables, structured Q&A blocks, point-by-point response paragraphs — do NOT belong as paper-body mutations even if reviewer "strongly recommended integration"; pasting verbatim reads as rebuttal-style out-of-flow content)
+
+**Hard-fail rejection signals** — refuse to write a mutation entry if its paste-ready block is (a) a standalone `\begin{table}` / `\begin{itemize}` sourced from rebuttal, (b) injecting experimental numbers verbatim into an opening / framing paragraph, or (c) a new `\paragraph{...}` INSERT that the existing surrounding text doesn't bridge to.
+
+**Why**: established 2026-05-19 after a camera-ready cycle that mechanically converted every reviewer concern into 🔴 mandatory body mutations (including rebuttal-format comparison tables). User-rejected pattern: "rebuttal자료를 본문에 그대로 가져다 붙이지 말고 자연스럽게 문장으로 녹여 넣어라."
+
 ### report
 - Frontmatter: type, status: draft, date
 - Executive Summary

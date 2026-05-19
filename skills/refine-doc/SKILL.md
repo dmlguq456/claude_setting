@@ -194,6 +194,9 @@ changelog:
 ## Other rules
 - Do NOT touch the version archive of previous versions (`*_v{prev_version}.md` and earlier) — they are immutable historical record.
 - Do NOT skip ref-grounding even if memo seems trivial. Trivial-looking memos can have hidden errors.
+- **Paper mode — Natural-integration rule** (cross-ref `init-doc-strategy/SKILL.md` paper mode for full spec; single source of truth there):
+  When a memo asks to **add a new mutation from a reviewer concern or rebuttal material**, apply the same gating question as init-doc-strategy: *"Can this be naturally integrated as a 1-2 sentence inline rewrite that flows with the surrounding paragraphs?"* YES → inline rewrite mutation (M15-style: subsection-head opening + body-paragraph touch-up + Figure cascade; numbers/hyperparameters stay in body or Appendix). NO → reject and inform the user — rebuttal-format artifacts (model-comparison tables, structured Q&A blocks, point-by-point enumerations) must not become paper-body mutations even if the reviewer "strongly recommended integration."
+  - When **refining an existing mutation**, re-evaluate it against the same rule. If a previously-drafted mutation fails the natural-integration test (e.g., a standalone `\begin{table}` lifted from rebuttal materials with no embedding paragraph rewrite), the correct refine action is **drop the mutation entry**, not polish it further.
 - Return which sections were changed, which memos applied vs overridden, and the new version number.
 ```
 

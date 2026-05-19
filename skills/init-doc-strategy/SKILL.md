@@ -118,6 +118,28 @@ type: paper / venue: {target venue} / status: draft / date: {YYYY-MM-DD}
 ## 8. Venue-Specific Considerations — page limits, formatting, reviewer expectations
 ```
 
+#### Natural-integration rule for paper-body mutations (camera-ready / major revision)
+
+When converting **reviewer concerns / rebuttal materials → paper-body mutations**, apply this **single gating question** before writing any paste-ready block:
+
+> **"Can this reviewer point be naturally integrated into the existing paragraph flow as a 1-2 sentence inline rewrite?"**
+
+- **YES → inline rewrite mutation** (M15-style — good pattern):
+  - Label the subsection heading + add 1-2 opening sentences that introduce the framing.
+  - Reword the existing paragraph's first sentence to remove redundancy with the new opening (no orphan additions).
+  - Connect Figure references in cascade (overall → architectural → unit-module — single zoom-in path).
+  - Defer experimental numbers / hyperparameters / verbatim table citations to body paragraphs or Appendix — never inject them into opening / intro paragraphs.
+- **NO → drop (or defer to Appendix)** (M11-style — bad pattern, must reject):
+  - Anything that exists only as a **rebuttal-format artifact** — model-by-model comparison tables, structured Q&A blocks, point-by-point response paragraphs, "we acknowledge X, Y, Z" enumerations — does NOT belong as a paper-body mutation. Even if the reviewer "strongly recommended integration," a rebuttal-format block pasted verbatim into a camera-ready section will read as awkward and out-of-flow.
+  - Mark the mutation as **dropped** in the strategy, with a one-line reason ("rebuttal-format — not naturally integrable into body flow"). If a fragment of the rebuttal material *can* be salvaged as inline body wording, extract only that fragment as an inline rewrite; do NOT preserve the surrounding structure.
+
+**Hard-fail check** — when drafting mutation entries, an entry MUST be rejected if any of the following holds (these are signals that the mutation is mechanically copying a rebuttal artifact rather than integrating naturally):
+1. The paste-ready block is a **standalone `\begin{table}` or `\begin{itemize}` enumeration** sourced from rebuttal materials, with no embedding paragraph rewriting around it.
+2. The paste-ready block contains verbatim **experiment numbers** ($x.xx \to y.yy$ migrations, hyperparameter listings, dataset enumerations) inside what should be an introductory / framing paragraph.
+3. The paste-ready block is **a new `\paragraph{...}` INSERT** that the existing surrounding text does not bridge to — the surrounding paragraphs would still read identically with or without the inserted block, indicating it sits in isolation rather than weaving into the flow.
+
+**Why** (this rule was added 2026-05-19 after the M11 / M15 episode): a previous camera-ready cycle mechanically converted every reviewer concern into a paper-body mutation, producing rebuttal-format tables (e.g., `tab:arch_compare` model comparison) as 🔴 mandatory body inserts. The user explicitly rejected this as "rebuttal자료를 본문에 그대로 가져다 붙이는 게 어색하다 — 자연스럽게 문장으로 녹여 넣을 수 있으면 그렇게 해야지". The natural-integration rule above operationalizes that judgment so future cycles don't repeat the mechanical conversion.
+
 ### If mode = review
 ```markdown
 ---

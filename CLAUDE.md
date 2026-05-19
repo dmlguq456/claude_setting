@@ -12,6 +12,18 @@
 
 ---
 
+## 응답 2원칙 — 동사 약속 = 같은 turn 내 tool call (강제)
+
+**응답 안에서 동사 약속어 ("진행할게요 / 실행할게요 / 수정할게요 / 추가할게요 / 반영할게요 / 적용할게요 / update / fix / write / create / run" 등)를 출력하면, 그 동사와 매칭되는 tool call이 _같은 응답 안에_ 반드시 존재해야 turn 종료 가능.** 약속만 하고 tool call 없이 turn 종료 금지 — verbal-action mismatch.
+
+- "다음에 X 하겠습니다" / "곧 X 합니다" / "X 진행할게요" → 다음 turn이 아니라 *이 turn에서 X 수행* 약속. 같은 응답에 tool call로 즉시 이어가라.
+- 추가 정보 수집·사용자 confirm이 정말 필요해 같은 turn에 진행 못 하면 → 동사 약속어 대신 *질문 형태* (`"X로 진행해도 되나요?"` / `"X 옵션 a/b 중?"`) 사용. 약속과 질문은 다른 행동.
+- 응답을 마무리하기 전 self-audit: "이 응답에서 출력한 동사 약속어가 있는가? 매칭 tool call이 있는가?"
+
+**Why** (2026-05-19 사용자 지적 — verbal-action mismatch 실제 관찰): 사용자가 명시적 진행 요청 → 응답 closer로 "진행할게요" 출력 후 tool call 없이 turn 종료 → 다음 turn에서 사용자가 "진행했음?" 묻고 작업 한 turn 지연. 본 rule이 그 실패 모드 차단.
+
+---
+
 ## Source of Truth
 
 - **Skills 정의**: `~/.claude/skills/*/SKILL.md` (각 skill invoke 시 자동 로드)
@@ -88,4 +100,4 @@
 ## 운영 정책
 
 - 본 CLAUDE.md를 **확장하지 말 것**. skill 추가/변경은 README.md(자동 동기화)에 반영되고, 본 파일은 그 표지로만 유지.
-- 본 파일을 업데이트할 시점: (a) source-of-truth 위치가 바뀔 때, (b) artifact_dir 컨벤션이 바뀔 때, (c) scope 경계가 근본적으로 변경될 때, (d) **도메인 트리거 표에 새 행 추가/제거**할 때. 그 외엔 README.md만 sync.
+- 본 파일을 업데이트할 시점: (a) source-of-truth 위치가 바뀔 때, (b) artifact_dir 컨벤션이 바뀔 때, (c) scope 경계가 근본적으로 변경될 때, (d) **도메인 트리거 표에 새 행 추가/제거**할 때, (e) **응답 행동 원칙 (§응답 1원칙 / §응답 2원칙 등)이 추가·변경될 때**. 그 외엔 README.md만 sync.

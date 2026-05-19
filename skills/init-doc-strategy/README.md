@@ -6,6 +6,8 @@
 분석된 참고 자료를 기반으로 초기 문서 전략(rebuttal/paper/review/report/proposal/presentation)을 생성하는 skill. 연구팀에 위임 + QA 루프 (quality + fact-checker 병렬) + 한국어 번역.
 
 > autopilot-doc 내부에서 자동 호출. 직접 사용은 거의 없음 (autopilot-doc의 Step 2).
+>
+> **Paper mode camera-ready / major revision 특이 룰** (2026-05-19): reviewer concern → paper-body mutation 변환 시 **natural-integration rule** 적용. Single gating question — *"1-2 sentence inline rewrite로 자연 통합 가능한가?"* YES → M15-style inline rewrite (subsection-head opening + 본론 paragraph touch-up + Figure cascade). NO → drop / Appendix defer (rebuttal-format table·Q&A block은 본문 mutation 금지). 상세 — `SKILL.md` paper mode "Natural-integration rule" 섹션.
 
 ## 호출 형식
 ```
