@@ -26,18 +26,6 @@
 
 ---
 
-## 응답 3원칙 — 이미지 임베딩은 `SendUserFile` (강제)
-
-**시각 산출물 (viz/spec/그래프/플롯/screenshot/diagram 등 PNG·JPG)을 사용자에게 보여줘야 할 때는 반드시 `SendUserFile` tool을 사용한다.** Read tool로 PNG를 읽는 것은 Claude 본인 멀티모달 시각 입력일 뿐 — 사용자 채팅에는 안 보인다.
-
-- 사용자가 "이미지 보여줘 / 띄워줘 / 보고싶어" 등 요청 → `SendUserFile` (status=`normal`)
-- 사용자가 안 본 사이 생성된 결과를 surface 해야 할 때 (백그라운드 작업 완료 후 진단 viz 등) → proactive `SendUserFile` (status=`proactive`)
-- 한 번 호출에 여러 파일 묶어 전송 가능 (`files` 배열). `caption`에 한 줄 컨텍스트.
-
-**Why** (2026-05-20 사용자 지적): 사용자가 과거 여러 번 "이미지 띄워달라"고 했을 때 Read tool만 호출해 Claude 본인만 보고 끝나는 실패 누적. 본 세션에서 `SendUserFile` 사용 직후 사용자 confirm + 명시 기록 지시.
-
----
-
 ## Source of Truth
 
 - **Skills 정의**: `~/.claude/skills/*/SKILL.md` (각 skill invoke 시 자동 로드)
@@ -114,4 +102,4 @@
 ## 운영 정책
 
 - 본 CLAUDE.md를 **확장하지 말 것**. skill 추가/변경은 README.md(자동 동기화)에 반영되고, 본 파일은 그 표지로만 유지.
-- 본 파일을 업데이트할 시점: (a) source-of-truth 위치가 바뀔 때, (b) artifact_dir 컨벤션이 바뀔 때, (c) scope 경계가 근본적으로 변경될 때, (d) **도메인 트리거 표에 새 행 추가/제거**할 때, (e) **응답 행동 원칙 (§응답 1원칙 / §응답 2원칙 / §응답 3원칙 등)이 추가·변경될 때**. 그 외엔 README.md만 sync.
+- 본 파일을 업데이트할 시점: (a) source-of-truth 위치가 바뀔 때, (b) artifact_dir 컨벤션이 바뀔 때, (c) scope 경계가 근본적으로 변경될 때, (d) **도메인 트리거 표에 새 행 추가/제거**할 때, (e) **응답 행동 원칙 (§응답 1원칙 / §응답 2원칙 등)이 추가·변경될 때**. 그 외엔 README.md만 sync.
