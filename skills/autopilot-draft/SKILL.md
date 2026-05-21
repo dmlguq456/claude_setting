@@ -6,6 +6,43 @@ argument-hint: "<task description> [--mode paper|presentation|doc] [--qa quick|l
 
 > **산출물 폴더 컨벤션**: [CONVENTIONS.md §5](../../CONVENTIONS.md#5-skill-output-convention-3-tier-t1t2t3) (3-tier: T1 root / T2 named subdir / T3 `_internal/`). reviewer 로그는 `_internal/strategy_reviews/`·`_internal/draft_reviews/`. 버전 스냅샷은 `_internal/versions/v{N}/strategy/`, `v{N}/draft/` (refine-doc의 `_v{N}.md` 형제 패턴은 폐기).
 
+## Default Invocation Rule (메인 Claude 자동 라우팅)
+
+본 skill 은 글로벌 [`CLAUDE.md`](../../CLAUDE.md) §6 "autopilot-* 호출 패턴" 의 _컨펌 의무_ 적용 대상. 메인 Claude 가 사용자 발화에서 아래 trigger 신호를 인지하면, 옵션 자동 구성 + 자연어 요약 컨펌 거쳐 invoke.
+
+### Trigger 신호 (자연어 발화 예시)
+
+**paper 모드** (LaTeX 학술 본문):
+- "X 논문 본문 작성해줘" / "ICML camera-ready 마무리" / "major revision 작성"
+- "thesis chapter 초안" / "book chapter"
+- "paste-ready cheatsheet" (LaTeX)
+
+**presentation 모드** (slide markdown):
+- "발표 자료 만들어줘" / "PPT 작성" / "슬라이드 markdown"
+- "세미나 자료" / "강의 자료"
+- (PPTX 변환은 PowerPoint 수동 — autopilot 은 markdown 까지만)
+
+**doc 모드** (Word/HWP/markdown prose):
+- "보고서 써줘" / "제안서 작성" / "분기 보고"
+- "rebuttal 응답 써줘" / "OpenReview 응답"
+- "peer review 작성" / "tech blog" / "메모"
+
+### Default 옵션 권장값 (컨펌 시 메인 Claude 가 제안)
+
+- `--mode`: 발화 신호로 paper/presentation/doc 자동 추론
+- `--qa`: standard (default). camera-ready / submission 직전 ceremony 신호 인지 시 thorough 권장 (컨펌 안에 근거 명시).
+- `--user-refine`: **off** (글로벌 §4 준수)
+- `--no-clarify`: off (default — Step 0 Scope Clarification 보존)
+
+### Override 1순위 — autopilot 우회
+
+- 한 단락 다듬기 / 표기 통일 / 판교체 정리 — `Agent(편집팀)` 직접 호출
+- 구조 점검 / drift 점검 — `/audit`
+- 작은 minor-level 수정 — `/autopilot-refine` 자동 라우팅 분기 (직접 Edit 경로)
+- `/autopilot-draft <args>` slash 직접 입력 — 컨펌 skip 하고 즉시 invoke
+
+> 본 섹션은 `/sync-skills` 가 `~/.claude/README.md` 운영 룰 안내로 자동 반영.
+
 ## Language Rule
 - Write user-facing output in Korean. (Material analysis results and pipeline_summary.md are written directly in the artifacts — no separate user output needed for those steps.)
 

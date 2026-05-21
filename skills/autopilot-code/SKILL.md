@@ -6,6 +6,37 @@ argument-hint: "--mode dev|debug <task/plan/error description> [--from <step>] [
 
 > **산출물 폴더 컨벤션**: [CONVENTIONS.md §5](../../CONVENTIONS.md#5-skill-output-convention-3-tier-t1t2t3) (3-tier: T1 root / T2 named subdir / T3 `_internal/`). plan/ + checklist는 T1 (root). dev_logs/, test_logs/는 T2 (root). reviewer 로그(plan_reviews, dev_reviews, test_reviews)는 모두 `_internal/` 하위.
 
+## Default Invocation Rule (메인 Claude 자동 라우팅)
+
+본 skill 은 글로벌 [`CLAUDE.md`](../../CLAUDE.md) §6 "autopilot-* 호출 패턴" 의 _컨펌 의무_ 적용 대상. 메인 Claude 가 사용자 발화에서 아래 trigger 신호를 인지하면, 옵션 자동 구성 + 자연어 요약 컨펌 거쳐 invoke.
+
+### Trigger 신호 (자연어 발화 예시)
+
+**dev 모드**:
+- "X 기능 만들어줘" / "Y 추가해줘" / "Z 구현해줘"
+- "이 모듈 리팩토링" (단, 한두 줄 rename 은 `Agent(개발팀)` 우회)
+- 기존 plan 폴더 발견 + 재개 신호 ("이어서 진행", "다음 stage 부터")
+
+**debug 모드**:
+- "이 에러 디버그해봐" / "X 가 안 돌아" / "왜 안 되지"
+- 에러 로그 / traceback 첨부
+- 테스트 fail 보고서 첨부
+
+### Default 옵션 권장값 (컨펌 시 메인 Claude 가 제안)
+
+- `--mode`: 발화 신호로 dev/debug 자동 추론. cwd 가 plan 폴더 + 최근 dev_log 있으면 dev 우세, 에러 로그·traceback 있으면 debug 우세.
+- `--qa`: dev=standard, debug=light
+- `--from`: 자동 추론 (`pipeline_state.yaml` 발견 시 마지막 성공 stage 다음부터)
+- `--user-refine`: **off** (글로벌 §4 — "사용자 검토 끼워" / "memo 추가하게 멈춰줘" 같은 명시 신호 있을 때만 켬)
+
+### Override 1순위 — autopilot 우회
+
+- 작은 작업 (한 줄 수정·rename·cleanup) — `Agent(개발팀)` 직접 호출 또는 직접 Edit
+- 단발성 코드 리뷰 — `Agent(품질관리팀)` 직접 호출
+- `/autopilot-code <args>` slash 직접 입력 — 컨펌 skip 하고 즉시 invoke
+
+> 본 섹션은 `/sync-skills` 가 `~/.claude/README.md` 운영 룰 안내로 자동 반영.
+
 ## Language Rule
 - When explaining something to the user, write in Korean.
 

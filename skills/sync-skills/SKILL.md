@@ -12,7 +12,7 @@ argument-hint: "[--check] [--readme-only] [--notion-only] [--force] [--prefer-lo
 
 **Source of Truth**:
 - `~/.claude/skills/*/SKILL.md` + `~/.claude/agents/*.md` — 각 skill·agent의 frontmatter + 본문
-- **`~/.claude/CONVENTIONS.md`** — family-wide 운영 규칙의 단일 source (QA 5단계 정의 / agent model 표기 / 폐기 flag·name / cross-doc invariants). 본 skill의 Step 5b.5가 본 문서를 canonical로 cross-doc grep해 drift 보고·자동 fix.
+- **`~/.claude/CONVENTIONS.md`** — family-wide 운영 규칙의 단일 source (QA 5단계 정의 / agent model 표기 / 폐기 flag·name / cross-doc invariants). 본 skill의 Step 5b가 본 문서를 canonical로 cross-doc grep해 drift 보고·자동 fix.
 
 **파생 산출물**: GitHub README.md, Notion 대문 페이지 상단 대시보드
 
@@ -48,7 +48,7 @@ argument-hint: "[--check] [--readme-only] [--notion-only] [--force] [--prefer-lo
 - `--force`: SHA가 같아도 재생성 (포맷 일괄 적용·서식 수정에 사용).
 - `--prefer-local`: 충돌 시 자동으로 local README가 source (Notion 덮어쓰기).
 - `--prefer-notion`: 충돌 시 자동으로 Notion이 source (local README 덮어쓰기).
-- `--auto-fix`: Step 5b.5에서 발견한 cross-doc invariant drift를 CONVENTIONS.md canonical wording으로 자동 교체 (default는 report-only). `--dry-run`과 조합 시 미리보기.
+- `--auto-fix`: Step 5b에서 발견한 cross-doc invariant drift를 CONVENTIONS.md canonical wording으로 자동 교체 (default는 report-only). `--dry-run`과 조합 시 미리보기.
 
 기본(인자 없음): drift 감지 → 변경 있으면 README + Notion 모두 갱신. 개별 README ↔ Notion 양방향은 newer side가 source, 충돌 시 사용자 확인.
 
@@ -123,9 +123,10 @@ Agents:  변경 0 / 신규 0 / 삭제 0 / 동일 8
 
 ### Step 4: Generate dashboard sections (공통 — README와 Notion 상단 모두 사용)
 
-#### 4a. 두 다이어그램 (워크플로우는 단순화, agent 호출은 별도)
+#### 4a. 워크플로우 다이어그램
 
-**Diagram 1: 워크플로우** — A(사전조사) → B(코드)/C(문서) → D(점검) → E(정정) 5갈래. 옵션 플래그는 노드 라벨에 박지 않고 본문 prose로 풀어쓴다.
+A(사전조사) → B(코드)/C(문서) → D(점검) → E(정정) 5 갈래 큰 그림만. 옵션 플래그·호출 구조는 README 본문에서 _자연어 사용 표_ 가 대체.
+
 ```mermaid
 flowchart LR
     ANA["analyze-project<br/>(code/paper/doc)"]
@@ -147,98 +148,65 @@ flowchart LR
     AUD -.->|auto-fix plans| CODE
 ```
 
-다이어그램 직후 본문에 **파이프라인별 역할 (4 paragraphs)** + **자주 쓰는 체이닝 패턴 (5 bullets)** + **사용자 개입 지점 (--user-refine, --from)** 섹션을 prose로 작성.
+> 다이어그램 직후 본문은 _5 카테고리 bullets_ (A 사전조사 / B 코드 / C 문서 / D 점검 / E 정정) + _3-tier 산출물 컨벤션 reference_ (CONVENTIONS.md §5) 까지만. 파이프라인별 prose·체이닝 패턴 prose·사용자 개입 지점 prose 는 새 layout 에서 _넣지 않음_ (자연어 사용 표 §2 가 대체).
+>
+> **Agent 호출 구조 mermaid 는 자동 생성에서 제외** — 새 README 핵심 메시지는 _자연어로 부르면 메인 Claude 가 알아서 컨펌받고 진행_ 이라 호출 구조 강조는 정보 dump. 필요 시 각 agent .md 또는 글로벌 CLAUDE.md 도메인 트리거에서 참조.
 
-**Diagram 2: Agent 호출 구조** — Agents Cheat-Sheet 표 직후 `### Agent 호출 구조 (참고용)` 섹션에 박음.
-```mermaid
-flowchart LR
-    USER(("사용자"))
-    subgraph SKILLS["Skills (오케스트레이터)"]
-        direction TB
-        ARES["autopilot-research"]
-        ACODE["autopilot-code"]
-        ADOC["autopilot-draft"]
-        AREF["autopilot-refine"]
-        AUD["audit"]
-    end
-    subgraph AUTO["자동 위임 (skills가 호출)"]
-        direction TB
-        PT["기획팀"]
-        QT["품질관리팀"]
-        RT["연구팀"]
-        TT["테스트팀"]
-        BT["탐색팀"]
-        CRT["codex-review-team"]
-    end
-    subgraph DIRECT["사용자 직접 호출"]
-        direction TB
-        DT["개발팀<br/>(작은 리팩토링)"]
-    end
-    USER --> ARES
-    USER --> ACODE
-    USER --> ADOC
-    USER --> AREF
-    USER --> AUD
-    USER -. 직접 .-> DT
-    ARES --> RT
-    ARES --> BT
-    ACODE --> PT
-    ACODE --> QT
-    ACODE --> RT
-    ACODE --> TT
-    ACODE -. qa adversarial .-> CRT
-    ADOC --> RT
-    ADOC --> QT
-    AREF --> QT
-    AREF -. fact-check .-> RT
-    AREF -. qa adversarial .-> CRT
-```
+#### 4b. README 본문 구조 (canonical layout — 자연어 사용 표 중심)
 
-> 매 sync 시 argument-hint에서 `--mode` / `--from` 옵션 값을 추출해 Diagram 1의 노드 라벨을 자동 갱신.
+`~/.claude/README.md` 가 본 sync 의 단일 진실 출처 (reference layout). sync 시 다음 순서로 7 섹션을 채운다:
 
-#### 4b. README 본문 구조 (canonical layout)
-
-`~/.claude/README.md`가 본 sync의 단일 진실 출처(reference layout). sync 시 다음 순서로 섹션을 채운다:
-
-1. **Header** — title + source 안내 + Notion 대문 링크 (sync 시각/이력은 git commit으로만 추적, README 본문에 기록 X)
-2. **워크플로우** — Diagram 1 (위 4a)
-3. **자주 쓰는 명령** — 시나리오 × 명령 표 (7행: 세미나/논문/개발/감사/디버그/리뷰/사전준비)
-4. **Skills 표** — name / 역할 / 주요 옵션. 옵션 값은 각 SKILL.md의 argument-hint에서 자동 추출. sub-skill은 표 하단 한 줄로 요약.
-5. **핵심 옵션 3가지** — `--user-refine`, `--from`, `--qa`. 한 줄씩.
-6. **Agents** — "직접 호출 2개" 짧은 설명 + 표 (name / 모델 / 호출자) + `<details>` 안에 호출 구조 mermaid (Diagram 2)
-7. **운영 룰 (자동 호출 패턴)** — 각 SKILL.md의 `## Default Invocation Rule` 섹션을 모아 한 표로 정리 (skill 이름 / 트리거 / 자동 동작 / override 조건). 메인 Claude가 slash command 명시 없이 자동 invoke하는 패턴의 단일 reference. 해당 섹션이 없는 skill은 표에 등재 X.
-8. **동기화** — `/sync-skills` 두 명령 + GitHub 링크
+1. **Header** — title + source 안내 (`/sync-skills` 자동 갱신 표지) + Notion 대문 링크 + 운영 가이드 (`notion_guide.md`) 링크. sync 시각·이력은 git commit log 가 단일 출처.
+2. **🗣️ 자연어 사용 방식 — 자연어로 부르면 알아서 컨펌받고 진행** (핵심 섹션, _사람 유지 영역_)
+   - 짧은 prose 한 단락 (메인 Claude 가 컨텍스트 보고 옵션 + task description 짜서 자연어 한 줄 요약 컨펌)
+   - **자연어 발화 예시 표** (사용자 발화 / 메인 Claude 컨펌 자연어 요약 — 6 행 정도)
+   - 컨펌 답변 흐름 한 단락 (yes / 수정 / cancel / 자율 진행)
+   - "직접 slash 입력도 그대로" 서브 섹션 (autopilot-* 4 개 slash command 예시 + skip 안내)
+   - 글로벌 [`CLAUDE.md`](CLAUDE.md) §6 reference
+3. **📊 워크플로우 큰 그림** — Diagram 1 (위 4a) + 5 카테고리 bullets (A 사전조사 / B 코드 / C 문서 / D 점검 / E 정정) + 3-tier 산출물 컨벤션 reference
+4. **📋 Skills** — name (SKILL.md 링크) / 역할 표만. 옵션 dump **X**. 표 직후 sub-skill 한 줄 + 세부 옵션은 각 SKILL.md `## Usage` reference 안내. QA 5단계 단일 정의는 CONVENTIONS.md §1 reference.
+5. **🤝 Agents** — name (agent .md 링크) / 모델 / 역할 표. _자동 호출자 컬럼 X_ (새 패턴은 자연어로 부르면 메인 Claude 가 알아서). 직접 호출 안내 한 단락. Notion sub-agent 위임 X 주의 한 줄.
+6. **⚙️ 운영 룰** — 한 단락. _자동 호출 패턴은 글로벌 [`CLAUDE.md`](CLAUDE.md) 가 단일 source of truth_ 안내. §6 autopilot-* 호출 패턴 + 도메인 트리거 표 reference. 각 SKILL.md `## Default Invocation Rule` 은 _그 SKILL.md 안에서만_ 의미 — README 에 모으지 않음.
+7. **🔁 동기화** — `/sync-skills` 두 명령 + GitHub 링크
 
 원칙:
-- prose는 최소화. 표·bullet 우선.
-- 같은 정보를 두 군데 반복하지 않음 (예: 옵션 값은 Skills 표에 한 번만).
-- 디렉토리 구조나 파이프라인별 prose 같은 "참고용" 섹션은 넣지 않음 — 표 하나로 대체.
-- 운영 룰 섹션(§7)은 **SKILL.md의 `## Default Invocation Rule` 섹션이 단일 source of truth** — sync 시 grep으로 추출, README 표에 자동 반영. 새 skill에 자동 호출 룰을 도입하려면 해당 SKILL.md에 같은 이름 섹션 추가 후 `/sync-skills` 실행.
+- prose 최소화, 표·bullet 우선. 단 §2 _자연어 사용 방식_ 섹션은 _자연어 발화 예시 표_ 가 핵심 anchor 라 단단히 유지.
+- 같은 정보를 두 군데 반복하지 않음 (옵션 spec 은 각 SKILL.md 가 source, autopilot 호출 룰은 글로벌 CLAUDE.md §6 가 source).
+- _넣지 않음_ 항목 (의도적 제거):
+  - 호출 구조 mermaid (Agent 측)
+  - "자주 쓰는 명령" 시나리오 × 명령 표
+  - "핵심 옵션 3가지" prose (`--user-refine` / `--from` / `--qa`)
+  - 파이프라인별 prose / 체이닝 패턴 prose
+  - Skills 표의 "주요 옵션" 컬럼 (argument-hint 자동 추출)
+  - 운영 룰 표 (skill 별 4컬럼 dump)
 
-현행 README가 이 layout의 reference. 대규모 변경 시 README를 먼저 손보고 본 SKILL.md를 동기화.
+**§2 자연어 사용 방식 섹션은 _사람 유지 영역_** — 자연어 발화 예시 표는 사람 손길 큐레이션 자료라 자동 생성 어려움. sync-skills 는 _현행 README 의 §2 wording 을 그대로 보존_ 하고 (SHA 비교 skip), §3-§7 만 자동 갱신. 사용자가 §2 를 직접 편집해도 sync-skills 가 덮어쓰지 않음.
+
+현행 README 가 본 layout 의 reference. 대규모 변경 시 README 를 먼저 손보고 본 SKILL.md 를 동기화.
 
 ### Step 5: Write README.md
-`~/.claude/README.md`를 4b의 layout 그대로 통째로 작성. 현행 README가 reference이므로 큰 구조 변경 없이는 SHA 기반 변경 부분만 갱신한다. argument-hint 변화로 옵션 값이 바뀌었으면 Skills 표의 "주요 옵션" 컬럼을 갱신. **sync 시각/이력은 README 본문에 쓰지 않음** (git commit log가 단일 출처).
 
-#### Step 5b: 운영 룰 섹션 추출 (§7)
+`~/.claude/README.md` 를 4b 의 layout 그대로 작성. 단 _섹션별 자동 갱신 정책_ 이 다름:
 
-각 `~/.claude/skills/*/SKILL.md`에서 `## Default Invocation Rule` heading 하위 본문을 grep으로 추출 → README §7 "운영 룰" 표에 다음 컬럼으로 채움:
+| 섹션 | 처리 |
+|---|---|
+| §1 Header | 표지 텍스트 / Notion 링크 / 운영 가이드 링크 자동 갱신 |
+| **§2 자연어 사용 방식** | **사람 유지 영역 — 현행 wording 그대로 보존 (SHA 비교 skip).** 사용자가 직접 편집한 자연어 발화 예시 표·prose 그대로. 단 _섹션 헤딩 자체_ 가 누락됐으면 placeholder 헤딩 + 한 줄 안내만 자동 삽입 |
+| §3 워크플로우 | Diagram 1 + 5 카테고리 bullets 자동 갱신 |
+| §4 Skills 표 | name / 역할 자동 추출. 옵션 컬럼 X. 새 skill 추가·삭제 자동 반영 |
+| §5 Agents 표 | name / 모델 / 역할 자동 추출. 자동 호출자 컬럼 X |
+| §6 운영 룰 | _글로벌 CLAUDE.md §6 가리킴 한 단락_ — 표 자동 채우기 X (이전 spec 의 4컬럼 표 폐기) |
+| §7 동기화 | 두 명령 + GitHub 링크 고정 wording |
 
-| Skill | 트리거 | 자동 동작 | Override 조건 |
-|---|---|---|---|
+**sync 시각·이력은 README 본문에 쓰지 않음** (git commit log 가 단일 출처).
 
-- **Skill**: SKILL.md 디렉토리명
-- **트리거**: 룰 본문 첫 문단(언제 자동 invoke되는지)을 1-2 sentence로 압축
-- **자동 동작**: 어떤 명령이 자동 invoke되는지 (예: `autopilot-refine "<prompt>" --qa quick`)
-- **Override 조건**: 룰 본문 "Override 1순위" 항목을 bullet 한 줄로 압축
+### Step 5b: Cross-doc invariant scan (QA 정의 & family-wide 규칙)
 
-`## Default Invocation Rule` 섹션이 없는 skill은 표 등재 X. 새 skill이 자동 호출 룰을 도입하려면 SKILL.md에 같은 이름 섹션을 추가하면 다음 sync에서 자동 반영.
-
-### Step 5b.5: Cross-doc invariant scan (QA 정의 & family-wide 규칙)
+> 이전 spec 의 _운영 룰 표 추출_ (각 SKILL.md `## Default Invocation Rule` grep → 4컬럼 표) 은 **폐기**. 새 README §6 운영 룰은 _글로벌 CLAUDE.md §6 가리킴 한 단락_ 으로 단순화. 각 SKILL.md `## Default Invocation Rule` 은 _그 SKILL.md 안에서만_ 의미를 가지고 README 에 모으지 않음. (autopilot-* 4 개 SKILL.md 의 trigger 신호·default 옵션·override 는 글로벌 §6 의 일반 패턴 + 각 SKILL.md 의 skill-specific 정보로 분리.)
 
 QA level / model 표기 / family-wide invariant은 **`~/.claude/CONVENTIONS.md`**가 단일 source of truth. 각 SKILL.md / README / `_notion_mirror`의 QA 표 wording은 본 문서와 의미상 일치해야 함.
 
-#### 5b.5-1. Canonical 정의 로드
+#### 5b-1. Canonical 정의 로드
 
 ```bash
 # Read CONVENTIONS.md fully; then parse:
@@ -249,7 +217,7 @@ QA level / model 표기 / family-wide invariant은 **`~/.claude/CONVENTIONS.md`*
 
 이로부터 5단계 정의(quick/light/standard/thorough/adversarial)의 _구성_을 추출 (Quality reviewer / Fact-checker / Codex 컬럼 wording).
 
-#### 5b.5-2. 모든 .md 파일에서 QA wording 추출
+#### 5b-2. 모든 .md 파일에서 QA wording 추출
 
 대상 파일:
 - `~/.claude/skills/*/SKILL.md`
@@ -264,7 +232,7 @@ QA level / model 표기 / family-wide invariant은 **`~/.claude/CONVENTIONS.md`*
 - "fact-checker" 적용 여부
 - model 표기 (`opus`, `sonnet`, 가변 표기)
 
-#### 5b.5-3. Invariance 검사 (drift 보고)
+#### 5b-3. Invariance 검사 (drift 보고)
 
 각 추출된 wording을 canonical 정의와 비교. 다음 drift 패턴을 _하드 검사_:
 
@@ -276,7 +244,7 @@ QA level / model 표기 / family-wide invariant은 **`~/.claude/CONVENTIONS.md`*
 | **quick은 refine skip + 1라운드 강제 종료** | quick 정의에서 위 둘 중 하나 누락 | 🟡 `quick 정의 incomplete` |
 | **`--no-fact-check` / `--no-style-audit`는 autopilot-refine·audit 전용** | 다른 skill의 argument-hint에 노출 | 🔴 `해당 flag는 refine·audit 외 노출 금지` |
 
-#### 5b.5-4. 보고 형식
+#### 5b-4. 보고 형식
 
 drift 발견 시 Step 8 final report에 별도 섹션:
 ```

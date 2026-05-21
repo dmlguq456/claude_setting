@@ -6,6 +6,42 @@ argument-hint: "<query> [--mode academic|technology|market] [--depth shallow|med
 
 > **산출물 폴더 컨벤션**: [CONVENTIONS.md §5](../../CONVENTIONS.md#5-skill-output-convention-3-tier-t1t2t3) (3-tier: T1 root / T2 named subdir / T3 `_internal/`). 본 skill의 raw metadata (`search_results.json`, `phase_a_*.json`, `chaining_results.md`, `code_search.md` 등) + reviews는 모두 `_internal/` 하위로 격리. T1/T2 chapter 파일과 `cards/`는 root.
 
+## Default Invocation Rule (메인 Claude 자동 라우팅)
+
+본 skill 은 글로벌 [`CLAUDE.md`](../../CLAUDE.md) §6 "autopilot-* 호출 패턴" 의 _컨펌 의무_ 적용 대상. 메인 Claude 가 사용자 발화에서 아래 trigger 신호를 인지하면, 옵션 자동 구성 + 자연어 요약 컨펌 거쳐 invoke.
+
+### Trigger 신호 (자연어 발화 예시)
+
+**academic 모드** (default — 논문·학술 자료):
+- "X 분야 조사해줘" / "Y 동향 알려줘"
+- "최근 1년 paper 정리" / "literature review"
+- "X 모델 / 데이터셋 비교"
+
+**technology 모드** (기술 표준·라이브러리):
+- "X 기술 표준" / "Y 라이브러리 비교"
+- "벤더 솔루션 조사" / "SDK 비교"
+
+**market 모드** (시장·비즈니스):
+- "X 시장 동향" / "Y 경쟁사 분석"
+- "비즈니스 모델 조사"
+
+### Default 옵션 권장값 (컨펌 시 메인 Claude 가 제안)
+
+- `--mode`: 발화 신호로 academic/technology/market 자동 추론. 명확하지 않으면 academic.
+- `--depth`: medium (default). "빠르게" / "간단히" → shallow, "체계적으로" / "deep dive" → deep.
+- `--qa`: light (default — research 는 refine 만큼 cost 들이지 않음)
+- `--no-clarify`: off (default — Step 0 Scope Clarification 보존; query 가 모호하면 메인 Claude 가 직접 clarify 후 invoke 가능)
+
+### Override 1순위 — autopilot 우회
+
+- 단발 paper 1편 fetch / paywall 만 — `Agent(탐색팀)` 직접 호출
+- PDF figure 일괄 추출 — `Agent(탐색팀, mode="extract_pdf_figures")`
+- 인터넷 reference 그림 검색 — `Agent(탐색팀, mode="web_reference")`
+- 기존 research 폴더에 entry 추가만 — `/autopilot-refine`
+- `/autopilot-research <args>` slash 직접 입력 — 컨펌 skip 하고 즉시 invoke
+
+> 본 섹션은 `/sync-skills` 가 `~/.claude/README.md` 운영 룰 안내로 자동 반영.
+
 ## Language Rule
 - When explaining something to the user, write in Korean.
 

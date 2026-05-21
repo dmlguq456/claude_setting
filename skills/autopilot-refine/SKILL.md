@@ -16,7 +16,7 @@ Naming consistency: same `--qa quick|light|standard|thorough|adversarial` flag a
 
 ## Default Invocation Rule (메인 Claude 자동 라우팅)
 
-메인 Claude는 사용자가 `.claude_reports/{documents,research}/*` 하위 artifact에 대해 **major-level 변경**을 prompt로 요청할 때만 `/autopilot-refine` slash command 명시 없이도 자동 invoke 한다 (`--qa quick`). **minor-level 변경은 직접 Edit + `pipeline_summary.md` 상세 minor log 추가** (refine flow X). 누적된 minor는 사용자가 `/audit`을 호출하거나, AUDIT_HINT_THRESHOLD (default 5 minors)를 넘으면 chat alert로 _권장_ 받아 batch 점검한다.
+본 skill 은 글로벌 [`CLAUDE.md`](../../CLAUDE.md) §6 "autopilot-* 호출 패턴" 의 _컨펌 의무_ 적용 대상. 메인 Claude는 사용자가 `.claude_reports/{documents,research}/*` 하위 artifact에 대해 **major-level 변경**을 prompt로 요청할 때만 `/autopilot-refine` slash command 명시 없이도 옵션 자동 구성 + 자연어 요약 컨펌 거쳐 invoke 한다 (`--qa quick` default). **minor-level 변경은 직접 Edit + `pipeline_summary.md` 상세 minor log 추가** (refine flow X, 컨펌 자체도 skip — 단순 minor 라 그냥 진행). 누적된 minor는 사용자가 `/audit`을 호출하거나, AUDIT_HINT_THRESHOLD (default 5 minors)를 넘으면 chat alert로 _권장_ 받아 batch 점검한다.
 
 **Scope**: `.claude_reports/{documents,research}/*` 엄격 한정. project root의 임의 `.md`/`.txt`나 코드 산출물(`.claude_reports/plans/*`)은 적용 X — 전자는 일반 Edit, 후자는 `/refine-plan` 또는 `/autopilot-code`.
 
@@ -197,8 +197,8 @@ Reason internally in English. All user-facing output (chat diffs, pipeline_summa
    - **STRUCT** — touches 5+ files OR rewrites whole sections OR requires re-running an autopilot pipeline.
 5. **If STRUCT detected** → halt before Stage C. Recommend the user run a heavier flow:
    - Research: `/autopilot-research --from analyze` (full re-analysis)
-   - Doc: `/refine-doc <name>` (memo-based deferred) or `/autopilot-draft --from strategy`
-   Do NOT proceed with autopilot-refine.
+   - Doc: `/autopilot-draft --from strategy` (full strategy/draft rebuild) or `/autopilot-refine "<artifact>" --memo <file>` (deferred memo style, this skill's `--memo` form)
+   Do NOT proceed with the current autopilot-refine call.
 
 ### Stage B.5 — Factual claim & Style auto-detector (always runs, even in quick)
 
@@ -431,16 +431,16 @@ Parse the user's reply, then:
 5. **Report** to user (≤6 lines):
    ```
    ✓ autopilot-refine 완료 — v{prev} → v{N}
-   • Files touched: {count}
-   • Snapshot: {_internal/versions/v{prev}/ (modern) or _v{prev}.md (legacy doc)}
-   • Updated: {artifact_dir}/pipeline_summary.md (버전 히스토리 + v{N} 변경 사항)
+   • 수정 파일: {count}개
+   • 스냅샷: {_internal/versions/v{prev}/ (modern) or _v{prev}.md (legacy doc)}
+   • 갱신: {artifact_dir}/pipeline_summary.md (버전 히스토리 + v{N} 변경 사항)
    {if version_count >= AUDIT_HINT_THRESHOLD:}
-   ⚠ {version_count} refine cycles accumulated — recommend running an audit:
+   ⚠ refine cycle {version_count}회 누적 — audit 권장:
       /audit {artifact_short_name}
-      (auto-scope: artifact 특성으로 적절한 aspect 자동 선택. 점검만 하려면 --report-only)
+      (auto-scope: artifact 특성으로 aspect 자동 선택. 점검만 하려면 --report-only)
    {endif}
    {if downstream sync needed:}
-   ⚠ Downstream sync 필요:
+   ⚠ 후속 동기화 필요:
      /autopilot-refine "{dependent_artifact_name} pipeline_summary v{N} 반영"
    ```
 
@@ -495,7 +495,7 @@ Parse the user's reply, then:
 - Single-file typo / cosmetic edit → just `Edit`.
 - Code artifacts → `/refine-plan`, `/execute-plan`, `/autopilot-code`.
 - Whole-axis structural redesign → `/autopilot-research --from analyze` or `/autopilot-draft --from strategy`.
-- Pure deferred review (annotate over hours/days) → `/refine-doc` (file-memo) or this skill's `--memo` form.
+- Pure deferred review (annotate over hours/days) → this skill's `--memo <file>` form (file-memo). `/refine-doc` 는 autopilot-draft 내부 sub-skill 이라 사용자 직접 호출 X.
 
 ## Post-Apply Checklist
 

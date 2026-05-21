@@ -148,10 +148,13 @@
 ```
 {topic}/
 ├── pipeline_summary.md           [T1]
+├── pipeline_state.yaml           [T1] --from 재개용 stage state
 ├── 00_briefing.md                [T1] executive summary
 ├── 01_landscape.md ~ NN_*.md     [T1+T2] 챕터들 (numeric prefix로 정렬·groupling)
 ├── analysis_summary.md           [T2]
 ├── cards/                        [T2] 논문/레퍼런스 카드 (primary source)
+├── code_resources/               [T2] code-search hit + HF 사전 fetch (autopilot-research 06_implementation 단계)
+├── figures/                      [T2] paper figure 추출 (figure_index.md + {paper_id}_fig*.png)
 └── _internal/                    [T3]
     ├── search_results.json, search_results.md
     ├── phase_a_batches.json, phase_a_final_batches.json
@@ -170,6 +173,7 @@
 ```
 {date}_{name}/
 ├── pipeline_summary.md           [T1]
+├── pipeline_state.yaml           [T1] --from 재개용 stage state
 ├── draft/                        [T1] latest만
 │   ├── draft.md
 │   └── draft_ko.md
@@ -179,9 +183,13 @@
 ├── analysis/                     [T2]
 │   ├── material_index.md
 │   └── ref_analysis.md (or reviewer_analysis.md for rebuttal)
+├── assets/                       [T2] 본문 삽입용 figure (figures/figure_index.md + *.png; Source 3)
 └── _internal/                    [T3]
+    ├── draft_meta.md             ← strategy 단계에서 결정된 의도·format spec hint 등
     ├── strategy_reviews/         ← 기존 strategy_reviews/ 그대로 이동
     ├── draft_reviews/
+    ├── audit/                    ← /audit 보고서 (skill 본문 정의)
+    ├── discarded/                ← 폐기된 draft·strategy 변형 (실험적)
     └── versions/
         ├── v1/strategy/, draft/
         ├── v2/...
@@ -195,6 +203,7 @@
 ```
 {date}_{name}/
 ├── pipeline_summary.md           [T1]
+├── pipeline_state.yaml           [T1] --from 재개용 stage state (plan frontmatter 와 병용 가능)
 ├── plan/                         [T1]
 │   ├── plan.md, plan_ko.md
 │   └── checklist.md
