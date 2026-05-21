@@ -157,14 +157,15 @@ flowchart LR
 `~/.claude/README.md` 가 본 sync 의 단일 진실 출처 (reference layout). sync 시 다음 순서로 7 섹션을 채운다:
 
 1. **Header** — title + source 안내 (`/sync-skills` 자동 갱신 표지) + Notion 대문 링크 + 운영 가이드 (`notion_guide.md`) 링크. sync 시각·이력은 git commit log 가 단일 출처.
-2. **🗣️ 자연어 사용 방식 — 자연어로 부르면 알아서 컨펌받고 진행** (핵심 섹션, _사람 유지 영역_)
-   - 짧은 prose 한 단락 (메인 Claude 가 컨텍스트 보고 옵션 + task description 짜서 자연어 한 줄 요약 컨펌)
-   - **자연어 발화 예시 표** (사용자 발화 / 메인 Claude 컨펌 자연어 요약 — 6 행 정도)
-   - 컨펌 답변 흐름 한 단락 (yes / 수정 / cancel / 자율 진행)
-   - "직접 slash 입력도 그대로" 서브 섹션 (autopilot-* 4 개 slash command 예시 + skip 안내)
-   - 글로벌 [`CLAUDE.md`](CLAUDE.md) §6 reference
-3. **📊 워크플로우 큰 그림** — Diagram 1 (위 4a) + 5 카테고리 bullets (A 사전조사 / B 코드 / C 문서 / D 점검 / E 정정) + 3-tier 산출물 컨벤션 reference
-4. **📋 Skills** — name (SKILL.md 링크) / 역할 표만. 옵션 dump **X**. 표 직후 sub-skill 한 줄 + 세부 옵션은 각 SKILL.md `## Usage` reference 안내. QA 5단계 단일 정의는 CONVENTIONS.md §1 reference.
+2. **📊 워크플로우** — workspace 전제 quote (Claude 는 프로젝트 루트에서 실행 / `.claude_reports/` 현재 dir 생성 / `--refs` flag 없음) + sub-section 두 개:
+   - `### Skill 호출 흐름` — Diagram 1 (위 4a) + 5 카테고리 한 줄 (A 사전조사 / B 코드 / C 문서 / D 점검 / E 정정)
+   - `### 산출물 I/O (\`.claude_reports/\` 관점)` — Diagram 2 (산출물 I/O mermaid) + 누적 디렉토리 안내 + D/E 역할 한 줄 (D 는 OUT 을 _읽기만_ + 자동 fix dispatch / E 는 OUT 을 _read+write_ 양방향)
+   - 3-tier 산출물 컨벤션 reference + 산출물 위치·scope·함정 reference (글로벌 CLAUDE.md "Drift-Free Essentials")
+3. **🗣️ 사용 방식** (핵심 섹션 — _§3.(1) 자연어 발화 예시 표는 사람 유지 영역_)
+   - 두 갈래 평등 prose 한 줄 (자연어 발화 / 직접 slash 입력 — 동일 skill 동일 동작)
+   - `### (1) 자연어 발화로 부르기` — prose (메인 Claude 의 옵션 자동 구성 + 자연어 한 줄 요약 + 옵션 펼침 + 옵션 선택 근거 컨펌 흐름 + yes/수정/cancel/자율 진행) + ceremony 4 vs 가벼운 3 컨펌 의무 안내 + 글로벌 [`CLAUDE.md`](CLAUDE.md) §6 reference + **자연어 발화 예시 표** (사용자 발화 / 메인 Claude 컨펌 자연어 요약 — 6 행 정도, _사람 유지_)
+   - `### (2) slash 명령 직접 입력` — prose (직접 입력 = 의도 명시 = 컨펌 skip 즉시 invoke 안내) + slash 예시 code block (autopilot-code / autopilot-draft / autopilot-research / autopilot-refine / audit / notes 6 줄, SKILL.md frontmatter `argument-hint` 에서 자동 생성) + QA 5단계 단일 정의는 [`CONVENTIONS.md`](CONVENTIONS.md) §1 reference
+4. **📋 Skills** — name (SKILL.md 링크) / 역할 표만. 옵션 dump **X**. 표 직후 sub-skill 한 줄 + 세부 옵션은 각 SKILL.md `## Usage` reference 안내.
 5. **🤝 Agents** — name (agent .md 링크) / 모델 / 역할 표. _자동 호출자 컬럼 X_ (새 패턴은 자연어로 부르면 메인 Claude 가 알아서). 직접 호출 안내 한 단락. Notion sub-agent 위임 X 주의 한 줄.
 6. **⚙️ 운영 룰** — 한 단락. _자동 호출 패턴은 글로벌 [`CLAUDE.md`](CLAUDE.md) 가 단일 source of truth_ 안내. §6 autopilot-* 호출 패턴 + 도메인 트리거 표 reference. 각 SKILL.md `## Default Invocation Rule` 은 _그 SKILL.md 안에서만_ 의미 — README 에 모으지 않음.
 7. **🔁 동기화** — `/sync-skills` 두 명령 + GitHub 링크
@@ -180,7 +181,7 @@ flowchart LR
   - Skills 표의 "주요 옵션" 컬럼 (argument-hint 자동 추출)
   - 운영 룰 표 (skill 별 4컬럼 dump)
 
-**§2 자연어 사용 방식 섹션은 _사람 유지 영역_** — 자연어 발화 예시 표는 사람 손길 큐레이션 자료라 자동 생성 어려움. sync-skills 는 _현행 README 의 §2 wording 을 그대로 보존_ 하고 (SHA 비교 skip), §3-§7 만 자동 갱신. 사용자가 §2 를 직접 편집해도 sync-skills 가 덮어쓰지 않음.
+**§3.(1) 자연어 발화 예시 표는 _사람 유지 영역_** — 자연어 발화 예시 표는 사람 손길 큐레이션 자료라 자동 생성 어려움. sync-skills 는 _현행 README 의 §3.(1) 자연어 발화 표 + 그 직전 prose 한 두 단락 을 그대로 보존_ 하고 (SHA 비교 skip), 나머지 (§1·§2·§3.(2)·§4-§7) 만 자동 갱신. 사용자가 §3.(1) 을 직접 편집해도 sync-skills 가 덮어쓰지 않음.
 
 현행 README 가 본 layout 의 reference. 대규모 변경 시 README 를 먼저 손보고 본 SKILL.md 를 동기화.
 
@@ -191,8 +192,8 @@ flowchart LR
 | 섹션 | 처리 |
 |---|---|
 | §1 Header | 표지 텍스트 / Notion 링크 / 운영 가이드 링크 자동 갱신 |
-| **§2 자연어 사용 방식** | **사람 유지 영역 — 현행 wording 그대로 보존 (SHA 비교 skip).** 사용자가 직접 편집한 자연어 발화 예시 표·prose 그대로. 단 _섹션 헤딩 자체_ 가 누락됐으면 placeholder 헤딩 + 한 줄 안내만 자동 삽입 |
-| §3 워크플로우 | Diagram 1 + 5 카테고리 bullets 자동 갱신 |
+| §2 워크플로우 | Diagram 1 (Skill 호출 흐름) + 5 카테고리 한 줄 + Diagram 2 (산출물 I/O `.claude_reports/` 관점) + 3-tier 컨벤션 reference 자동 갱신. workspace 전제 quote 고정 wording |
+| **§3 사용 방식** | **§3.(1) 자연어 발화 예시 표 + 그 직전 prose 는 사람 유지 영역 — 현행 wording 그대로 보존 (SHA 비교 skip).** 사용자가 직접 편집한 발화 예시 표 그대로. 단 _섹션 헤딩 자체_ 가 누락됐으면 placeholder 헤딩 + 한 줄 안내만 자동 삽입. §3.(2) slash 예시 code block 은 각 SKILL.md frontmatter `argument-hint` 에서 자동 생성 + ceremony 4 vs 가벼운 3 컨펌 의무 안내·QA 5단계 reference 자동 갱신 |
 | §4 Skills 표 | name / 역할 자동 추출. 옵션 컬럼 X. 새 skill 추가·삭제 자동 반영 |
 | §5 Agents 표 | name / 모델 / 역할 자동 추출. 자동 호출자 컬럼 X |
 | §6 운영 룰 | _글로벌 CLAUDE.md §6 가리킴 한 단락_ — 표 자동 채우기 X (이전 spec 의 4컬럼 표 폐기) |

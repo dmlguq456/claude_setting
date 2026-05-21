@@ -5,40 +5,11 @@
 
 ---
 
-## 🗣️ 사용 방식 — 자연어로 부르면 알아서 컨펌받고 진행
-
-세부 옵션을 외울 필요 없음. 작업 의도를 자연어로 말하면, 메인 Claude 가 컨텍스트 (cwd / `.claude_reports/` 산출물 / 사용자 발화) 를 보고 적절한 skill + 옵션 + task description 을 짜서 **자연어 한 줄 요약으로 컨펌**을 받습니다. yes 한 마디면 invoke.
-
-### 자연어 발화 예시
-
-| 사용자 발화 | 메인 Claude 컨펌 (자연어 요약) |
-|---|---|
-| "ICML camera-ready 마무리 도와줘" | autopilot-draft paper 모드로 camera-ready 본문 다듬기 (qa standard) |
-| "이 에러 디버그해봐" | autopilot-code debug 모드로 root-cause 분석 + 수정 (qa light) |
-| "diffusion 분야 최근 동향 조사해줘" | autopilot-research academic 모드, depth medium, 최근 1년 (qa light) |
-| "이 문서 v2 로 정리" | autopilot-refine major-level (qa quick, 자동 apply) |
-| "X 기능 새로 만들어줘" | autopilot-code dev 모드로 plan→execute→test→report (qa standard) |
-| "이번 발표 자료 만들어줘" | autopilot-draft presentation 모드로 슬라이드 markdown 작성 (qa standard) |
-
-컨펌 받은 뒤 yes / 수정 요청 ("qa thorough 로", "X 빼고") / cancel 중 선택. 답 없으면 10-30 분 후 추천대로 자율 진행.
-
-ceremony 큰 갈래 (`autopilot-code` / `autopilot-draft` / `autopilot-research` / `autopilot-refine`) 4 개만 컨펌 의무. `audit` / `notes` / `analyze-project` 같은 가벼운 갈래는 컨펌 없이 그냥 invoke. 상세 룰은 글로벌 [`CLAUDE.md`](CLAUDE.md) §6.
-
-### 직접 slash 입력도 그대로
-
-세부 옵션을 명시하고 싶을 때 / 매번 컨펌이 거추장스러울 때는 slash command 그대로 입력:
-
-- `/autopilot-code --mode dev --qa standard "<task>"`
-- `/autopilot-draft --mode paper --user-refine "<task>"`
-- `/autopilot-research <topic> --mode academic --depth deep`
-
-직접 입력 시 의도 명시로 간주 → 컨펌 skip 하고 즉시 invoke. 세부 옵션은 각 SKILL.md 의 `## Usage` 섹션 참조 (아래 Skills 표의 링크).
-
----
-
-## 📊 워크플로우 큰 그림
+## 📊 워크플로우
 
 > Claude 는 프로젝트 루트에서 실행. `.claude_reports/` 는 현재 dir 에 생성. cross-project 는 `cd <other>` 후 별도 세션. 외부 `--refs` flag 없음 — 모든 입력은 `.claude_reports/` 영속 산출물에서 자동 발견.
+
+### Skill 호출 흐름
 
 ```mermaid
 flowchart LR
@@ -61,17 +32,73 @@ flowchart LR
     AUD -.->|auto-fix plans| CODE
 ```
 
-5 카테고리:
+5 카테고리 — **A. 사전 조사 & 분석** (`analyze-project` / `autopilot-research`) / **B. 코드 개발 & 디버그** (`autopilot-code`) / **C. 문서 작성** (`autopilot-draft`) / **D. 사후 점검** (`audit`) / **E. 사후 정정** (`autopilot-refine`).
 
-- **A. 사전 조사 & 분석** — `analyze-project` (code/paper/doc) / `autopilot-research` (외부 분야 조사)
-- **B. 코드 개발 & 디버그** — `autopilot-code` (dev/debug)
-- **C. 문서 작성** — `autopilot-draft` (paper/presentation/doc, markdown 만)
-- **D. 사후 점검** — `audit` (다각도 점검 + 기본 auto-fix chain)
-- **E. 사후 정정** — `autopilot-refine` (doc/research major-level ceremony)
+### 산출물 I/O (`.claude_reports/` 관점)
+
+```mermaid
+flowchart LR
+    subgraph IN["A. 자료 수집"]
+        ANA2["analyze-project"]
+        RES2["autopilot-research"]
+    end
+    subgraph PROD["B/C. 산출"]
+        CODE2["autopilot-code"]
+        DOC2["autopilot-draft"]
+    end
+    AUD2["D. audit"]
+    REF2["E. autopilot-refine"]
+    OUT[("📦 .claude_reports/")]
+    IN --> OUT
+    OUT -.->|implicit input| PROD
+    PROD --> OUT
+    OUT --> AUD2
+    AUD2 -.->|auto-fix plans| CODE2
+    AUD2 -.->|auto-fix doc/research| REF2
+    OUT <--> REF2
+```
+
+모든 자료는 `.claude_reports/` 하위 (`analysis_project/{code,paper,doc}/`, `research/{topic}/`, `documents/{date}_{name}/`, `plans/{date}_{name}/`) 에 누적. 후속 skill 은 점선 (implicit) 으로 자동 발견. **D (audit)** 는 OUT 을 _읽기만_ 하고 (점검 + 자동 fix dispatch), **E (refine)** 는 OUT 을 _read+write_ 양방향 (수정 + 버전 누적).
 
 > **3-tier 산출물 컨벤션** ([CONVENTIONS.md §5](CONVENTIONS.md#5-skill-output-convention-3-tier-t1t2t3)): T1 root = 메인 산출물 / T2 named subdir = 검토 자료 / T3 `_internal/` = audit·raw·versions. 사용자는 보통 T1 만 보면 됨.
 
 산출물 위치 / scope 경계 / 자주 빠지는 함정은 글로벌 [`CLAUDE.md`](CLAUDE.md) "Drift-Free Essentials" 섹션.
+
+---
+
+## 🗣️ 사용 방식
+
+두 가지 입구가 평등하게 있습니다 — _자연어로 부르기_ 와 _직접 slash 입력_. 어느 쪽을 써도 같은 skill 이 같은 방식으로 동작합니다.
+
+### (1) 자연어 발화로 부르기
+
+작업 의도를 자연어로 말하면, 메인 Claude 가 컨텍스트 (cwd / `.claude_reports/` 산출물 / 사용자 발화) 를 보고 적절한 skill + 옵션 + task description 을 짜서 **자연어 한 줄 요약 + 옵션 펼침 + 옵션 선택 근거** 형태로 컨펌을 받습니다. yes / 수정 요청 ("qa thorough 로", "X 빼고") / cancel 중 선택. 답 없으면 10-30 분 후 추천대로 자율 진행.
+
+ceremony 가 큰 갈래 (`autopilot-code` / `autopilot-draft` / `autopilot-research` / `autopilot-refine`) 4 개만 컨펌 의무. `audit` / `notes` / `analyze-project` 는 컨펌 없이 그냥 invoke. 상세 룰은 글로벌 [`CLAUDE.md`](CLAUDE.md) §6.
+
+| 사용자 발화 | 메인 Claude 컨펌 (자연어 요약) |
+|---|---|
+| "ICML camera-ready 마무리 도와줘" | autopilot-draft paper 모드로 camera-ready 본문 다듬기 (qa standard) |
+| "이 에러 디버그해봐" | autopilot-code debug 모드로 root-cause 분석 + 수정 (qa light) |
+| "diffusion 분야 최근 동향 조사해줘" | autopilot-research academic 모드, depth medium, 최근 1년 (qa light) |
+| "이 문서 v2 로 정리" | autopilot-refine major-level (qa quick, 자동 apply) |
+| "X 기능 새로 만들어줘" | autopilot-code dev 모드로 plan→execute→test→report (qa standard) |
+| "이번 발표 자료 만들어줘" | autopilot-draft presentation 모드로 슬라이드 markdown 작성 (qa standard) |
+
+### (2) slash 명령 직접 입력
+
+세부 옵션을 명시하거나 컨펌 과정을 건너뛰고 싶을 때는 slash command 를 그대로 입력. 직접 입력은 _의도 명시_ 로 간주 → 컨펌 skip 하고 즉시 invoke. 옵션 조합·default 값·QA level 의미는 각 SKILL.md 의 frontmatter `argument-hint` 또는 `## Usage` 섹션 참조 (아래 §4 Skills 표의 링크).
+
+```
+/autopilot-code     --mode dev|debug --qa quick|light|standard|thorough|adversarial "<task>"
+/autopilot-draft    --mode paper|presentation|doc [--user-refine] "<task>"
+/autopilot-research <topic> --mode academic|technology|market --depth shallow|medium|deep
+/autopilot-refine   "<prompt>" [--qa ...] [--review-only | --memo <file>]
+/audit              <artifact> [--scope facts|style|structure|cross-ref|coverage]
+/notes              [show | add <category> <text> | resolve <hint> | decide <text>]
+```
+
+QA 5 단계 (quick / light / standard / thorough / adversarial) 의 단일 정의는 [`CONVENTIONS.md`](CONVENTIONS.md) §1.
 
 ---
 
