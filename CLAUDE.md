@@ -18,7 +18,7 @@
 - **한국어로 쓸 어휘**: 그 외 일반 명사·동사·작업 흐름·상태·관계 표현 전부.
 - **한 응답 안에서 같은 개념은 같은 표기로 통일**. 어떤 줄에서는 "단계", 다른 줄에서는 "step" 같이 임의 혼용 금지.
 
-매핑 표는 [`~/.claude/agents/translation-team.md`](agents/translation-team.md) 본문 참조. 메인 Claude 응답도 본 정책 강제.
+매핑 표는 [`~/.claude/agents/editorial-team.md`](agents/editorial-team.md) 본문 참조. 메인 Claude 응답도 본 정책 강제.
 
 ### §2. 출력 자제 — 사용자 인지 부담 최소화
 

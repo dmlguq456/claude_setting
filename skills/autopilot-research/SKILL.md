@@ -401,7 +401,7 @@ Agent(subagent_type="연구팀"):
    ## Report Structure (mode-specific)
 
    The report set differs per mode. Common rules across all modes:
-   - **All English prose.** Do NOT write Korean — the Korean mirror is produced by the **번역팀** (translation-team) agent in Step 4a-KO below. Splitting Korean off to a dedicated translator is what prevents 판교체 leaking into the user-facing artifact.
+   - **All English prose.** Do NOT write Korean — the Korean mirror is produced by the **편집팀** (editorial-team) agent in Step 4a-KO below. Splitting Korean off to a dedicated translator is what prevents 판교체 leaking into the user-facing artifact.
    - Save each report file to `_internal/en/{filename}.md` (NOT root `{filename}.md`). Root paths are reserved for the Korean mirror produced by Step 4a-KO.
    - Technical terms stay in English (no Korean parenthesization needed since the whole file is English).
    - Every comparison table ends with bold **Takeaway** line
@@ -636,9 +636,9 @@ Agent(subagent_type="연구팀"):
    Return file paths (under `_internal/en/`) + 3-5 line Korean summary."
 ```
 
-#### Step 4a-KO: Korean translation (번역팀)
+#### Step 4a-KO: Korean translation (편집팀)
 
-After 연구팀 finishes the English report set in `_internal/en/`, invoke the **번역팀** (translation-team) agent. 번역팀 owns Korean readability and is the only path to the user-facing Korean reports at the artifact root.
+After 연구팀 finishes the English report set in `_internal/en/`, invoke the **편집팀** (editorial-team) agent. 편집팀 owns Korean readability and is the only path to the user-facing Korean reports at the artifact root.
 
 ```
 모드 A — 영문에서 국문으로 옮기기 (다중 파일).
@@ -646,7 +646,7 @@ After 연구팀 finishes the English report set in `_internal/en/`, invoke the *
 출력 디렉토리: {artifact_dir}/  (root — user-facing artifact 위치)
 대상 파일: 연구팀이 작성한 mode-specific report 세트 (academic 모드면 00_briefing.md ~ 08_*.md 등 9 개, technology 모드면 7 개, market 모드면 5 개)
 
-~/.claude/agents/translation-team.md 의 모드 A 절차를 각 파일마다 순차 적용한다.
+~/.claude/agents/editorial-team.md 의 모드 A 절차를 각 파일마다 순차 적용한다.
 ~/.claude/projects/*/memory/feedback_korean_readability_policy.md 의 판교체 회피 원칙을 강제 적용.
 영어로 그대로 둘 어휘: 논문 제목·저자·학회 이름·약자 (KWS, ASR 등)·모델 이름·데이터셋·지표·코드 식별자·LaTeX 명령·URL·BibTeX 키.
 한국어로 옮길 어휘: 그 외 일반 본문·작업 흐름·상태·관계 표현.

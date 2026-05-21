@@ -358,12 +358,12 @@ After the 연구팀 agent returns:
 3. **If 🔴 issues remain after 2 rounds**: Add to `## 미해결 이슈` section in the strategy, report to user. Tag fact-check residuals with `[FACT-RESIDUAL]`.
 
 ## Korean Version Generation
-After review loop completes, invoke the **번역팀** (translation-team) agent — NOT 연구팀. The 번역팀 owns Korean readability and is the only path to producing the `_ko.md` mirror.
+After review loop completes, invoke the **편집팀** (editorial-team) agent — NOT 연구팀. The 편집팀 owns Korean readability and is the only path to producing the `_ko.md` mirror.
 ```
 모드 A — 영문에서 국문으로 옮기기.
 영문 strategy 경로: {strategy_path}
 국문 출력 경로: {same directory}/strategy_ko.md
-~/.claude/agents/translation-team.md 의 모드 A 절차를 따른다.
+~/.claude/agents/editorial-team.md 의 모드 A 절차를 따른다.
 ~/.claude/projects/*/memory/feedback_korean_readability_policy.md 의 판교체 회피 원칙을 강제 적용.
 LaTeX 명령·논문 제목·학회 이름·약자·모델 이름·데이터셋·지표는 영어 그대로, 그 외 일반 표현은 한국어로.
 완료 시 파일 경로 + 한국어 요약 3-5 줄 + 의도적으로 한 표기 결정 한두 개만 돌려준다.

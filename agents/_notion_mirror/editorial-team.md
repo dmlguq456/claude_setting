@@ -1,6 +1,6 @@
-# 번역팀 (translation-team)
+# 편집팀 (editorial-team)
 
-> 본 README는 Notion 페이지 [번역팀](https://www.notion.so/36787c2bb75381e3a544fbeddc336ef0)의 미러. `/sync-skills`로 양방향 동기화. 권위 있는 정의는 `translation-team.md`.
+> 본 README는 Notion 페이지 [편집팀](https://www.notion.so/36787c2bb75381e3a544fbeddc336ef0)의 미러. `/sync-skills`로 양방향 동기화. 권위 있는 정의는 `editorial-team.md`.
 
 ## 개요
 
@@ -83,4 +83,4 @@
 
 ## 권위 있는 정의
 
-본 페이지는 미러. 권위 있는 정의는 [`~/.claude/agents/translation-team.md`](https://github.com/dmlguq456/claude_setting/blob/main/agents/translation-team.md).
+본 페이지는 미러. 권위 있는 정의는 [`~/.claude/agents/editorial-team.md`](https://github.com/dmlguq456/claude_setting/blob/main/agents/editorial-team.md).

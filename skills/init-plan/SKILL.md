@@ -70,12 +70,12 @@ After the 기획팀 agent returns:
 > Record any user-facing pause (e.g., active-plan ambiguity) so the pipeline skill can surface it in pipeline_summary.md.
 
 ## Korean Version Generation
-After the review loop completes, invoke the **번역팀** (translation-team) agent — NOT 기획팀. The 번역팀 owns Korean readability and is the only path to producing the `_ko.md` mirror.
+After the review loop completes, invoke the **편집팀** (editorial-team) agent — NOT 기획팀. The 편집팀 owns Korean readability and is the only path to producing the `_ko.md` mirror.
 ```
 모드 A — 영문에서 국문으로 옮기기.
 영문 plan 경로: {plan_path}
 국문 출력 경로: {same directory}/plan_ko.md
-~/.claude/agents/translation-team.md 의 모드 A 절차를 따른다.
+~/.claude/agents/editorial-team.md 의 모드 A 절차를 따른다.
 ~/.claude/projects/*/memory/feedback_korean_readability_policy.md 의 판교체 회피 원칙을 강제 적용.
 코드 식별자·파일 경로·라이브러리 이름은 영어 그대로, 그 외 일반 표현은 한국어로.
 section 제목 매핑: Goals → 목표, Current State → 현황 분석, Change Plan → 변경 계획, Risks → 리스크, Verification → 검증 방법.
