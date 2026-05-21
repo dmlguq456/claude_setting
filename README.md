@@ -68,13 +68,13 @@ flowchart LR
 
 ## 🗣️ 사용 방식
 
-두 가지 입구가 평등하게 있습니다 — _자연어로 부르기_ 와 _직접 slash 입력_. 어느 쪽을 써도 같은 skill 이 같은 방식으로 동작합니다.
+입구는 두 갈래 — _자연어_ 와 _slash_. 동작은 동일.
 
 ### (1) 자연어 발화로 부르기
 
-작업 의도를 자연어로 말하면, 메인 Claude 가 컨텍스트 (cwd / `.claude_reports/` 산출물 / 사용자 발화) 를 보고 적절한 skill + 옵션 + task description 을 짜서 **자연어 한 줄 요약 + 옵션 펼침 + 옵션 선택 근거** 형태로 컨펌을 받습니다. yes / 수정 요청 ("qa thorough 로", "X 빼고") / cancel 중 선택. 답 없으면 10-30 분 후 추천대로 자율 진행.
+자연어로 의도를 던지면 메인 Claude 가 컨텍스트 (cwd / `.claude_reports/` 산출물 / 발화) 를 읽고 skill + 옵션 + task description 을 조립, **한 줄 요약 + 옵션 펼침 + 선택 근거** 로 컨펌을 묻는다. yes / 수정 ("qa thorough 로", "X 빼고") / cancel. 무응답이면 10-30 분 뒤 추천안으로 자율 진행.
 
-ceremony 가 큰 갈래 (`autopilot-code` / `autopilot-draft` / `autopilot-research` / `autopilot-refine`) 4 개만 컨펌 의무. `audit` / `notes` / `analyze-project` 는 컨펌 없이 그냥 invoke. 상세 룰은 글로벌 [`CLAUDE.md`](CLAUDE.md) §6.
+ceremony 가 큰 4 개 (`autopilot-code` / `autopilot-draft` / `autopilot-research` / `autopilot-refine`) 만 컨펌 의무. `audit` / `notes` / `analyze-project` 는 즉시 invoke. 상세 룰은 글로벌 [`CLAUDE.md`](CLAUDE.md) §6.
 
 | 사용자 발화 | 메인 Claude 컨펌 (자연어 요약) |
 |---|---|
@@ -87,7 +87,7 @@ ceremony 가 큰 갈래 (`autopilot-code` / `autopilot-draft` / `autopilot-resea
 
 ### (2) slash 명령 직접 입력
 
-세부 옵션을 명시하거나 컨펌 과정을 건너뛰고 싶을 때는 slash command 를 그대로 입력. 직접 입력은 _의도 명시_ 로 간주 → 컨펌 skip 하고 즉시 invoke. 옵션 조합·default 값·QA level 의미는 각 SKILL.md 의 frontmatter `argument-hint` 또는 `## Usage` 섹션 참조 (아래 §4 Skills 표의 링크).
+옵션을 직접 명시하거나 컨펌을 건너뛸 때는 slash 를 그대로 친다. 직접 입력은 _의도 명시_ → 컨펌 없이 즉시 invoke. 옵션 조합·default·QA level 의미는 각 SKILL.md 의 `argument-hint` / `## Usage` (아래 §4 Skills 표 링크).
 
 ```
 /autopilot-code     --mode dev|debug --qa quick|light|standard|thorough|adversarial "<task>"
@@ -98,7 +98,7 @@ ceremony 가 큰 갈래 (`autopilot-code` / `autopilot-draft` / `autopilot-resea
 /notes              [show | add <category> <text> | resolve <hint> | decide <text>]
 ```
 
-QA 5 단계 (quick / light / standard / thorough / adversarial) 의 단일 정의는 [`CONVENTIONS.md`](CONVENTIONS.md) §1.
+QA 5 단계 (quick / light / standard / thorough / adversarial) 정의는 [`CONVENTIONS.md`](CONVENTIONS.md) §1.
 
 ---
 

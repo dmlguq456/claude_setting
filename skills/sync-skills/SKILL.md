@@ -201,6 +201,23 @@ flowchart LR
 
 **sync 시각·이력은 README 본문에 쓰지 않음** (git commit log 가 단일 출처).
 
+### Step 5a: 편집팀 검수 (사용자 영역 wording — LLM 스러운 어조 회피)
+
+Step 5 에서 README 본문 wording 을 자동 생성·갱신한 자리 (§1 Header / §2 워크플로우 / §3.(2) slash 명령 직접 입력 / §4 Skills 표 wording / §5 Agents 표 wording / §6 운영 룰 / §7 동기화) 는 메인 Claude 가 wording 을 직접 짜므로 _LLM 스러운 인공적 어조_ (풀어쓰기 과잉·모범생 화법·친절 안내체) risk. Step 5 자동 갱신 직후 _같은 turn 안에_ `Agent(편집팀)` _다듬기 모드_ 호출해 검수.
+
+**검수 범위** — Step 5 가 _자동 갱신_ 한 섹션만. _§3.(1) 자연어 발화 예시 표 + 그 직전 prose_ 는 _사람 유지 영역_ (이미 사람 손길 큐레이션) 이므로 검수 제외.
+
+**Prompt 초점** (Agent 호출 시 그대로 전달):
+- 풀어쓰기 과잉 정리 (한 줄 표현 가능한 자리)
+- 모범생·친절 안내체 ("~가 평등하게 있습니다" / "어느 쪽을 써도 ~합니다") 회피
+- 간결·단정 한국어 (`~다` / `~이다` 어미)
+- 글로벌 [`CLAUDE.md`](../../CLAUDE.md) §1 한국어 가독성 정책 + 도메인 트리거 표 _사용자 영역 메타 문서 작성·수정_ 행 준수
+- 표·코드 블록·heading 구조·mermaid·링크는 그대로 유지 (의미·구조 변경 X, 어조만)
+
+**Skip 조건** — `--notion-only` 일 때만 README 안 만지므로 검수 skip. `--readme-only` / `--force` / default 는 모두 검수 포함. `--check` 는 drift 보고만이라 Step 5 자체가 안 돌아 검수 무관.
+
+> 본 step 추가 사유 (2026-05-22): 사용자가 README §3 사용 방식 첫 줄 _"두 가지 입구가 평등하게 있습니다 — 자연어로 부르기 와 직접 slash 입력. 어느 쪽을 써도 같은 skill 이 같은 방식으로 동작합니다."_ 같은 LLM 스러운 어조 지적. 자동 sync 가 매번 같은 risk 재발하지 않도록 검수 단계 의무화.
+
 ### Step 5b: Cross-doc invariant scan (QA 정의 & family-wide 규칙)
 
 > 이전 spec 의 _운영 룰 표 추출_ (각 SKILL.md `## Default Invocation Rule` grep → 4컬럼 표) 은 **폐기**. 새 README §6 운영 룰은 _글로벌 CLAUDE.md §6 가리킴 한 단락_ 으로 단순화. 각 SKILL.md `## Default Invocation Rule` 은 _그 SKILL.md 안에서만_ 의미를 가지고 README 에 모으지 않음. (autopilot-* 4 개 SKILL.md 의 trigger 신호·default 옵션·override 는 글로벌 §6 의 일반 패턴 + 각 SKILL.md 의 skill-specific 정보로 분리.)
