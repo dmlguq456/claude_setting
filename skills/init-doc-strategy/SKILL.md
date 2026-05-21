@@ -42,6 +42,27 @@ Target venues (for academic modes): NeurIPS, ICML, ICLR, ICASSP, Interspeech, IE
 2. Read pre-analyzed materials from the discovered input paths (each path is a `analysis_project/{paper,doc}/{name}/` or `research/{topic}/` artifact — use the structured analysis files there, NOT external raw PDFs)
 3. Consider venue-specific conventions and expectations (for academic modes: rebuttal/paper/review) or domain best practices and industry standards (for professional modes: report/proposal/presentation)
 
+## Paragraph Cohesion Pre-Check (mandatory before every paste-ready block — **all modes**)
+
+This rule applies to **every doc-strategy mode** (rebuttal / paper / review / report / proposal / presentation). Before writing any paste-ready block (LaTeX / markdown / slide bullet / table-row), run this **4-step self-check on the target paragraph as a whole**:
+
+1. **Is the substance already stated?** — read every existing sentence in the target paragraph. If the same content (terminology, framing, claim, cross-ref) is already there, **do NOT add a separate sentence**; route through in-line edit instead.
+2. **What is the paragraph axis?** — most well-formed paragraphs follow a clear axis (e.g., *motivation → design → formalization*, *claim → evidence → caveat*, *context → contribution → comparison*). Verify the new sentence does not break that transition. Insertions immediately before/after equation blocks, figure cascades, or table introductions require extra care.
+3. **Cross-section redundancy** — if another paragraph (§-level / slide-level) already covers the substance, **DROP** or compress to a minimal cross-ref. Same substance must not be repeated at multiple canonical sites.
+4. **Choose edit type** — combine results of 1-3 into one of four classifications, ordered by cohesion strength:
+   - **EDIT (in-line parenthetical / word insertion / reword)** — terminology, cross-ref, or alternative folds naturally into an existing sentence. **Highest cohesion; prefer this whenever possible**.
+   - **REPLACE** — rewrite an existing sentence to absorb the new substance, preserving the narrative arc.
+   - **INSERT (new sentence)** — only when the paragraph has zero overlapping content AND a natural slot that does not break the axis exists.
+   - **DROP** — another paragraph/section already states it → delete from the new mutation list.
+
+**Anti-patterns (forbidden — auto-reject the mutation)**:
+- *Mechanical "INSERT after sentence X"* without analyzing the paragraph flow — especially right before equation blocks, figure cascades, or table introductions, which breaks the narrative.
+- *BEFORE / AFTER diffs where AFTER is longer than BEFORE* due to cross-ref bloat or restated substance — contradicts the compression intent.
+- *Same substance repeated at §-level* (one paragraph states X, another paragraph re-states X via cross-ref) — keep exactly one canonical site; others must use cross-ref or DROP.
+- *Trailing sentence appended after a "design choice" sentence that already names the choice* — the new content overlaps with the design-choice sentence and should be folded in via EDIT, not appended.
+
+**Why** (2026-05-20 incident, ICML 2026 camera-ready M8 / M9): M8 paste-ready ignored the existing *"we share the same projection layer..."* sentence and appended a separate trailing INSERT, breaking the transition to the next equation block. M9 restated a §3.2 conditional-information-flow paragraph inside §3.3 P2 via cross-ref, increasing verbosity rather than compressing it. The user's explicit feedback was *"그걸 삽입할 단락의 전체 cohesive, coherence를 고려해야하는데"* — every paste-ready mutation must be designed against the target paragraph's full cohesion/coherence, not in isolation. This 4-step pre-check operationalizes that judgment so the failure mode does not repeat across modes.
+
 ## Mode-Specific Instructions
 
 ### If mode = rebuttal
@@ -119,6 +140,8 @@ type: paper / venue: {target venue} / status: draft / date: {YYYY-MM-DD}
 ```
 
 #### Natural-integration rule for paper-body mutations (camera-ready / major revision)
+
+> **First apply the top-level [Paragraph Cohesion Pre-Check](#paragraph-cohesion-pre-check-mandatory-before-every-paste-ready-block--all-modes) (4-step) to choose between EDIT / REPLACE / INSERT / DROP.** The paper-body extension below adds rebuttal-material-specific gates on top.
 
 When converting **reviewer concerns / rebuttal materials → paper-body mutations**, apply this **single gating question** before writing any paste-ready block:
 
@@ -329,14 +352,15 @@ After the 연구팀 agent returns:
 3. **If 🔴 issues remain after 2 rounds**: Add to `## 미해결 이슈` section in the strategy, report to user. Tag fact-check residuals with `[FACT-RESIDUAL]`.
 
 ## Korean Version Generation
-After review loop completes, invoke 연구팀 one final time:
+After review loop completes, invoke the **번역팀** (translation-team) agent — NOT 연구팀. The 번역팀 owns Korean readability and is the only path to producing the `_ko.md` mirror.
 ```
-Translate mode. Create the Korean version of the finalized strategy.
-English strategy file: {strategy_path}
-Save Korean version to: {same directory}/strategy_ko.md
-Create a full Korean translation (NOT a summary). All sections with same detail.
-Code identifiers, paper titles, and technical terms stay in English.
-Return ONLY the file path.
+모드 A — 영문에서 국문으로 옮기기.
+영문 strategy 경로: {strategy_path}
+국문 출력 경로: {same directory}/strategy_ko.md
+~/.claude/agents/translation-team.md 의 모드 A 절차를 따른다.
+~/.claude/projects/*/memory/feedback_korean_readability_policy.md 의 판교체 회피 원칙을 강제 적용.
+LaTeX 명령·논문 제목·학회 이름·약자·모델 이름·데이터셋·지표는 영어 그대로, 그 외 일반 표현은 한국어로.
+완료 시 파일 경로 + 한국어 요약 3-5 줄 + 의도적으로 한 표기 결정 한두 개만 돌려준다.
 ```
 Then report to the user: English and Korean strategy paths, strategy summary, and QA verdict.
 

@@ -518,7 +518,8 @@ Discovered inputs: {discovered_inputs}
 **Style Guide (MANDATORY)**: Before writing any draft content, read `{strategy_folder}/strategy/strategy.md` and locate the `## Style Guide` section. Apply its rules to **every** citation, figure caption, bullet depth, speaker note, model classification, and venue/year tag in the draft. Style Guide rules override any default formatting you might use. If the Style Guide says `IS 2024` for Interspeech 2024 papers, you must use `IS 2024` — never `Interspeech 2024` or `Interspeech, 2024`. If a model lookup fails (the cards/* don't contain it), use `[?]` rather than fabricating venue/year.
 
 Save English draft to: {strategy_folder}/draft/draft.md
-Save Korean draft to: {strategy_folder}/draft/draft_ko.md
+
+**Do NOT write `draft_ko.md` yourself.** The Korean mirror is produced by the **번역팀** (translation-team) agent in a follow-up step (Step 4-KO below). 연구팀 only writes English here — splitting Korean off to a dedicated translator is what prevents 판교체 leaking into the user-facing artifact.
 
 Read the strategy document and all analysis files. Generate a complete first draft following the mode-specific structure below. The draft should be a working document ready for user editing — not a summary of the strategy.
 
@@ -728,10 +729,28 @@ Generate a **PPT cheatsheet markdown** — single file, optimized for human read
   - **review**: 80%+ — every required section per the auto-discovered format spec must be filled with concrete claims. Strengths/weaknesses must reference specific paper sections/figures/tables. Score justifications are mandatory.
   - **presentation**: 70-80% — every slide has 제목/부제(선택)/bullets/시각자료/Speaker note 5개 슬롯이 채워짐 (시각자료가 텍스트만 있는 슬라이드에 빠지면 cheatsheet 가치 손상). Speaker notes ≥80% of content slides. 슬라이드 카운트는 strategy outline과 ±10% 이내. `---` 구분자가 모든 슬라이드 사이에 있는지 확인.
 
-Write both files directly. Return ONLY the file paths and a 3-5 line Korean summary.
+Write **only** the English draft. Return ONLY the file path and a 3-5 line Korean summary.
 ```
 
-3. **IMPORTANT**: Do NOT read, re-write, or duplicate the draft files yourself. The agent writes them directly.
+3. **IMPORTANT**: Do NOT read, re-write, or duplicate the draft file yourself. The agent writes it directly.
+
+#### Step 4-KO: Korean draft generation (번역팀)
+
+After 연구팀 finishes the English draft, invoke the **번역팀** (translation-team) agent. 번역팀 owns Korean readability and is the only path to `draft_ko.md`.
+
+```
+모드 A — 영문에서 국문으로 옮기기.
+영문 draft 경로: {strategy_folder}/draft/draft.md
+국문 출력 경로: {strategy_folder}/draft/draft_ko.md
+~/.claude/agents/translation-team.md 의 모드 A 절차를 따른다.
+~/.claude/projects/*/memory/feedback_korean_readability_policy.md 의 판교체 회피 원칙을 강제 적용.
+모드별 영어 유지 어휘 ({mode} 에 맞게):
+- paper/rebuttal/review: LaTeX 명령·논문 제목·저자·학회·약자·모델·데이터셋·지표는 영어 그대로
+- report/proposal: 회사·기관·프로젝트·기술 용어는 영어 그대로
+- presentation: 슬라이드의 본문 영어 인용·LaTeX·모델·논문 제목은 영어 그대로
+한 문서 안에서 같은 개념은 같은 표기로 통일.
+완료 시 파일 경로 + 한국어 요약 3-5 줄 + 의도적으로 한 표기 결정 한두 개만 돌려준다.
+```
 
 ### Step 4b — Post-draft factual detector (orchestrator-side, all modes)
 

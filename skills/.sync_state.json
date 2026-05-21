@@ -1,7 +1,7 @@
 {
   "version": 3,
-  "last_readme_sync": "2026-05-19T18:30:00+09:00",
-  "last_notion_sync": "2026-05-19T18:30:00+09:00",
+  "last_readme_sync": "2026-05-21T09:58:55+09:00",
+  "last_notion_sync": "2026-05-21T09:58:55+09:00",
   "items": {
     "skills/analyze-project": {
       "sha256": "db949ea7a6311b898accc66945d4dab552f4df925fe7ee111db71588a9100cc5",
@@ -34,8 +34,8 @@
       "notion_synced_sha256": "618666c9d87366f849fcc834915b43e5778c0fa47349e8bfb09cd440aa4d2835"
     },
     "skills/autopilot-doc": {
-      "sha256": "25ac39c9ef15be6479f38c9ec845982b380c92e6e381f5d83acf619ce4e93d77",
-      "synced_at": "2026-05-19T18:30:00+09:00",
+      "sha256": "cd5d165d3fa8af58b833c301a2b50ea1c7ff6959e2d17e2f64cc90582e8156c5",
+      "synced_at": "2026-05-21T09:58:55+09:00",
       "readme_path": "skills/autopilot-doc/README.md",
       "readme_sha256": "2a5de0c1f2a628b53c281466232bf9b66aca351d3e9af5d0e8f8f5d34bec2c67",
       "readme_mtime": "2026-05-19T18:30:00+09:00",
@@ -54,8 +54,8 @@
       "notion_synced_sha256": "3ee1f1908c01ce891c2db05fc6d6affcf2079be49af706bbff7c78f0d3e400a1"
     },
     "skills/autopilot-research": {
-      "sha256": "5201771e375b0a0b21ed1cd157429500bcb56017fc4170954e9b60ec64b2689d",
-      "synced_at": "2026-05-13T10:47:33+09:00",
+      "sha256": "3cabb1c87c1ca7c549a0ffdf95fd432f597a85d92ef4f42fe9d4ef7dafc326d2",
+      "synced_at": "2026-05-21T09:58:55+09:00",
       "readme_path": "skills/autopilot-research/README.md",
       "readme_sha256": "cedc58e1ccde35938c35dd9171cff75fe9bcec0f15817495adffea5c7a7844d2",
       "readme_mtime": "2026-05-13T10:47:33+09:00",
@@ -85,18 +85,18 @@
       "notion_synced_sha256": "4273e964a27bdba70ce8ba2877456cfe09b26cae15db7e4193b9f6e81f316de0"
     },
     "skills/init-doc-strategy": {
-      "sha256": "7a9a0a61d076e8080758cc6c5b163b33161c688a87514afa9bfe6c4255a14f45",
-      "synced_at": "2026-05-19T18:30:00+09:00",
+      "sha256": "f1821034c64674b3fd2547eeab01245245d41db1570cb14f5e75ba7cb2f23362",
+      "synced_at": "2026-05-21T09:58:55+09:00",
       "readme_path": "skills/init-doc-strategy/README.md",
-      "readme_sha256": "d702377bc6f65f96db1cff478f8ead7f8d0ec6f18151572b8a1691a4dc9423f1",
-      "readme_mtime": "2026-05-19T18:30:00+09:00",
+      "readme_sha256": "9e0cdfdd88f70e33524ff020a6aa187f5e32c71f66573a96ba303f693e724d41",
+      "readme_mtime": "2026-05-20T00:40:22+09:00",
       "notion_page_id": "34987c2b-b753-8158-9391-df16f1b6eb74",
-      "notion_last_edited_time": "2026-05-19T18:30:00+09:00",
-      "notion_synced_sha256": "d702377bc6f65f96db1cff478f8ead7f8d0ec6f18151572b8a1691a4dc9423f1"
+      "notion_last_edited_time": "2026-05-20T00:40:22+09:00",
+      "notion_synced_sha256": "9e0cdfdd88f70e33524ff020a6aa187f5e32c71f66573a96ba303f693e724d41"
     },
     "skills/init-plan": {
-      "sha256": "240b8022b4f89d0aed7b766f4d616ae729ed5e1426220607bc5d19fb751a421f",
-      "synced_at": "2026-05-07T11:37:44+09:00",
+      "sha256": "6087f8a3b47b5bf5e237de3332c7d4eace66f206f022bc95200eb1dcea445976",
+      "synced_at": "2026-05-21T09:58:55+09:00",
       "readme_path": "skills/init-plan/README.md",
       "readme_sha256": "bdb44f22f2aa97eb7454823e0dbff3124ecf7b1c2799d1c58fd278f5fae95834",
       "readme_mtime": "2026-05-12T19:33:14+09:00",
@@ -105,14 +105,14 @@
       "notion_synced_sha256": "bdb44f22f2aa97eb7454823e0dbff3124ecf7b1c2799d1c58fd278f5fae95834"
     },
     "skills/refine-doc": {
-      "sha256": "b9af50d874b270330b46a71b2699f9ab618a81b9c554e2cceb66a082921568ba",
-      "synced_at": "2026-05-19T18:30:00+09:00",
+      "sha256": "daf89b5b44a3cfebe924fd0b9ba24121f6edca3b10ff5f3f0456c7ca73c59395",
+      "synced_at": "2026-05-20T00:40:22+09:00",
       "readme_path": "skills/refine-doc/README.md",
-      "readme_sha256": "84b6766d8b1178cbd32ed72ec4c5b96fe999b1ef718974887f59fdcdc86f6370",
-      "readme_mtime": "2026-05-19T18:30:00+09:00",
+      "readme_sha256": "dd8f06ae1fb58322d1e66a4248db96edfe77af8ab12ab94b1e47d27338d790ba",
+      "readme_mtime": "2026-05-20T00:40:22+09:00",
       "notion_page_id": "34987c2b-b753-81bf-adc3-c4c26ba6cdb6",
-      "notion_last_edited_time": "2026-05-19T18:30:00+09:00",
-      "notion_synced_sha256": "84b6766d8b1178cbd32ed72ec4c5b96fe999b1ef718974887f59fdcdc86f6370"
+      "notion_last_edited_time": "2026-05-20T00:40:22+09:00",
+      "notion_synced_sha256": "dd8f06ae1fb58322d1e66a4248db96edfe77af8ab12ab94b1e47d27338d790ba"
     },
     "skills/refine-plan": {
       "sha256": "5f1665434b500341ced3983ec2ff41e37e0c68699580d69fc3d4aed4839f2187",
@@ -223,6 +223,16 @@
       "notion_page_id": "36187c2b-b753-81fa-9b4d-d8562fd80500",
       "notion_last_edited_time": "2026-05-15T10:43:57+09:00",
       "notion_synced_sha256": "3ed96fff253ae7a05f92122cdab004ea4a4fcdd69aea57e3da475a1f835c3b35"
+    },
+    "agents/translation-team": {
+      "sha256": "1d1d6a26ff9e91c032f1da996ea6fd41767fe52455a069d21ea32bd0f59ed7e2",
+      "synced_at": "2026-05-21T09:58:55+09:00",
+      "readme_path": "agents/_notion_mirror/translation-team.md",
+      "readme_sha256": "d7259c228e3728e37809d804a21a784050ec062bdb3f69fb4f3e20c5e342fff3",
+      "readme_mtime": "2026-05-21T09:58:55+09:00",
+      "notion_page_id": "36787c2b-b753-81e3-a544-fbeddc336ef0",
+      "notion_last_edited_time": "2026-05-21T09:58:55+09:00",
+      "notion_synced_sha256": "d7259c228e3728e37809d804a21a784050ec062bdb3f69fb4f3e20c5e342fff3"
     }
   }
 }
