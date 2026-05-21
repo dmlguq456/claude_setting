@@ -6,27 +6,30 @@
 
 ## 본문 구조
 
-- Frontmatter: type, venue, status: draft, date
-- Full paper outline with section drafts:
-  - Abstract (structured: background → gap → method → results → impact)
-  - Introduction (hook → context → gap → contribution → outline)
-  - Related Work (organized by strategy's framing)
-  - Method (following strategy's outline, with placeholder equations)
-  - Experiments (setup → results → ablation, with table skeletons)
-  - Conclusion
-- Figure/table placeholders with captions
+- Frontmatter — type · venue · status: draft · date
+- 본문 outline (section 별 draft):
+  - **Abstract** — background → gap → method → results → impact 순서
+  - **Introduction** — hook → context → gap → contribution → outline
+  - **Related Work** — strategy 의 framing 에 맞춰 구성
+  - **Method** — strategy outline 따라 작성, equation 은 placeholder
+  - **Experiments** — setup → results → ablation 순, table 은 skeleton
+  - **Conclusion**
+- Figure / table placeholder + caption
 
-## Camera-ready / major-revision specific — Natural-integration rule for paper-body mutations
+## Camera-ready / major-revision 한정 — Natural-integration rule for paper-body mutations
 
 (cross-ref: `init-doc-strategy/SKILL.md` paper mode "Natural-integration rule" — single source of truth)
 
-> When converting **reviewer concerns / rebuttal materials → paper-body mutation paste-ready blocks**, ask one question per mutation: *"Can this be naturally integrated as a 1-2 sentence inline rewrite that flows with the surrounding paragraphs?"*
-> - **YES → inline rewrite mutation** (good: subsection-head opening + body-paragraph touch-up + Figure cascade reference; experimental numbers stay in body / Appendix, not in opening/intro)
-> - **NO → drop / Appendix defer** (rebuttal-format artifacts — model-by-model comparison tables, structured Q&A blocks, point-by-point response paragraphs — do NOT belong as paper-body mutations even if reviewer "strongly recommended integration"; pasting verbatim reads as rebuttal-style out-of-flow content)
+> **reviewer 의견 / rebuttal 자료 → paper-body mutation paste-ready block 으로 옮길 때** mutation 마다 한 질문: _"1~2 문장 in-line rewrite 로 surrounding paragraph 흐름에 자연스럽게 녹일 수 있나?"_
+> - **YES → inline rewrite mutation** — subsection head opening + body paragraph touch-up + Figure cascade reference. 실험 수치는 body / Appendix 에 두고 opening / intro 에는 박지 X
+> - **NO → drop 또는 Appendix 로 미룸** — rebuttal-format 산출물 (model-by-model 비교 표 / 구조화 Q&A block / point-by-point 응답 paragraph) 은 reviewer 가 "통합 강하게 권장" 해도 paper-body mutation 으로 부적합. verbatim paste 시 rebuttal 톤이 본문 흐름 깸
 
-**Hard-fail rejection signals** — refuse to write a mutation entry if its paste-ready block is (a) a standalone `\begin{table}` / `\begin{itemize}` sourced from rebuttal, (b) injecting experimental numbers verbatim into an opening / framing paragraph, or (c) a new `\paragraph{...}` INSERT that the existing surrounding text doesn't bridge to.
+**Hard-fail 거부 신호** — paste-ready block 이 다음 셋 중 하나라도 해당하면 mutation entry 작성 거부:
+- (a) rebuttal 출처 standalone `\begin{table}` / `\begin{itemize}` 통째 paste
+- (b) opening / framing paragraph 에 experimental 수치 verbatim 박기
+- (c) 별도 `\paragraph{...}` INSERT 인데 surrounding text 와 bridge 안 됨
 
-**Why**: established 2026-05-19 after a camera-ready cycle that mechanically converted every reviewer concern into 🔴 mandatory body mutations (including rebuttal-format comparison tables). User-rejected pattern: "rebuttal자료를 본문에 그대로 가져다 붙이지 말고 자연스럽게 문장으로 녹여 넣어라."
+**Why**: 2026-05-19 camera-ready cycle 에서 reviewer 의견을 mechanically 🔴 mandatory body mutation 으로 변환한 incident (rebuttal-format 비교 표 포함). 사용자 거부 패턴: _"rebuttal 자료를 본문에 그대로 가져다 붙이지 말고 자연스럽게 문장으로 녹여 넣어라."_
 
 ## Paste-ready cheatsheet 형식 강제 (paper mode camera-ready / paste-ready subtype)
 

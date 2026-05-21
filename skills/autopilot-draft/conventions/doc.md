@@ -1,65 +1,36 @@
 # §doc — Word / HWP / markdown prose
 
 > autopilot-draft `--mode doc` 의 본문 구조 + 강제 룰. `common.md` (§Common) 의 룰도 모두 적용.
->
-> doc mode 의 본문 구조는 _자연어 task description 의 genre 의도_ 에 따라 분기. 다음 sub-section 은 _의도별 권장 본문 구조_. mode argument 가 `doc` 인 한 모두 본 절 적용.
->
-> 공통 — audience-driven 톤 / 시제 (한국 기관·위원회·산학협력단 → 한국어, international → 영문, 시제는 genre 따라 — 보고 = 과거, 제안 = 미래, rebuttal-response = 시제 혼합). 절 구조 가변. 정량 metric 있으면 표. §Common 의 paragraph cohesion / anchor 정책 / 약자 정책 적용.
 
-## doc — 기술 보고서 / mid-report / post-mortem / quarterly 의도
+doc mode 는 본문 구조가 _사용자 template / venue format spec_ 이 결정한다. 본 파일은 _genre 별 기본 가이드_ 만 — 실제 산출은 task description 의 자연어 genre 의도 + `analysis_project/doc/{matching}/formats/` 의 사용자 template 우선.
 
-- Frontmatter: type, status: draft, date
-- Executive Summary
-- Introduction / Background
-- Methodology / Approach
-- Findings / Analysis (with data tables, charts description)
-- Discussion
-- Recommendations (prioritized, actionable)
-- Appendices (if needed)
-- _시간 흐름 자산_ 의 정적 snapshot 위험 — "당시 snapshot YYYY-MM-DD" 명시 (DSC mid-report 같은 _재학습 / 추가 보고_ cycle).
-- _post-mortem_ 의 경우 — 시간순 사건 / root cause / fix / preventive measure 구조.
+## 공통
 
-## doc — grant proposal / 사업 제안서 의도
+- audience-driven 톤 / 시제 — 한국 기관 · 위원회 · 산학협력단 → 한국어, international → 영문. 시제는 genre 따라 (보고 = 과거, 제안 = 미래, rebuttal-response = 시제 혼합).
+- 절 구조는 사용자 template 따라 가변. template 없으면 generic fallback.
+- 정량 metric 있으면 표.
 
-- Frontmatter: type, status: draft, date
-- Executive Summary
-- Problem Statement / Motivation
-- Proposed Approach / Technical Plan
-- Preliminary Results / Feasibility Evidence
-- Timeline & Milestones
-- Resource Requirements / Budget (if applicable)
-- Expected Outcomes / Impact
-- Risk Assessment
-- NRF / NSF / Horizon / 산학협력단 별 변형 — `analysis_project/doc/{matching}/formats/` 에서 venue-specific section 강제.
+## doc — 기술 보고서 / mid-report / post-mortem / quarterly
 
-## doc — rebuttal-response 의도 (OpenReview 응답 form)
+사용자 template (회사·기관·연구실) 우선. template 없을 때 generic fallback — Executive Summary / 배경 / 방법 / 결과·분석 / 토론 / 권고 / Appendix.
 
-- Frontmatter: type, venue, status: draft, date
-- Per-reviewer response sections following the strategy's priority matrix
-- Each response: acknowledgment → core argument → evidence → conclusion
-- Tone calibrated per the strategy's tone guidelines
-- Additional experiments section with preliminary descriptions
-- Revision summary table
-- _camera-ready 본문 통합_ 은 본 sub 가 아니라 `paper.md` 의 _camera-ready / major-revision specific Natural-integration rule_ 으로 — rebuttal 응답과 본문 통합은 _다른 장르_.
+- _시간 흐름 자산_ 은 "snapshot YYYY-MM-DD 시점" 명시 (재학습 / 추가 보고 cycle 대비).
+- _post-mortem_ — 시간순 사건 / root cause / fix / preventive measure 구조.
 
-## doc — peer review 작성 의도
+## doc — grant proposal / 사업 제안서
 
-Adapt the section structure to the auto-discovered format spec at `{format_ref}` (read it first). No built-in presets — extract the venue's required sections / rating axes / length limits from the format spec file.
+기관 template 우선 (NRF / NSF / Horizon / 산학협력단 등 — 기관별로 page limit · required section · evaluation criteria 가 다르므로 `analysis_project/doc/{matching}/formats/` 사전 등록 강하게 권장). template 없을 때 generic fallback — motivation / approach / preliminary results / timeline + milestone / budget / impact / risk.
 
-**Frontmatter** (always): type, venue, paper_title, status: draft, date, format_ref (path to auto-discovered format spec)
+## doc — rebuttal-response (OpenReview 응답)
 
-**Procedure**:
+venue rebuttal template 우선 (length limit · sub-type — meta-only / reviewer-dialogue / response-with-revision 등). template 없으면 사용자에게 prompt.
 
-1. Read the format spec at `{format_ref}` first. Extract: required sections, rating axes (with score scales 1-N and meanings), length limits, tone/style guidelines, submission portal layout.
-2. If the format spec is a venue's reviewer guidelines PDF/doc, prefer its exact section names verbatim. If it's a sample review, infer the structure.
-3. Layer any additional reviewer guidelines from siblings in `analysis_project/doc/{matching}/formats/` on top.
-4. Produce a draft that satisfies every required section from the format spec.
+기본 가이드: reviewer 별 point-by-point 응답 (acknowledgment → core argument → evidence → conclusion). 모든 reviewer point 에 응답 필수 (누락 = critical error).
 
-**Common patterns** (reference only — the actual structure must come from the format spec, not from these):
+> _camera-ready 본문 통합_ 은 본 절이 아니라 `paper.md` 의 _Natural-integration rule_ 로. rebuttal 응답과 본문 통합은 다른 장르.
 
-- _OpenReview-family_ (NeurIPS, ICML, ICLR, AAAI variants): Summary / Strengths / Weaknesses / numeric ratings (Soundness, Presentation, Significance, Originality on 1-4 or 1-5) / Questions / Limitations / Overall Recommendation + Confidence
-- _ACL ARR_: Paper Summary / Strengths / Weaknesses / Comments+Typos / Soundness, Excitement, Reproducibility (1-5) / Ethical Concerns
-- _IEEE conference_ (ICASSP, INTERSPEECH): Brief Summary / Strengths / Weaknesses / Detailed Comments / Recommendation (Accept/Reject scale) / Confidence
-- _Journal_ (T-ASLP, JASA, TPAMI, etc.): Significance / Technical Quality / Clarity / Recommendation (Accept/Minor Revision/Major Revision/Reject) / Per-section comments
+## doc — peer review 작성
 
-These are starting hints only. Always follow the format spec file's actual specification — venue templates change year-to-year.
+venue review form **MANDATORY** — `analysis_project/doc/{matching}/formats/` 부재 시 pre-flight abort. venue 별 변형 (OpenReview / ACL ARR / IEEE conference / journal 등) 이 매년 바뀌므로 built-in preset 없음.
+
+기본 가이드: score 는 paper 본문의 구체적 evidence 로 정당화 (section / figure / table cite). hostile 톤 회피, professional + constructive.
