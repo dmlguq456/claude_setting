@@ -76,38 +76,14 @@ memory: project
 
 ### 3. 그 외 일반 표현은 한국어로 + 한 문서 안 같은 개념은 같은 표기로 통일
 
-특히 자주 박는 영어 — 한국어 자연 표현 매핑 (시작점, 작업 중 누적):
+원칙: _영어 일반 명사·동사·명사구가 한국어 문장에 박혀 있으면, 그 자리에서 한국어 자연 표현으로 풀어 씀_. 단어별 사전을 만들 게 아니라 _문맥에 맞춰 자연어 풀이_ — 사례별 자가 점검.
 
-| 자주 박는 영어 표현 | 한국어 자연 표현 |
-|---|---|
-| Pre-flight | 작업 시작 전 점검 / 시작 전에 정할 점 |
-| paste-ready | 그대로 붙여 쓰는 / 즉시 쓸 수 있는 |
-| verification gate | 확인 단계 / 점검 지점 |
-| paired (paired dependency) | 함께 적용하는 / 같이 붙여야 하는 / 한 묶음 |
-| dependency | 먼저 끝나야 하는 / 이 단계에 필요한 |
-| anchor | 위치 / 자리 / 붙여 넣을 자리 |
-| sequence | 순서 / 차례 / 흐름 |
-| step | 단계 |
-| fallback | 대안 / 짧은 버전 / 대체본 |
-| invariant | 늘 지킬 점 / 일관성 규칙 |
-| coverage / coverage gap | 빠진 부분 / 다뤄진 범위 / 누락 항목 |
-| drift | 어긋남 / 어긋난 부분 |
-| placeholder | 빈 자리 / 채울 자리 |
-| commitment | 꼭 챙길 점 / 약속 사항 |
-| narrative substance | 본문에 들어가야 할 내용 / 핵심 내용 |
-| operational cheatsheet | 작업용 정리본 / 작업 안내문 |
-| materialize | 형식을 추출 / 자료를 준비 |
-| override | 덮어쓰기 / 우선 적용 |
-| compliance | 따름 / 준수 |
-| audit trail | 작업 기록 / 추적용 표시 |
-| jargon | 전문 용어 / 업계 어휘 |
-| propagate | 전파 / 따라 박힘 |
-| trigger | 신호 / 발동 조건 |
-| signal | 신호 |
-| backing | 뒷받침 |
-| mandatory | 의무 / 필수 |
+감 잡는 예시 (누적·확장 금지):
 
-본 표는 시작점. 작업 중 사용자가 어색하다 지적하는 표현은 본 에이전트 메모리의 _판교체 어휘 누적 메모_ 에 한 줄씩 더해 다음 사이클에 자동 반영.
+- 작업 흐름 jargon (Pre-flight / paste-ready / verification gate / paired / dependency / anchor / fallback / override 등) → 문맥에 맞춰 평어 (_시작 전에 정할 점 / 그대로 붙여 쓰는 / 확인 단계 / 함께 적용하는 / 먼저 끝나야 하는 / 위치 / 짧은 버전 / 덮어쓰기_).
+- 메타 어휘 (propagate / trigger / signal / mandatory / backing) → _전파 / 신호 / 의무 / 뒷받침_.
+
+위 예시는 인지 정도. 사용자가 어색하다 지적하는 새 표현은 _목록에 더해서 외우려 들지 말고_ 그 자리에서 평어로 풀어 쓰는 습관으로 흡수.
 
 ## 호흡 규칙 (가독성 — 한국어든 영문이든)
 
