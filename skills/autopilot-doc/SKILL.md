@@ -523,7 +523,12 @@ Discovered inputs: {discovered_inputs}
 
 Save English draft to: {strategy_folder}/draft/draft.md
 
-**Do NOT write `draft_ko.md` yourself.** The Korean mirror is produced by the **번역팀** (translation-team) agent in a follow-up step (Step 4-KO below). 연구팀 only writes English here — splitting Korean off to a dedicated translator is what prevents 판교체 leaking into the user-facing artifact.
+**Language enforcement (critical — overrides 연구팀 agent default Language Rule)**:
+- The body of `draft.md` itself MUST be **English prose** end-to-end — all narrative, headers (H1/H2/H3), 위치 lines, reasoning lines, paste sequence list, final verification checklist, every comment outside LaTeX blocks. **Zero Korean characters** in the body except where the source material requires (e.g., a Korean proper noun verbatim).
+- `draft.md` 의 _파일 이름_ 만 English 인 것이 아니라 _본문 자체_ 가 English prose. 연구팀 agent 의 default Language Rule (_user-facing output in Korean_) 은 본 단계에서 **명시 override** — 본 산출은 _영문 source_ 이고, 한국어 사용자 영역은 Step 4-KO 의 번역팀이 별도 산출한다.
+- LaTeX blocks themselves stay as-is (any English / mathematical content inside is preserved verbatim). Only the markdown prose outside LaTeX is enforced English.
+
+**Do NOT write `draft_ko.md` yourself.** The Korean mirror is produced by the **번역팀** (translation-team) agent in a follow-up step (Step 4-KO below). 연구팀 internal reasoning happens in English (per agent Language Rule), output stays in English (per the override above), and the dedicated translator handles Korean readability — this split is what prevents 판교체 leaking into the user-facing artifact.
 
 Read the strategy document and all analysis files. Generate a complete first draft following the mode-specific structure below. The draft should be a working document ready for user editing — not a summary of the strategy.
 
