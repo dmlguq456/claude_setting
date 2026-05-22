@@ -144,10 +144,19 @@ QA 5 단계 (quick / light / standard / thorough / adversarial) 정의는 [`CONV
 
 자동 호출 패턴은 글로벌 [`CLAUDE.md`](CLAUDE.md) 가 단일 source of truth:
 
-- **§6 autopilot-\* 호출 패턴** — 옵션 자동 구성 + 자연어 요약 컨펌 + §5 자율 진행 적용
+- **§6 autopilot-\* 호출 Pre-check** — turn 첫 단계 분기 판단 + 옵션 자동 구성 + 자연어 요약 컨펌 + §5 자율 진행 적용
 - **도메인 트리거 표** — Notion 작업 / doc·research major-level 수정 / QA·model invariant 작업 / 세션 시작
 
-skill 별 세부 trigger 신호 (예: autopilot-refine 의 3-criteria) 는 각 SKILL.md `## Default Invocation Rule` 섹션 — `/sync-skills` 자동 동기화.
+ceremony 큰 autopilot-* 4 개의 자연어 trigger 신호 한눈에:
+
+| Skill | Trigger 신호 (자연어 발화) | Default 옵션 권장값 |
+|---|---|---|
+| `autopilot-code` | "X 기능 만들어줘" / "X 디버그해봐" / "이 에러 고쳐줘" / 코드 변경 의도 | `--mode dev/debug` 자동 추론 · `--qa standard` (default) |
+| `autopilot-draft` | "발표 자료 만들어줘" / "논문 본문 작성" / "rebuttal 응답 작성" / "보고서 작성" | `--mode paper/presentation/doc` 자동 추론 · `--qa standard` |
+| `autopilot-research` | "X 분야 조사" / "동향 알려줘" / "literature review" / "표준 비교" | `--mode academic/technology/market` 자동 추론 · `--depth medium` · `--qa light` |
+| `autopilot-refine` | doc/research artifact 의 major-level 수정 (3-criteria — 사용자 명시 "major"/"v{N+1}"/"전면 재작성" / 구조 ≥200 줄 / 외부 검토 직전 ceremony) | `--qa quick` (default) · 자동 apply (STRUCT 만 halt) |
+
+각 skill 의 _상세 trigger·override 1순위·skip 조건_ 은 SKILL.md `## Default Invocation Rule` 섹션 single source — `/sync-skills` 자동 동기화.
 
 ---
 

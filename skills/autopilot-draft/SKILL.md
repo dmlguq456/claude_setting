@@ -791,7 +791,28 @@ If N + M + K == 0: emit `✅ Draft 사실 확인: 검증된 클레임 {verified}
    - **`--user-refine` pause**: if the flag is set, update `pipeline_state.yaml` (`user_refine: true`, `paused_at_stage: draft-refine`), print the resume command (`/autopilot-draft --mode {mode} --from draft-refine {strategy_folder}`), and exit. Do NOT invoke refine-doc.
    - Otherwise: invoke Skill `refine-doc` with the Korean draft path as args.
    - Note: refine-doc handles draft paths (draft/draft.md ↔ draft/draft_ko.md) via auto-detection.
-4. If no memos: Skip to Step 6. (When resumed via `--from draft-refine`, run refine-doc directly on the pre-existing memos.)
+4. If no memos: Skip to Step 5.5. (When resumed via `--from draft-refine`, run refine-doc directly on the pre-existing memos.)
+
+### Step 5.5: Editorial polish (편집팀 모드 B — conditional)
+
+draft 본문이 사용자가 직접 검토 / paste 작업하는 산출물 — final 단계 직전에 _마지막 1회_ 편집팀 다듬기. 
+
+호출 조건 (single source — `agents/editorial-team.md` 모드 B 호출 조건):
+- `qa_level` 가 **standard / thorough** 일 때만 호출. `quick` / `light` 는 skip.
+- skip 시 곧장 Step 6 (pipeline_summary) 진행.
+
+```
+Agent({
+  subagent_type: "편집팀",
+  prompt: `polish {strategy_folder}/draft/draft.md (and {strategy_folder}/draft/draft_ko.md if Step 4-KO mirror exists)
+사용자가 직접 검토·paste 하는 draft 다. 편집팀 모드 B 다듬기 — 판교체 정리·표기 일관성·호흡.
+보존: 본문 _내용_ (claim / 수치 / citation / 결정 / LaTeX 블록 / 코드 블록 / 수식 블록). 다듬기 대상: 한국어 wording · 영문 어색한 표현 · 표기 일관성 만.`
+})
+```
+
+편집팀이 in-place Edit 으로 마무리한 뒤 Step 6 진행. (단발성 — single-pass, snapshot X.)
+
+> **paper mode + paste-ready cheatsheet subtype**: LaTeX 블록 안 본문은 편집팀이 _읽지만 수정 안 함_. cheatsheet 의 한국어 안내 wording 만 polish.
 
 ### Step 6: Pipeline Summary
 **Always write** `{strategy_folder}/pipeline_summary.md` before reporting to the user.
@@ -814,6 +835,7 @@ If N + M + K == 0: emit `✅ Draft 사실 확인: 검증된 클레임 {verified}
 | 4 | Draft Generation | created | {draft path} |
 | 5 | Draft Review (연구팀) | memos added / no issues | {memo count} |
 | 5b | refine-doc (draft) | refined / skipped | |
+| 5.5 | 편집팀 polish (모드 B) | polished / skipped (qa<standard) | |
 
 ## Artifacts
 - Strategy (EN/KO): {en_path} / {ko_path}

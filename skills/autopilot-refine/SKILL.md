@@ -226,14 +226,14 @@ For each detected claim, look up ground truth. **Lookup source resolution (in pr
    - **Doc artifacts** (`.claude_reports/documents/*/`): grep ALL `.claude_reports/research/*/cards/*.md` files (cross-research lookup) — doc artifacts may reference cards from any research topic. Match by filename token AND by H1 / `## 메타` `**Venue**`/`**arXiv ID**` fields.
 4. **case (a) — no cards source available**: if after resolving all the above the candidate file set is _empty_ (0 cards found in any of the above locations; e.g., autopilot-refine invoked from a workspace that has no research artifacts), the detector **skips the factual-claim aspect entirely** (style lint still runs). Stage C diff preview emits one informational line at the top: `ℹ Stage B.5: no cards source available in this workspace — fact-check skipped`. No `⚠ Unverified` markers are emitted. This prevents false-positive marker flooding in non-research workspaces.
 
-For each claim (when cards are available), classify the lookup result. **CRITICAL: name-only match ≠ full verify** (memory `feedback_factcheck_external_reverify.md`):
+For each claim (when cards are available), classify the lookup result per the _single-source classification table_ — **`agents/research-team.md` _Fact-checker subrole_ 절** 의 8-row 표 (cards-verbatim / cards-name-only / external-marker / external-reverified / conflict / no-match / ambiguous / circular-ref). Stage B.5 본문은 orchestrator-side detector 이므로 _emit wording_ 만 본 절에 명시 (classification 정의 자체는 agent 본문이 single source — 향후 변경 시 agent 본문 한 곳만 갱신):
 
-- **cards-verbatim ✅** — the _claim itself_ (venue string / year / metric value / etc.) appears _verbatim_ in the matched card's body or `## 메타` field. Only this case may be classified silently verified.
-- **cards-name-only 🟡 + external re-verify** — card contains the model/author name (matches by filename token or H1) BUT the specific venue / year / metric is NOT verbatim in the card. Do NOT classify as ✅. Emit `⚠ Unverified (name-only match): {claim} — cards/{file}.md contains the name but no verbatim venue/metric. External reverify required (WebSearch/WebFetch)`.
-- **external-marker 🟡 + external re-verify** — the new_text contains explicit external-knowledge markers (`[외부 추정]`, `[?]`, `[unverified]`, `[cards 미등재]`). Emit `⚠ Unverified (external marker): {claim} — explicit external-estimation marker present. External reverify required`.
-- **conflict 🔴** — card has the value but it differs from claim (e.g., card says `IWAENC 2024` but new_text says `IS 2024`). Emit `⚠ Unverified: {claim} — cards say {X} but new_text says {Y} (cards/{file}.md)`.
-- **no-match 🔴** — no card hit at all. Emit `⚠ Unverified: {claim} — no cards/*.md hit`.
-- **ambiguous 🟡** (multiple candidate cards, no single best match) — emit `⚠ Unverified: {claim} — multiple candidates (cards/A.md, cards/B.md); user to pick`.
+- **cards-verbatim ✅** — classify silently verified.
+- **cards-name-only 🟡** — emit `⚠ Unverified (name-only match): {claim} — cards/{file}.md contains the name but no verbatim venue/metric. External reverify required (WebSearch/WebFetch)`.
+- **external-marker 🟡** — emit `⚠ Unverified (external marker): {claim} — explicit external-estimation marker present. External reverify required`.
+- **conflict 🔴** — emit `⚠ Unverified: {claim} — cards say {X} but new_text says {Y} (cards/{file}.md)`.
+- **no-match 🔴** — emit `⚠ Unverified: {claim} — no cards/*.md hit`.
+- **ambiguous 🟡** — emit `⚠ Unverified: {claim} — multiple candidates (cards/A.md, cards/B.md); user to pick`.
 
 **Anti-pattern (circular reference) — explicitly FORBIDDEN**: do NOT treat the artifact's own `strategy/*.md` (especially its `## Style Guide` venue mapping table) as ground truth when verifying its `draft/*.md` claims, or vice versa. Both strategy and draft must be verified against `cards/*.md` _directly_. If a fact-checker is found comparing draft↔strategy and reporting ✅ on the basis of mutual agreement, mark as 🔴 architecture violation. (Incident reference: 2026-05-12 TF-Locoformer `IS 2024` → actually `IWAENC 2024` — strategy fact-checker passed on name-only match, draft fact-checker passed on strategy mirror, error survived two layers.)
 

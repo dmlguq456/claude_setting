@@ -106,11 +106,12 @@ ceremony 큰 skill (`autopilot-code` / `autopilot-draft` / `autopilot-research` 
 
 **Pre-check — 자연어 발화 인지 + skill 매칭 검토 (turn 의 첫 단계, 강제)**
 
-사용자가 작업 의도를 자연어로 던지면, 메인 Claude 는 응답·tool call 시작 _전_ 에 _이 발화가 어느 skill 호출 후보인지_ 먼저 분기 판단한다. 세 갈래:
+사용자가 작업 의도를 자연어로 던지면, 메인 Claude 는 응답·tool call 시작 _전_ 에 _이 발화가 어느 skill 호출 후보인지_ 먼저 분기 판단한다. 네 갈래:
 
 1. **ceremony 큰 4 개 매칭** (`autopilot-code` / `autopilot-draft` / `autopilot-research` / `autopilot-refine`) → 본 §6 의 컨펌 흐름 진입 (자연어 한 줄 요약 + 옵션 펼침 + 선택 근거 + 응답 흐름)
 2. **ceremony 작은 3 개 매칭** (`audit` / `notes` / `analyze-project`) → 컨펌 없이 즉시 invoke
-3. **skill 매칭 없음** → 메인 Claude 직접 처리 (Read / Edit / Bash / 단순 질의응답 / Agent 직접 호출)
+3. **sub-skill 자연어 발화** (`init-plan` / `refine-plan` / `execute-plan` / `run-test` / `final-report` / `init-doc-strategy` / `refine-doc`) → 발화 매칭 대상 아님. autopilot-* orchestrator 가 내부 자동 호출하는 단계라 사용자 직접 호출 의미 약함. 사용자가 _자연어로_ sub-skill 동작을 요청하면 (예: "plan 다시 짜줘" / "테스트 다시 돌려줘") 해당 sub-skill 을 _포함하는_ autopilot-* (autopilot-code / autopilot-draft) 의 `--from <stage>` 재개로 라우팅. sub-skill 단독 invoke 는 사용자가 _slash 명령_ 직접 입력했을 때만 (`/init-plan`, `/run-test` 등 — 의도 명시).
+4. **skill 매칭 없음** → 메인 Claude 직접 처리 (Read / Edit / Bash / 단순 질의응답 / Agent 직접 호출)
 
 판단 기준:
 - _추적 필요_ (plan / dev_log / 산출물 누적 의미 있음) → autopilot-* 후보

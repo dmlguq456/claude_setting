@@ -122,7 +122,29 @@ memory: project
 
 **언제 호출되는가**: 산출물의 _언어 자체_ 는 맞는데 _표기 일관성·판교체·번역체·가독성_ 에서 어색할 때. 한국어 산출물의 _판교체_ 정리 + 영문 산출물의 _어색한 표현_ 정리 모두 본 모드.
 
-절차:
+#### 호출 조건 (single source — 모든 호출자 skill 이 본 절을 따른다)
+
+다음 두 조건이 _모두_ 만족할 때만 polish 호출. 사용자가 _안 보는 중간 산출물_ 에 polish 강제하면 비용 낭비라는 게 도입 reasoning (2026-05-21 사용자 정정).
+
+1. **사용자가 직접 보는 자리** — 다음 중 하나:
+   - autopilot-* 의 _final 마무리 단계_ (`final-report` / `audit` 보고서 / `autopilot-research` 보고서 세트 / `autopilot-draft` 의 final draft 단계 / `sync-skills` README 자동 갱신 등)
+   - `--user-refine` pause 직전 (사용자가 직접 메모 추가하러 strategy / draft / plan 검토)
+2. **QA 강도가 standard 이상** — `--qa quick` / `--qa light` 는 _fastest path_ 의도 → polish skip. `--qa standard` / `--qa thorough` / `--qa adversarial` 에서만 호출.
+
+> 예외 — `--qa` flag 자체가 없는 skill (`audit`, `sync-skills`) 은 _조건 1 만 적용_. polish 가 산출 자체 의미와 분리 안 됨 (사용자가 _항상_ 보는 산출물).
+
+> 예외 — `Agent(편집팀)` 직접 호출 (사용자가 작은 다듬기 우회 요청) 은 본 조건 무관 — 사용자 의도 명시.
+
+#### Mode A (Mirror) 와의 차이
+
+| 측면 | Mode A (옮기기) | Mode B (다듬기) |
+|---|---|---|
+| 호출 조건 | primary language ≠ 사용자 작업 언어 (`--qa` 무관) | 위 두 조건 모두 (`--qa standard` 이상) |
+| 출력 | `_ko.md` / `_en.md` mirror 신규 생성 | in-place Edit (snapshot X) |
+| 빈도 | 산출물 한 번 (mirror 가 의미 있을 때만) | 산출물 한 번 (final 시점) |
+
+#### 절차
+
 1. 문서를 끝까지 읽는다.
 2. 문장 단위 점검:
    - 판교체 어휘가 박혀 있으면 한국어로 재서술 (한국어 산출물)
@@ -130,8 +152,9 @@ memory: project
    - 한자어 직역 / 수동태 직역 / 부자연스러운 어순은 능동·자연 어순으로
    - 한 문서 안 같은 개념이 다른 표기로 등장하면 _하나로 통일_
    - 줄바꿈·bullet·공백 줄 적극 활용해 호흡 만들기
-3. Edit 도구로 직접 수정. 스냅샷은 만들지 않는다 (in-place).
-4. 변경 요약 (어떤 표현을 어떻게 바꿨는지) 을 한국어 3-5 줄로 보고.
+3. **LaTeX / 코드 / 수식 블록은 손대지 않는다** (도메인 영어·구조 그대로 보존).
+4. Edit 도구로 직접 수정. 스냅샷은 만들지 않는다 (in-place).
+5. 변경 요약 (어떤 표현을 어떻게 바꿨는지) 을 한국어 3-5 줄로 보고.
 
 ### 모드 C — 점검만 (수정 없이 보고)
 
