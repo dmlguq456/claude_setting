@@ -30,3 +30,10 @@
 - introduction hook 패턴
 - related work 톤
 - discussion / future work 어조
+
+
+## 사용자 수동 메모
+
+> 본 절은 _사용자 영역_. `/notes --scope user <aspect>` 가 append. analyze-user 는 _읽기만_ 하고 손대지 않음.
+
+_(아직 비어 있음 — `/notes --scope user writing add ...` 로 첫 항목 추가)_

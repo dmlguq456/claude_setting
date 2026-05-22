@@ -27,3 +27,10 @@
 - 자주 인용하는 paper / 저자 리스트
 - 본인이 _intuitive_ 라 부르는 design choice 패턴
 - 거부하는 도메인 표현 (예 _instantiation_ 같은 LLM-flavor)
+
+
+## 사용자 수동 메모
+
+> 본 절은 _사용자 영역_. `/notes --scope user <aspect>` 가 append. analyze-user 는 _읽기만_ 하고 손대지 않음.
+
+_(아직 비어 있음 — `/notes --scope user domain add ...` 로 첫 항목 추가)_

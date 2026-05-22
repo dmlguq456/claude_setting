@@ -1,6 +1,6 @@
 # 사용자 특성 자료 (user_profile)
 
-> Claude Code 의 sub-agent 와 skill 이 _사용자 (Ui-Hyeop Shin / Ui-Hyeop Shin / shinuh@mpwav.com) 의 일·자료 만들기 성향_ 을 참조할 단일 source. 메모리 (`~/.claude/projects/<cwd>/memory/`) 가 _per-cwd 자동 누적_ 자리라면, 본 폴더는 _deliberate 한 cross-project 사용자 프로필_.
+> Claude Code 의 sub-agent 와 skill 이 _사용자의 일·자료 만들기 성향_ 을 참조할 단일 source. 메모리 (`~/.claude/projects/<cwd>/memory/`) 가 _per-cwd 자동 누적_ 자리라면, 본 폴더는 _deliberate 한 cross-project 사용자 프로필_.
 
 ## 파일 구성
 

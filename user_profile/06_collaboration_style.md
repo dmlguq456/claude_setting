@@ -41,3 +41,10 @@
 
 - 이전 대화 메모리의 _범용_ feedback 패턴 누적.
 - 사용자가 _좋다고 한_ 결정 패턴 추출.
+
+
+## 사용자 수동 메모
+
+> 본 절은 _사용자 영역_. `/notes --scope user <aspect>` 가 append. analyze-user 는 _읽기만_ 하고 손대지 않음.
+
+_(아직 비어 있음 — `/notes --scope user collab add ...` 로 첫 항목 추가)_

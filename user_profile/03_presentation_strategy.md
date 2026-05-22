@@ -28,3 +28,10 @@
 - `/home/nas/user/Uihyeop/doc/presentation/` 폴더의 슬라이드 분석 — 실제 슬라이드 layout / 색 사용 / 전이 패턴.
 - 슬라이드 안 figure / 텍스트 비율, bullet 깊이, 폰트 크기 표준.
 - transition·애니메이션 사용 빈도.
+
+
+## 사용자 수동 메모
+
+> 본 절은 _사용자 영역_. `/notes --scope user <aspect>` 가 append. analyze-user 는 _읽기만_ 하고 손대지 않음.
+
+_(아직 비어 있음 — `/notes --scope user presentation add ...` 로 첫 항목 추가)_

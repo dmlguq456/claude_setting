@@ -87,3 +87,10 @@ _signal fidelity + perceptual quality 두 group 분리_ 가 universal restoratio
 | P9 | SR-CorrNet — Asymmetric Encoder-Decoder via TF Correlation for Separation | T-ASLP (submitted) | 2026 |
 
 **도메인 줄기** — time-frequency dual-path DNN (separation / SE / dereverberation / restoration), multi-channel + monaural 모두. _correlation 을 학습 대상으로 강조_ 한 CorrNet 패밀리 (P5/P8/P9), _asymmetric encoder-decoder_ 가 반복 등장 (P4/P7/P9), classical 신호처리 (P1 IVA / P2 ICA-based beamforming) 도 깊은 background.
+
+
+## 사용자 수동 메모
+
+> 본 절은 _사용자 영역_. `/notes --scope user <aspect>` 가 append. analyze-user 는 _읽기만_ 하고 손대지 않음.
+
+_(아직 비어 있음 — `/notes --scope user figure add ...` 로 첫 항목 추가)_

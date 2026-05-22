@@ -1,7 +1,7 @@
 ---
 name: notes
-description: Manually-controlled memory — two scopes. `--scope project` (default): `.claude_reports/NOTES.md` (per-cwd, 5 categories). `--scope user`: `~/.claude/user_profile/NOTES.md` (cross-project free-form, paired with structured aspect files updated via `/analyze-user`). Auto-loaded at session start, edited only via explicit `/notes` sub-actions. Separate from the auto-memory system at `~/.claude/projects/*/memory/`.
-argument-hint: "[show] | init | add <category> <text> | resolve <hint> | decide <text> | handoff [--no-confirm] [--scope project|user]"
+description: Manually-controlled memory — two scopes. `--scope project` (default): `.claude_reports/NOTES.md` (per-cwd, 5 categories). `--scope user <aspect>`: `~/.claude/user_profile/0X_*.md` 의 `## 사용자 수동 메모` 절 (cross-project, aspect 기반 — 별도 NOTES 안 만들고 구조화 파일 안 _user-owned 자리_ 에 append). Auto-loaded at session start, edited only via explicit `/notes` sub-actions. Separate from the auto-memory system at `~/.claude/projects/*/memory/`.
+argument-hint: "[show] | init | add <category> <text> | resolve <hint> | decide <text> | handoff [--no-confirm] [--scope project|user [<aspect>]]"
 ---
 
 ## 목적
@@ -15,23 +15,40 @@ argument-hint: "[show] | init | add <category> <text> | resolve <hint> | decide 
 | Scope | 파일 위치 | 다루는 자료 | 자동 로드 |
 |---|---|---|---|
 | `project` (default) | `.claude_reports/NOTES.md` | 현 cwd 의 _프로젝트 단위_ 자료 — 진행 중 작업·결정·외부 자원·다음 세션 hint 등 | 글로벌 `~/.claude/CLAUDE.md` 도메인 트리거 |
-| `user` | `~/.claude/user_profile/NOTES.md` | _사용자 단위 cross-project_ 자료 — 범용 패턴·preference·도메인 메모. 구조화 자료 (`01_paper_figure_style.md` 등) 와 같은 폴더 안 free-form 자리 | 별도 자동 로드 X (sub-agent 가 작업 자리에서 Read) |
+| `user <aspect>` | `~/.claude/user_profile/0X_*.md` 의 `## 사용자 수동 메모` 절 (default aspect = `collab`) | _사용자 단위 cross-project_ 자료 — 범용 패턴·preference·도메인 메모. analyze-user 가 손대지 않는 _user-owned 자리_ 에 append | 별도 자동 로드 X (sub-agent 가 작업 자리에서 aspect 파일 Read 할 때 같이 적재) |
 
 **Scope 선택 기준**:
 
 - _이 프로젝트에서만 의미 있는 자료_ → `--scope project`
-- _다른 프로젝트에서도 이어 쓸 사용자 자료_ → `--scope user`
+- _다른 프로젝트에서도 이어 쓸 사용자 자료_ → `--scope user <aspect>`
 - 애매하면 `project` (default)
 
-**user scope 자리는 `/analyze-user` 와 짝**:
+**user scope 의 aspect 선택**:
 
-- 구조화 사용자 자료 (figure 스타일·paper 작성 톤·발표 전략 등) 는 `/analyze-user <aspect>` 가 `~/.claude/user_profile/{01~06}_*.md` 갱신.
-- 본 skill `--scope user` 는 그 폴더 안 _free-form NOTES.md_ — 구조화 자리에 안 들어가는 짧은 메모·미정 자료.
+| aspect | 갱신 파일 | 들어갈 자료 예시 |
+|---|---|---|
+| `figure` | `01_paper_figure_style.md` | 시각·figure 관련 자기 선호 ("Times 폰트 고정") |
+| `writing` | `02_paper_writing_style.md` | paper 작성 톤·표현 ("LLM-flavor _instantiation_ 회피") |
+| `presentation` | `03_presentation_strategy.md` | 슬라이드 layout·서사 결정 |
+| `analysis` | `04_analysis_methodology.md` | 데이터·실험 결과 분석 방법 메모 |
+| `domain` | `05_domain_expertise.md` | 도메인 용어·선호 표현 |
+| `collab` (default) | `06_collaboration_style.md` | 작업 흐름·feedback·결정 패턴 — 가장 흔한 자리 |
+
+**왜 별도 NOTES.md 가 아니라 aspect 파일 안 _사용자 수동 메모_ 절인가**:
+
+- 사용자 레벨 note 는 거의 항상 6 aspect 중 하나에 자연 분류.
+- 별도 NOTES.md 만들면 _구조화 (analyze-user 영역)_ 와 _free-form (사용자 영역)_ 이 _두 파일로 분산_, sub-agent 가 Read 자리 늘어남.
+- aspect 파일 안 _두 절_ (analyze-user 영역 + 사용자 수동 메모 영역) 로 책임 분리 + 한 Read 로 모두 적재.
+
+**`/analyze-user` 와의 책임 분리**:
+
+- `## 사용자 수동 메모` 절 — _사용자 영역_. analyze-user 는 _읽기만_ 하고 손대지 않는다.
+- 그 외 모든 절 — _analyze-user 영역_. 사용자가 직접 Edit 해도 다음 update 사이클에 덮어쓰일 수 있음 (단, frontmatter `changelog:` 에 갱신 기록 남기면 보존).
 
 ## 파일 위치 & 자동 로드
 
 - **project scope**: 현재 working directory의 `.claude_reports/NOTES.md` (단일 파일). 글로벌 `~/.claude/CLAUDE.md`의 도메인 트리거 표에 의해 메인 Claude가 새 세션 시작 시 Read. 파일이 없으면 무시.
-- **user scope**: `~/.claude/user_profile/NOTES.md`. 자동 로드 X — sub-agent 가 작업 자리에서 명시적으로 Read.
+- **user scope**: `~/.claude/user_profile/0X_*.md` 의 `## 사용자 수동 메모` 절. 자동 로드 X — sub-agent 가 작업 자리에서 aspect 파일을 Read 할 때 같이 적재 (메인 Claude 의 글로벌 도메인 트리거 무관).
 - **갱신**: 항상 `/notes` 명령으로만. Claude가 자동으로 쓰지 않는다.
 
 ## 파일 형식 (5 카테고리)
