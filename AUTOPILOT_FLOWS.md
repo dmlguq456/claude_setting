@@ -19,20 +19,31 @@
   autopilot-research / analyze-project  →  autopilot-draft  →  autopilot-refine  (반복)
 
 [앱 (사용자 대상 소비자 앱)]
-  autopilot-research / autopilot-app    →  autopilot-design (옵션)
+  autopilot-research / autopilot-spec    →  autopilot-design (옵션)
                                         →  autopilot-code  (앱 mode 자동, 반복)
-                                        →  autopilot-app   (가끔 — ship 첫 setup·env·domain·migration)
+                                        →  autopilot-spec   (가끔 — ship 첫 setup·env·domain·migration)
 ```
 
 ### 1.2. 작업 본질 매핑
 
-|  | 사전 | 신규 의도·셋업 | 자산 작업 (신규·기존) |
+| 작업 종류 | 사전 | 신규 의도·청사진 | 자산 작업 (신규·기존) |
 |---|---|---|---|
-| **연구·라이브러리 코드** | research(academic/tech) + analyze-project(code) | _없음_ — 텅 빈 폴더 autopilot-code 가 신규도 처리 | **autopilot-code** (일반 mode) |
 | **문서** | research(academic/market) + analyze-project(paper/doc) | autopilot-draft | autopilot-refine |
-| **앱** | research(tech/market) + analyze-project(code) | **autopilot-app** (PRD + 스택 + skeleton — analyze-project 대칭) | **autopilot-code** (앱 mode 자동) + autopilot-app `--mode setup` (보강) |
+| **코드 (모든 자리)** | research(academic/tech) + analyze-project(code) | **autopilot-spec** (mode = app / library / api / cli / research / 복합 / auto) | **autopilot-code** (spec mode 별 분기 자동) |
 | **공통 시각** | — | autopilot-design (신규 사이클) | autopilot-design 재호출 |
 | **공통 사용자 프로필** | — | analyze-user (init) | analyze-user (update) |
+
+### 1.3. autopilot-spec mode 5종
+
+| mode | 자리 | 산출물 (PRD 안 섹션) |
+|---|---|---|
+| **app** | 사용자 대상 앱 (Next.js / Expo) | 피처·시나리오·API Contract·data model·ui flow + 스택·scaffolding·skeleton |
+| **library** | 공개 라이브러리·패키지 (npm·pip·crate) | 공개 API + 사용 예시 + 호환성·versioning + module 구조 |
+| **api** | 백엔드 API 서비스 (UI 없음) | endpoint·body·error·auth·rate limiting + 데이터 모델 |
+| **cli** | 명령줄 도구 | 명령·옵션·서브 명령·input/output·exit code |
+| **research** | 연구·실험 코드 정돈·재현성 | entry point + configs + 재현 명령 + 예상 metric + baseline 비교 |
+| **복합** (예: library,cli) | 한 프로젝트가 여러 측면 | PRD 안 _공통 + mode 별 독립 섹션_ |
+| **auto** (default) | mode 자동 추론 (발화·코드 단서) | 추론 결과 사용자 컨펌 후 진행 |
 
 ---
 
@@ -48,13 +59,18 @@
 # 2. 기존 코드 청사진 (선택 — 이미 있는 코드 위 작업 시)
 /analyze-project --mode code
 
-# 3. 작업 entry (반복 호출)
+# 3. (선택) 청사진 — 라이브러리·CLI 공개 또는 연구 재현성 자리
+/autopilot-spec --mode library,cli "X — 라이브러리 + CLI"
+/autopilot-spec --mode research,cli "Y — 학회 공개·재현성"
+/autopilot-spec  # 또는 mode 생략 → auto 추론
+
+# 4. 작업 entry (반복 호출)
 /autopilot-code "X 기능 추가"                    # 새 기능 (dev mode)
 /autopilot-code --mode debug "Y 버그·이상 동작"   # 디버그
 /autopilot-code "Z 리팩터링"                     # 리팩터링 (dev mode)
 ```
 
-산출물: `.claude_reports/plans/<date>_<slug>/` 안 누적 (각 작업이 독립 폴더).
+산출물: spec 있으면 `.claude_reports/specs/<name>/dev_log/<date>_<slug>/`, 없으면 `.claude_reports/plans/<date>_<slug>/` 안 누적.
 
 ### 2.2. 문서 작업
 
@@ -84,7 +100,7 @@
 /autopilot-research "Next.js + Prisma 스택" --mode technology
 
 # 2. 초기 기반 (신규 앱)
-/autopilot-app "할 일 관리 웹 앱"
+/autopilot-spec "할 일 관리 웹 앱"
 # → PRD (피처·시나리오·API Contract·데이터 모델·화면 흐름)
 # → 스택 결정 (Next.js / Expo / SvelteKit / Astro 후보)
 # → scaffolding (npx create-next-app 등)
@@ -95,25 +111,25 @@
 
 # 4. 본격 개발 (반복)
 /autopilot-code "task 추가·완료·삭제 기능"
-# → apps/가사관리/ 발견 → 앱 mode 자동 활성화
+# → specs/가사관리/ 발견 → 앱 mode 자동 활성화
 # → 디자인팀 critic (UI 변경 자리)
 # → DB migration destructive 자리 안내·자동 실행 X
 # → push → CI/CD 자동 deploy
-# → 산출 apps/가사관리/dev_log/<date>_<slug>/
+# → 산출 specs/가사관리/dev_log/<date>_<slug>/
 
 /autopilot-code "카테고리 색 구분 추가"
 /autopilot-code --mode debug "마감일 칸 모바일 터치 어려움"
 
 # 5. 보강 setup (가끔 — 첫 배포·env·domain·migration deploy)
-/autopilot-app
-# → setup mode 자동 (apps/가사관리/ 발견)
+/autopilot-spec
+# → setup mode 자동 (specs/가사관리/ 발견)
 # → 호스팅 선정 (Vercel/Fly/Railway) + CI/CD 파일 + env 가이드 + (옵션) domain
 # → 실제 명령은 사용자 직접 실행 (vercel deploy 등 자동 X)
 ```
 
-산출물: `.claude_reports/apps/<name>/` 한 폴더 안 _전체 흐름 누적_:
+산출물: `.claude_reports/specs/<name>/` 한 폴더 안 _전체 흐름 누적_:
 ```
-apps/가사관리/
+specs/가사관리/
 ├── pipeline_state.yaml               ← 현재 상태
 ├── 00_init/environment_check.md      ← 환경 점검
 ├── 00_init/stack_decision.md         ← 스택 결정 사유
@@ -145,7 +161,7 @@ apps/가사관리/
 |---|---|
 | **autopilot-research** | 연구팀 mode=research-survey (자료 수집·요약) + 자료팀 mode=browser-fetch / pdf-extract / web-image-search (외부 자료) + 연구팀 mode=fact-check (verbatim cards) |
 | **analyze-project** | 단일 skill 안 logic — code/paper/doc mode 별 자체 분석 |
-| **autopilot-app** | (init mode) 기획팀 (PRD 위임 자리만) + 자료팀 (research 결과 import) | (setup mode) 호스팅 선정 logic + CI/CD 파일 생성 |
+| **autopilot-spec** | (init mode) 기획팀 (PRD 위임 자리만) + 자료팀 (research 결과 import) | (setup mode) 호스팅 선정 logic + CI/CD 파일 생성 |
 | **autopilot-design** | 디자인팀 mode=maker (컴포넌트·시각 자산) + 디자인팀 mode=critic (비평) + 자료팀 mode=web-image-search (외부 reference) |
 | **autopilot-code** (일반) | 기획팀 (code-plan) + 개발팀 (code-execute) + 품질관리팀 mode=code-review·test (code-test) + 연구팀 mode=plan-review |
 | **autopilot-code** (앱 mode) | 위 + **디자인팀 mode=critic** (UI 변경 자리 자동 호출) + DB migration 안전 logic + push 자동 deploy 인지 |
@@ -165,20 +181,20 @@ apps/가사관리/
 
 | 프로젝트 종류 | 폴더 구조 |
 |---|---|
-| 연구·라이브러리 코드 | `<proj>/.claude_reports/plans/<date>_<slug>/` 별 누적 (각 task 독립) |
+| 코드 (spec 있음 — app / library / api / cli / research) | `<proj>/.claude_reports/specs/<name>/` 안 _전체 흐름 누적_ (PRD + dev_log + (옵션) 02_design + 05_ship) |
+| 코드 (spec 부재 — 빠른 작업) | `<proj>/.claude_reports/plans/<date>_<slug>/` 별 task 독립 |
 | 문서 | `<proj>/.claude_reports/documents/<date>_<name>/` |
-| 앱 | `<proj>/.claude_reports/apps/<app>/` 안 _전체 흐름 누적_ (PRD + dev_log + 05_ship) |
 | 사전 조사 | `<proj>/.claude_reports/research/<topic>/` |
 | 사전 분석 | `<proj>/.claude_reports/analysis_project/<mode>/` |
 
-### 4.2. 앱 자리의 _한 폴더 누적_ 가치
+### 4.2. spec 자리의 _한 폴더 누적_ 가치
 
-사용자가 _내 앱의 전체 흐름_ 보려면 `apps/<name>/` 한 폴더만 보면 됨. PRD·디자인·dev_log·ship 모두 그 안. 두 폴더 다니지 않음.
+사용자가 _내 프로젝트의 전체 흐름_ 보려면 `specs/<name>/` 한 폴더만 보면 됨. PRD·(옵션) 디자인·dev_log·(옵션) ship 모두 그 안. 두 폴더 다니지 않음. _app / library / api / cli / research mode 무관_ 일관된 구조.
 
 ### 4.3. 산출물 도메인 분화 (앱 자리만)
 
 ```
-apps/<name>/
+specs/<name>/
 ├── 01_spec/
 │   ├── PRD.md            ← 전체 청사진
 │   ├── api_contract.md   ← 백·프론트 공유
@@ -228,10 +244,10 @@ apps/<name>/
 
 | 단계 | 무게 | 비고 |
 |---|---|---|
-| 1. PRD (autopilot-app) | 🔴 큼 | 만들 _것 자체_ 결정 — 빗나가면 build 다 끝나도 _틀린 것_ |
+| 1. PRD (autopilot-spec) | 🔴 큼 | 만들 _것 자체_ 결정 — 빗나가면 build 다 끝나도 _틀린 것_ |
 | 2. 디자인 (autopilot-design) | 🟡 중 | 색·폰트 — 취향. default 무난 |
 | 3. 본격 개발 (autopilot-code) | 🟢 작 | 결과만 확인 |
-| 4. 보강 setup (autopilot-app `--mode setup`) | 🟡 중 | 호스팅 선택·DNS·env. 자동 X — 사용자 직접 |
+| 4. 보강 setup (autopilot-spec `--mode setup`) | 🟡 중 | 호스팅 선택·DNS·env. 자동 X — 사용자 직접 |
 | 5. iteration | 🔴 큼 | 써보고 _다음 의도_ 표현 |
 
 ---
@@ -244,7 +260,7 @@ apps/<name>/
 |---|---|
 | `app-build` | `autopilot-code` 의 앱 mode |
 | `app-qa` | `autopilot-code` 앱 mode 안 검증 단계 (code-test + 품질관리팀 code-review + 디자인팀 critic) |
-| `app-ship` | `autopilot-app --mode setup` |
+| `app-ship` | `autopilot-spec --mode setup` |
 | `app-iterate` | `autopilot-code` 호출 자체가 iteration |
 
 본 흡수는 _작업 본질에 맞는 분리_ 원칙 적용 결과:
@@ -255,12 +271,12 @@ apps/<name>/
 
 ## 7. 자주 묻는 자리
 
-### Q. 이미 chat 으로 만든 앱이 있다. autopilot-app 부터 시작?
+### Q. 이미 chat 으로 만든 앱이 있다. autopilot-spec 부터 시작?
 
-A. **부분 가능**. autopilot-app 의 init mode 는 _신규 cold start_ 기준. 이미 있는 앱은:
+A. **부분 가능**. autopilot-spec 의 init mode 는 _신규 cold start_ 기준. 이미 있는 앱은:
 1. `cd 가사관리앱 && /analyze-project --mode code` ← 현재 청사진 영속화
-2. 새 기능 추가 → `/autopilot-code "X 기능"` ← 앱 mode 자동 (apps/ 부재여도 package.json + UI framework 감지)
-3. PRD 부재면 → `/autopilot-app --mode init` 으로 _기존 코드 → PRD 역추출_ 시도 (사용자 검토 부담 있음)
+2. 새 기능 추가 → `/autopilot-code "X 기능"` ← spec mode 별 분기 자동 (specs/ 부재여도 package.json + UI framework 감지로 경량 추론)
+3. PRD 부재면 → `/autopilot-spec --mode init` 으로 _기존 코드 → PRD 역추출_ 시도 (사용자 검토 부담 있음)
 
 ### Q. 디자인 사이클은 _초기 한 번_ 만?
 
@@ -268,15 +284,15 @@ A. **아니다**. _토큰 (색·폰트·간격)_ 은 안정, _컴포넌트_ 는 
 
 ### Q. ship 은 매번 호출?
 
-A. **아니다**. _첫 setup_ 만 한 번 (`vercel link` / CI/CD 파일 / env). 이후는 _git push → CI/CD 자동 deploy_. autopilot-app `--mode setup` 은 _가끔 보강_ (env 변경·domain·migration deploy) 자리만.
+A. **아니다**. _첫 setup_ 만 한 번 (`vercel link` / CI/CD 파일 / env). 이후는 _git push → CI/CD 자동 deploy_. autopilot-spec `--mode setup` 은 _가끔 보강_ (env 변경·domain·migration deploy) 자리만.
 
 ### Q. autopilot-code 가 어떻게 앱 vs 라이브러리 mode 자동 감지?
 
-A. cwd 검사 — `apps/<name>/pipeline_state.yaml` 또는 `package.json` 의 UI framework (Next.js / Expo / SvelteKit / Astro / Vite+React) 발견 시 _앱 mode_. 그 외 _일반 mode_. 활성화 시 사용자에 명시 보고.
+A. cwd 검사 — `specs/<name>/pipeline_state.yaml` 또는 `package.json` 의 UI framework (Next.js / Expo / SvelteKit / Astro / Vite+React) 발견 시 _앱 mode_. 그 외 _일반 mode_. 활성화 시 사용자에 명시 보고.
 
 ### Q. 백/프론트/DB 가 어떻게 잘 나뉘어 짜였는지 확인?
 
-A. `apps/<name>/01_spec/PRD.md` 의 _API Contract / 데이터 모델 / ui_flow_ 섹션이 _경계_ 명시. `dev_log/<date>_<slug>/{backend, frontend, db, external}/` 폴더 분화 (산출물 도메인 분화). 본 두 자리만 봐도 구조 잡힘.
+A. `specs/<name>/01_spec/PRD.md` 의 _API Contract / 데이터 모델 / ui_flow_ 섹션이 _경계_ 명시. `dev_log/<date>_<slug>/{backend, frontend, db, external}/` 폴더 분화 (산출물 도메인 분화). 본 두 자리만 봐도 구조 잡힘.
 
 ---
 

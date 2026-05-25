@@ -1,23 +1,48 @@
 ---
 name: autopilot-code
-description: "_코드 작업 일반_ entry — 라이브러리·연구 코드·앱 모두 커버. 신규·기존 코드 무관 (cwd 자동 감지). dev (기능 추가·신규) / debug (진단·수정) 두 mode. apps/<name>/ 컨텍스트 발견 시 _앱 mode_ 자동 활성화 — 디자인팀 critic + DB migration 안전 + push 자동 deploy 안내. 앱의 PRD·스택·skeleton·ship setup 같은 _코드 외 결정_ 은 autopilot-app 영역."
+description: "_코드 작업 일반_ entry — 라이브러리·연구 코드·앱 모두 커버. 신규·기존 코드 무관 (cwd 자동 감지). dev (기능 추가·신규) / debug (진단·수정) 두 mode. specs/<name>/ 컨텍스트 발견 시 spec 자동 Read + spec mode 별 분기: app mode → 디자인팀 critic + DB migration 안전 + push 자동 deploy. library mode → 공개 API 일관성 점검. cli mode → 명령·옵션 일관성. research mode → 재현성·configs·metric 검증. 코드 외 결정 (PRD·스택·skeleton·ship setup) 은 autopilot-spec 영역."
 argument-hint: "--mode dev|debug <task/plan/error description> [--from <step>] [--qa quick|light|standard|thorough|adversarial] [--user-refine]"
 ---
 
 > **산출물 폴더 컨벤션**: [CONVENTIONS.md §5](../../CONVENTIONS.md#5-skill-output-convention-3-tier-t1t2t3) (3-tier: T1 root / T2 named subdir / T3 `_internal/`). plan/ + checklist는 T1 (root). dev_logs/, test_logs/는 T2 (root). reviewer 로그(plan_reviews, dev_reviews, test_reviews)는 모두 `_internal/` 하위. **앱 mode 자리**: `apps/<name>/dev_log/<date>_<slug>/` 안에 누적 (앱 전체 흐름 한 폴더에).
 
-## Context Auto-Detection (앱 vs 일반 모드)
+## Context Auto-Detection (spec mode 자동 분기)
 
-본 skill 은 호출 자리에서 _cwd / 산출물 폴더_ 검사로 자동 분기:
+본 skill 은 호출 자리에서 _cwd / 산출물 폴더 / spec 파일_ 검사로 자동 분기:
 
-| 감지 조건 | mode | 추가 logic |
-|---|---|---|
-| `.claude_reports/apps/<name>/pipeline_state.yaml` 존재 OR `package.json` 있고 _UI framework_ (Next.js / Expo / SvelteKit / Astro / Vite + React) 발견 | **앱 mode** | (1) UI 변경 자리 디자인팀 critic 자동 호출 (2) DB migration destructive 자리 명령 안내·자동 실행 X (3) push 후 CI/CD 자동 deploy 인지 (4) 산출물 `apps/<name>/dev_log/` 안 누적 |
-| 그 외 (라이브러리·연구 코드·CLI) | **일반 mode** | 표준 dev/debug 흐름 + `plans/<date>_<name>/` 산출 |
+### 1단계 — spec 존재 여부
 
-앱 mode 활성화 시 사용자에 명시 보고 — _"앱 mode 활성화 (apps/<name>/ 감지). 디자인 critic + DB 안전 + push 자동 deploy 적용."_
+| 감지 조건 | 처리 |
+|---|---|
+| `.claude_reports/specs/<name>/pipeline_state.yaml` 존재 | spec 자동 Read + 그 안 `mode` 배열 따라 _추가 logic_ 활성화. 산출 `specs/<name>/dev_log/<date>_<slug>/` 안 |
+| 부재 (spec 없이 호출) | 일반 mode — 표준 dev/debug. cwd 단서 (`package.json` framework·`argparse` 등) 만 보고 _경량 추론_. 산출 `plans/<date>_<slug>/` |
 
-> autopilot-app 과의 경계: PRD·스택·skeleton·ship setup·env·domain·migration 운영 배포 _안내_ 는 **autopilot-app 영역**. 본 skill 은 _코드 변경 자체_ 만 담당.
+spec 발견 시 사용자에 명시 보고 — _"spec 발견 (specs/<name>/, mode: [library, cli, research]). 그 청사진 따라 진행."_
+
+### 2단계 — spec mode 별 추가 logic
+
+spec 의 `mode` 배열 (단일 또는 복수) 에 따라 자동 활성화:
+
+| mode | 추가 logic |
+|---|---|
+| **app** | (1) UI 변경 자리 디자인팀 critic 자동 호출 (2) DB migration destructive 자리 명령 안내·자동 실행 X (3) push 후 CI/CD 자동 deploy 인지 |
+| **library** | (1) 공개 API 변경 자리 _semver 영향 분석_ (2) export 일관성 점검 (3) 사용 예시 갱신 권장 |
+| **api** | (1) endpoint·body·error 일관성 (spec contract 와) (2) auth 변경 자리 보안 검토 (3) rate limiting 변경 자리 마이그레이션 안내 |
+| **cli** | (1) 명령·옵션 일관성 (spec 과) (2) input/output 형식 점검 (3) exit code 일관성 |
+| **research** | (1) entry point (train·eval) 변경 자리 _재현 명령_ 갱신 권장 (2) configs 변경 자리 spec 동기화 (3) 예상 metric 검증 가능 자리 자동 |
+
+복수 mode 시 _해당하는 logic 모두_ 활성화.
+
+### 경량 추론 (spec 부재 시)
+
+spec 없이 호출된 자리에서도 cwd 단서로 _경량 mode 추정_:
+- `package.json` 의 UI framework → 앱 자리 (일부 logic 적용)
+- `package.json` 의 `bin` 필드 / argparse → CLI 자리
+- `configs/*.yaml` + ipynb → research 자리
+
+다만 spec 부재 시 _경량 추론_ — _전체 logic_ 은 spec 있을 때만. 사용자가 _완전한 mode 분기 원하면_ `/autopilot-spec` 으로 spec 먼저 만들기 권장.
+
+> autopilot-spec 과의 경계: PRD·스택·skeleton·ship setup·env·domain·migration 운영 배포 _안내_ 는 **autopilot-spec 영역**. 본 skill 은 _코드 변경 자체_ 만 담당.
 
 ## Default Invocation Rule (메인 Claude 자동 라우팅)
 
