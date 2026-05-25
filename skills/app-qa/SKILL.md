@@ -85,10 +85,17 @@ Agent(디자인팀, mode=critic):
 
 사용자에 보고:
 - 어떤 issue 인지 (file:line)
-- 어떻게 fix 할지 권장
-- 다음 액션: `/app-build` 다시 (fix scope 만) 또는 `Agent(개발팀, mode=<backend|frontend>, "fix: <issue>")`
+- **issue 원인 분류** (back-jump 결정에 핵심):
+  - **구현 버그** (spec·design 은 OK, 코드만 잘못) → `/app-build --fix` 또는 `Agent(개발팀, mode=<backend|frontend>, "fix: <issue>")`
+  - **API contract 변경 필요** (백/프론트 양쪽 영향) → `/autopilot-app --from spec` (spec back-jump, 하위 phase 자동 무효화)
+  - **요구사항 자체 오류** (PRD 시나리오가 현실과 어긋남) → `/autopilot-app --from spec`
+  - **디자인 시스템 issue** (토큰·컴포넌트 변경 필요) → `/autopilot-app --from design`
+
+issue 의 원인이 _구현 vs 요구사항·계약·디자인_ 중 어느 자리인지 본 Step 의 보고에서 분명히 표기. 사용자가 적절한 back-jump 자리 선택 가능.
 
 `pipeline_state.yaml` 의 `phases.qa: failed` 기록.
+
+> Back-jump 흐름 상세: autopilot-app SKILL.md 의 `## Mid-cycle Back-jump` 참조.
 
 ### Step 6: ✅ 통과 시
 

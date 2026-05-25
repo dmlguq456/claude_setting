@@ -67,9 +67,37 @@ argument-hint: "<task or feature description> [--app <name>] [--user-refine]"
 ## 데이터 모델 초안
 
 ```
-User { id, ... }
-Task { id, userId, ... }
+User { id, email, name, createdAt }
+Task { id, userId, title, completed, createdAt, updatedAt }
 ```
+
+> cycle 2+ 에서 모델 변경 시 _기존 필드 보존 + 새 필드 추가_ 가 default. 필드 제거·type 변경은 _destructive_ 라 spec 에 _migration plan_ 표시 (사용 중인 row 처리 방법: backfill / nullable / drop column).
+
+## API Contract (백/프론트 공유 계약)
+
+본 섹션이 spec 단계의 _단일 source of truth_. build phase 의 backend / frontend 가 같은 contract 를 참조해 병렬 작업. contract 변경 시 spec phase 로 back-jump 필요 — build 안에서 임의 변경 X.
+
+```ts
+// shared types (예: app/types.ts 또는 packages/types/)
+type Task = {
+  id: string
+  userId: string
+  title: string
+  completed: boolean
+  createdAt: string  // ISO 8601
+  updatedAt: string
+}
+
+// endpoints
+POST   /api/tasks                 → Task (body: { title })
+GET    /api/tasks                 → Task[]
+PATCH  /api/tasks/:id             → Task (body: Partial<Task>)
+DELETE /api/tasks/:id             → { ok: true }
+```
+
+- 모든 endpoint 의 _요청 body / 응답 shape / error code_ 명시
+- Server actions 만 쓰는 경우에도 _function signature_ 를 contract 로 적음
+- 인증 필요 endpoint 는 _Auth 요구_ 표시
 
 ## 화면 흐름 (UI 있을 시)
 

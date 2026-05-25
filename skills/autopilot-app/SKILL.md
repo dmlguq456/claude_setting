@@ -144,6 +144,40 @@ Invoke Skill: `app-iterate` with feedback + app path as args.
 
 **[Loop back to Phase 1]** — 새 사이클 시작. `pipeline_state.yaml` 의 `current_cycle` 증가.
 
+## Mid-cycle Back-jump (요구사항·계약 변경 시)
+
+iterate 가 아니라 _같은 사이클 안_ 에서 _이전 phase 로 되돌아가야_ 하는 자리. 흔한 원인:
+
+| 원인 | 어디로 back-jump | 무효화되는 phase |
+|---|---|---|
+| qa 🔴 인데 _요구사항 자체가 잘못_ (PRD 의 시나리오가 현실과 어긋남) | `--from spec` | spec ↓ 하위 (design, build, qa) 모두 |
+| qa 🔴 인데 _API contract 변경 필요_ (백/프론트 양쪽 영향) | `--from spec` | spec ↓ build, qa |
+| qa 🔴 인데 _구현 버그_ (spec 은 OK) | `--from build` (fix scope 만) | build, qa |
+| review 🔴 인데 _디자인 토큰 변경 필요_ (색·간격 시스템 결정 잘못) | `--from design` (autopilot-design `--from tokens`) | design ↓ build, qa |
+| review 🔴 인데 _컴포넌트만 변경_ | `--from design` (autopilot-design `--from components`) | design 의 components ↓ build, qa |
+
+### `--from` 호출 시 자동 무효화 logic
+
+`/autopilot-app --from <phase>` 호출 시 메인 Claude 가 `pipeline_state.yaml` 의 _하위 phase_ 를 `pending` 으로 자동 reset:
+
+```yaml
+# 예: --from spec 호출 시
+phases:
+  init: done       # 그대로
+  spec: pending    # 재실행
+  design: pending  # 하위 — reset
+  build: pending   # 하위 — reset
+  qa: pending      # 하위 — reset
+  ship: pending
+  iterate: pending
+```
+
+reset 전 _확인 한 줄_: "build / qa 결과가 무효화됩니다. 진행할까요?"
+
+### 산출물 보존
+
+reset 된 phase 의 _이전 산출물 폴더 (01_spec/, 03_build/ 등)_ 는 _덮어쓰지 않고_ `_internal/cycle_{N}_attempt_{M}/` 로 백업 후 새로 작성. 사용자가 _이전 attempt 와 비교_ 가능.
+
 ## Pipeline state 관리
 
 `.claude_reports/apps/<app-name>/pipeline_state.yaml`:
