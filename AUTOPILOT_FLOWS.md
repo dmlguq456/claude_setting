@@ -37,13 +37,22 @@
 
 | mode | 자리 | 산출물 (PRD 안 섹션) |
 |---|---|---|
-| **app** | 사용자 대상 앱 (Next.js / Expo) | 피처·시나리오·API Contract·data model·ui flow + 스택·scaffolding·skeleton |
+| **app** | 사용자 대상 앱 (Next.js / Expo) | 피처·시나리오·API Contract·data model·ui flow + 스택·scaffolding·skeleton + **Component·Deployment diagram** |
 | **library** | 공개 라이브러리·패키지 (npm·pip·crate) | 공개 API + 사용 예시 + 호환성·versioning + module 구조 |
-| **api** | 백엔드 API 서비스 (UI 없음) | endpoint·body·error·auth·rate limiting + 데이터 모델 |
+| **api** | 백엔드 API 서비스 (UI 없음) | endpoint·body·error·auth·rate limiting + 데이터 모델 + **Component·Deployment diagram** |
 | **cli** | 명령줄 도구 | 명령·옵션·서브 명령·input/output·exit code |
 | **research** | 연구·실험 코드 정돈·재현성 | entry point + configs + 재현 명령 + 예상 metric + baseline 비교 |
 | **복합** (예: library,cli) | 한 프로젝트가 여러 측면 | PRD 안 _공통 + mode 별 독립 섹션_ |
 | **auto** (default) | mode 자동 추론 (발화·코드 단서) | 추론 결과 사용자 컨펌 후 진행 |
+
+### 1.4. PRD 묶음 갱신 (Architecture Diagrams 포함)
+
+PRD 의 textual + diagram 이 _drift 빠지지 않게_ — 변경 자리에서 _영향 받는 모든 자리 한 트랜잭션_ 갱신. 자세한 매핑 — CONVENTIONS §6.3a.
+
+- autopilot-spec refine 자리에서 사용자 의도 변경 시 → 영향 자리 자동 list → confirm → 일괄
+- autopilot-code 가 spec 영향 변경 감지 (endpoint·entity·외부 service·stack 등) → 묶음 갱신 plan → confirm → autopilot-spec back-jump 호출
+
+Architecture Diagrams 기본 포함은 app / api mode 의 Component + Deployment 두 자리만. ER / Sequence / Activity / State 는 _복잡 자리·사용자 명시 요청_ 자리만.
 
 ---
 

@@ -339,6 +339,25 @@ fi
 - **코드** 의 신규 vs 기존 = 흐름 동일, _현재 코드 상태_ 만 다름 → 한 skill 통합 자연 (autopilot-code)
 - **spec** vs **code** = _코드 외 결정 (요구사항·청사진)_ ≠ _코드 작업_ → 두 skill 분리. 단 spec mode (app/library/api/cli/research) 는 _자리별 청사진 형식_ 만 다름 → 한 skill (autopilot-spec) 의 mode 로 통합
 
+### §6.3a. PRD 묶음 갱신 (Architecture Diagrams 포함)
+
+PRD 의 textual 자리 (`api_contract.md` / `data_model.md` / `ui_flow.md`) + Architecture Diagrams (Component / Deployment) 가 _drift 빠지지 않게_ — 변경 자리에서 _영향 받는 모든 자리 한 트랜잭션_ 갱신.
+
+| 변경 | 영향 자리 (묶음) |
+|---|---|
+| API endpoint·body·error | api_contract + Component (+ 옵션 Sequence) |
+| DB entity·필드 | data_model + Component(backend) (+ 옵션 ER) |
+| UI flow | ui_flow + Component(frontend) (+ 옵션 Activity) |
+| 외부 service 통합 | api_contract(auth) + Deployment + deploy_record + .env.example |
+| 스택 교체 | stack_decision + Component + Deployment |
+| 상태 모델 | data_model (+ 옵션 State) |
+
+**호출 자리**:
+- `autopilot-spec` refine (사용자 의도 변경) → 영향 자리 자동 list → confirm → 일괄
+- `autopilot-code` 가 spec 영향 변경 감지 → 묶음 갱신 plan → confirm → autopilot-spec back-jump
+
+**Architecture Diagrams 기본 포함**: app / api mode 의 Component + Deployment 두 자리만. library 의 Component (module 의존) 는 옵션. ER / Sequence / Activity / State / Class 는 _복잡 자리·사용자 명시 요청_ 자리만.
+
 ### §6.4. autopilot-code 의 컨텍스트 자동 감지
 
 호출 자리에서 _cwd / spec 파일_ 검사로 자동 분기:

@@ -158,7 +158,7 @@ QA 5 단계 (quick / light / standard / thorough / adversarial) 정의는 [`CONV
 | [`analyze-project`](skills/analyze-project/SKILL.md) | code/paper/doc 자료 → `analysis_project/` 영속화 |
 | [`autopilot-research`](skills/autopilot-research/SKILL.md) | 분야 조사 — mode 별 보고서 (academic/technology/market) |
 | [`autopilot-code`](skills/autopilot-code/SKILL.md) | 코드 작업 일반 (라이브러리·연구·앱 모두) — dev/debug. `specs/<name>/` 컨텍스트 자동 감지 → spec mode 별 추가 logic (app/library/api/cli/research) |
-| [`autopilot-spec`](skills/autopilot-spec/SKILL.md) | _요구사항·청사진 작성_ 일반화 entry — mode 5종 (app / library / api / cli / research) + 다중 + auto. analyze-project 대칭 자리 |
+| [`autopilot-spec`](skills/autopilot-spec/SKILL.md) | _요구사항·청사진 작성_ 일반화 entry — mode 5종 (app / library / api / cli / research) + 다중 + auto. PRD = textual (api_contract / data_model / ui_flow) + Architecture Diagrams (Component + Deployment, app/api mode). 변경 자리 묶음 갱신. analyze-project 대칭 자리 |
 | [`autopilot-draft`](skills/autopilot-draft/SKILL.md) | 문서 strategy + draft (paper/presentation/doc, markdown 만) |
 | [`autopilot-design`](skills/autopilot-design/SKILL.md) | 시각 산출물 — UI/UX·슬라이드·다이어그램·아이콘 (init → refs → tokens → components → review → handoff). autopilot-spec 의 디자인 사이클 또는 단독 호출 |
 | [`autopilot-refine`](skills/autopilot-refine/SKILL.md) | doc/research 사후 정정 — major ceremony, prompt + memo 통합 entry |

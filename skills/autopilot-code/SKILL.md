@@ -44,6 +44,36 @@ spec 없이 호출된 자리에서도 cwd 단서로 _경량 mode 추정_:
 
 > autopilot-spec 과의 경계: PRD·스택·skeleton·ship setup·env·domain·migration 운영 배포 _안내_ 는 **autopilot-spec 영역**. 본 skill 은 _코드 변경 자체_ 만 담당.
 
+### Spec 영향 변경 감지 → 묶음 갱신 알림
+
+코드 변경이 _spec 자리 영향_ 자리 (예: 새 API endpoint·entity 필드 변경·외부 service 통합) 발생 시 autopilot-code 가 _영향 받는 PRD 자리 자동 list_ → 사용자에 _묶음 갱신 plan_ 보여줌 → confirm 받고 autopilot-spec back-jump 호출 (또는 사용자가 _나중에_ 결정).
+
+| 코드 변경 종류 | 영향 받는 spec 자리 |
+|---|---|
+| 새 API endpoint · body · error 변경 | `api_contract.md` + Component diagram + (옵션) Sequence diagram |
+| `prisma/schema.prisma` 등 entity·필드 변경 | `data_model.md` + (옵션) ER diagram + Component diagram |
+| 새 page route · UI flow 변경 | `ui_flow.md` + (옵션) Activity diagram + Component diagram |
+| 새 외부 service SDK 통합 (`stripe`·`@clerk/nextjs` 등) | `api_contract.md` (auth) + Deployment diagram + `deploy_record.md` + `.env.example` |
+| 스택 의존성 큰 변경 (DB 교체·framework 업그레이드) | `stack_decision.md` + Component diagram + Deployment diagram |
+| state 모델 추가 (order / payment lifecycle 등) | `data_model.md` + (옵션) State diagram |
+
+**알림 형태**:
+```
+=== Spec 영향 변경 감지 ===
+변경: prisma/schema.prisma 의 Task 모델에 category 필드 추가
+
+영향 받는 spec 자리 (묶음 갱신 권장):
+  - 01_spec/data_model.md (entity 필드 추가)
+  - 01_spec/api_contract.md (Task type 의 category 필드)
+  
+어떻게 진행할까요?
+  (a) 지금 autopilot-spec 호출로 묶음 갱신 (back-jump)
+  (b) 코드 작업 먼저 끝낸 후 나중에 (현재 변경은 dev_log 에 기록)
+  (c) 무시 — spec 갱신 안 함 (drift 받아들임)
+```
+
+자동 갱신은 _autopilot-spec back-jump_ 통해서만 — 본 skill 안에서 직접 spec 갱신 X (역할 경계 보존).
+
 ## Default Invocation Rule (메인 Claude 자동 라우팅)
 
 본 skill 은 글로벌 [`CLAUDE.md`](../../CLAUDE.md) §6 "autopilot-* 호출 패턴" 의 _컨펌 의무_ 적용 대상. 메인 Claude 가 사용자 발화에서 아래 trigger 신호를 인지하면, 옵션 자동 구성 + 자연어 요약 컨펌 거쳐 invoke.

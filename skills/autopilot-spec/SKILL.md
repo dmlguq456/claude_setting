@@ -191,9 +191,65 @@ mode (추론):     <mode list> (근거: <증거>)
 ### 재현 명령 (학습·평가·테스트)
 ### 예상 metric (PSNR / Acc / SI-SDR / 등)
 ### Baseline 비교
+
+## Architecture Diagrams (해당 mode 자리만 — 기본: app / api)
+
+### Component diagram (mermaid)
+시스템의 _모듈 단위 구성·의존_ 한눈. mode 별:
+- app: frontend / backend / DB / external service 의 의존
+- api: router / handler / repository / model / external service 의 의존
+- library (옵션): 공개 module 의 내부 의존
+- 그 외 mode 는 _기본 X_ — 복잡 자리만 사용자 명시 요청
+
+### Deployment diagram (mermaid, app / api mode 만)
+시스템의 _물리 배포 자리_ 한눈. ship setup 의 시각 형태:
+- 호스팅 (Vercel / Fly / Railway / Cloudflare)
+- DB host (Turso / Supabase / Neon / RDS)
+- 외부 service (Stripe / Auth0 / Cloudflare R2)
+- CDN
+- CI/CD trigger (GitHub push → provider)
+- 사용자 진입점 (domain)
+
+예 (app mode — 가사관리 앱 자리):
+```mermaid
+flowchart LR
+    USER[사용자] --> CDN[Vercel Edge / CDN]
+    CDN --> APP[Next.js App<br/>Vercel]
+    APP --> DB[(Turso libSQL)]
+    APP -.optional.-> AUTH[Clerk / Auth0]
+    GH[GitHub main] -->|push| APP
+```
+
+### 옵션 diagrams (사용자 명시 요청 또는 복잡 자리 자동 추론 시만)
+- **ER diagram** — data_model.md 의 시각 보강 (entity 5+ 자리)
+- **Sequence diagram** — 복잡한 인증·트랜잭션·webhook 순서 자리
+- **Activity diagram** — 복잡한 checkout / login flow / research pipeline
+- **State diagram** — 도메인이 상태 모델 강한 자리 (order / payment / 게임 turn)
+- **Class diagram** — library mode 의 공개 API 시각화 (textual 공개 API 로 충분한 자리는 skip)
+
+본 옵션 diagrams 는 _기본 생성 X_ — 사용자 명시 요청 (`/autopilot-spec --add-diagram <type>`) 또는 자동 추론 (entity 5+ / 도메인 상태 모델 인지 / 복잡 flow 등) 자리만.
 ```
 
 mode 가 단일이면 _해당 섹션만_, 복수면 _각 섹션 독립_.
+
+### Step 3.5: 묶음 갱신 logic (PRD 변경 자리)
+
+PRD 의 textual 자리와 Architecture Diagrams 가 _drift 빠지지 않게_ — 변경 발생 자리에서 _영향 받는 모든 자리 한 트랜잭션_ 갱신. 변경 종류 → 영향 매핑:
+
+| 변경 종류 | 영향 자리 (모두 일관 갱신) |
+|---|---|
+| 새 API endpoint 추가·body·error 변경 | `01_spec/api_contract.md` + Component diagram + (옵션) Sequence diagram |
+| 새 DB entity·필드 추가·migration | `01_spec/data_model.md` + (옵션) ER diagram + Component diagram (backend 자리) |
+| 새 UI 화면·flow 변경 | `01_spec/ui_flow.md` + (옵션) Activity diagram + Component diagram (frontend 자리) |
+| 새 외부 service 통합 (Stripe / Auth0 / S3 등) | `01_spec/api_contract.md` (auth) + **Deployment diagram** + `05_ship/deploy_record.md` + `.env.example` |
+| 스택 교체 (DB·framework 등) | `00_init/stack_decision.md` (refine v{N}) + **Component diagram** + **Deployment diagram** |
+| 도메인 상태 모델 추가 (order / payment 등) | `01_spec/data_model.md` + (옵션) State diagram |
+
+**호출 자리**:
+- autopilot-spec refine 자리에서 사용자 의도 변경 시 → 영향 자리 자동 list → 사용자 confirm → 일괄 갱신
+- autopilot-code 가 spec 영향 변경 감지 자리에서 → 묶음 갱신 plan 보여주고 사용자 confirm → autopilot-spec back-jump 호출
+
+**Deployment diagram 의 자동 갱신** — ship 자리 변경 빈도 낮음 (provider 교체·env 추가·domain 연결 자리만). autopilot-spec setup-only 호출 자리에서 _deploy_record.md + Deployment diagram_ 한 묶음.
 
 ### Step 4: (app mode 한정) Scaffolding + Skeleton 코드 생성
 
