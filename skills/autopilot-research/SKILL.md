@@ -568,10 +568,12 @@ Agent(subagent_type="연구팀"):
 
    ### 07_resources.md — Code, Data & Model Resources
    - Tier-based repos: Tier 1 (directly usable for UD-KWS) / Tier 2 (backbone/infra) / Tier 3 (supplementary)
-     Columns: repo | paper | stars | language | last-update | reproducibility | notes
+     Columns: repo | paper | stars | language | last-update | reproducibility | notes | **Quick verify command** (1-line — install + 1-sample inference, copy-paste-ready)
    - Code-not-available high-impact papers (institution/reason)
-   - Pre-trained models table: model | architecture | params | framework | checkpoint | URL
+   - Pre-trained models table: model | architecture | params | framework | checkpoint | URL | **Quick verify command** (1-line — download + 1-sample inference + expected output shape)
    - Reproducibility assessment matrix: paper | code | data | checkpoint | overall rating
+
+   > **Quick verify command 의 자리** — autopilot-spec Phase 1.5 의 _pretrained ckpt 사전 동작 점검_ 자리가 본 표를 1순위 source 로 자동 인용. 사용자가 spec 진입 후 ref 검증 자리에서 추가 자료 검색 없이 _바로 실행 가능_ 한 1-line 명령 누적이 목표. 명령 추출 출처: ref repo 의 README quickstart / inference.py 의 docstring / HF model card 의 _How to use_ 섹션.
 
    ### 08_reading_guide.md — Recommended Reading Paths
    - 4-5 purpose-based tracks:
@@ -624,8 +626,9 @@ Agent(subagent_type="연구팀"):
 
    ### 07_resources.md — Open-source Code, Models, Tools
    - Tier-based resources: Tier 1 (직접 사용 가능) / Tier 2 (참조용) / Tier 3 (실험용)
-   - Pre-trained checkpoints (있다면) | platform support | license
+   - Pre-trained checkpoints (있다면) | platform support | license | **Quick verify command** (1-line — download + 1-sample inference + expected output)
    - Evaluation tools, test datasets, benchmarking suites
+   - **Quick verify command 의 자리** — autopilot-spec Phase 1.5 자동 인용 source (academic mode 의 안내와 동일).
 
    ### Mode `market` — 5 files
 

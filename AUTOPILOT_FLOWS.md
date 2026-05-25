@@ -40,15 +40,17 @@
 
 ### 1.3. autopilot-spec mode 5종
 
-| mode | 자리 | 산출물 (PRD 안 섹션) |
+| mode | 자리 | PRD + scaffold 산출물 (mode 5종 통일) |
 |---|---|---|
-| **app** | 사용자 대상 앱 (Next.js / Expo) | 피처·시나리오·API Contract·data model·ui flow + 스택·scaffolding·skeleton + **Component·Deployment diagram** |
-| **library** | 공개 라이브러리·패키지 (npm·pip·crate) | 공개 API + 사용 예시 + 호환성·versioning + module 구조 |
-| **api** | 백엔드 API 서비스 (UI 없음) | endpoint·body·error·auth·rate limiting + 데이터 모델 + **Component·Deployment diagram** |
-| **cli** | 명령줄 도구 | 명령·옵션·서브 명령·input/output·exit code |
-| **research** | 연구·실험 코드 정돈·재현성 | entry point + configs + 재현 명령 + 예상 metric + baseline 비교 |
-| **복합** (예: library,cli) | 한 프로젝트가 여러 측면 | PRD 안 _공통 + mode 별 독립 섹션_ |
+| **app** | 사용자 대상 앱 (Next.js / Expo) | PRD (피처·시나리오·API Contract·data model·ui flow) + Component·Deployment diagram + **scaffold** (create-next-app + skeleton) |
+| **library** | 공개 라이브러리·패키지 (npm·pip·crate) | PRD (공개 API + 사용 예시 + 호환성·versioning + module 구조) + **scaffold** (pyproject.toml / setup.py + 공개 API skeleton, ref repo 의 export 구조) |
+| **api** | 백엔드 API 서비스 (UI 없음) | PRD (endpoint·body·error·auth·rate limiting + 데이터 모델) + Component·Deployment diagram + **scaffold** (FastAPI / Express + router skeleton) |
+| **cli** | 명령줄 도구 | PRD (명령·옵션·서브 명령·input/output·exit code) + **scaffold** (argparse / typer entry + 명령 skeleton) |
+| **research** | 연구·실험 코드 정돈·재현성 | PRD (entry + configs + 재현 명령 + 예상 metric + baseline) + **scaffold** (train.py / eval.py / config.yaml + model skeleton, **Phase 1.5 pretrained ckpt 사전 동작 점검** 포함) |
+| **복합** (예: library,cli) | 한 프로젝트가 여러 측면 | PRD 안 _공통 + mode 별 독립 섹션_ + 두 mode 의 scaffold 모두 |
 | **auto** (default) | mode 자동 추론 (발화·코드 단서) | 추론 결과 사용자 컨펌 후 진행 |
+
+**Scaffold 의 ref source 우선순위** — 1) 내부 (`similar_models.md` / `--ref <path>`) → 2) 외부 (`research/{topic}/code_resources/` / `07_resources.md` 의 Quick verify 명령) → 3) generic fallback. ML / DL 자리는 Phase 1.5 _pretrained ckpt 사전 동작 점검_ 자동 (mode `library` / `api` / `cli` 자리는 ckpt 없으면 skip).
 
 ### 1.4. PRD 묶음 갱신 (Architecture Diagrams 포함)
 
@@ -82,6 +84,9 @@ Architecture Diagrams 기본 포함은 app / api mode 의 Component + Deployment
 /autopilot-spec --mode library,cli "X — 라이브러리 + CLI"
 /autopilot-spec --mode research,cli "Y — 학회 공개·재현성"
 /autopilot-spec  # 또는 mode 생략 → auto 추론
+# → 중간 컨펌 자리 6-8 회 default (정보 수집 / 한 화면 / PRD 공통+핵심 / Architecture Diagrams / 복합 mode / scaffold ref source / scaffold 결과 / 완성)
+# → 사용자 "쭉 진행" 발화 시 일괄 컨펌 (3-4 회) 자동 축소
+# → scaffold 5종 통일: ref repo 자동 fetch (public git / HF) + Phase 1.5 ckpt 사전 검증 (research mode) + 개발팀 new-lib 으로 우리 컨벤션 옮김
 
 # 5. 실험 prototype 반복 (lab)
 /autopilot-lab "lr 1e-3 → 3e-4 비교"

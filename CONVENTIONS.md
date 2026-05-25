@@ -301,7 +301,7 @@ fi
 | 작업 종류 | 사전 (외부 조사·내부 분석) | 신규 의도·청사진 | 자산 작업 (신규·기존) |
 |---|---|---|---|
 | **문서** (paper / presentation / 보고서 / proposal / rebuttal) | `autopilot-research` (academic / market) + `analyze-project --mode paper/doc` | `autopilot-draft` (신규 strategy + draft) | `autopilot-refine` (기존 정정·확장) |
-| **코드 (모든 자리 — 라이브러리·연구·앱·CLI·API)** | `autopilot-research` (academic / technology) + `analyze-project --mode code` | **`autopilot-spec`** (mode = app / library / api / cli / research / 복합 / auto) | **`autopilot-code`** (spec mode 별 분기 자동) |
+| **코드 (모든 자리 — 라이브러리·연구·앱·CLI·API)** | `autopilot-research` (academic / technology) + `analyze-project --mode code` | **`autopilot-spec`** (mode 5종 + 복합 + auto. 모든 mode 가 PRD + Architecture Diagrams + **scaffold (skeleton 코드)** 통일 산출. ML / DL 자리는 Phase 1.5 pretrained ckpt 사전 동작 점검 자동. 중간 컨펌 6-8 자리 default) | **`autopilot-code`** (spec mode 별 분기 자동 — _layout 위 logic 추가_ 자리만) |
 | **실험 prototype (ML / one-shot script)** | `analyze-project --mode code` 의 4 종 실험 자료 (`experiment_conventions` / `experiment_readiness` / `cleanup_candidates` / `similar_models`) + 직전 실험 `_RUNLOG.md` | — (spec 없이 빠른 cycle 1순위) | **`autopilot-lab`** (반복 호출, STORY+RUNLOG 누적; 졸업 자리 `autopilot-code`) |
 | **공통 시각 자산** | — | `autopilot-design` (신규 디자인 사이클) | `autopilot-design` 재호출 (cycle 2+) |
 | **공통 사용자 프로필** | — | `analyze-user --mode init` | `analyze-user --mode update` |
@@ -341,7 +341,7 @@ fi
 
 - **문서** 의 draft vs refine 분리 = _cross-artifact 정정_ (다른 prior 문서 가져와서 인용·정정) 가능 → 분리 자연
 - **코드** 의 신규 vs 기존 = 흐름 동일, _현재 코드 상태_ 만 다름 → 한 skill 통합 자연 (autopilot-code)
-- **spec** vs **code** = _코드 외 결정 (요구사항·청사진)_ ≠ _코드 작업_ → 두 skill 분리. 단 spec mode (app/library/api/cli/research) 는 _자리별 청사진 형식_ 만 다름 → 한 skill (autopilot-spec) 의 mode 로 통합
+- **spec** vs **code** = _코드 외 결정 + 뼈대·skeleton 생성_ ≠ _layout 위 logic 추가_ → 두 skill 분리. 단 spec mode (app/library/api/cli/research) 는 _자리별 청사진 형식·scaffold 산출물_ 만 다름 → 한 skill (autopilot-spec) 의 mode 로 통합. _빈 자리에서 baseline 구축_ 자리에서도 spec 의 scaffold 가 _ref repo 기반 skeleton_ 까지 완성 → code 는 logic 추가 자리만
 
 ### §6.3a. PRD 묶음 갱신 (Architecture Diagrams 포함)
 
