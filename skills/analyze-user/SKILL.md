@@ -4,7 +4,7 @@ description: "사용자의 cross-project 산출물 (paper / presentation / repor
 argument-hint: "<aspect> [--source <path>] [--mode init|update] [--from discover|analyze|verify|qa|output|summary] [--user-refine]"
 ---
 
-> **산출물 위치**: `~/.claude/user_profile/`. 단일 source `01_paper_figure_style.md` ~ `06_collaboration_style.md` + `_internal/` (source index / qa reviews / pipeline state). `.claude_reports/` 가 아니므로 [CONVENTIONS.md §5](../../CONVENTIONS.md#5-skill-output-convention-3-tier-t1t2t3) 의 _3-tier_ 가 _직접 적용_ 되진 않음 — 다만 main outputs / internal logs 의 _2-tier 분리_ 정신은 따른다.
+> **산출물 위치**: `~/.claude/user_profile/`. 단일 source `01_paper_figure_style.md` ~ `07_coding_convention.md` + `_internal/` (source index / qa reviews / pipeline state). `.claude_reports/` 가 아니므로 [CONVENTIONS.md §5](../../CONVENTIONS.md#5-skill-output-convention-3-tier-t1t2t3) 의 _3-tier_ 가 _직접 적용_ 되진 않음 — 다만 main outputs / internal logs 의 _2-tier 분리_ 정신은 따른다.
 
 > **Workspace assumption**: 본 skill 은 _cross-project_ 작업 — 현 cwd 와 무관하게 사용자의 _과거 모든 산출물_ 을 스캔. 입력 source 는 기본 위치 (`~/nas/user/Uihyeop/doc/` / `~/nas/user/Uihyeop/NN_Zoo/` / `~/.claude/projects/*/memory/`) + `--source <path>` 추가. 산출은 항상 `~/.claude/user_profile/` 영속.
 
@@ -103,7 +103,7 @@ Phase 4 의 reviewer 구성은 항상 4 개 parallel (Phase 4 절 참조).
 2. **`--source` 추가 디렉토리 일람** — 사용자 명시 source 도 같이.
 3. **메모리 자료 일람** (collab / domain aspect 시) — `~/.claude/projects/*/memory/*.md` 전수.
 4. **scholar / arXiv 자료 일람** (writing / domain aspect 시) — 사용자 paper 목록 + abstract.
-5. **분류 표기** — 각 source 별 type (figure / latex / slide / py-script / memory / paper-abs) + 마지막 수정 시각 + 사이즈.
+5. **분류 표기** — 각 source 별 type (figure / latex / slide / py-script / memory / paper-abs / **code-model (model 폴더) / code-train (train·eval script) / code-config (yaml·argparse) / code-notebook (*.ipynb)**) + 마지막 수정 시각 + 사이즈.
 6. **`_internal/source_index.md` 작성** — 위 일람 통째.
 
 산출:
@@ -140,7 +140,18 @@ mode=init 통째 교체, mode=update 누적.
 """)
 ```
 
-`writing` / `presentation` / `analysis` / `domain` / `collab` 동일 패턴 — _추출 대상_ 만 aspect 별 다름. `all` 호출 시 6 aspect × 3 인스턴스 = 18 호출 병렬 (Claude Code Agent tool 단일 메시지 안 multi-call).
+`writing` / `presentation` / `analysis` / `domain` / `collab` / `coding_convention` 동일 패턴 — _추출 대상_ 만 aspect 별 다름. `all` 호출 시 7 aspect × 3 인스턴스 = 21 호출 병렬 (Claude Code Agent tool 단일 메시지 안 multi-call).
+
+`coding_convention` 의 _추출 대상_ (figure 예시 자리와 대칭):
+1. model 폴더 구조 (한 모델 = 한 폴더 묶음 단위 / 파일 구성 / naming)
+2. config 메커니즘 (yaml / argparse / hydra / dynaconf — 빈출 패턴)
+3. 변형 prefix 패턴 (`_ft01_` 식 fine-tuning 변형 / version prefix)
+4. preferred layer (cross-project 빈출 — 도메인별 layer set)
+5. framework 선호 (pure PyTorch / lightning / accelerate / 기타)
+6. metric set (도메인별 — PSNR/SSIM/SI-SDR/WER/CER/Acc)
+7. log·ckpt 자리 (`runs/{run-id}/` / wandb / tensorboard / 단순 파일)
+8. seed·reproducibility 패턴 (seed 자리 / git hash 기록 / split 고정)
+9. naming convention (snake_case / PascalCase / 약자 대문자)
 
 #### Phase 2.2 — Consensus aggregation (메인 skill 직접 처리, sub-agent X)
 
@@ -165,12 +176,13 @@ mode=init 통째 교체, mode=update 누적.
 
 절차:
 
-1. 6 aspect draft 를 모두 Read.
+1. 7 aspect draft 를 모두 Read.
 2. 다음 _cross-aspect 일관성 axis_ 점검:
    - 색 팔레트 — figure / presentation / scatter / spectrogram 의 색 결정이 같은가?
    - 폰트 — figure / presentation / paper 의 폰트 일관성.
    - 도메인 용어 — writing / domain / collab 의 약자·용어 사용이 일치하는가?
-   - metric set — figure 의 metric column 과 analysis 의 검증 방법이 매칭되는가?
+   - metric set — figure 의 metric column / analysis 의 검증 방법 / **coding_convention 의 metric set** 이 매칭되는가?
+   - **도메인 layer** — coding_convention 의 preferred layer 가 domain expertise 의 주력 도메인 자리와 매칭되는가? (예 TF dual-path DNN 자리면 LayerNorm2d / dual-path block 자리)
 3. 모순 발견 시 _source 인용 빈도가 더 많은 쪽_ 우선 (또는 _더 최근 자료_ 우선).
 4. 모순 자체를 _open question_ 으로 남길지, _즉시 해소_ 할지 결정 — 사용자 명시 패턴 (`/notes --scope user`) 이 있으면 그게 ground truth.
 
@@ -312,8 +324,9 @@ timestamp: "2026-05-22T15:30:00Z"
 | 자료팀 | `01_paper_figure_style.md`, `03_presentation_strategy.md`, `04_analysis_methodology.md` | figure / 슬라이드 자산·데이터 분석 모두 본 사용자 시각·표 표준 따름 |
 | 연구팀 | `02_paper_writing_style.md`, `04_analysis_methodology.md`, `05_domain_expertise.md` | paper 본문 톤 + 검증 방법론 + 도메인 용어 |
 | 편집팀 | `01_*` (figure caption), `02_*` (본문 톤), `03_*` (슬라이드 다듬기), `05_*` (도메인 표현), `06_collaboration_style.md` | 사용자 향 문서 전반 — figure caption / paper / 발표 / 도메인 약자 모두 |
-| 기획팀 | `04_analysis_methodology.md`, `06_collaboration_style.md` | plan 자리 검증 패턴 + 작업 흐름 |
-| 메인 Claude | `06_collaboration_style.md` | 응답 톤·feedback 패턴·작업 흐름 |
+| 기획팀 | `04_analysis_methodology.md`, `06_collaboration_style.md`, `07_coding_convention.md` | plan 자리 검증 패턴 + 작업 흐름 + 코드 컨벤션 (plan 안 코드 자리 정합성) |
+| 개발팀 | `07_coding_convention.md` | model 폴더 · config · prefix · preferred layer · framework — autopilot-spec scaffold / autopilot-lab Phase 2 / autopilot-code new-lib·refactor 호출 자리 default (단, _per-project `analysis_project/code/experiment_conventions.md`_ 가 1순위, 본 파일은 fallback) |
+| 메인 Claude | `06_collaboration_style.md`, `07_coding_convention.md` | 응답 톤·feedback 패턴·작업 흐름 + 코드 컨벤션 (autopilot-lab Step 0 / autopilot-spec Phase 0·2 / autopilot-code 4 원칙 prepend) |
 
 본 참조 패턴은 _agent 정의 본문_ 에 명시되어 있어 agent 가 invoke 될 때 자동.
 
@@ -351,10 +364,16 @@ timestamp: "2026-05-22T15:30:00Z"
 ```
 → 이전 pipeline 의 QA phase 부터 재개 + Phase 5 직전 사용자 memo pause.
 
+```
+/analyze-user coding_convention --source ~/path/to/NN_Zoo --source ~/path/to/other_repo
+```
+→ coding_convention aspect. 하드코딩 path X — 사용자가 코드 폴더 list 명시. cwd 자동 발견 (`model/` / `train*.py` / `config*.yaml` / `*.ipynb` 패턴) + 추가 폴더 `--source` 콤마 분리 복수.
+
 ## 갱신 빈도 권장
 
 - **첫 셋업** — `/analyze-user all --mode init`. 본 사용자 자료 충분히 누적된 시점 (paper 5 편 이상) 에 한 번.
 - **새 paper / 발표 / 보고서 직후** — 그 자료 추가만 incremental. `/analyze-user <relevant aspect>`.
+- **새 모델 / 새 코드 repo 완성 직후** — `/analyze-user coding_convention --source <new-repo>`. cross-project 코드 패턴 누적.
 - **메모리 누적 자료 한 분기마다** — `/analyze-user collab`.
 - **장기 미갱신 (6 개월+)** 후 — 전체 통째 재검증 `/analyze-user all`.
 
