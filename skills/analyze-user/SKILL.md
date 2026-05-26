@@ -93,9 +93,9 @@ Phase 4 의 reviewer 구성은 항상 4 개 parallel (Phase 4 절 참조).
 
 ## Pipeline (6 phase)
 
-### Phase 1 — Source Discovery
+### Phase 1 — Source Discovery + 자동 변환 (PDF + PNG 하이브리드)
 
-목적: aspect 별 _모든 expected source_ 를 발견·분류·인덱싱. 한 source 라도 누락되면 _패턴 추출이 편향됨_.
+목적: aspect 별 _모든 expected source_ 를 발견·분류·인덱싱 + Claude 가 직접 read 못하는 자료 (docx / pptx / hwpx) 는 _PDF + PNG_ 자동 변환.
 
 절차:
 
@@ -103,12 +103,33 @@ Phase 4 의 reviewer 구성은 항상 4 개 parallel (Phase 4 절 참조).
 2. **`--source` 추가 디렉토리 일람** — 사용자 명시 source 도 같이.
 3. **메모리 자료 일람** (collab / domain aspect 시) — `~/.claude/projects/*/memory/*.md` 전수.
 4. **scholar / arXiv 자료 일람** (writing / domain aspect 시) — 사용자 paper 목록 + abstract.
-5. **분류 표기** — 각 source 별 type (figure / latex / slide / py-script / memory / paper-abs / **code-model (model 폴더) / code-train (train·eval script) / code-config (yaml·argparse) / code-notebook (*.ipynb)**) + 마지막 수정 시각 + 사이즈.
-6. **`_internal/source_index.md` 작성** — 위 일람 통째.
+5. **자동 변환 (LibreOffice headless)** — Claude 가 직접 read 못하는 자료 (docx / pptx / hwpx / xlsx / doc / ppt) 발견 시:
+
+| 자료 | 변환 | 저장 자리 |
+|---|---|---|
+| **docx / hwpx / xlsx / doc** (텍스트 위주) | `libreoffice --headless --convert-to pdf` — PDF 한 자리 | `~/.claude/user_profile/_internal/converted_pdfs/<name>.pdf` |
+| **pptx / ppt** (시각 layout 핵심) | PDF + page 별 PNG 두 자리 — PDF 는 텍스트·layout / PNG 는 시각 fidelity (글자 크기·폰트·배치 보존) | `_internal/converted_pdfs/<name>.pdf` + `_internal/converted_pngs/<name>_slide{NN}.png` |
+
+변환 명령 자리:
+
+```bash
+# docx / hwpx / xlsx
+libreoffice --headless --convert-to pdf "<file>" --outdir _internal/converted_pdfs/
+
+# pptx — PDF + 슬라이드별 PNG 두 자리
+libreoffice --headless --convert-to pdf "<file>.pptx" --outdir _internal/converted_pdfs/
+pdftoppm -png -r 150 _internal/converted_pdfs/<file>.pdf _internal/converted_pngs/<file>_slide
+```
+
+**LibreOffice 부재 자리** — 한 줄 안내: _"LibreOffice headless 부재 — `sudo apt install libreoffice` 또는 사용자가 직접 PDF 변환 후 source 자리 재지정"_. 변환 안 한 자료는 분석 source 자리에서 _제외_ + 보고.
+
+6. **분류 표기** — 각 source 별 type (figure / latex / slide / py-script / memory / paper-abs / code-model / code-train / code-config / code-notebook / **converted-pdf (변환 결과 PDF) / converted-png (pptx 변환 슬라이드 PNG)**) + 마지막 수정 시각 + 사이즈 + (변환 자료) 원본 path.
+7. **`_internal/source_index.md` 작성** — 위 일람 통째.
 
 산출:
 - `~/.claude/user_profile/_internal/source_index.md` (또는 갱신)
-- Phase 1 verdict 한 줄 (총 source N 건 발견, 어느 aspect 에 몇 건씩).
+- `_internal/converted_pdfs/*.pdf` + `_internal/converted_pngs/*_slide{NN}.png` (자동 변환 결과)
+- Phase 1 verdict 한 줄 (총 source N 건 발견, 어느 aspect 에 몇 건씩, 자동 변환 M 건).
 
 ### Phase 2 — Aspect-specific Analysis (3-instance consensus, parallel)
 
@@ -124,6 +145,11 @@ Agent(연구팀, prompt="""
 Source index: ~/.claude/user_profile/_internal/source_index.md
 기존 user_profile/01_paper_figure_style.md (update 모드): {기존 내용}
 
+자료 read 자리:
+- 원본 read 가능 자료 (PDF / PNG / md / py 등) — 직접 Read
+- docx / hwpx / xlsx — `_internal/converted_pdfs/<name>.pdf` 자료 read (Phase 1 자동 변환)
+- pptx — `_internal/converted_pdfs/<name>.pdf` (텍스트·layout 자료) **+** `_internal/converted_pngs/<name>_slide{NN}.png` (시각 fidelity·글자 크기·폰트·배치 자료) **두 자리 모두**. 시각 자리 핵심 자리 (presentation aspect 자리) 는 PNG 자료 1순위 인용.
+
 추출 대상 패턴 (aspect 별 — 예 figure):
 1. Architecture diagram 양식
 2. Curve plot 양식
@@ -132,7 +158,7 @@ Source index: ~/.claude/user_profile/_internal/source_index.md
 5. 도메인별 metric set
 6. ours 강조 패턴
 
-각 패턴은 _source 인용_ 필수 (어느 paper / figure / script).
+각 패턴은 _source 인용_ 필수 (어느 paper / figure / script). pptx 자리는 _slide{NN}.png_ 자리 명시 (시각 자리 검증 가능 자료).
 다른 인스턴스의 결과를 보지 않고 _독립_ 으로 추출.
 mode=init 통째 교체, mode=update 누적.
 
