@@ -59,6 +59,44 @@ scope 에 따라 일부 phase auto-skip:
 - `standard` (default)
 - `thorough` (디자인팀 critic + 외부 레퍼런스 cross-check)
 
+## Context Auto-Detection (신규 vs 재호출 자동 분기)
+
+본 skill 은 호출 자리에서 _발화 + cwd_ 검사로 자동 분기 — `--from` 명시 없이도 동작:
+
+### 1단계 — design_state.yaml 자동 검사
+
+| 감지 조건 | 처리 |
+|---|---|
+| `.claude_reports/designs/<name>/design_state.yaml` 또는 `.claude_reports/specs/<name>/02_design/design_state.yaml` 부재 | **신규 cycle** — Phase 0 (design-init) 부터 처음 |
+| 위 path 존재 | **재호출** — `phases:` read + 발화 의도 분류 후 해당 phase 부터. _토큰 보존 + 새 컴포넌트만 확장_ 자리 자연 |
+
+`<name>` 추출 — 발화·cwd. autopilot-spec 의 app mode 자리면 `specs/<name>/02_design/` 우선.
+
+### 2단계 — 발화 → phase 자동 분류 (재호출 자리)
+
+| 발화 신호 | 추론 phase | 흐름 |
+|---|---|---|
+| "환경 다시 점검" / "Figma 연결 다시" | `--from init` (Phase 0) | 환경 점검만 |
+| "레퍼런스 추가" / "이 image 도 참고" | `--from refs` (Phase 1) | refs 보강 |
+| "색 / 폰트 / 간격 토큰 바꾸자" | `--from tokens` (Phase 2) | tokens.css 갱신 + 이후 phase 재 |
+| "새 컴포넌트 X 추가" / "버튼 variant 추가" | `--from components` (Phase 3) | 토큰 보존 + 컴포넌트 확장 (가장 흔한 재호출) |
+| "디자인 비평 다시 받자" / "review 다시" | `--from review` (Phase 4) | critic 만 |
+| "handoff 정리" / "import path 갱신" | `--from handoff` (Phase 5) | handoff.md 갱신 |
+
+### 3단계 — 자동 컨펌 한 화면
+
+```
+=== autopilot-design 호출 자리 ===
+대상: <name> (designs/<name>/ 또는 specs/<name>/02_design/)
+산출물: 발견 (last_completed_phase: <phase>) / 부재 (신규 cycle)
+발화: "<사용자 한 줄>"
+→ 추론: <신규 / --from <phase>> 자리
+
+진행? (진행 / 다른 phase 로 / 새 cycle 로 / 중단)
+```
+
+신규 vs 재호출 분류는 _명시 옵션 없이도_ 동작 — 발화 + cwd 자동 판단. 사용자가 명시적 `--from <phase>` 입력하면 그대로.
+
 ## Pipeline Overview
 
 ```

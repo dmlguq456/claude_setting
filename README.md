@@ -34,18 +34,23 @@ flowchart LR
     subgraph DOC["📄 문서 작업"]
         direction LR
         d1["analyze-project /<br/>autopilot-research"] --> d2[autopilot-draft] --> d3[autopilot-refine] --> d4[autopilot-apply]
+        d3 -. "반복" .-> d3
     end
     subgraph EXP["🔬 연구·실험"]
         direction LR
         e1["analyze-project /<br/>autopilot-research"] --> e2[autopilot-lab] --> e3[autopilot-code]
+        e2 -. "반복 (실험 cycle)" .-> e2
     end
     subgraph APPDEV["💻 앱 개발"]
         direction LR
         a1[autopilot-spec] --> a2["autopilot-design<br/>(옵션)"] --> a3[autopilot-code] --> a4["autopilot-spec<br/>setup-only"]
+        a1 -. "refine v{N+1}" .-> a1
+        a3 -. "반복 (기능 추가)" .-> a3
     end
     subgraph LIB["📦 라이브러리·CLI"]
         direction LR
         l1[analyze-project] --> l2[autopilot-spec] --> l3[autopilot-code]
+        l3 -. "반복" .-> l3
     end
 ```
 
@@ -86,6 +91,11 @@ flowchart LR
     SPEC -.->|app mode 자리| DES
     DES -.->|컴포넌트·토큰| CODE
     LAB -->|졸업·라이브러리화| CODE
+    SPEC -. "재진입 (refine v{N+1})" .-> SPEC
+    CODE -. "재호출 (dev/debug)" .-> CODE
+    LAB -. "다음 실험 (RUNLOG 누적)" .-> LAB
+    RES -. "--from stage 재진입" .-> RES
+    DES -. "확장 cycle (토큰 보존)" .-> DES
     DOC --> REF
     DOC -->|cheatsheet| APP
     REF -.->|정정된 cheatsheet| APP
@@ -288,6 +298,7 @@ QA 5 단계 (quick / light / standard / thorough / adversarial) 정의는 [`CONV
 
 - **§6 autopilot-\* 호출 Pre-check** — turn 첫 단계 분기 판단 + 옵션 자동 구성 + 자연어 요약 컨펌 + §5 자율 진행 적용
 - **도메인 트리거 표** — Notion 작업 / doc·research major-level 수정 / QA·model invariant 작업 / 세션 시작
+- **신규 vs 재진입 자동 분기** — autopilot-* 5 개 (`code` / `spec` / `lab` / `research` / `design`) 모두 호출 자리에서 _`pipeline_state.yaml` 또는 `design_state.yaml` 자동 검사 + 발화 의도 분류_ → 신규 vs 재진입 자동. `--from <step>` 명시 없어도 동작 (명시 시 그대로). 자세한 통합 패턴 [CONVENTIONS §6.4](CONVENTIONS.md#64-autopilot-family-의-컨텍스트-자동-감지-신규-vs-재진입-통합-패턴), skill 별 발화→stage 매핑은 각 SKILL.md 의 `## Context Auto-Detection` 절
 
 ceremony 큰 9 개 (autopilot-* 8 + analyze-user) 의 자연어 trigger 신호 한눈에:
 

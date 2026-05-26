@@ -365,7 +365,33 @@ PRD 의 textual 자리 (`api_contract.md` / `data_model.md` / `ui_flow.md`) + Ar
 
 **Architecture Diagrams 기본 포함**: app / api mode 의 Component + Deployment 두 자리만. library 의 Component (module 의존) 는 옵션. ER / Sequence / Activity / State / Class 는 _복잡 자리·사용자 명시 요청_ 자리만.
 
-### §6.4. autopilot-code 의 컨텍스트 자동 감지
+### §6.4. autopilot-* family 의 컨텍스트 자동 감지 (신규 vs 재진입 통합 패턴)
+
+autopilot-* 5 개 (`code` / `spec` / `lab` / `research` / `design`) 모두 _호출 자리에서 발화 + cwd 검사로 신규 vs 재진입 자동 분기_. 사용자가 `--from <step>` 명시 없이도 동작 — 메인 Claude 가 발화 의도 분류 + 컨펌.
+
+#### 통합 패턴 (skill 무관 공통)
+
+| 단계 | 처리 |
+|---|---|
+| 1. `pipeline_state.yaml` (또는 `design_state.yaml`) 자동 검사 | _존재_ → 재진입 / _부재_ → 신규 |
+| 2. 발화 → step/stage/phase 자동 분류 | 각 skill 의 _발화→stage 매핑 표_ (SKILL.md 안 Context Auto-Detection 절 참조) |
+| 3. 자동 컨펌 한 화면 | _신규 vs 재진입 자리 + 진행 자리_ 명시 + 4 갈래 응답 (진행 / 다른 step / 새로 / 중단) |
+
+각 skill 의 _구체적 stage list + 발화→stage 매핑_ 은 해당 SKILL.md 의 `## Context Auto-Detection` 절 single source.
+
+#### skill 별 stage 자리 (단순 reference)
+
+| skill | stage list | state file |
+|---|---|---|
+| `autopilot-code` | spec 발견 자동 분기 + dev/debug mode + `--from plan/refine/execute/test/report` | `specs/<name>/pipeline_state.yaml` (있으면) |
+| `autopilot-spec` | 신규 / refine v{N+1} / setup-only — `--from spec/scaffold` 등 step 별 | `specs/<name>/pipeline_state.yaml` |
+| `autopilot-lab` | 신규 실험 / 재진입 — `--from spec/scaffold/run/summary` | `experiments/{date}_{slug}/pipeline_state.yaml` + `_RUNLOG.md` |
+| `autopilot-research` | 신규 topic / `--from search/analyze/report` | `research/<topic>/pipeline_state.yaml` |
+| `autopilot-design` | 신규 cycle / 재호출 — `--from init/refs/tokens/components/review/handoff` | `designs/<name>/design_state.yaml` 또는 `specs/<name>/02_design/design_state.yaml` |
+
+> **autopilot-draft ↔ autopilot-refine 의 _분리_** 는 _자동 분기_ 패턴과 별개. 본 두 skill 은 _작업 본질 자체_ 가 다름 (draft = 신규 문서 작성 / refine = cross-artifact 정정, default qa 다름). 분리 유지 — 메인 Claude 가 자연어 발화 ("X 새로" vs "X v2") 로 자동 분기.
+
+### §6.4-legacy. autopilot-code 의 컨텍스트 자동 감지
 
 호출 자리에서 _cwd / spec 파일_ 검사로 자동 분기:
 

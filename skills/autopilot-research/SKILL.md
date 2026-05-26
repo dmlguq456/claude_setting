@@ -109,6 +109,43 @@ The pipeline auto-proceeds with sane defaults. There is no autonomy-level dial. 
 | Search returned 0 papers | Auto-stop with `pipeline_summary(failed)` (no useful continuation possible). |
 | Report generation | Auto-proceed. |
 
+## Context Auto-Detection (신규 vs 재진입 자동 분기)
+
+본 skill 은 호출 자리에서 _발화 + cwd_ 검사로 자동 분기 — `--from` 명시 없이도 동작:
+
+### 1단계 — research/<topic>/ 자동 검사
+
+| 감지 조건 | 처리 |
+|---|---|
+| `.claude_reports/research/<topic>/pipeline_state.yaml` 부재 (또는 fuzzy match 0) | **신규** — Step 1 (Input Parsing) 부터 처음 |
+| `.claude_reports/research/<topic>/pipeline_state.yaml` 존재 (fuzzy match 1+) | **재진입** — `last_completed_stage:` read + 발화 의도 분류 후 해당 stage 부터 |
+
+`<topic>` 추출 — 발화 키워드 fuzzy match (예: `"speech enhancement 분야 재조사"` → topic=speech-enhancement). 다중 매치 시 사용자 컨펌.
+
+### 2단계 — 발화 → stage 자동 분류 (재진입 자리)
+
+| 발화 신호 | 추론 stage | 흐름 |
+|---|---|---|
+| "X 재조사" / "최근 paper 추가" / "search 다시" | `--from search` (Step 2 부터) | 새 쿼리·확장 라운드 + 기존 cards 병합 |
+| "분석 다시" / "Phase B reference chaining 다시" / "card 보강" | `--from analyze` (Step 3 부터) | 기존 search 결과 위 Phase A/B/C 재실행 |
+| "보고서 갱신" / "report 다시" / "06_implementation 자리 수정" | `--from report` (Step 4 부터) | 기존 cards / analysis_summary 위 보고서 재작성 |
+
+### 3단계 — 자동 컨펌 한 화면
+
+```
+=== autopilot-research 호출 자리 ===
+topic: <name>
+산출물: research/<name>/ (발견 — last_completed_stage: <stage>) 또는 (부재 — 신규)
+발화: "<사용자 한 줄>"
+→ 추론: <신규 / --from <stage>> 자리
+
+진행? (진행 / 다른 stage 로 / 새 topic 으로 / 중단)
+```
+
+신규 vs 재진입 분류는 _명시 옵션 없이도_ 동작 — 발화 + cwd 자동 판단. 사용자가 명시적 `--from <stage>` 입력하면 그대로.
+
+> **cross-artifact 정정 자리 (research 산출물의 자잘한 정정)** 는 `autopilot-refine` 의 영역 — 본 skill 의 _재진입_ 은 _stage 단위 재실행_ 자리. 한 두 줄 정정은 autopilot-refine.
+
 ## Resume (`--from`)
 
 `--from <stage>` re-enters an existing artifact directory and runs from that stage onward. Stages:
