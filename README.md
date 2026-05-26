@@ -262,7 +262,7 @@ QA 5 단계 (quick / light / standard / thorough / adversarial) 정의는 [`CONV
 | [품질관리팀](agents/qa-team.md) | opus (light: sonnet) | QA 라우터 — code-review / plan-review / test (syntax→import→smoke→functional→integration) / ml-debug / data-curate. 모두 read-only |
 | [연구팀](agents/research-team.md) | opus (fact-check: sonnet) | 연구 라우터 — plan-review (paper-grounding) / research-survey / fact-check (verbatim cards 대조) |
 | [자료팀](agents/material-team.md) | opus | 자료 수집·시각·분석 라우터 — browser-fetch (paywall/SPA Playwright) / pdf-extract (caption-aware figure) / web-image-search (reference 그림) / figure-gen (matplotlib 자산) / data-script (CSV 집계·log 통계·표). _2026-05-25 분석팀 + 탐색팀 통합_ |
-| [디자인팀](agents/design-team.md) | sonnet | 시각 산출물 라우터 — maker (UI mockup·디자인 토큰·컴포넌트·다이어그램·슬라이드 비주얼·아이콘) / critic (read-only 비평) |
+| [디자인팀](agents/design-team.md) | opus | 시각 산출물 라우터 — maker (UI mockup·디자인 토큰·컴포넌트·다이어그램·슬라이드 비주얼·아이콘) / critic (read-only 비평) |
 | [개발팀](agents/dev-team.md) | sonnet | 코드 작업 라우터 — backend / frontend (user-facing app) / refactor (preserve-behavior) / new-lib (library/CLI/research) |
 | [편집팀](agents/editorial-team.md) | opus | 사용자 영역 문서 라우터 — translate (영문↔국문) / polish (판교체 회피·표기 일관성) / review (read-only) |
 | [codex-review-team](agents/codex-review-team.md) | Codex CLI (GPT-5) + opus orchestrator | 외부 hostile reader 관점 review (`--qa adversarial` 자동) |
