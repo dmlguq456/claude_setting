@@ -1,6 +1,14 @@
-<h1 align="center">Claude Setting</h1>
+<div align="center">
 
-> Notion 대문: [Agents/Skills](https://www.notion.so/34987c2bb75380d68df4d6ce4d469bff)  ·  운영 가이드: [`notion_guide.md`](notion_guide.md)
+# ⚙️ Claude Setting
+
+**Claude Code 워크플로우 — skill · agent · 운영 규칙의 단일 출처**
+
+[워크플로우](#-워크플로우) · [사용 방식](#-사용-방식) · [Skills](#-skills) · [Agents](#-agents) · [운영 룰](#-운영-룰) · [동기화](#-동기화)
+
+<sub>Notion 대문: <a href="https://www.notion.so/34987c2bb75380d68df4d6ce4d469bff">Agents/Skills</a> &nbsp;·&nbsp; 운영 가이드: <a href="notion_guide.md"><code>notion_guide.md</code></a></sub>
+
+</div>
 
 ---
 
@@ -8,9 +16,9 @@
 
 > Claude 는 프로젝트 루트에서 실행. `.claude_reports/` 는 현재 dir 에 생성. cross-project 는 `cd <other>` 후 별도 세션. 외부 `--refs` flag 없음 — 모든 입력은 `.claude_reports/` 영속 산출물에서 자동 발견.
 
-### 🧭 도메인별 트랙 — 어떤 작업에 무엇을 쓰나 (처음이라면 여기부터)
+### 🧭 처음이라면 — 도메인별 트랙
 
-이름만으로 문서용인지 코드용인지 헷갈릴 때, 작업 종류별 _순서_ 로 먼저 보면 빠르다.
+이름만으로 문서용인지 코드용인지 헷갈릴 때, 작업 종류별 _순서_ 로 보면 빠르다.
 
 | 트랙 | 단계 순서 (왼쪽 → 오른쪽) | 각 단계가 만드는 것 |
 |---|---|---|
@@ -49,7 +57,8 @@ flowchart LR
 - `autopilot-spec` — 코드 _청사진_ / `autopilot-code` — 코드 _작업_ (생성·디버그) / `autopilot-lab` — _실험_ prototype
 - `autopilot-design` — _시각_ 산출물 / `audit` — 읽기 전용 _점검_
 
-### Skill 호출 흐름
+<details>
+<summary>📐 <b>전체 Skill 호출 그래프</b> &nbsp;— A→F 6 카테고리 의존 관계 (펼치기)</summary>
 
 ```mermaid
 flowchart LR
@@ -98,7 +107,10 @@ flowchart LR
 
 F 는 _현 프로젝트 산출물_ 이 아닌 _사용자 cross-project 자료_ 를 만든다 (`~/.claude/user_profile/`). A-E 의 모든 skill 과 sub-agent 가 _작업 시작 자리_ 에서 user_profile 을 Read 해 default 로 따름. 본 폴더는 점선 (implicit reference) 으로 표시.
 
-### 산출물 I/O — 두 자리 (per-project vs cross-project)
+</details>
+
+<details>
+<summary>📦 <b>산출물 I/O 그래프</b> &nbsp;— per-project vs cross-project (펼치기)</summary>
 
 ```mermaid
 flowchart LR
@@ -144,6 +156,8 @@ flowchart LR
 **per-project (`.claude_reports/`)** — `analysis_project/{code,paper,doc}/`, `research/{topic}/`, `documents/{date}_{name}/`, `plans/{date}_{name}/` 에 누적. 후속 skill 은 점선 (implicit) 으로 자동 발견. **D (audit)** 는 OUT 을 _읽기만_ (점검 + 자동 fix dispatch), **E (refine)** 는 OUT 을 _read+write_ 양방향.
 
 **cross-project (`~/.claude/user_profile/`)** — analyze-user 가 6 aspect 파일 (`01_paper_figure_style.md` ~ `06_collaboration_style.md`) 누적. 모든 sub-agent 가 작업 시작 자리에서 default 로 Read (점선). 사용자 짧은 메모는 `/notes --scope user <aspect>` 가 같은 파일의 `## 사용자 수동 메모` 절에 append (별도 NOTES.md 두지 않음).
+
+</details>
 
 > **3-tier 산출물 컨벤션** ([CONVENTIONS.md §5](CONVENTIONS.md#5-skill-output-convention-3-tier-t1t2t3)): T1 root = 메인 산출물 / T2 named subdir = 검토 자료 / T3 `_internal/` = audit·raw·versions. 사용자는 보통 T1 만 보면 됨.
 
