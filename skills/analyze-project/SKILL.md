@@ -18,11 +18,12 @@ argument-hint: "[--mode code|paper|doc] [<scope/target/input-folder>] [--skip-qa
 ## Argument Parsing
 
 ```
-/analyze-project [--mode code|paper|doc] [<scope/target>] [--skip-qa]
+/analyze-project [--mode code|paper|doc] [<scope/target>] [--skip-qa] [--full]
 ```
 
 - `--mode <X>`: explicit mode selection. If omitted → auto-detect (code vs doc only; paper requires explicit).
 - `--skip-qa`: skip Phase 5 QA Verification.
+- `--full`: 강제 전체 재분석 (기존 산출물 무시). default 동작 — 기존 산출물 발견 시 **incremental** (변경 파일만 재분석, cost 10-20%), 부재 시 full.
 - Positional `<scope/target>` (**모든 mode에서 OPTIONAL** — default = cwd 자동 발견):
   - `code`: 범위 좁히기 — 모듈 keyword (`engine`) 또는 sub-dir (`src/models/`). Default = project root.
   - `paper`: 외부 폴더 override (예: `~/papers/2024/`). Default = cwd + 1-level subfolders (`papers/` / `refs/` / `pdfs/`) 자동 발견.
@@ -58,6 +59,51 @@ Inspect current directory:
 # Mode `code`
 
 Analyzes the codebase and produces module-level documentation.
+
+## Phase 0: Incremental vs Full 분기 (자동)
+
+호출 자리에서 `.claude_reports/analysis_project/code/_last_run.yaml` 검사:
+
+| 감지 | 처리 |
+|---|---|
+| `_last_run.yaml` 부재 또는 `--full` 명시 | **full 분석** — 전 codebase scan + 4 종 실험 자료 처음 추출 |
+| `_last_run.yaml` 존재 (incremental, default) | **incremental update** — 변경 파일만 재분석 + 영향 자리만 update |
+
+### Incremental update 절차
+
+1. `_last_run.yaml` read — `last_scan_time` + 각 module 의 SHA / mtime
+2. 변경 파일 list — `git log --since="$last_scan_time" --name-only --pretty=format:` (git 있는 자리) 또는 `find <scope> -newer _last_run.yaml -type f \( -name "*.py" -o -name "*.cpp" -o -name "*.ts" \)` (git 없는 자리)
+3. 변경 자리 분류 — _작은 변경_ (한 module 안 함수·class) vs _큰 변경_ (새 module / 새 모델 폴더 / cleanup)
+4. 영향 받는 산출 자리 update:
+   - 변경 module 의 `<module>.md` re-write (단 영향 받지 않은 module 의 .md 는 보존)
+   - `interface_reference` 통합 — 변경 module 부분만 갱신
+   - 4 종 실험 자료 — 변경이 _영향 주는 자리_ 만 update:
+     - `experiment_conventions.md` — 새 layer / config 변경 자리 발견 시 보강
+     - `experiment_readiness.md` — train/eval 분리 / seed 자리 변경 시 재점검
+     - `cleanup_candidates.md` — 변경 후 새 unused / dead branch 자리만 추가
+     - `similar_models.md` — 새 모델 폴더 추가 시 행 추가, 기존 모델은 보존
+5. `_last_run.yaml` 갱신 — `last_scan_time = now()`, 각 module SHA 갱신
+6. QA verification (Phase 5) — _변경 자리만_ — cost 10-20% 수준
+
+### `_last_run.yaml` schema
+
+```yaml
+mode: code
+last_scan_time: "2026-05-26T15:30:00Z"
+scope: "."
+modules:
+  - path: src/models/conformer.py
+    sha: <git blob SHA or file hash>
+    last_analyzed: "2026-05-26T15:30:00Z"
+  - path: src/train.py
+    sha: <...>
+    last_analyzed: "2026-05-26T15:30:00Z"
+experiment_artifacts:
+  experiment_conventions_sha: <...>
+  experiment_readiness_sha: <...>
+  cleanup_candidates_sha: <...>
+  similar_models_sha: <...>
+```
 
 ## Phase 1: Codebase Analysis
 Determine scope first:

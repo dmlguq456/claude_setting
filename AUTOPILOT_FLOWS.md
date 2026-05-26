@@ -62,6 +62,12 @@
 
 충돌 자리는 per-project 우선 — 개별 프로젝트 컨벤션 침범 X. user_profile/07 부재 시 `/analyze-user coding_convention` 한 줄 안내.
 
+**analysis_project 자동 갱신 (혼합 분기)** — autopilot-code 의 final-report 후 Step 7 에서 변경 영향 검사:
+- _작은 변경_ (한 module 안 / interface_reference) → autopilot-code 가 직접 Edit
+- _큰 변경_ (새 module·모델 폴더 / cleanup / 4 종 실험 자료 영향) → `/analyze-project --mode code --skip-qa` 자동 호출 (incremental — `_last_run.yaml` 기반 변경 자리만 재분석)
+
+analyze-project 자체는 incremental default — `--full` 명시 시 전체 재. 사용자 _"분석 update skip"_ 발화 시 Step 7 skip.
+
 ### 1.4. PRD 묶음 갱신 (Architecture Diagrams 포함)
 
 PRD 의 textual + diagram 이 _drift 빠지지 않게_ — 변경 자리에서 _영향 받는 모든 자리 한 트랜잭션_ 갱신. 자세한 매핑 — CONVENTIONS §6.3a.

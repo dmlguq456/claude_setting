@@ -315,6 +315,53 @@ Invoke Skill: `code-report` with the plan name/path as args.
 Write `pipeline_summary.md` per the **Pipeline Summary Template (mode=dev)** (see below).
 Then report to the user: pipeline_summary.md path + 2-3 line verdict.
 
+### Step 7: analysis_project/code/ 영향 자리 자동 update (혼합 분기)
+
+코드 변경 후 `.claude_reports/analysis_project/code/` 자료가 _drift_ 빠지지 않게 — autopilot-code 가 _final-report 직후_ 영향 범위 검사 + 분기.
+
+#### 7-1. 영향 범위 검사
+
+`dev_logs/` 또는 `git diff <safety-commit>..HEAD --name-only` 으로 변경 파일 list 추출. 다음 분류:
+
+| 변경 종류 | 분기 |
+|---|---|
+| 한 module 안 함수·class·signature·rename / 한 줄 자리 수정 / 작은 logic 추가 | **(A) 직접 Edit** — autopilot-code 가 `analysis_project/code/<module>.md` 의 _interface_reference_ 표 / docstring 자리 직접 Edit (별도 skill 호출 X) |
+| 새 module 추가 / 새 모델 폴더 추가 / module 삭제·rename / cleanup 큰 자리 / config 메커니즘 변경 / preferred layer 변경 / train·eval 분리 / seed·reproducibility 자리 변경 | **(B) analyze-project 자동 호출** — `/analyze-project --mode code` invoke (incremental 자동 — `_last_run.yaml` 발견 시 변경 자리만 재분석, `--skip-qa` 가벼움) |
+
+판단 — _변경 파일 N 자리_ + _영향 받는 산출물 자리 종류_:
+- 변경 파일 ≤ 3 + 한 module 안 + interface_reference 만 영향 → (A)
+- 변경 파일 ≥ 4 또는 module 추가/삭제 또는 4 종 실험 자료 영향 → (B)
+- 애매한 자리 → (B) 안전 default
+
+#### 7-2. (A) 직접 Edit 대상
+
+| 산출물 자리 | autopilot-code 가 직접 update |
+|---|---|
+| `analysis_project/code/<module>.md` 의 _interface_reference_ 표 | 변경 함수·class 한 행 추가·수정·제거 (Called by 컬럼 포함) |
+| `analysis_project/code/<module>.md` 의 _Role / 본문_ | signature 변경 자리만 한 줄 정도 — 큰 본문 재작성 자리는 (B) |
+
+#### 7-3. (B) analyze-project 자동 호출
+
+```bash
+/analyze-project --mode code --skip-qa
+# default incremental — _last_run.yaml 발견 시 변경 파일만 재분석
+# --skip-qa — autopilot-code 의 final-report 가 이미 검증된 자리, 추가 QA cost 절감
+```
+
+호출 결과:
+- 변경 module 분석 .md update
+- 4 종 실험 자료 영향 자리 update
+- `_last_run.yaml` 갱신
+- 사용자에게 _한 줄 보고_ — "analysis_project/code/ 자료 N 자리 자동 갱신"
+
+#### 7-4. 사용자 skip 옵션
+
+사용자 발화 `"분석 자료 update skip"` / `"--no-analyze-update"` 명시 시 본 Step 7 skip.
+
+#### 7-5. mode debug 자리
+
+debug 의 _수정 자리_ 도 동일 logic 적용 (Step 6 후) — 보통 _작은 변경_ 자리라 (A) 직접 Edit 우세.
+
 ## Pipeline: Mode debug
 
 ### Step 1: Diagnose — trace root cause

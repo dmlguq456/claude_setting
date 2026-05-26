@@ -87,6 +87,7 @@ flowchart LR
     SPEC -.->|app mode 자리| DES
     DES -.->|컴포넌트·토큰| CODE
     LAB -->|졸업·라이브러리화| CODE
+    CODE -.->|영향 큰 자리 자동 incremental| ANA
     DOC --> REF
     DOC -->|cheatsheet| APP
     REF -.->|정정된 cheatsheet| APP
