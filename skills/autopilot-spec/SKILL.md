@@ -319,6 +319,8 @@ mode 5종 모두 scaffold 단계 통일 — 빈 자리에서도 _뼈대 + skelet
 | 2 | 외부 — `research/{topic}/code_resources/` (autopilot-research 의 repo 카드) 또는 `07_resources.md` (pre-trained ckpt URL) 또는 사용자 `--ref <url>` 명시 | research 산출. paper 의 official repo / HF transformers / espnet / lightning 등 |
 | 3 | Generic skeleton fallback | 1·2 모두 부재 자리만. 사용자 컨펌 후 진행 |
 
+> **사용자 cross-project 패턴 prepend** — `~/.claude/user_profile/07_coding_convention.md` 의 _model 폴더 / config 메커니즘 / prefix / preferred layer / framework_ 가 _ref source 우선순위와 독립_ 으로 매번 read. Phase 2 (개발팀 new-lib prompt) 에 1순위 source 로 prepend — ref repo 의 코드를 _우리 컨벤션_ 으로 옮기는 자리에서 사용자 일관 패턴 따름.
+
 ```
 === ref source 결정 ===
 mode: <list>
@@ -381,12 +383,15 @@ Agent(개발팀, mode="new-lib"):
 
    ## 코드 수정 4 원칙 (필수 준수)
    1. 최소 수정 — ref 의 _필요 자리만_ 복사 후 우리 컨벤션 으로 옮김
-   2. 원래 layer 1순위 — experiment_conventions.md preferred layer 사용
+   2. 원래 layer 1순위 — user_profile/07 의 preferred layer (cross-project 1순위) + experiment_conventions.md (per-project 보강) 사용
    3. 마이너 변경 = config — model.py 수정 X
-   4. 변형 prefix — fine-tuning 변형은 base 옆 _ft01_ 식
+   4. 변형 prefix — fine-tuning 변형은 user_profile/07 의 prefix 패턴 따름 (예: _ft01_)
 
-   ## experiment_conventions.md 의 preferred layer
-   {preferred_layer_list 인용}
+   ## 사용자 cross-project 일관 패턴 (1순위)
+   {user_profile/07 의 model 폴더 / config / prefix / preferred layer / framework 인용}
+
+   ## 본 프로젝트 특별 자리 (2순위 — 보강만)
+   {analysis_project/code/experiment_conventions.md 의 특별 자리 인용 — 있으면}
 
    ## mode 별 scaffold 산출물
    {mode_specific_outputs}

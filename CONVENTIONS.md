@@ -304,7 +304,9 @@ fi
 | **코드 (모든 자리 — 라이브러리·연구·앱·CLI·API)** | `autopilot-research` (academic / technology) + `analyze-project --mode code` | **`autopilot-spec`** (mode 5종 + 복합 + auto. 모든 mode 가 PRD + Architecture Diagrams + **scaffold (skeleton 코드)** 통일 산출. ML / DL 자리는 Phase 1.5 pretrained ckpt 사전 동작 점검 자동. 중간 컨펌 6-8 자리 default) | **`autopilot-code`** (spec mode 별 분기 자동 — _layout 위 logic 추가_ 자리만) |
 | **실험 prototype (ML / one-shot script)** | `analyze-project --mode code` 의 4 종 실험 자료 (`experiment_conventions` / `experiment_readiness` / `cleanup_candidates` / `similar_models`) + 직전 실험 `_RUNLOG.md` | — (spec 없이 빠른 cycle 1순위) | **`autopilot-lab`** (반복 호출, STORY+RUNLOG 누적; 졸업 자리 `autopilot-code`) |
 | **공통 시각 자산** | — | `autopilot-design` (신규 디자인 사이클) | `autopilot-design` 재호출 (cycle 2+) |
-| **공통 사용자 프로필** | — | `analyze-user --mode init` | `analyze-user --mode update` |
+| **공통 사용자 프로필** | — | `analyze-user --mode init` (aspect 7 종 — figure / writing / presentation / analysis / domain / collab / **coding_convention**) | `analyze-user --mode update` |
+
+> **`coding_convention` aspect 의 자리** (2026-05-26): 사용자 cross-project 코드 일관 패턴 (model 폴더 / config / prefix / preferred layer / framework / metric / log·ckpt / seed) 을 `~/.claude/user_profile/07_coding_convention.md` 에 누적. autopilot-lab / autopilot-spec / autopilot-code / 개발팀 _new-lib_ 의 _1순위 source_. `analysis_project/code/experiment_conventions.md` 는 _per-project 특별 자리만_ 보강 (2순위). 사용자 첫 호출 자리에 source 폴더 명시 (cwd 자동 발견 + `--source <path>`) — 하드코딩 path X.
 
 ### §6.2. 사용자 호출 단위 흐름 (3 패턴)
 

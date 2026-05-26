@@ -52,6 +52,8 @@
 
 **Scaffold 의 ref source 우선순위** — 1) 내부 (`similar_models.md` / `--ref <path>`) → 2) 외부 (`research/{topic}/code_resources/` / `07_resources.md` 의 Quick verify 명령) → 3) generic fallback. ML / DL 자리는 Phase 1.5 _pretrained ckpt 사전 동작 점검_ 자동 (mode `library` / `api` / `cli` 자리는 ckpt 없으면 skip).
 
+**사용자 cross-project 일관 패턴 prepend** — `~/.claude/user_profile/07_coding_convention.md` (model 폴더 / config / prefix / preferred layer / framework / metric / log·ckpt / seed) 가 ref source 우선순위와 _독립_ 으로 매번 read. 개발팀 _new-lib_ prompt 에 1순위 source 로 prepend. 부재 시 `/analyze-user coding_convention` 한 줄 안내.
+
 ### 1.4. PRD 묶음 갱신 (Architecture Diagrams 포함)
 
 PRD 의 textual + diagram 이 _drift 빠지지 않게_ — 변경 자리에서 _영향 받는 모든 자리 한 트랜잭션_ 갱신. 자세한 매핑 — CONVENTIONS §6.3a.

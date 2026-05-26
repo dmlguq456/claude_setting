@@ -12,6 +12,7 @@
 | `04_analysis_methodology.md` | 데이터·실험 결과 분석 접근법·검증 패턴 | 분석팀, 연구팀, 기획팀 |
 | `05_domain_expertise.md` | 도메인 배경 (speech / TF DNN / signal processing)·용어 선호 | 연구팀, 분석팀, 편집팀 |
 | `06_collaboration_style.md` | 작업 흐름·의사결정·feedback 패턴 (메모리 자동 누적 자료의 _구조화 요약_) | 메인 Claude, 모든 sub-agent |
+| `07_coding_convention.md` | 코드 일관 패턴 — model 폴더 구조 / config 메커니즘 / prefix / preferred layer / framework / metric set / log·ckpt / seed·reproducibility / naming | 개발팀 (new-lib·refactor·backend·frontend), 메인 Claude (autopilot-lab Step 0 / autopilot-spec Phase 0·2 / autopilot-code 4 원칙) |
 
 ## 갱신 프로토콜
 
@@ -31,6 +32,14 @@
 1. ~/.claude/user_profile/01_paper_figure_style.md Read
 2. 그 패턴을 default (색 팔레트·aspect ratio·폰트·임베드 등) 로 사용
 3. 사용자 요청에 다른 명시 있으면 그 자리만 override
+```
+
+예 개발팀 _new-lib_ — autopilot-spec scaffold / autopilot-lab Phase 2 호출 자리:
+```
+1. ~/.claude/user_profile/07_coding_convention.md Read
+2. 모델 폴더 구조 / config / prefix / preferred layer 1순위 default
+3. analysis_project/code/experiment_conventions.md 가 있으면 _특별 자리_ 만 보강 인용
+4. 사용자 발화에 다른 명시 있으면 그 자리만 override
 ```
 
 ## 다음 cycle 의 누적 자리

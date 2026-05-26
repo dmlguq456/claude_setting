@@ -17,11 +17,12 @@ argument-hint: "<aspect> [--source <path>] [--mode init|update] [--from discover
 - "사용자 프로필 갱신해줘" / "내 figure 스타일 분석해줘"
 - "내가 만든 발표 자료들 분석해" / "내 paper 작성 톤 추출해줘"
 - "user_profile 업데이트" / "내 작업 성향 정리"
-- 새 paper / 발표 / 보고서 완성 직후 "이번 자료도 프로필에 반영해줘"
+- "내 코딩 컨벤션 정리" / "model 폴더 패턴 추출" / "preferred layer 추출"
+- 새 paper / 발표 / 보고서 / 모델 완성 직후 "이번 자료도 프로필에 반영해줘"
 
 ### Default 옵션 권장값 (컨펌 시 메인 Claude 가 제안)
 
-- `<aspect>`: 발화로 추론 — "figure" / "스타일" → `figure`, "발표" → `presentation`, "작성 톤" → `writing`, 명확히 안 보이면 `all`.
+- `<aspect>`: 발화로 추론 — "figure" / "스타일" → `figure`, "발표" → `presentation`, "작성 톤" → `writing`, "코딩 컨벤션" / "model 폴더" / "layer" → `coding_convention`, 명확히 안 보이면 `all`.
 - `--mode`: 기본 `update`. 사용자가 "다시 처음부터" / "init" 신호 주면 `init`.
 - `--from`: 자동 추론 (`pipeline_state.yaml` 발견 시 마지막 성공 phase 다음부터).
 - `--user-refine`: **off** (글로벌 §4 — 명시 신호 있을 때만 켬).
@@ -53,7 +54,8 @@ argument-hint: "<aspect> [--source <path>] [--mode init|update] [--from discover
 | `analysis` | `04_analysis_methodology.md` | `~/nas/user/Uihyeop/NN_Zoo/*/analysis/*.py`, paper Method / Experiment 절 |
 | `domain` | `05_domain_expertise.md` | paper 일람 (scholar.google), 사용자 GitHub |
 | `collab` | `06_collaboration_style.md` | `~/.claude/projects/*/memory/*.md` |
-| `all` | 6 개 모두 | 위 source 모두 |
+| `coding_convention` | `07_coding_convention.md` | cwd + 1-level subdirs 자동 발견 (`model/`·`train*.py`·`config*.yaml`·`*.ipynb` 패턴) + 사용자 `--source <path>` 명시 (콤마 분리 복수 가능, 다른 코드 repo 추가 source). analyze-project doc mode 와 같은 패턴 — 하드코딩 path X, 사용자가 폴더 명시. |
+| `all` | 7 개 모두 | 위 source 모두 |
 
 ### `--source <path>` (옵션)
 
