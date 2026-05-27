@@ -1,10 +1,10 @@
 {
   "version": 4,
-  "last_readme_sync": "2026-05-27T01:18:47.487161+09:00",
+  "last_readme_sync": "2026-05-27T07:45:54Z",
   "items": {
     "skills/analyze-project": {
-      "sha256": "761c88e860ac61eac18a69f27413f21e69ec9b9fb745933557e430133d3c5ffd",
-      "synced_at": "2026-05-26T22:55:26.563811+09:00"
+      "sha256": "fe7187a81bffe5eb41f828d8d76b1207a4823ec2e169612fa1f4b437b3f4e296",
+      "synced_at": "2026-05-27T07:45:54Z"
     },
     "skills/analyze-user": {
       "sha256": "3a63c4026bc80414b005f27a585713a0d8263b77d326e7d633932d78597b81e5",
@@ -23,8 +23,8 @@
       "synced_at": "2026-05-26T22:55:26.563811+09:00"
     },
     "skills/autopilot-apply": {
-      "sha256": "44e7de349ee43a1edb6f6d515562689331dd361079a1b332d21be695d2ffb077",
-      "synced_at": "2026-05-26T22:55:26.563811+09:00"
+      "sha256": "6ff3ad022919af23c123c54547b3924736645a0a3927d08c2f17d71f10d45b8f",
+      "synced_at": "2026-05-27T07:45:54Z"
     },
     "skills/autopilot-code": {
       "sha256": "a255392f725bfa68570fd3b06b9e80c0d50f8e407d1b2102105fb6f906b483e1",
@@ -35,8 +35,8 @@
       "synced_at": "2026-05-27T01:18:47.487161+09:00"
     },
     "skills/autopilot-draft": {
-      "sha256": "7f034a7c43a3b054937a20c01422d3ba3216fdc7a453f2c82489cefe16448d21",
-      "synced_at": "2026-05-27T01:13:46.960648+09:00"
+      "sha256": "f6b1b682561fb5753cbd09f13cabbe128c403b645867efeea7ec7b87fe5fb483",
+      "synced_at": "2026-05-27T07:45:54Z"
     },
     "skills/autopilot-lab": {
       "sha256": "1b080d49dc343686113318cdd186c84082b8ba2d55417afab8c5a97a81e78fb1",
