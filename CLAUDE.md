@@ -1,8 +1,15 @@
 # CLAUDE.md — Session Bootstrap
 
-> 세션 시작 자동 로드. 본 문서는 _얇은 부트스트랩_. 워크플로우 맵·skill 흐름은 `~/.claude/README.md` (sync-skills 자동 동기화).
+> 세션 시작 자동 로드. 본 문서는 _얇은 부트스트랩_. skill 카탈로그·description 은 매 세션 자동 주입, 운영 라우팅은 본 문서 §6 가 단일 출처.
 >
-> **세션 시작 의무**: 작업 시작 전 `Read ~/.claude/README.md` 실행. 단순 질문 예외 X (같은 세션에서 이미 읽었다면 재독 불필요).
+> **워크플로우 맵 (4 트랙 skeleton — 라우팅 기본. 옵션·디테일 금지, 트랙 지도만)**:
+> - 📄 문서: `analyze-project`/`autopilot-research` → `autopilot-draft` → `autopilot-refine`↻ → `autopilot-apply`
+> - 🔬 연구·실험: `analyze-project`/`autopilot-research` → `autopilot-spec`↻ → `autopilot-code`↻ → `autopilot-lab`↻
+> - 💻 앱: `autopilot-spec`↻ → `autopilot-design` → `autopilot-code`↻ → `autopilot-ship`↻
+> - 📦 라이브러리·CLI: `analyze-project` → `autopilot-spec`↻ → `autopilot-code`↻
+> - 사후 공통: `audit` (점검)·`autopilot-refine` (정정) / cross-project: `analyze-user`·`notes --scope user`
+>
+> 상세 체이닝·서브에이전트 분기·호출 예시는 `~/.claude/AUTOPILOT_FLOWS.md` on-demand. `~/.claude/README.md` 는 GitHub 사용자용 문서 — Claude 세션 시작 강제 Read 대상 아님.
 
 ---
 

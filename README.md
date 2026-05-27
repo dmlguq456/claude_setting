@@ -2,324 +2,169 @@
 
 # ⚙️ Claude Setting
 
-**Claude Code 워크플로우 — skill · agent · 운영 규칙의 단일 출처**
+**Claude Code 워크플로우 — skill·agent·운영 규칙을 한 장으로**
 
-[워크플로우](#-워크플로우) · [사용 방식](#-사용-방식) · [Skills](#-skills) · [Agents](#-agents) · [운영 룰](#-운영-룰) · [동기화](#-동기화)
-
+[mental model](#-mental-model) · [4 트랙](#-큰-갈래-4-트랙--흐름의-의미) · [Skills](#-skill-카탈로그--의의핵심) · [산출물](#-산출물의-구조적-의미) · [부르는 법](#️-부르는-법) · [Agents](#-agents) · [더 깊이](#-더-깊이)
 
 </div>
 
 ---
 
-## 📊 워크플로우
+## 🧭 Mental model
 
-> Claude 는 프로젝트 루트에서 실행. `.claude_reports/` 는 현재 dir 에 생성. cross-project 는 `cd <other>` 후 별도 세션. 외부 `--refs` flag 없음 — 모든 입력은 `.claude_reports/` 영속 산출물에서 자동 발견.
+자연어 한 줄로 부르면 메인 Claude 가 컨텍스트 (cwd / `.claude_reports/` 산출물 / 발화) 를 읽어 **skill + 옵션을 조립하고, 자연어 요약으로 컨펌받은 뒤 실행**한다. 사용자는 _운전자_ — 다음 의도만 말하면 된다.
 
-### 🧭 처음이라면 — 도메인별 트랙
+- **autopilot-\*** = 추적형 파이프라인. plan·log 가 `.claude_reports/` 에 누적돼 흐름이 남는다. 큰 작업·반복 작업용.
+- **직접 처리** = plan/log 안 남는 가벼운 일. 한 번 보고 끝나는 작업은 메인 Claude 가 바로 한다.
+- 입력은 외부 flag 없이 **`.claude_reports/` 영속 산출물에서 자동 발견**. cross-project 는 `cd <other>` 후 별도 세션.
 
-이름만으로 문서용인지 코드용인지 헷갈릴 때, 작업 종류별 _순서_ 로 보면 빠르다.
+> 본 문서는 _의미 지도_ 다. 옵션 spec·trigger 룰·QA 정의 같은 운영 디테일은 각 SKILL.md 와 [`CONVENTIONS.md`](CONVENTIONS.md) · [`CLAUDE.md`](CLAUDE.md) 가 단일 출처 — 여기서 중복하지 않고 링크한다.
 
-| 트랙 | 단계 순서 (왼쪽 → 오른쪽) | 각 단계가 만드는 것 |
-|---|---|---|
-| **📄 문서 작업** (논문·보고서·발표·rebuttal) | `analyze-project`/`autopilot-research` → `autopilot-draft` → `autopilot-refine` → `autopilot-apply` | 자료 영속화 → markdown 초안·cheatsheet → 정정 (반복) → 실제 `main.tex` 반영 + 컴파일 |
-| **🔬 연구·실험** (ML 실험·연구 코드) | `analyze-project`/`autopilot-research` → `autopilot-spec` (ref ckpt inference 검증 포함) → `autopilot-code` (baseline 학습 가능 코드 완성) → `autopilot-lab` (baseline 학습 + variation 실험 반복) | 자료 → 청사진·skeleton → 실제 logic 구현 → baseline + variation 실험 (반복) |
-| **💻 앱 개발** | (선택) `autopilot-research`/`analyze-project` → `autopilot-spec --mode app` → `autopilot-design` (옵션) → `autopilot-code` → `autopilot-ship` | 자료 (옵션) → PRD·skeleton → 시각 → 앱 코드 (반복) → 배포 셋업 (마지막 자리, 재호출 가능) |
-| **📦 라이브러리·CLI 정돈·공개** | `analyze-project` → `autopilot-spec` → `autopilot-code` | 분석 → 청사진·skeleton → 공개용 코드 (반복) |
-| **🔍 점검·정정** (모든 트랙 공통, 사후) | `audit` (읽기 전용 점검) · `autopilot-refine` (markdown 정정) · `autopilot-apply` (cheatsheet → 실제 소스) | 점검 보고 / 버전 정정 / 소스 적용 |
-| **👤 사용자 프로필** (cross-project) | `analyze-user` · `notes --scope user` | `~/.claude/user_profile/` — 모든 트랙이 default 로 참조 |
+---
+
+## 🌳 큰 갈래 4 트랙 — 흐름의 의미
+
+작업 종류가 흐름을 정한다. 이름이 문서용인지 코드용인지 헷갈리면 _순서_ 로 보면 분명하다.
 
 ```mermaid
 flowchart LR
-    subgraph DOC["📄 문서 작업"]
+    subgraph DOC["📄 문서"]
         direction LR
-        d1["analyze-project /<br/>autopilot-research"] --> d2[autopilot-draft] --> d3["autopilot-refine<br/>↻"] --> d4[autopilot-apply]
+        d1["analyze-project /<br/>autopilot-research"] --> d2[autopilot-draft] --> d3["autopilot-refine ↻"] --> d4[autopilot-apply]
     end
     subgraph EXP["🔬 연구·실험"]
         direction LR
-        e1["analyze-project /<br/>autopilot-research"] --> e2["autopilot-spec<br/>↻"] --> e3["autopilot-code<br/>↻"] --> e4["autopilot-lab<br/>↻"]
+        e1["analyze-project /<br/>autopilot-research"] --> e2["autopilot-spec ↻"] --> e3["autopilot-code ↻"] --> e4["autopilot-lab ↻"]
     end
-    subgraph APPDEV["💻 앱 개발"]
+    subgraph APPDEV["💻 앱"]
         direction LR
-        a0["analyze-project /<br/>autopilot-research<br/>(선택)"] --> a1["autopilot-spec<br/>↻"] --> a2["autopilot-design<br/>(옵션)"] --> a3["autopilot-code<br/>↻"] --> a4["autopilot-ship<br/>↻"]
+        a1["autopilot-spec ↻"] --> a2["autopilot-design"] --> a3["autopilot-code ↻"] --> a4["autopilot-ship ↻"]
     end
     subgraph LIB["📦 라이브러리·CLI"]
         direction LR
-        l1[analyze-project] --> l2["autopilot-spec<br/>↻"] --> l3["autopilot-code<br/>↻"]
+        l1[analyze-project] --> l2["autopilot-spec ↻"] --> l3["autopilot-code ↻"]
     end
 ```
 
-**이름 읽는 법** — prefix·동사로 도메인 구분:
-- `analyze-project` / `analyze-user` — _사전 분석_ (입력 자료·사용자 자료 영속화)
-- `autopilot-research` — _분야 조사_ (어느 트랙이든 공통 사전)
-- `autopilot-draft` — 문서 _초안_ (markdown·cheatsheet) / `autopilot-apply` — 그 cheatsheet 를 _실제 소스_ (`main.tex`) 에 적용
-- `autopilot-refine` — `.claude_reports/` markdown _정정_ (제자리 수정)
-- `autopilot-spec` — 코드 _청사진_ / `autopilot-code` — 코드 _작업_ (생성·디버그) / `autopilot-lab` — _실험_ prototype
-- `autopilot-design` — _시각_ 산출물 / `audit` — 읽기 전용 _점검_
+- **📄 문서** — 자료를 영속화한 뒤 _markdown 초안·cheatsheet_ 를 만들고, 정정을 반복한 끝에 실제 `main.tex` 같은 소스에 반영·컴파일한다. draft 산출물은 최종 문서가 아니라 _적용용 plan_ 이고, 실제 소스 반영은 `autopilot-apply` 가 맡는다 (초안 _생산_ 과 소스 _적용_ 의 분리).
+- **🔬 연구·실험** — 자료 → 청사진·skeleton (외부 ref repo fetch·ckpt 사전 검증) → baseline 학습 가능 코드 완성 → variation 실험 반복. `autopilot-lab` 은 실험 단위 폴더를 강제해 _덮어쓰기·휘발_ 을 막고, 직전 실험의 summary 가 다음 실험의 input 이 된다.
+- **💻 앱** — PRD·skeleton → (UI 있으면) 시각 사이클 → 기능 구현 반복 → 마지막에 배포 셋업. `autopilot-ship` 은 _첫 setup_ 자리고 이후 push 가 자동 deploy 하므로 매번 부르지 않는다.
+- **📦 라이브러리·CLI** — 기존 코드를 분석해 공개용 청사진을 잡고 정돈한다. 연구·실험 트랙의 _졸업 자리_ 와 이어진다.
 
-> 🔽 **아래 두 그래프는 접혀 있어요** — 제목 줄을 클릭하면 펼쳐집니다 (전체 의존 관계 · 산출물 I/O 흐름).
+> **점검·정정은 모든 트랙 공통, 사후** — `audit` (읽기 전용 점검) · `autopilot-refine` (markdown 정정) · `autopilot-apply` (cheatsheet → 실제 소스).
+> **사용자 프로필은 cross-project** — `analyze-user` · `notes --scope user` 가 `~/.claude/user_profile/` 를 만들고, 모든 트랙이 작업 시작 자리에서 default 로 참조한다.
 
-<details>
-<summary>&nbsp;<kbd>▶ 클릭하여 펼치기</kbd>&nbsp; 📐 <b>전체 Skill 호출 그래프</b> — A→F 6 카테고리 의존 관계</summary>
+체이닝 청사진·서브에이전트 분기·호출 예시는 → [`AUTOPILOT_FLOWS.md`](AUTOPILOT_FLOWS.md).
 
-```mermaid
-flowchart LR
-    subgraph UP["F. 사용자 프로필 (cross-project)"]
-        AU["analyze-user<br/>(figure/writing/...)"]
-        NT["notes --scope user"]
-    end
-    ANA["analyze-project<br/>(code/paper/doc)"]
-    RES["autopilot-research<br/>(academic/tech/market)<br/>↻"]
-    SPEC["autopilot-spec<br/>(app/library/api/cli/research)<br/>↻"]
-    CODE["autopilot-code<br/>(spec mode 자동 분기)<br/>↻"]
-    LAB["autopilot-lab<br/>(실험 prototype)<br/>↻"]
-    DOC["autopilot-draft"]
-    DES["autopilot-design<br/>(시각)<br/>↻"]
-    REF["autopilot-refine<br/>(doc + research 정정)"]
-    APP["autopilot-apply<br/>(cheatsheet → 실제 소스)"]
-    SHIP["autopilot-ship<br/>(app 배포 셋업)<br/>↻"]
-    AUD["audit<br/>(모든 산출물 점검)"]
-    ANA --> SPEC
-    ANA --> DOC
-    ANA -->|실험 자료 4 종| LAB
-    RES --> SPEC
-    RES --> DOC
-    RES --> REF
-    SPEC --> CODE
-    SPEC -.->|research scaffold·옵션| LAB
-    SPEC -.->|app mode 자리| DES
-    DES -.->|컴포넌트·토큰| CODE
-    LAB -->|졸업·라이브러리화| CODE
-    CODE -.->|영향 큰 자리 자동 incremental| ANA
-    CODE -->|기능 완성 후| SHIP
-    DOC --> REF
-    DOC -->|cheatsheet| APP
-    REF -.->|정정된 cheatsheet| APP
-    RES --> AUD
-    DOC --> AUD
-    CODE --> AUD
-    SPEC --> AUD
-    LAB --> AUD
-    AUD -.->|auto-fix doc/research| REF
-    AUD -.->|auto-fix code| CODE
-    AU -.->|user_profile 참조| CODE
-    AU -.->|user_profile 참조| SPEC
-    AU -.->|user_profile 참조| DOC
-    AU -.->|user_profile 참조| RES
-    NT -.->|append 사용자 메모| AU
-```
-
-6 카테고리 — **A. 사전 조사 & 분석** (`analyze-project` / `autopilot-research`) / **B. 코드 영역** (`autopilot-spec` 청사진 + `autopilot-code` 작업) / **C. 문서 작성** (`autopilot-draft`) / **D. 사후 점검** (`audit`) / **E. 사후 정정** (`autopilot-refine`) / **F. 사용자 프로필** (`analyze-user` / `notes --scope user`, cross-project).
-
-F 는 _현 프로젝트 산출물_ 이 아닌 _사용자 cross-project 자료_ 를 만든다 (`~/.claude/user_profile/`). A-E 의 모든 skill 과 sub-agent 가 _작업 시작 자리_ 에서 user_profile 을 Read 해 default 로 따름. 본 폴더는 점선 (implicit reference) 으로 표시.
-
-</details>
-
-<details>
-<summary>&nbsp;<kbd>▶ 클릭하여 펼치기</kbd>&nbsp; 📦 <b>산출물 I/O 그래프</b> — per-project vs cross-project</summary>
-
-```mermaid
-flowchart LR
-    subgraph IN["A. 자료 수집"]
-        ANA2["analyze-project"]
-        RES2["autopilot-research"]
-    end
-    subgraph PROD["B. 코드 영역"]
-        SPEC2["autopilot-spec<br/>(청사진)"]
-        CODE2["autopilot-code<br/>(작업)"]
-        DES2["autopilot-design<br/>(시각)"]
-    end
-    subgraph DOCS["C. 문서"]
-        DOC2["autopilot-draft"]
-    end
-    AUD2["D. audit"]
-    REF2["E. autopilot-refine"]
-    OUT[("📦 .claude_reports/<br/>(per-project)")]
-    AU2["F. analyze-user"]
-    UP[("👤 ~/.claude/user_profile/<br/>(cross-project)")]
-    IN --> OUT
-    OUT -.->|implicit input| PROD
-    OUT -.->|implicit input| DOCS
-    PROD --> OUT
-    DOCS --> OUT
-    SPEC2 --> CODE2
-    SPEC2 -.->|app mode 자리| DES2
-    DES2 -.-> CODE2
-    OUT --> AUD2
-    AUD2 -.->|auto-fix code| CODE2
-    AUD2 -.->|auto-fix doc/research| REF2
-    OUT <--> REF2
-    AU2 --> UP
-    UP -.->|default 참조| PROD
-    UP -.->|default 참조| DOCS
-    UP -.->|default 참조| IN
-    APP2["autopilot-apply"]
-    EXT[("📝 실제 소스<br/>main.tex (git)")]
-    OUT -.->|cheatsheet| APP2
-    APP2 --> EXT
-```
-
-**per-project (`.claude_reports/`)** — `analysis_project/{code,paper,doc}/`, `research/{topic}/`, `documents/{date}_{name}/`, `plans/{date}_{name}/` 에 누적. 후속 skill 은 점선 (implicit) 으로 자동 발견. **D (audit)** 는 OUT 을 _읽기만_ (점검 + 자동 fix dispatch), **E (refine)** 는 OUT 을 _read+write_ 양방향.
-
-**cross-project (`~/.claude/user_profile/`)** — analyze-user 가 6 aspect 파일 (`01_paper_figure_style.md` ~ `06_collaboration_style.md`) 누적. 모든 sub-agent 가 작업 시작 자리에서 default 로 Read (점선). 사용자 짧은 메모는 `/notes --scope user <aspect>` 가 같은 파일의 `## 사용자 수동 메모` 절에 append (별도 NOTES.md 두지 않음).
-
-</details>
-
-> **3-tier 산출물 컨벤션** ([CONVENTIONS.md §5](CONVENTIONS.md#5-skill-output-convention-3-tier-t1t2t3)): T1 root = 메인 산출물 / T2 named subdir = 검토 자료 / T3 `_internal/` = audit·raw·versions. 사용자는 보통 T1 만 보면 됨.
-
-산출물 위치 / scope 경계 / 자주 빠지는 함정은 글로벌 [`CLAUDE.md`](CLAUDE.md) "Drift-Free Essentials" 섹션.
+**이름 읽는 법** — prefix·동사로 도메인 구분: `analyze-*` 사전 분석 · `autopilot-research` 분야 조사 · `autopilot-draft`/`-apply` 문서 초안·적용 · `autopilot-refine` markdown 정정 · `autopilot-spec`/`-code`/`-lab` 코드 청사진·작업·실험 · `autopilot-design` 시각 · `audit` 읽기 전용 점검.
 
 ---
 
-## 🗣️ 사용 방식
+## 📋 Skill 카탈로그 — 의의·핵심
 
-입구는 두 갈래 — _자연어_ 와 _slash_. 동작은 동일.
+| Skill | 의의 — 왜 있나 / 핵심 |
+|---|---|
+| [`analyze-project`](skills/analyze-project/SKILL.md) | 모든 트랙의 _사전 분석_. code/paper/doc 자료를 `analysis_project/` 에 영속화 — 다운스트림 skill 의 입력 source |
+| [`autopilot-research`](skills/autopilot-research/SKILL.md) | 어느 트랙이든 공통 _분야 조사_. academic/technology/market 3 mode 보고서. 실제 문서·코드 생성은 다운스트림이 담당 |
+| [`autopilot-spec`](skills/autopilot-spec/SKILL.md) | 코드 _청사진 + skeleton_ 일반화 entry (app/library/api/cli/research). 만들 _것 자체_ 를 결정하는 자리라 사용자 결정 비중이 큼 — 중간 컨펌 default |
+| [`autopilot-code`](skills/autopilot-code/SKILL.md) | 코드 _작업_ 일반 (라이브러리·연구·앱 모두). dev/debug. `specs/<name>/` 발견 시 spec mode 별 분기 자동 |
+| [`autopilot-lab`](skills/autopilot-lab/SKILL.md) | _빠른 실험 prototype_. 실험 단위 폴더 강제로 휘발 차단, STORY+RUNLOG 누적. 정련 자리는 autopilot-code 로 졸업 |
+| [`autopilot-design`](skills/autopilot-design/SKILL.md) | _시각_ 산출물 (UI·슬라이드·다이어그램·아이콘). 모든 결과를 렌더해 눈으로 검증 (Claude-Design 패리티), standalone `preview.html` 가능 |
+| [`autopilot-ship`](skills/autopilot-ship/SKILL.md) | 앱 _배포 셋업_ 안내 (호스팅·CI/CD·env·domain). 실제 배포 명령은 사용자 직접. 첫 setup·재호출 자리 |
+| [`autopilot-draft`](skills/autopilot-draft/SKILL.md) | 문서 _초안_ (paper/presentation/doc, markdown). 산출물은 최종 문서가 아니라 _적용용 cheatsheet(plan)_ |
+| [`autopilot-apply`](skills/autopilot-apply/SKILL.md) | cheatsheet 를 `.claude_reports/` _밖_ 실제 소스 (`main.tex`) 에 git 위로 적용 + 컴파일 검증. draft 의 apply 팔 (현재 LaTeX 한정) |
+| [`autopilot-refine`](skills/autopilot-refine/SKILL.md) | doc/research markdown _사후 정정_. prompt + memo 통합 entry, 버전·이력 자동 관리 |
+| [`audit`](skills/audit/SKILL.md) | 산출물 _읽기 전용_ multi-aspect 점검 + 기본 auto-fix dispatch. refine 이 _수정 흐름_ 이면 audit 은 _점검 흐름_ |
+| [`analyze-user`](skills/analyze-user/SKILL.md) | cross-project 사용자 산출물 분석 → `user_profile/` 갱신. 모든 sub-agent 의 default 자료라 QA adversarial 고정 |
+| [`notes`](skills/notes/SKILL.md) | 사용자 통제 메모. `--scope project` (cwd NOTES.md) / `--scope user` (user_profile aspect) |
+| [`sync-skills`](skills/sync-skills/SKILL.md) | 본 README 를 SKILL.md·agent 정의로부터 재생성·동기화 |
 
-### (1) 자연어 발화로 부르기
+> sub-skill 은 autopilot 내부 자동 호출 (사용자가 직접 안 부름): code 가족 (`code-plan`/`-refine`/`-execute`/`-test`/`-report`) · draft 가족 (`draft-strategy`/`-refine`) · app 가족 (`app-init`/`app-spec`) · design 가족 (`design-init`/`-refs`/`-tokens`/`-components`/`-review`/`-handoff`).
 
-발화가 들어오면 메인 Claude 는 turn 첫 단계로 _skill 호출 후보 vs 직접 처리_ 를 분기 판단한다 (글로벌 [`CLAUDE.md`](CLAUDE.md) §6 Pre-check). skill 후보면 컨텍스트 (cwd / `.claude_reports/` 산출물 / 발화) 를 읽고 skill + 옵션 + task description 을 조립, **한 줄 요약 + 옵션 펼침 + 선택 근거** 로 컨펌을 묻는다. yes / 수정 ("qa thorough 로", "X 빼고") / cancel. 무응답이면 10-30 분 뒤 추천안으로 자율 진행.
+세부 옵션 (`--mode`·`--qa`·`--from`·`--user-refine`) 은 각 SKILL.md 의 `argument-hint`. QA 5단계 (quick/light/standard/thorough/adversarial) 정의는 [`CONVENTIONS.md`](CONVENTIONS.md) §1.
 
-ceremony 가 큰 10 개 (`autopilot-code` / `autopilot-spec` / `autopilot-ship` / `autopilot-lab` / `autopilot-draft` / `autopilot-design` / `autopilot-research` / `autopilot-refine` / `autopilot-apply` / `analyze-user`) 만 컨펌 의무. `audit` / `notes` / `analyze-project` 는 즉시 invoke. 상세 룰은 글로벌 [`CLAUDE.md`](CLAUDE.md) §6.
+---
+
+## 📦 산출물의 구조적 의미
+
+산출물은 두 축으로 나뉜다 — _현 프로젝트 자료_ 와 _cross-project 사용자 자료_.
+
+- **per-project — `<proj>/.claude_reports/`** : `analysis_project/{code,paper,doc}/` · `research/{topic}/` · `documents/{date}_{name}/` · `specs/<name>/` (코드 spec 있는 자리는 PRD·dev_log·ship 을 _한 폴더에 누적_) · `plans/{date}_{name}/` (spec 없는 빠른 작업). 후속 skill 이 자동 발견하고, `audit` 은 _읽기만_, `autopilot-refine` 은 _read+write_.
+- **cross-project — `~/.claude/user_profile/`** : `analyze-user` 가 6 aspect 파일을 누적. 모든 트랙·sub-agent 가 작업 시작 자리에서 default 로 Read. 짧은 메모는 `/notes --scope user <aspect>` 가 같은 파일에 append.
+
+**3-tier 컨벤션** — 한 산출물 폴더 안에서 T1 root (메인 산출물) / T2 named subdir (검토 자료) / T3 `_internal/` (audit·raw·versions) 로 나뉜다. _사용자는 보통 T1 만 보면 된다._ 한 프로젝트의 전체 흐름은 `specs/<name>/` 한 폴더에 모이게 설계됐다 — 두 폴더 다닐 필요 없음.
+
+상세 디렉토리 매핑·폴더 컨벤션은 → [`CONVENTIONS.md`](CONVENTIONS.md) §5·§6.5, [`AUTOPILOT_FLOWS.md`](AUTOPILOT_FLOWS.md) §4. 산출물 위치·scope 경계·함정은 → [`CLAUDE.md`](CLAUDE.md) "Drift-Free Essentials".
+
+---
+
+## 🗣️ 부르는 법
+
+입구는 두 갈래 — _자연어_ 와 _slash_. 동작은 동일하다.
+
+### (1) 자연어 발화
+
+메인 Claude 가 옵션을 자동 구성하고 **한 줄 요약 + 옵션 펼침 + 선택 근거** 로 컨펌을 묻는다. yes / 수정 ("qa thorough 로", "X 빼고") / cancel. 무응답이면 추천안으로 자율 진행. ceremony 큰 10 개 (autopilot-\* 9 + analyze-user) 만 컨펌 의무, `audit`/`notes`/`analyze-project` 는 즉시 invoke. 상세 룰은 → [`CLAUDE.md`](CLAUDE.md) §6.
 
 | 사용자 발화 | 메인 Claude 컨펌 (자연어 요약) |
 |---|---|
-| "ICML camera-ready 마무리 도와줘" | autopilot-draft paper 모드로 camera-ready 본문 다듬기 (qa adversarial — high-stakes ceremony) |
+| "ICML camera-ready 마무리 도와줘" | autopilot-draft paper 모드로 camera-ready 본문 다듬기 (qa adversarial — high-stakes) |
 | "이 에러 디버그해봐" | autopilot-code debug 모드로 root-cause 분석 + 수정 (qa standard) |
-| "diffusion 분야 최근 동향 조사해줘" | autopilot-research academic 모드, depth medium, 최근 1년 (qa thorough) |
-| "이 문서 v2 로 정리" | autopilot-refine major-level (qa thorough, 자동 apply) |
-| "X 기능 새로 만들어줘" | autopilot-code dev 모드 (specs/ 자리면 spec mode 별 분기 — app/library/cli/research 자동) |
+| "diffusion 분야 최근 동향 조사해줘" | autopilot-research academic, depth medium, 최근 1년 (qa thorough) |
+| "X 기능 새로 만들어줘" | autopilot-code dev 모드 (specs/ 자리면 spec mode 별 분기 자동) |
 | "할 일 앱 만들고 싶어, PRD 부터" | autopilot-spec app 모드 (PRD + 스택 + scaffolding + skeleton) |
-| "TF-Restormer 학회 공개 코드로 정돈" | autopilot-spec auto → research,cli 추론 (PRD + scaffold 통일 — train.py / eval.py / config skeleton, 중간 컨펌 default) |
-| "Conformer ASR baseline 시작" / "Whisper fine-tuning 환경 잡아줘" | autopilot-spec research,cli (외부 ref repo 자동 fetch + Phase 1.5 pretrained ckpt 사전 검증 + skeleton — 중간 컨펌 default) |
-| "lr 1e-3 → 3e-4 비교" / "MDTA 빼고 ablation" / "X 모델 prototype 빨리" | autopilot-lab ml 모드 (직전 RUNLOG + similar_models 자동 참조, qa light) |
-| "Vercel 에 올리자" / "env 변경" | autopilot-ship (ship 첫 setup / env / domain / migration deploy 안내) |
-| "이번 발표 자료 만들어줘" | autopilot-draft presentation 모드로 슬라이드 markdown 작성 (qa thorough) |
-| "내 figure 스타일 분석해줘" / "발표 자료들 보고 프로필 갱신" | analyze-user figure (또는 all) — incremental update (qa adversarial 고정) |
+| "lr 1e-3 → 3e-4 비교" / "MDTA 빼고 ablation" | autopilot-lab ml 모드 (직전 RUNLOG + similar_models 자동 참조, qa light) |
+| "이번 발표 자료 만들어줘" | autopilot-draft presentation 모드로 슬라이드 markdown (qa thorough) |
+| "내 figure 스타일 분석해줘" | analyze-user figure — incremental update (qa adversarial 고정) |
 
-### (2) slash 명령 직접 입력
+### (2) slash 직접 입력
 
-옵션을 직접 명시하거나 컨펌을 건너뛸 때는 slash 를 그대로 친다. 직접 입력은 _의도 명시_ → 컨펌 없이 즉시 invoke. 옵션 조합·default·QA level 의미는 각 SKILL.md 의 `argument-hint` / `## Usage` (아래 §4 Skills 표 링크).
+옵션을 명시하거나 컨펌을 건너뛸 때는 slash 를 그대로 친다 — _의도 명시_ 라 곧장 invoke.
 
 ```
-/autopilot-research <topic> --mode academic|technology|market --depth shallow|medium|deep [--qa ...] [--from search|analyze|report]
-/analyze-project    [--mode code|paper|doc] [<scope/target/input-folder>] [--skip-qa]
-/autopilot-code     --mode dev|debug "<task/error>" [--from <step>] [--qa ...] [--user-refine]
-/autopilot-spec     "<task>" [--mode auto|app|library|api|cli|research (콤마로 다중)] [--qa ...] [--user-refine]
-/autopilot-ship     "<task (선택)>" [--qa quick|light|standard|thorough]
-/autopilot-lab      "<task>" [--mode ml|script|auto] [--ref <similar-model-path>] [--qa ...] [--from spec|scaffold|run|summary]
-/autopilot-design   "<design task or app path>" [--scope ui|webapp|slide|icon|diagram|mixed] [--artifact standalone|project] [--from <phase>] [--qa quick|standard|thorough]
-/autopilot-draft    --mode paper|presentation|doc "<task>" [--qa ...] [--user-refine] [--from <stage>]
-/autopilot-refine   "<prompt>" [--qa ...] [--review-only | --memo <file>] [--no-fact-check] [--no-style-audit]
-/analyze-user       <aspect> [--source <path>] [--mode init|update] [--user-refine]
-/audit              <artifact> [--scope auto|facts|style|structure|cross-ref|coverage|all] [--read-only] [--report-only] [--no-fact-check]
-/notes              [show | init | add <category> <text> | resolve <hint> | decide <text> | handoff [--no-confirm]] [--scope project|user [<aspect>]]
+/autopilot-code   --mode dev|debug "<task>" [--qa ...] [--from <step>]
+/autopilot-draft  --mode paper|presentation|doc "<task>" [--qa ...]
+/autopilot-refine "<prompt>" [--qa ...] [--memo <file>]
+/audit            <artifact> [--scope ...]
 ```
 
-> **autopilot-* 의 3 가지 흐름** (자세한 청사진: [`AUTOPILOT_FLOWS.md`](AUTOPILOT_FLOWS.md))
->
-> - **연구개발** — `autopilot-research / analyze-project` → (옵션) `autopilot-spec --mode research,cli` (skeleton + 외부 ref repo fetch·ckpt 검증) → `autopilot-lab` (실험 반복) → (졸업 시) `autopilot-code` (구현·라이브러리화)
-> - **문서작업** — `autopilot-research / analyze-project` → `autopilot-draft` → `autopilot-refine` (반복) → `autopilot-apply` (cheatsheet → 실제 LaTeX 소스 적용·컴파일)
-> - **앱개발** — `(선택) autopilot-research / analyze-project` → `autopilot-spec --mode app` → `autopilot-design` (옵션) → `autopilot-code` (app spec mode 자동, 반복) → `autopilot-ship` (ship 첫 setup·env·domain, 마지막 자리·재호출 가능)
-> - **라이브러리·CLI 정돈·공개** — `analyze-project` → `autopilot-spec --mode library,cli` (또는 auto) → `autopilot-code` (반복)
-
-QA 5 단계 (quick / light / standard / thorough / adversarial) 정의는 [`CONVENTIONS.md`](CONVENTIONS.md) §1.
-
----
-
-## 📋 Skills
-
-| Skill | 역할 |
-|---|---|
-| [`analyze-user`](skills/analyze-user/SKILL.md) | 사용자 cross-project 산출물 (paper / presentation / report / code / memory) 분석 → `~/.claude/user_profile/*.md` 갱신 (figure 스타일·작성 톤·발표 전략·도메인 expertise 등). autopilot-* 동급 ceremony, QA adversarial 고정, _3-instance consensus + 가중합_ (1.0 / 0.6 / 0.3 quarantine). |
-| [`analyze-project`](skills/analyze-project/SKILL.md) | code/paper/doc 자료 → `analysis_project/` 영속화 |
-| [`autopilot-research`](skills/autopilot-research/SKILL.md) | 분야 조사 — mode 별 보고서 (academic/technology/market) |
-| [`autopilot-code`](skills/autopilot-code/SKILL.md) | 코드 작업 일반 (라이브러리·연구·앱 모두) — dev/debug. `specs/<name>/` 컨텍스트 자동 감지 → spec mode 별 추가 logic (app/library/api/cli/research) |
-| [`autopilot-spec`](skills/autopilot-spec/SKILL.md) | _요구사항·청사진 + skeleton_ 일반화 entry — mode 5종 (app / library / api / cli / research) + 다중 + auto. PRD = textual (api_contract / data_model / ui_flow) + Architecture Diagrams (Component + Deployment, app/api mode). **scaffold 5종 통일** — ref repo 자동 fetch (git clone / HF download) + Phase 1.5 pretrained ckpt 사전 동작 점검 (research mode) + 개발팀 new-lib 으로 우리 컨벤션 옮김. **중간 컨펌 6-8 자리 default** (사용자 의도 결정 자리 비중 큼) — _빠른 진행_ 발화 시 일괄 컨펌 자동 축소 |
-| [`autopilot-lab`](skills/autopilot-lab/SKILL.md) | _빠른 실험 prototype_ — ML 실험·one-shot script. 4 단계 (spec → scaffold → run → summary). STORY + _RUNLOG.md 누적 (직전 실험이 다음 spec 의 input). analyze-project 의 4 종 실험 자료 자동 read, 코드 수정 4 원칙 prepend. 졸업 자리 autopilot-code |
-| [`autopilot-draft`](skills/autopilot-draft/SKILL.md) | 문서 strategy + draft (paper/presentation/doc, markdown 만). **draft 산출물은 최종 문서가 아니라 적용용 cheatsheet(plan)** — `autopilot-apply` 가 실제 소스(`main.tex` 등)에 반영 |
-| [`autopilot-design`](skills/autopilot-design/SKILL.md) | 시각 산출물 — UI/UX·webapp 화면·슬라이드·다이어그램·아이콘·로고 (init → refs → tokens → components → review → handoff). **모든 산출물을 렌더해서 본 결과로 검증 (Claude-Design 패리티)** + 프로젝트 없이 브라우저로 열리는 standalone `preview.html`. autopilot-spec 의 디자인 사이클 또는 단독 호출 |
-| [`autopilot-ship`](skills/autopilot-ship/SKILL.md) | 앱 배포 셋업 — 호스팅 선정 (Vercel / Fly / Railway / Cloudflare / EAS) + CI/CD 파일 + `.env.example` + 도메인 가이드 + deploy_record. 실제 배포 명령은 사용자 직접. autopilot-spec 의 초기 설계 자리와 분리 (마지막 자리·재호출 가능) |
-| [`autopilot-refine`](skills/autopilot-refine/SKILL.md) | doc/research 사후 정정 — major ceremony, prompt + memo 통합 entry |
-| [`autopilot-apply`](skills/autopilot-apply/SKILL.md) | 문서 cheatsheet (autopilot-draft 산출물) 를 `.claude_reports/` 밖 실제 소스 (`main.tex`) 에 git 위로 적용 + compile/latexdiff 검증. autopilot-draft 의 apply+verify 팔 (code-execute+code-test 의 문서판). **현재 LaTeX(`.tex`) target 한정** — 다른 문서 포맷 미지원 |
-| [`audit`](skills/audit/SKILL.md) | 산출물 multi-aspect 점검 + 기본 auto-fix chain |
-| [`notes`](skills/notes/SKILL.md) | 사용자 통제 메모 — `--scope project` (cwd `.claude_reports/NOTES.md`) / `--scope user <aspect>` (`~/.claude/user_profile/0X_*.md` 의 `## 사용자 수동 메모` 절, default aspect `collab`) |
-| [`sync-skills`](skills/sync-skills/SKILL.md) | 본 README 동기화 |
-
-> sub-skill 은 autopilot 내부 자동 호출. 사용자가 직접 부르지 않음:
-> - code 가족: `code-plan` / `code-refine` / `code-execute` / `code-test` / `code-report`
-> - draft 가족: `draft-strategy` / `draft-refine`
-> - app 가족 (autopilot-spec 의 `app` mode 안): `app-init` / `app-spec`
-> - design 가족: `design-init` / `design-refs` / `design-tokens` / `design-components` / `design-review` / `design-handoff`
-
-세부 옵션 (`--mode`, `--qa`, `--from`, `--user-refine` 등) 은 각 SKILL.md. QA 5단계 단일 정의는 [`CONVENTIONS.md`](CONVENTIONS.md) §1.
+전체 옵션 조합·default·QA 의미는 각 SKILL.md `argument-hint` / `## Usage`.
 
 ---
 
 ## 🤝 Agents
 
-| Agent | 모델 | 역할 |
+autopilot-\* 가 내부에서 자동 라우팅하는 전문 팀. 사용자는 보통 이름을 명시하지 않는다.
+
+| Agent | 모델 | 의의 |
 |---|---|---|
-| [기획팀](agents/plan-team.md) | opus | 구현 plan 문서 작성·갱신 (source code 기반 step-by-step). `code-plan` / `code-refine` 자동 호출 |
-| [품질관리팀](agents/qa-team.md) | opus (light: sonnet) | QA 라우터 — code-review / plan-review / test (syntax→import→smoke→functional→integration) / ml-debug / data-curate. 모두 read-only |
-| [연구팀](agents/research-team.md) | opus (fact-check: sonnet) | 연구 라우터 — plan-review (paper-grounding) / research-survey / fact-check (verbatim cards 대조) |
-| [자료팀](agents/material-team.md) | opus | 자료 수집·시각·분석 라우터 — browser-fetch (paywall/SPA Playwright) / pdf-extract (caption-aware figure) / web-image-search (reference 그림) / figure-gen (matplotlib 자산) / data-script (CSV 집계·log 통계·표). _2026-05-25 분석팀 + 탐색팀 통합_ |
-| [디자인팀](agents/design-team.md) | opus | 시각 산출물 라우터 — maker (UI mockup·디자인 토큰·컴포넌트·다이어그램·슬라이드 비주얼·아이콘) / critic (read-only 비평) |
-| [개발팀](agents/dev-team.md) | sonnet | 코드 작업 라우터 — backend / frontend (user-facing app) / refactor (preserve-behavior) / new-lib (library/CLI/research) |
-| [편집팀](agents/editorial-team.md) | opus | 사용자 영역 문서 라우터 — translate (영문↔국문) / polish (판교체 회피·표기 일관성) / review (read-only) |
-| [codex-review-team](agents/codex-review-team.md) | Codex CLI (GPT-5) + opus orchestrator | 외부 hostile reader 관점 review (`--qa adversarial` 자동) |
+| [기획팀](agents/plan-team.md) | opus | 구현 plan 문서 작성·갱신 (code-plan/-refine) |
+| [개발팀](agents/dev-team.md) | sonnet | 코드 작업 — backend/frontend/refactor/new-lib |
+| [품질관리팀](agents/qa-team.md) | opus (light: sonnet) | QA — code-review/plan-review/test/ml-debug/data-curate (read-only) |
+| [연구팀](agents/research-team.md) | opus (fact-check: sonnet) | plan-review(paper-grounding)/research-survey/fact-check |
+| [자료팀](agents/material-team.md) | opus | 자료 수집·시각·분석 — browser-fetch/pdf-extract/web-image-search/figure-gen/data-script |
+| [디자인팀](agents/design-team.md) | opus | 시각 산출물 — maker (제작) / critic (read-only 비평) |
+| [편집팀](agents/editorial-team.md) | opus | 사용자 향 문서 — translate/polish/review |
+| [codex-review-team](agents/codex-review-team.md) | Codex CLI (GPT-5) + opus | 외부 hostile reader 관점 review (adversarial 자동) |
 
-**직접 호출** — 작은 작업 / 단발성 검토는 `Agent(개발팀)` / `Agent(품질관리팀)` / `Agent(연구팀)` / `Agent(자료팀)` / `Agent(디자인팀)` / `Agent(편집팀)` 등으로 autopilot 우회. plan/log 가 안 남으므로 추적 필요한 작업은 autopilot 으로.
+**직접 호출** — 추적 안 남아도 되는 단발 작업은 `Agent(개발팀)` / `Agent(연구팀)` 등으로 autopilot 우회. plan/log 가 필요하면 autopilot 으로.
 
-### user_profile 참조 매트릭스
-
-각 agent 가 _작업 시작 자리_ 에서 Read 해 default 로 따르는 `~/.claude/user_profile/` 파일. `analyze-user` 가 본 매트릭스의 자료를 생성·갱신.
-
-| Agent | Read 대상 (작업 시작 시) | 이유 |
-|---|---|---|
-| 자료팀 | `01_*` · `03_*` · `04_*` · `05_*` · `06_*` | figure / 슬라이드 / 데이터 분석 시각 + 도메인 용어 (caption / 슬라이드 약자) + 자료 보고 톤 |
-| 디자인팀 | `01_*` · `03_*` · `05_*` · `06_*` | UI mockup · 슬라이드 비주얼 · 다이어그램 톤 + 도메인 용어 (UI 표현) + feedback 패턴 |
-| 연구팀 | `01_*` · `02_*` · `04_*` · `05_*` · `06_*` | paper figure 인용 양식 + 본문 톤 + 검증 방법론 + 도메인 용어 + 작업 흐름 |
-| 편집팀 | `01_*` · `02_*` · `03_*` · `04_*` · `05_*` · `06_*` · `07_*` | 사용자 향 문서 전반 (전 7 aspect) — figure caption · paper · 슬라이드 · 분석 표현 · 도메인 약자 · 응답 톤 · 코드 관련 문서 |
-| 기획팀 | `02_*` · `04_*` · `05_*` · `06_*` · `07_*` | plan 작성 톤 + 검증 + 도메인 용어 + 작업 흐름 + 코드 컨벤션 (plan 안 코드) |
-| 개발팀 | `04_*` · `05_*` · `06_*` · `07_*` | 코드 안 metric·검증 + 변수명·함수명 약자 + feedback + model 폴더·config·prefix·preferred layer (autopilot-spec scaffold / autopilot-lab Phase 2 / autopilot-code) |
-| 메인 Claude | `04_*` · `05_*` · `06_*` · `07_*` | 사용자 분석 자리 응답 + 도메인 약자 인지 + 응답 톤·feedback + 코드 컨벤션 (autopilot-lab Step 0 / autopilot-spec Phase 0·2 / autopilot-code 4 원칙 prepend) |
-
-> **적극적 매핑** (2026-05-26): 각 agent 가 _최소 4-5 aspect_ 참조. 도메인 용어 / 작업 흐름 / 응답 톤 자리 일관성 보강.
-
-본 매트릭스의 single source 는 [`~/.claude/user_profile/README.md`](user_profile/README.md). drift 발견 시 그쪽이 진실.
-
+각 agent 가 작업 시작 자리에서 Read 하는 `user_profile/` aspect 매트릭스는 → [`user_profile/README.md`](user_profile/README.md) (single source).
 
 ---
 
-## ⚙️ 운영 룰
+## 📚 더 깊이
 
-자동 호출 패턴은 글로벌 [`CLAUDE.md`](CLAUDE.md) 가 단일 source of truth:
+| 문서 | 내용 |
+|---|---|
+| [`CLAUDE.md`](CLAUDE.md) | 응답 원칙 §1~§8 · §6 autopilot 호출 룰 · 도메인 트리거 · Drift-Free Essentials |
+| [`CONVENTIONS.md`](CONVENTIONS.md) | QA 5단계 정의 · agent model · 산출물 컨벤션 · cross-doc invariants (family-wide 단일 출처) |
+| [`AUTOPILOT_FLOWS.md`](AUTOPILOT_FLOWS.md) | 4 트랙 체이닝 청사진 · 호출 예시 · 서브에이전트 분기 · 폴더 구조 |
+| [`DESIGN_PRINCIPLES.md`](DESIGN_PRINCIPLES.md) | autopilot 아키텍처 설계 원칙 |
+| [`user_profile/README.md`](user_profile/README.md) | cross-project 사용자 프로필 6 aspect · agent 참조 매트릭스 |
 
-- **§6 autopilot-\* 호출 Pre-check** — turn 첫 단계 분기 판단 + 옵션 자동 구성 + 자연어 요약 컨펌 + §5 자율 진행 적용
-- **도메인 트리거 표** — doc·research major-level 수정 / QA·model invariant 작업 / 세션 시작
-- **신규 vs 재진입 자동 분기** — autopilot-* 5 개 (`code` / `spec` / `lab` / `research` / `design`) 모두 호출 자리에서 _`pipeline_state.yaml` 또는 `design_state.yaml` 자동 검사 + 발화 의도 분류_ → 신규 vs 재진입 자동. `--from <step>` 명시 없어도 동작 (명시 시 그대로). 자세한 통합 패턴 [CONVENTIONS §6.4](CONVENTIONS.md#64-autopilot-family-의-컨텍스트-자동-감지-신규-vs-재진입-통합-패턴), skill 별 발화→stage 매핑은 각 SKILL.md 의 `## Context Auto-Detection` 절
+### 🔁 동기화
 
-ceremony 큰 9 개 (autopilot-* 8 + analyze-user) 의 자연어 trigger 신호 한눈에:
-
-| Skill | Trigger 신호 (자연어 발화) | Default 옵션 권장값 |
-|---|---|---|
-| `autopilot-code` | "X 기능 만들어줘" / "X 디버그해봐" / "이 에러 고쳐줘" / 코드 변경 의도. _라이브러리·연구·앱 모두_. `specs/<name>/` 발견 시 spec mode 별 추가 logic 자동 | `--mode dev/debug` 자동 추론 · `--qa thorough` (dev) / `standard` (debug) |
-| `autopilot-spec` | "X 앱 만들어줘" (app) / "라이브러리 정리·공개" (library,cli) / "연구 코드 정돈·재현성" (research,cli) / "ASR baseline 시작" (research,cli) | `--mode auto` (default — 발화·코드 단서로 자동 추론) · `--qa standard` · **scaffold 5종 통일 + 중간 컨펌 6-8 자리 default** (빠른 진행 발화 시 일괄 축소) · ML/DL 자리는 Phase 1.5 ckpt 사전 검증 자동 |
-| `autopilot-ship` | "Vercel 셋업" / "배포 셋업" / "env 변경" / "도메인 연결" / "migration 운영 배포" | `--qa standard` (default) · 첫 호출 시 호스팅 선정 + CI/CD + env + domain 자동 진행, 재호출 시 발화 자리 (env / domain / migration) 만 |
-| `autopilot-lab` | "lr 비교" / "ablation 돌려" / "X 모델 prototype 빨리" / 실험 의도. similar_models 자동 추천 | `--mode auto` 추론 (ml 우세) · `--qa light` (default — 실험 prototype 빠른 cycle; high-stakes 발화 시 standard+ 자동 상향) |
-| `autopilot-draft` | "발표 자료 만들어줘" / "논문 본문 작성" / "rebuttal 응답 작성" / "보고서 작성" | `--mode paper/presentation/doc` 자동 추론 · `--qa thorough` |
-| `autopilot-design` | "UI mockup 그려줘" / "디자인 토큰 잡아줘" / "슬라이드 비주얼" / "다이어그램 그려줘" / 시각 산출물 의도 | `--scope ui/webapp/slide/icon/diagram/mixed` 자동 추론 · `--artifact standalone/project` (stack 유무 자동) · 렌더-검증 의무 · `--qa thorough` · autopilot-spec 의 app mode 에서 자동 호출 |
-| `autopilot-research` | "X 분야 조사" / "동향 알려줘" / "literature review" / "표준 비교" | `--mode academic/technology/market` 자동 추론 · `--depth medium` · `--qa thorough` |
-| `autopilot-refine` | doc/research artifact 의 major-level 수정 (3-criteria — 사용자 명시 "major"/"v{N+1}"/"전면 재작성" / 구조 ≥200 줄 / 외부 검토 직전 ceremony) | `--qa thorough` (default) · 자동 apply (STRUCT 만 halt) |
-| `autopilot-apply` | "cheatsheet 를 실제 LaTeX 에 적용" / "mutation 직접 붙여줘" / "paste 대신 적용" / 문서 변경을 실제 소스에 반영 의도 | `--target latex` · `--isolation branch` · git branch 위 적용 + compile gate + latexdiff (자동 merge 안 함) |
-| `analyze-user` | "내 figure 스타일 분석해줘" / "발표 자료들 보고 프로필 갱신" / "user_profile 업데이트" / cross-project 사용자 자료 분석 의도 / 새 paper·발표·보고서 완성 직후 반영 의도 | `<aspect>` 발화 추론 (figure / writing / presentation / analysis / domain / collab; 전부 시 `all`) · `--mode update` (default) / `init` (첫 셋업) · `--qa` 없음 (adversarial 고정) |
-
-각 skill 의 _상세 trigger·override 1순위·skip 조건_ 은 SKILL.md `## Default Invocation Rule` 섹션 single source — `/sync-skills` 자동 동기화.
-
----
-
-## 🔁 동기화
-
-- `/sync-skills` — 본 README 갱신
-- `/sync-skills --check` — drift 확인만
+- `/sync-skills` — 본 README 갱신 · `/sync-skills --check` — drift 확인만
 
 GitHub: [dmlguq456/claude_setting](https://github.com/dmlguq456/claude_setting)

@@ -96,65 +96,64 @@ Agents:  변경 0 / 신규 0 / 삭제 0 / 동일 8
 
 ### Step 4: Generate dashboard sections
 
-#### 4a. 워크플로우 다이어그램
+> **README 의 독자 = GitHub 사용자뿐** (2026-05-27 재설계). README 는 더 이상 Claude 세션 시작 강제 Read 대상이 아니다 (CLAUDE.md 부트스트랩에서 제거 — skill 카탈로그는 자동 주입, 운영 라우팅은 CLAUDE.md §6, 흐름 청사진은 AUTOPILOT_FLOWS.md on-demand). 따라서 README 는 _의미 지도_ 로만 짠다 — 옵션 spec·trigger 룰·QA 정의·상세 그래프는 _넣지 않고 canonical 에 링크_. 분량은 _순 감소_ 가 목표 (디테일을 다른 파일로 복사 X — 이미 canonical 에 있으면 drop + link).
 
-A (사전조사) → B (코드)/C (문서) → D (점검) → E (정정) 5 갈래 큰 그림만. 옵션 플래그·호출 구조는 README 본문에서 _자연어 사용 표_ 가 대체.
+#### 4a. 워크플로우 다이어그램 — 개념 1 개만
+
+README 에는 _4 트랙 개념 다이어그램_ 1 개만 둔다 (문서 / 연구·실험 / 앱 / 라이브러리·CLI 의 단계 순서). 각 트랙 subgraph 안에 단계 체인 + 반복 자리 `↻` 표시.
 
 ```mermaid
 flowchart LR
-    ANA["analyze-project<br/>(code/paper/doc)"]
-    RES["autopilot-research"]
-    CODE["autopilot-code"]
-    DOC["autopilot-draft"]
-    REF["autopilot-refine<br/>(doc + research 정정)"]
-    AUD["audit<br/>(모든 산출물 점검)"]
-    ANA --> CODE
-    ANA --> DOC
-    RES --> CODE
-    RES --> DOC
-    RES --> REF
-    DOC --> REF
-    RES --> AUD
-    DOC --> AUD
-    CODE --> AUD
-    AUD -.->|auto-fix doc/research| REF
-    AUD -.->|auto-fix plans| CODE
+    subgraph DOC["📄 문서"]
+        direction LR
+        d1["analyze-project /<br/>autopilot-research"] --> d2[autopilot-draft] --> d3["autopilot-refine ↻"] --> d4[autopilot-apply]
+    end
+    subgraph EXP["🔬 연구·실험"]
+        direction LR
+        e1["analyze-project /<br/>autopilot-research"] --> e2["autopilot-spec ↻"] --> e3["autopilot-code ↻"] --> e4["autopilot-lab ↻"]
+    end
+    subgraph APPDEV["💻 앱"]
+        direction LR
+        a1["autopilot-spec ↻"] --> a2["autopilot-design"] --> a3["autopilot-code ↻"] --> a4["autopilot-ship ↻"]
+    end
+    subgraph LIB["📦 라이브러리·CLI"]
+        direction LR
+        l1[analyze-project] --> l2["autopilot-spec ↻"] --> l3["autopilot-code ↻"]
+    end
 ```
 
-> 다이어그램 직후 본문은 _5 카테고리 bullets_ (A 사전조사 / B 코드 / C 문서 / D 점검 / E 정정) + _3-tier 산출물 컨벤션 reference_ (CONVENTIONS.md §5) 까지만. 파이프라인별 prose·체이닝 패턴 prose·사용자 개입 지점 prose 는 새 layout 에서 _넣지 않음_ (자연어 사용 표 §2 가 대체).
+> 다이어그램 직후 본문은 _트랙별 한 문단 narrative_ (왜 이 순서 / 무엇을 남기나) + 점검·정정·사용자 프로필 한 줄 + 체이닝 청사진 reference (AUTOPILOT_FLOWS.md) + 이름 읽는 법 한 줄.
 >
-> **Agent 호출 구조 mermaid 는 자동 생성에서 제외** — 새 README 핵심 메시지는 _자연어로 부르면 메인 Claude 가 알아서 컨펌받고 진행_ 이라 호출 구조 강조는 정보 dump. 필요 시 각 agent .md 또는 글로벌 CLAUDE.md 도메인 트리거에서 참조.
+> **_넣지 않음_ (의도적 drop + link)** — (1) 전체 Skill 호출 그래프 (6 카테고리 의존) → AUTOPILOT_FLOWS §1.1·§3.2 가 텍스트로 대체, (2) 산출물 I/O 그래프 → AUTOPILOT_FLOWS §4 + CONVENTIONS §5 가 대체, (3) Agent 호출 구조 mermaid. 모두 canonical 에 이미 있으므로 _복사하지 말고 drop_.
 
-#### 4b. README 본문 구조 (canonical layout — 자연어 사용 표 중심)
+#### 4b. README 본문 구조 (canonical layout — meaning-first 의미 지도)
 
 `~/.claude/README.md` 가 본 sync 의 단일 진실 출처 (reference layout). sync 시 다음 순서로 7 섹션을 채운다:
 
-1. **Header** — title + source 안내 (`/sync-skills` 자동 갱신 표지). sync 시각·이력은 git commit log 가 단일 출처.
-2. **📊 워크플로우** — workspace 전제 quote (Claude 는 프로젝트 루트에서 실행 / `.claude_reports/` 현재 dir 생성 / `--refs` flag 없음) + sub-section 두 개:
-   - `### Skill 호출 흐름` — Diagram 1 (위 4a) + 5 카테고리 한 줄 (A 사전조사 / B 코드 / C 문서 / D 점검 / E 정정)
-   - `### 산출물 I/O (\`.claude_reports/\` 관점)` — Diagram 2 (산출물 I/O mermaid) + 누적 디렉토리 안내 + D/E 역할 한 줄 (D 는 OUT 을 _읽기만_ + 자동 fix dispatch / E 는 OUT 을 _read+write_ 양방향)
-   - 3-tier 산출물 컨벤션 reference + 산출물 위치·scope·함정 reference (글로벌 CLAUDE.md "Drift-Free Essentials")
-3. **🗣️ 사용 방식** (핵심 섹션 — _§3.(1) 자연어 발화 예시 표는 사람 유지 영역_)
-   - 두 갈래 평등 prose 한 줄 (자연어 발화 / 직접 slash 입력 — 동일 skill 동일 동작)
-   - `### (1) 자연어 발화로 부르기` — prose (메인 Claude 의 옵션 자동 구성 + 자연어 한 줄 요약 + 옵션 펼침 + 옵션 선택 근거 컨펌 흐름 + yes/수정/cancel/자율 진행) + ceremony 큰 5 (autopilot-* 4 + analyze-user) vs 작은 3 (audit / notes / analyze-project) 컨펌 의무 안내 + 글로벌 [`CLAUDE.md`](CLAUDE.md) §6 reference + **자연어 발화 예시 표** (사용자 발화 / 메인 Claude 컨펌 자연어 요약 — 6 행 정도, _사람 유지_)
-   - `### (2) slash 명령 직접 입력` — prose (직접 입력 = 의도 명시 = 컨펌 skip 즉시 invoke 안내) + slash 예시 code block (autopilot-code / autopilot-draft / autopilot-research / autopilot-refine / audit / notes 6 줄, SKILL.md frontmatter `argument-hint` 에서 자동 생성) + QA 5단계 단일 정의는 [`CONVENTIONS.md`](CONVENTIONS.md) §1 reference
-4. **📋 Skills** — name (SKILL.md 링크) / 역할 표만. 옵션 dump **X**. 표 직후 sub-skill 한 줄 + 세부 옵션은 각 SKILL.md `## Usage` reference 안내.
-5. **🤝 Agents** — name (agent .md 링크) / 모델 / 역할 표. _자동 호출자 컬럼 X_ (새 패턴은 자연어로 부르면 메인 Claude 가 알아서). 직접 호출 안내 한 단락.
-6. **⚙️ 운영 룰** — 한 단락. _자동 호출 패턴은 글로벌 [`CLAUDE.md`](CLAUDE.md) 가 단일 source of truth_ 안내. §6 autopilot-* 호출 패턴 + 도메인 트리거 표 reference. 각 SKILL.md `## Default Invocation Rule` 은 _그 SKILL.md 안에서만_ 의미 — README 에 모으지 않음.
-7. **🔁 동기화** — `/sync-skills` 두 명령 + GitHub 링크
+1. **Header** — center div: title + 한 줄 설명 + 섹션 anchor 링크. sync 시각·이력은 git commit log 가 단일 출처.
+2. **🧭 Mental model** — 핵심 한 단락 (자연어로 부르면 메인 Claude 가 컨텍스트 읽어 옵션 조립·컨펌·실행 / 사용자는 운전자) + bullet 3 (autopilot-\* = 추적형 파이프라인 / 직접 처리 = 가벼운 일 / 입력은 `.claude_reports/` 자동 발견·cross-project 별 세션) + _의미 지도_ quote (옵션 spec·trigger·QA 는 SKILL.md·CONVENTIONS·CLAUDE.md 가 단일 출처, 링크만).
+3. **🌳 큰 갈래 4 트랙** — Diagram (위 4a 개념 1 개) + 트랙별 한 문단 narrative (문서 / 연구·실험 / 앱 / 라이브러리·CLI — 왜 이 순서 / 무엇을 남기나) + 점검·정정·사용자 프로필 한 줄 quote + 체이닝 청사진 reference ([`AUTOPILOT_FLOWS.md`](AUTOPILOT_FLOWS.md)) + 이름 읽는 법 한 줄.
+4. **📋 Skill 카탈로그 — 의의·핵심** — name (SKILL.md 링크) / _의의_ (왜 있나 + 핵심) 2 컬럼 표. _역할 dump·옵션 컬럼 X — 왜 존재하는지 중심_. 표 직후 sub-skill 한 줄 (autopilot 내부 자동 호출) + 세부 옵션은 SKILL.md argument-hint / QA 정의는 CONVENTIONS §1 reference.
+5. **📦 산출물의 구조적 의미** — per-project (`.claude_reports/`) vs cross-project (`user_profile/`) 두 축 bullet + 3-tier T1/T2/T3 _왜 그렇게 나뉘나_ 한 단락 (사용자는 T1 만 / specs/ 한 폴더 누적) + 상세 매핑 reference (CONVENTIONS §5·§6.5, AUTOPILOT_FLOWS §4, CLAUDE.md Drift-Free Essentials).
+6. **🗣️ 부르는 법** — 두 갈래 한 줄 (자연어 / slash 동일 동작):
+   - `### (1) 자연어 발화` — prose (옵션 자동 구성 + 자연어 요약 컨펌 + yes/수정/cancel/자율 진행 + ceremony 큰 10 (autopilot-\* 9 + analyze-user) vs 작은 3 컨펌 의무) + [`CLAUDE.md`](CLAUDE.md) §6 reference + **자연어 발화 예시 표** (_사람 유지 영역_)
+   - `### (2) slash 직접 입력` — prose (의도 명시 = 즉시 invoke) + slash 예시 code block (_축약 4 줄_: autopilot-code / autopilot-draft / autopilot-refine / audit — argument-hint 에서 자동 생성, 전체 syntax dump X) + 전체 옵션은 SKILL.md reference.
+7. **🤝 Agents** — name (agent .md 링크) / 모델 / _의의_ 표 (_자동 호출자·역할 dump X_) + 직접 호출 안내 한 단락 + user_profile 참조 매트릭스는 [`user_profile/README.md`](user_profile/README.md) reference (README 에 매트릭스 표 _넣지 않음_).
+8. **📚 더 깊이 + 🔁 동기화** — canonical 문서 reference index 표 (CLAUDE.md / CONVENTIONS / AUTOPILOT_FLOWS / DESIGN_PRINCIPLES / user_profile/README) + `/sync-skills` 두 명령 + GitHub 링크.
 
 원칙:
-- prose 최소화, 표·bullet 우선. 단 §2 _자연어 사용 방식_ 섹션은 _자연어 발화 예시 표_ 가 핵심 anchor 라 단단히 유지.
-- 같은 정보를 두 군데 반복하지 않음 (옵션 spec 은 각 SKILL.md 가 source, autopilot 호출 룰은 글로벌 CLAUDE.md §6 가 source).
-- _넣지 않음_ 항목 (의도적 제거):
-  - 호출 구조 mermaid (Agent 측)
-  - "자주 쓰는 명령" 시나리오 × 명령 표
-  - "핵심 옵션 3가지" prose (`--user-refine` / `--from` / `--qa`)
-  - 파이프라인별 prose / 체이닝 패턴 prose
-  - Skills 표의 "주요 옵션" 컬럼 (argument-hint 자동 추출)
-  - 운영 룰 표 (skill 별 4컬럼 dump)
+- prose 최소화, 표·bullet 우선. 단 §6.(1) _자연어 발화 예시 표_ 는 핵심 anchor 라 단단히 유지.
+- 같은 정보 반복 X — 옵션 spec 은 SKILL.md, autopilot 호출 룰은 CLAUDE.md §6, QA 정의·폴더 컨벤션은 CONVENTIONS, 체이닝 청사진은 AUTOPILOT_FLOWS 가 각각 source. README 는 _의미만_ 들고 나머지는 링크.
+- _넣지 않음_ 항목 (의도적 drop + link, 복사 X):
+  - 전체 Skill 호출 그래프 mermaid (6 카테고리) → AUTOPILOT_FLOWS
+  - 산출물 I/O 그래프 mermaid → AUTOPILOT_FLOWS §4 + CONVENTIONS §5
+  - Agent 호출 구조 mermaid
+  - 운영 룰 trigger 표 (skill 별 4컬럼 dump) → CLAUDE.md §6 + 각 SKILL.md
+  - user_profile 참조 매트릭스 → user_profile/README.md
+  - slash 전체 syntax block → 축약 4 줄 + SKILL.md
+  - Skills 표의 옵션 컬럼
 
-**§3.(1) 자연어 발화 예시 표는 _사람 유지 영역_** — 자연어 발화 예시 표는 사람 손길 큐레이션 자료라 자동 생성 어려움. sync-skills 는 _현행 README 의 §3.(1) 자연어 발화 표 + 그 직전 prose 한 두 단락 을 그대로 보존_ 하고 (SHA 비교 skip), 나머지 (§1·§2·§3.(2)·§4-§7) 만 자동 갱신. 사용자가 §3.(1) 을 직접 편집해도 sync-skills 가 덮어쓰지 않음.
+**§6.(1) 자연어 발화 예시 표는 _사람 유지 영역_** — 사람 손길 큐레이션 자료. sync-skills 는 _현행 README 의 §6.(1) 자연어 발화 표 + 그 직전 prose_ 를 그대로 보존하고 (SHA 비교 skip), 나머지만 자동 갱신. 사용자가 직접 편집해도 덮어쓰지 않음.
 
 현행 README 가 본 layout 의 reference. 대규모 변경 시 README 를 먼저 손보고 본 SKILL.md 를 동기화.
 
@@ -164,21 +163,22 @@ flowchart LR
 
 | 섹션 | 처리 |
 |---|---|
-| §1 Header | 표지 텍스트 / 운영 가이드 링크 자동 갱신 |
-| §2 워크플로우 | Diagram 1 (Skill 호출 흐름) + 5 카테고리 한 줄 + Diagram 2 (산출물 I/O `.claude_reports/` 관점) + 3-tier 컨벤션 reference 자동 갱신. workspace 전제 quote 고정 wording |
-| **§3 사용 방식** | **§3.(1) 자연어 발화 예시 표 + 그 직전 prose 는 사람 유지 영역 — 현행 wording 그대로 보존 (SHA 비교 skip).** 사용자가 직접 편집한 발화 예시 표 그대로. 단 _섹션 헤딩 자체_ 가 누락됐으면 placeholder 헤딩 + 한 줄 안내만 자동 삽입. §3.(2) slash 예시 code block 은 각 SKILL.md frontmatter `argument-hint` 에서 자동 생성 + ceremony 큰 5 (autopilot-* 4 + analyze-user) vs 작은 3 (audit / notes / analyze-project) 컨펌 의무 안내·QA 5단계 reference 자동 갱신 |
-| §4 Skills 표 | name / 역할 자동 추출. 옵션 컬럼 X. 새 skill 추가·삭제 자동 반영 |
-| §5 Agents 표 | name / 모델 / 역할 자동 추출. 자동 호출자 컬럼 X |
-| §6 운영 룰 | _글로벌 CLAUDE.md §6 가리킴 한 단락_. 표 자동 채우기 X |
-| §7 동기화 | 두 명령 + GitHub 링크 고정 wording |
+| §1 Header | center div 표지 / anchor 링크 자동 갱신 |
+| §2 Mental model | 핵심 한 단락 + bullet 3 + _의미 지도_ quote 자동 갱신 (고정 메시지: 자연어 호출·운전자·canonical 링크) |
+| §3 4 트랙 | Diagram (개념 1 개) + 트랙별 narrative + 점검·정정·프로필 quote + AUTOPILOT_FLOWS reference 자동 갱신 |
+| §4 Skill 카탈로그 | name / _의의_ 자동 추출. 옵션·역할 dump 컬럼 X. 새 skill 추가·삭제 자동 반영 |
+| §5 산출물 구조 | 두 축 bullet + 3-tier _왜_ 한 단락 + CONVENTIONS·AUTOPILOT_FLOWS reference 자동 갱신 |
+| **§6 부르는 법** | **§6.(1) 자연어 발화 예시 표 + 그 직전 prose 는 사람 유지 영역 — 현행 wording 그대로 보존 (SHA 비교 skip).** 단 _섹션 헤딩 자체_ 누락 시 placeholder 헤딩 + 한 줄만 삽입. §6.(2) slash 예시 code block 은 argument-hint 에서 _축약 4 줄_ 자동 생성 + ceremony 큰 10 (autopilot-\* 9 + analyze-user) vs 작은 3 컨펌 의무·CLAUDE.md §6 reference 자동 갱신 |
+| §7 Agents 표 | name / 모델 / _의의_ 자동 추출. 자동 호출자 컬럼 X. user_profile 매트릭스는 표 대신 user_profile/README reference |
+| §8 더 깊이 + 동기화 | canonical reference index 표 + 두 명령 + GitHub 링크 고정 wording |
 
 **sync 시각·이력은 README 본문에 쓰지 않음** (git commit log 가 단일 출처).
 
 ### Step 5a: 편집팀 검수 (사용자 영역 wording — LLM 스러운 어조 회피)
 
-Step 5 에서 README 본문 wording 을 자동 생성·갱신한 자리 (§1 Header / §2 워크플로우 / §3.(2) slash 명령 직접 입력 / §4 Skills 표 wording / §5 Agents 표 wording / §6 운영 룰 / §7 동기화) 는 메인 Claude 가 wording 을 직접 짜므로 _LLM 스러운 인공적 어조_ (풀어쓰기 과잉·모범생 화법·친절 안내체) risk. Step 5 자동 갱신 직후 _같은 turn 안에_ `Agent(편집팀)` _다듬기 모드_ 호출해 검수.
+Step 5 에서 README 본문 wording 을 자동 생성·갱신한 자리 (§1 Header / §2 Mental model / §3 4 트랙 narrative / §4 Skill 카탈로그 wording / §5 산출물 구조 / §6.(2) slash 직접 입력 / §7 Agents 표 wording / §8 더 깊이) 는 메인 Claude 가 wording 을 직접 짜므로 _LLM 스러운 인공적 어조_ (풀어쓰기 과잉·모범생 화법·친절 안내체) risk. Step 5 자동 갱신 직후 _같은 turn 안에_ `Agent(편집팀)` _다듬기 모드_ 호출해 검수.
 
-**검수 범위** — Step 5 가 _자동 갱신_ 한 섹션만. _§3.(1) 자연어 발화 예시 표 + 그 직전 prose_ 는 _사람 유지 영역_ (이미 사람 손길 큐레이션) 이므로 검수 제외.
+**검수 범위** — Step 5 가 _자동 갱신_ 한 섹션만. _§6.(1) 자연어 발화 예시 표 + 그 직전 prose_ 는 _사람 유지 영역_ (이미 사람 손길 큐레이션) 이므로 검수 제외.
 
 **Prompt 초점** (Agent 호출 시 그대로 전달):
 - 풀어쓰기 과잉 정리 (한 줄 표현 가능한 자리)
@@ -283,10 +283,13 @@ AGENTS=$(ls ~/.claude/agents/*.md   | xargs -n1 basename .md | sort)
 
 #### 5c-3. README mermaid 노드 ↔ skill list 일관성
 
+README 는 _개념 4 트랙 다이어그램 1 개_ 만 둔다 (4a). 이 다이어그램은 _트랙 체인에 등장하는 skill_ 만 노드로 가짐 — `audit` / `notes` / `analyze-user` 는 _의도적으로 다이어그램 밖_ (사후 점검·메모·cross-project 프로필이라 트랙 체인에 안 들어감, 본문 quote·표가 대신 다룸). 따라서 노드 누락 검사 대상은 _트랙 체인 skill_ 로 한정:
+
 `~/.claude/README.md` 안 mermaid 블록 (\`\`\`mermaid ... \`\`\`) 추출 후 노드 정의 (`X["..."]`) 파싱:
 
-- 실제 _entry point_ skill (ceremony 큰 7 개 + analyze-project + audit + notes) 가 _최소 한 다이어그램_ 에 등장하나
-- 부재 entry 발견 시: 🟡 `README mermaid 에 '<missing-skill>' 노드 누락 — 다이어그램 보강 권장`
+- _트랙 체인 skill_ (analyze-project · autopilot-research · autopilot-draft · -refine · -apply · -spec · -code · -lab · -design · -ship) 이 다이어그램에 등장하나
+- 부재 시: 🟡 `README 4 트랙 다이어그램에 '<missing-skill>' 노드 누락 — 보강 권장`
+- `audit` / `notes` / `analyze-user` 는 _다이어그램 밖이 정상_ — 누락 보고 X
 
 #### 5c-4. 산출물 폴더 컨벤션 일관성
 
