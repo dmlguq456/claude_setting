@@ -333,36 +333,24 @@ mode=init 통째 교체, mode=update 누적.
 
 산출: `~/.claude/user_profile/0X_*.md` (7-10K tokens 목표, 구체 anchor 유지).
 
-### Phase 5b — Figure Reproduction + Reusable SVG Primitives Gate (**figure aspect 전용**)
+### Phase 5b — pptx 개체 추출 (**figure aspect 전용**, 사용자 참조용 자료 라이브러리 산출)
 
-목적: ① figure 재현 spec(`01` Part B)이 _실제로 재현 가능_ 한지 경험적으로 검증하고 격차를 spec 보정으로 줄인다. ② **재현에서 _재사용 SVG primitives_ 를 추출·산출한다** — 디자인팀이 다이어그램 만들 때 _prose 를 매번 SVG 로 재유도(→투박·회귀)_ 하지 않고 **결정된 SVG defs 를 복사해서 시작**하도록.
+목적: figure pptx 의 슬라이드를 SVG 로 추출해 **사용자가 pptx 에서 figure 만들 때 참조할 _벡터 개체 라이브러리_** 를 산출. _LLM 이 재현하지 않는다_ — paper architecture figure 는 사용자가 pptx 에서 직접 만들고, 본 라이브러리는 그 작업의 reference 다 (2026-05-28 정책).
 
-> **왜 텍스트 spec 만으론 부족한가** (2026-05-27 학습): figure 성향을 prose 로만 저장하면 디자인팀이 fresh run 마다 화살촉 모양·크기·_선과 화살촉 색 일치_·그림자 강도를 _디폴트로 회귀_ 시킨다 (매번 "투박함" 재교정 발생). 해결 = analyze-user 가 _재사용 가능한 실제 SVG_ 를 산출하고 디자인팀은 그걸 복사. autopilot-design 의 render→Read→fix parity 를 프로필에 적용 — figure 만 _시각 재현 대상_ 이라 본 게이트가 figure 전용. (다른 aspect 는 skip.)
+> **결정 배경**: ① 텍스트 spec 만으로 LLM 이 재현 → ~92% 천장 · ② LLM 이 primitives `<defs>` 복사로 재유도 → "투박함" 반복 거부 · ③ LLM 이 element 단위로 추출 SVG path 를 떼어 재조합 → 그래도 craft 미달. 결론: figure 본 그림은 _사용자 손_, LLM 은 _layout 가이드 + 자료 안내_ 까지. 본 Phase 는 자료 안내의 자료를 만든다.
 
 절차:
 
-> **1순위 = 원본 pptx 개체 직접 추출 (무손실 복사), LLM 재현 X** (2026-05-27 결정): 편집 가능한 vector source (figure pptx) 가 있으면 LLM 이 spec 보고 _다시 그리지 않는다_ — pptx → PDF → SVG 로 **실제 도형·텍스트 개체를 그대로 추출**한다. 재현은 ~92% 천장이라 사용자 craft 에 못 미침(반복 거부됨). 추출은 100% fidelity. pptx 없을 때만 아래 _재현 fallback_.
-
-1. **pptx → SVG 개체 추출 (1순위)**: `figure_ppt/*.pptx` (또는 변환된 `_internal/converted_pdfs/<base>.pdf`) 의 전 슬라이드를 `pdftocairo -svg -f N -l N <pdf> out.svg` 로 추출 (도형·텍스트 벡터 그대로, 임베드 spectrogram 은 raster). 산출 `~/.claude/user_profile/assets/figure/svg/<base>_slide-N.svg` (실제 figure 개체 라이브러리) + canonical 앵커 (top-level=`ex1_*.svg` 등) 복사. **이것이 figure 의 저장 형식** — PNG/PDF 단순 저장·LLM 재현을 _대체_. (LibreOffice `--convert-to svg` 도 가능하나 multi-slide 는 pdftocairo per-page 가 안정.)
-2. **재현 fallback (pptx 부재 시만)**: 편집 가능 vector source 가 없을 때만 `Agent(디자인팀, maker)` 가 `01` Part B spec + §A7 exact hex 로 direct-SVG 재현 → `assets/figure/<name>.svg`. PNG 렌더는 QA 대조용 임시(`_internal/figure_repro/`). 원본은 대조용. (이 경로는 ~92% 천장임을 명시.)
-3. **격차 측정**: 메인 skill 이 _원본 vs 재현 PNG 렌더_ 를 직접 Read 대조, 5 axis 점수화 — ① 색 일치(exact hex 픽셀) ② geometry/density ③ 텐서/도메인 glyph ④ connector/zoom 정밀(화살촉 모양·크기·_선과 화살촉 색 일치_) ⑤ 폰트(serif 수식·blackboard glyph). 각 axis _맞음 / 근사 / 어긋남_.
-4. **spec 보정 loop** (max 2): _어긋남_ axis 중 **spec 보강으로 줄일 수 있는 것**(예 isometric 각도·줄 수, density 상·하한, 폰트 glyph 주의, tint opacity, 화살촉 path·shadow 강도)을 `01 Part B` 에 _구체 수치_ 로 추가 → 재현 재시도. _원본 복제만이 무손실_ 인 잔차(exact tint lumMod·벡터 좌표)는 보정 대상 X — §B0 에 "복제 권장"으로 남김.
-5. **기록**: 최종 격차(axis별 %·잔차)를 `01` 의 _재현 테스트 교훈_ 절(§B11 류)에 누적 + `pipeline_summary` 에 figure repro gap 한 줄.
-6. **재사용 primitives 산출 (핵심 — first-class, 디자인팀 복제 source)**: 재현이 수렴하면, 디자인팀이 다이어그램 만들 때 _복사해서 시작_ 할 **`~/.claude/user_profile/assets/figure/_primitives.svg`** 생성·갱신. self-contained `<defs>` + 가시 swatch:
-   - **역할색별 화살촉 marker** — palette 색마다 1개씩(`arr-red`·`arr-green`·`arr-orange`…) → 선 색 = 화살촉 색이 _구조적으로 일치_. **단일 회색 marker 를 여러 색 선에 붙이는 버그 금지** (2026-05-27 발견된 색 불일치 원인). 화살촉 path 는 사용자 figure 의 실측 모양·크기 그대로.
-   - **shadow filter** — 사용자 figure 만큼 또렷한 강도(약한 0.16 류 금지), filter 영역 넉넉(`-30%/160%`+)해 그림자·화살촉 잘림 0.
-   - **box style** — 흰 fill + 역할색 stroke + radius + shadow 의 표준 `<rect>` 예시.
-   - 하단 swatch — 팔레트 hex·박스·화살표 샘플을 _보이게_ 배치해 시각 key 겸용.
-   = generic 다이어그램의 _결정값 source_. 디자인팀 maker 는 prose 재유도 대신 이 defs 를 복사한다.
-
-판정 기준: spec-보정-가능 axis 가 모두 _맞음/근사_ 로 수렴하면 통과. 잔차가 _원본 복제 영역_ 뿐이면 통과(그 이상은 spec 으로 못 줄임 — §B0 가 책임). max 2 loop 후에도 spec-fixable 격차 남으면 _open question_ 으로 기록.
+1. **pptx → SVG 슬라이드 추출**: `figure_ppt/*.pptx` (또는 변환된 `_internal/converted_pdfs/<base>.pdf`) 의 전 슬라이드를 `pdftocairo -svg -f N -l N <pdf> out.svg` 로 추출 (도형·텍스트 벡터, 임베드 spectrogram 은 raster). 산출 `~/.claude/user_profile/assets/figure/svg/<base>_slide-N.svg`. (LibreOffice `--convert-to svg` 도 가능하나 multi-slide 는 pdftocairo per-page 가 안정.)
+2. **canonical 앵커 복사** (옵션) — 대표 슬라이드(top-level pipeline 등)를 `assets/figure/ex1_*.svg` 류로 복사해 `01 §B0` 에서 참조하기 쉽게.
+3. **`01 §B0` 참조 갱신** — figure 참조를 raster PNG → 추출 SVG 링크로 (clone 가능 형태).
 
 산출:
-- **`~/.claude/user_profile/assets/figure/svg/<base>_slide-N.svg`** — pptx 전 슬라이드 개체 추출 (무손실 복사; 디자인팀이 _실제 개체를 복사_ 하는 source 라이브러리)
-- **canonical 앵커** `assets/figure/ex1_*.svg` 등 — 대표 figure (top-level/unit module) 를 추출본에서 복사
-- **`assets/figure/_primitives.svg`** — 재사용 defs(역할색별 marker·shadow·box)+swatch. _추출 개체에서 curated_ — pptx 없는 _신규_ 다이어그램(워크플로우 등) 자리용
-- `01` Part B/B0 보강 — figure 참조를 _추출 SVG 링크_ 로 갱신(PNG embed 대체)
-- Phase 5b verdict — 추출 슬라이드 수 + canonical 앵커 + (fallback 경로 썼으면) 재현 axis 수렴.
+- **`assets/figure/svg/<base>_slide-N.svg`** — 추출 개체 라이브러리. _사용자가 pptx 에서 figure 작업할 때 reference + 디자인팀 layout 가이드 산출 시 reference_.
+- `01` §B0 — 라이브러리 위치·canonical 앵커 안내.
+- Phase 5b verdict — 추출 슬라이드 수 + canonical 앵커 list.
+
+> _LLM 재현 fallback·primitives 산출은 폐기 (2026-05-28)._ 추출 라이브러리가 부재해도 LLM 이 재현을 시도하지 않는다 — 사용자에 한 줄 안내 후 layout 가이드만 산출.
 
 ### Phase 6 — Pipeline Summary
 

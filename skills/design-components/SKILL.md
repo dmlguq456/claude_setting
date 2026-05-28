@@ -77,11 +77,15 @@ Agent(디자인팀, mode=maker):
 Agent(디자인팀, mode=maker):
   "다이어그램 작성.
    - 단순 flow/sequence/architecture → mermaid syntax
-   - 정밀 레이아웃·커스텀 비주얼 (관계 그래프·매트릭스·논문 figure 류) → 직접 SVG
+   - 관계 그래프·매트릭스·워크플로우 (LLM 가능 영역) → 직접 SVG
      (many-to-many 는 화살표 대신 매트릭스/레인/거터 직각 라우팅 — 교차 회피)
    - 자유 스케치 → excalidraw
-   **산출 후 반드시 PNG 렌더 → Read 로 보고 관통/overlap 수정** (Step 4)
-   산출 위치: 03_components/diagrams/<name>.svg|.mmd|.excalidraw + 검증용 .png"
+   - **논문용 architecture figure (사용자 deck 양식) → layout 가이드만**:
+     블록 list(라벨·역할색·위치) + 흐름 + 강조 자리 markdown sketch.
+     본 그림은 사용자가 pptx 에서 직접 (assets/figure/svg/ + figure_ppt/ 안내).
+     LLM 시각 craft 한계 — autopilot-design 정책 참조.
+   **산출 후 반드시 PNG 렌더 → Read 로 보고 관통/overlap 수정** (Step 4) — paper architecture 는 wireframe 만이라 검증 가벼움.
+   산출 위치: 03_components/diagrams/<name>.svg|.mmd|.excalidraw|.md + 검증용 .png"
 ```
 
 ### Step 3: 실제 코드 통합 (scope=ui 만)

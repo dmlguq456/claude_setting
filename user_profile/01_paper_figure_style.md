@@ -2,17 +2,18 @@
 aspect: figure
 owner: 사용자
 mode: init
-updated: 2026-05-27
+updated: 2026-05-28
 source: paper PDF 8 / figure_ppt 5 (PNG 54) / code architecture.png 2
 consensus: 3-instance (run A/B/C) + reproduction-grade 정밀 관찰 보강
-grade: macro-taste + object-library (원본 개체는 assets/figure/svg/ 복사가 기본; micro 재현 recipe 는 _internal/figure_reproduction_spec.md fallback)
+grade: macro-taste + 사용자 작업 reference (paper architecture figure 는 사용자가 pptx 에서 직접; 본 프로필은 거시 감각 가이드 + 원본 개체 라이브러리 위치 안내)
 changelog:
-  - "2026-05-27: 재현 micro spec(구 Part B B1-B11)을 _internal 로 이관, Part B 를 거시 배치 감각+개체 라이브러리로 재구성 (LLM 재현 포기 → 원본 pptx 개체 복사). 265→121 줄."
+  - "2026-05-27: 재현 micro spec(구 Part B B1-B11)을 _internal 로 이관, Part B 를 거시 배치 감각+개체 라이브러리로 재구성. 265→121 줄."
+  - "2026-05-28: paper architecture figure 는 사용자가 pptx 에서 직접 그리는 것으로 정책 확정. LLM 시도(재현/primitives/element 재조합) 셋 다 폐기. 본 프로필은 layout 가이드 + 자료 라이브러리 안내만. `_primitives.svg` 참조 제거."
 ---
 
 # 01. Paper / Figure 제작 스타일
 
-> Speech separation·enhancement·restoration 연구자의 figure/diagram 양식. architecture diagram + booktabs 표가 중심, line plot·scatter 는 절제적. **Part A** = 무엇을/왜(패턴 카탈로그), **Part B** = 거시 배치 감각 + 원본 개체 라이브러리(`assets/figure/svg/` 복사 source). 디자인팀·자료팀이 figure/표/슬라이드 비주얼 만들 때 1순위 참조 — _다시 그리지 말고 원본 개체를 복사_.
+> Speech separation·enhancement·restoration 연구자의 figure/diagram 양식. architecture diagram + booktabs 표가 중심, line plot·scatter 는 절제적. **Part A** = 무엇을/왜(패턴 카탈로그), **Part B** = 거시 배치 감각 + 원본 개체 라이브러리 위치(사용자 pptx 작업 reference). _paper architecture figure 의 본 그림은 사용자가 pptx 에서 직접 — LLM(디자인팀)은 layout 가이드 + 자료 안내까지._
 
 ---
 
@@ -92,19 +93,18 @@ tint halo = 위 base 색의 ~15% 농도(PPT lumMod/lumOff). exact tint 는 **원
 
 ---
 
-# Part B — 거시 배치 감각 + 원본 개체 라이브러리
+# Part B — 거시 배치 감각 + 원본 개체 라이브러리 (사용자 작업 reference)
 
-> **재현(다시 그리기) 포기 — 원본 개체 복사가 기본** (2026-05-27): figure 는 LLM 이 spec 보고 다시 그리지 않는다. `assets/figure/svg/<deck>_slide-N.svg` (pptx 추출, 100% fidelity) 에서 **실제 도형·텍스트 개체를 복사·재배치**한다. 같은 계열 새 figure 는 슬라이드 도형 `cp` 후 라벨·색만 교체가 최정밀. 본 Part 는 _그릴 때의 micro 수치_ 가 아니라 _개체를 어떻게 고르고 배치하나_ 의 거시 취향이다. micro 재현 recipe(geometry H-비율·box/marker/glyph 좌표·단계별 절차·primitives defs)는 pptx 없는 fallback 자리에서만 → **`_internal/figure_reproduction_spec.md`**.
+> **paper architecture figure 는 사용자가 pptx 에서 직접 그린다** (2026-05-28 정책). LLM(디자인팀) 의 시도 — spec 재현 / primitives 복사 / element 단위 재조합 — 셋 다 craft 한계로 거부됨. 결론: figure 본 그림은 사용자 손, LLM 은 _layout 가이드_ 까지만. 본 Part 는 사용자가 pptx 에서 작업할 때의 _거시 감각 가이드_ + _원본 개체 라이브러리 위치_ 다. micro 재현 recipe(geometry·marker·glyph 수치)는 폐기 영역 — `_internal/figure_reproduction_spec.md` 에 historical archive.
 
-## B0. 원본 개체 라이브러리 (복사 source)
+## B0. 원본 개체 라이브러리 (사용자 pptx 작업 시 reference)
 
-- **`assets/figure/svg/`** — 5 deck 54 슬라이드를 `pdftocairo -svg` 로 추출한 벡터 개체 (도형·텍스트·색 그대로, 임베드 spectrogram 만 raster). 박스·화살표·glyph·라벨을 여기서 복사.
+- **`assets/figure/svg/`** — 5 deck 54 슬라이드를 `pdftocairo -svg` 로 추출한 벡터 개체 (도형·텍스트·색 그대로, 임베드 spectrogram 만 raster). 사용자가 pptx 에서 새 figure 만들 때 _구조·구성 참조_ + 디자인팀이 layout 가이드 짤 때 _자료 안내_.
 - canonical 앵커 — `ex1_TF_Restormer_architecture.svg`(top-level) · `svg/TF_Restormer_ICML_slide-1.svg`(unit module) 등.
-- 편집 최정밀 원본 = `figure_ppt/*.pptx` (`/home/nas/user/Uihyeop/ref_user_profile/figure_ppt/`).
+- **편집 최정밀 원본** = `figure_ppt/*.pptx` (`/home/nas/user/Uihyeop/ref_user_profile/figure_ppt/`). 같은 계열 새 figure 는 _이 슬라이드 도형을 pptx 에서 복제 후 라벨·색만 교체_ 가 가장 빠름.
 - raster anchor `exN_*.png` (육안 대조용).
-- 신규 다이어그램(pptx 에 없는 워크플로우 등)은 `assets/figure/_primitives.svg` defs 복사 시작.
 
-## B1. 거시 디자인 감각 (개체 선택·배치 원칙 — 신규 작업에 전이)
+## B1. 거시 디자인 감각 (사용자 작업 가이드 — pptx 그릴 때의 원칙)
 
 - **Composition** — top-level = 가로 banner 좌→우, 아래에 한 컨테이너를 점선으로 끌어내린 2단 분해도. unit-module 내부는 아래→위 (top-level 과 90° 직교 — 시그니처). 양끝 spectrogram anchor.
 - **Density** — banner 는 빡빡하게(요소 gap 좁게), 분해도·glyph 띠는 숨통. 헐겁게 퍼지지 않게.

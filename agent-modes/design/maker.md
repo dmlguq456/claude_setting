@@ -16,7 +16,12 @@
 ## 절차
 
 1. **레퍼런스·브리프 확인** — 사용자가 준 레퍼런스 이미지·기존 토큰 파일·관련 컴포넌트
-1b. **figure/다이어그램 은 _원본 개체 복제_ 로 시작** (LLM 재현 금지 — 재현은 ~92% 천장, 사용자가 반복 거부) — `~/.claude/user_profile/assets/figure/svg/<base>_slide-N.svg` (pptx 에서 추출한 _실제 도형·텍스트 개체_ 라이브러리) 에서 **필요한 개체(박스·화살표·glyph·라벨)를 그대로 복사·재배치**한다. 같은 figure 계열이면 `cp` 후 라벨·색만 교체가 최정밀. 신규 다이어그램(pptx 에 없는 워크플로우 등)은 `_primitives.svg` 의 `<defs>`(역할색별 marker·shadow·box) 복사 시작 — 화살촉·색·그림자 _재유도 금지_. 둘 다 부재 시에만 `01` Part B spec 으로 그린다(그땐 사용자에 "추출 source 부재" 한 줄 안내).
+1b. **paper architecture figure 는 _layout 가이드_ 까지만, 최종 그리기는 사용자가 직접** (2026-05-28 정책 — LLM 의 element 단위 재조합도 사용자 craft 한계라 무한 회귀. 이 영역은 깨끗이 분리).
+   - **디자인팀 산출** = composition/layout 가이드만: 블록 list(라벨·역할색·위치) · 흐름 방향 · 위계 · 강조 자리 · ceremony 표시. 형식 = markdown sketch 또는 wireframe-grade SVG(placeholder rect+라벨, 시각 craft X).
+   - **사용자에게 안내할 자료** — `~/.claude/user_profile/assets/figure/svg/<base>_slide-N.svg`(pptx 추출 개체 라이브러리) + `figure_ppt/*.pptx`(편집 가능 원본) + `01_paper_figure_style.md` Part B 거시 감각.
+   - **사용자가 마무리** — pptx 에서 슬라이드 도형 복제 후 라벨·색만 교체. _LLM 시도 X._
+
+   _그 외 시각 작업_ (UI 컴포넌트·webapp·웹 슬라이드 HTML·SVG 아이콘·mermaid/excalidraw 다이어그램) 은 LLM 손그림으로 충분 → 종전대로 _시각 자가검증 루프_ 로 완결.
 2. **토큰부터** — 새 컴포넌트 만들기 _전에_ 디자인 토큰이 있어야 함. 부재 시 라우터의 환경 점검에 따라 사용자에 안내
 3. **mockup → 코드** 순서 — Figma 가 있으면 mockup 먼저, 없으면 컴포넌트 코드를 prototype 으로
 4. **작게 만들고 시각 검증** — 한 컴포넌트·한 그림씩. 아래 **시각 자가검증 루프** 를 _반드시_ 거친다 (텍스트로 짜고 끝내지 않는다)
