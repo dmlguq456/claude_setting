@@ -76,7 +76,7 @@ analyze-project  →  autopilot-spec ↻  →  autopilot-code ↻
 | [`analyze-project`](skills/analyze-project/SKILL.md) | 모든 트랙의 _사전 분석_. code/paper/doc 자료를 `analysis_project/` 에 영속화 — 다운스트림 skill 의 입력 source |
 | [`autopilot-research`](skills/autopilot-research/SKILL.md) | 어느 트랙이든 공통 _분야 조사_. academic/technology/market 3 mode 보고서. 실제 문서·코드 생성은 다운스트림이 담당 |
 | [`autopilot-spec`](skills/autopilot-spec/SKILL.md) | 코드 _청사진 + skeleton_ 일반화 entry (app/library/api/cli/research). 만들 _것 자체_ 를 결정하는 자리라 사용자 결정 비중이 큼 — 중간 컨펌 default |
-| [`autopilot-code`](skills/autopilot-code/SKILL.md) | 코드 _작업_ 일반 (라이브러리·연구·앱 모두). dev/debug. `specs/<name>/` 발견 시 spec mode 별 분기 자동. `--qa quick` = 소규모 잡일 경량 tier (로그 남김) |
+| [`autopilot-code`](skills/autopilot-code/SKILL.md) | 코드 _작업_ 일반 (라이브러리·연구·앱 모두). dev/debug. `spec/<name>/` 발견 시 spec mode 별 분기 자동. `--qa quick` = 소규모 잡일 경량 tier (로그 남김) |
 | [`autopilot-lab`](skills/autopilot-lab/SKILL.md) | _빠른 실험 prototype_. 무거운 학습은 사용자가 실행, lab 은 `setup`(학습 세팅) / `eval`(평가·분석) 로 앞뒤를 도움. `--parent` 계보로 fine-tune·재평가, `_RUNLOG`(⏳→✅) 누적. 졸업은 autopilot-code |
 | [`autopilot-design`](skills/autopilot-design/SKILL.md) | _시각_ 산출물 (UI·슬라이드·다이어그램·아이콘). 모든 결과를 렌더해 눈으로 검증 (Claude-Design 패리티), standalone `preview.html` 가능 |
 | [`autopilot-ship`](skills/autopilot-ship/SKILL.md) | 앱 _배포 셋업_ 안내 (호스팅·CI/CD·env·domain). 실제 배포 명령은 사용자 직접. 첫 setup·재호출 자리 |
@@ -105,13 +105,13 @@ analyze-project  →  autopilot-spec ↻  →  autopilot-code ↻
 | `analysis_project/{code,paper,doc}/` | 사전 분석 |
 | `research/{topic}/` | 분야 조사 |
 | `documents/{date}_{name}/` | 문서 산출물 |
-| `specs/<name>/` | 코드 spec — PRD·dev_log·ship 을 _한 폴더에 누적_ |
-| `plans/{date}_{name}/` | spec 없는 빠른 코드 작업 |
+| `spec/<project>/` | 코드 청사진 — prd·stack·design·ship (프로젝트당 한 개, 항상 최신 `prd.md` T1) |
+| `plans/<project>/{date}_{slug}/` | 작업 사이클 (spec 유무 무관, spec 과 형제) |
 | `experiments/{date}_{slug}/` | ML 실험 prototype (`autopilot-lab`) — lab 이 세팅, 사용자가 실행. `_RUNLOG.md` 에 실험당 한 줄 (⏳ 대기 → ✅ 완료 상태) |
 
 **cross-project — `~/.claude/user_profile/`** — `analyze-user` 가 6 aspect 파일을 누적. 모든 트랙·sub-agent 가 작업 시작 자리에서 default 로 Read. 짧은 메모는 `/memo --scope user <aspect>` 가 같은 파일에 append.
 
-**3-tier 컨벤션** — 한 산출물 폴더 안에서 T1 root (메인 산출물) / T2 named subdir (검토 자료) / T3 `_internal/` (audit·raw·versions) 로 나뉜다. _사용자는 보통 T1 만 보면 된다._ 한 프로젝트의 전체 흐름은 `specs/<name>/` 한 폴더에 모이게 설계됐다 — 두 폴더 다닐 필요 없음.
+**3-tier 컨벤션** — 한 산출물 폴더 안에서 T1 root (메인 산출물) / T2 named subdir (검토 자료) / T3 `_internal/` (audit·raw·versions) 로 나뉜다. _사용자는 보통 T1 만 보면 된다._ 한 프로젝트는 `spec/<project>/`(청사진, 항상 최신) + `plans/<project>/`(작업 사이클) 두 형제 bucket 으로 같은 이름에 묶인다.
 
 상세 디렉토리 매핑·폴더 컨벤션은 → [`CONVENTIONS.md`](CONVENTIONS.md) §5·§6.5, [`AUTOPILOT_FLOWS.md`](AUTOPILOT_FLOWS.md) §4. 산출물 위치·scope 경계·함정은 → [`CLAUDE.md`](CLAUDE.md) "Drift-Free Essentials".
 

@@ -9,7 +9,7 @@ argument-hint: "<design task description> [--scope ui|slide|icon|diagram|mixed]"
 
 ## Pre-Check
 
-`.claude_reports/designs/<name>/` 또는 `.claude_reports/specs/<name>/02_design/` 에 이미 `design_state.yaml` 있는지 확인.
+`.claude_reports/designs/<name>/` 또는 `.claude_reports/spec/<name>/design/` 에 이미 `design_state.yaml` 있는지 확인.
 - 있음 → "이미 init 완료. 새 사이클 시작하려면 폴더 정리." 안내 후 중단
 - 부재 → 계속
 
@@ -90,7 +90,7 @@ claude mcp list 2>/dev/null | grep -i figma
 - `tokens.css` 또는 `tailwind.config.ts` 경로 (있으면 _다음 phase 에서 확장_, 없으면 _신규 생성_)
 - `components/ui/` 또는 비슷한 컴포넌트 디렉토리
 - `public/icons/` 또는 SVG 자산 폴더
-- 이전 사이클의 design 자산 (`.claude_reports/designs/*` 또는 `02_design/`)
+- 이전 사이클의 design 자산 (`.claude_reports/designs/*` 또는 `design/`)
 
 결과를 `00_init/asset_inventory.md` 에 정리.
 

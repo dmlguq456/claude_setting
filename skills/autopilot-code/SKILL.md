@@ -1,10 +1,10 @@
 ---
 name: autopilot-code
-description: "_코드 작업 일반_ entry — 라이브러리·연구 코드·앱 모두 커버. 신규·기존 코드 무관 (cwd 자동 감지). dev (기능 추가·신규) / debug (진단·수정) 두 mode. specs/<name>/ 컨텍스트 발견 시 spec 자동 Read + spec mode 별 분기: app mode → 디자인팀 critic + DB migration 안전 + push 자동 deploy. library mode → 공개 API 일관성 점검. cli mode → 명령·옵션 일관성. research mode → 재현성·configs·metric 검증. 코드 외 결정 (PRD·스택·skeleton·ship setup) 은 autopilot-spec 영역."
+description: "_코드 작업 일반_ entry — 라이브러리·연구 코드·앱 모두 커버. 신규·기존 코드 무관 (cwd 자동 감지). dev (기능 추가·신규) / debug (진단·수정) 두 mode. spec/<name>/ 컨텍스트 발견 시 spec 자동 Read + spec mode 별 분기: app mode → 디자인팀 critic + DB migration 안전 + push 자동 deploy. library mode → 공개 API 일관성 점검. cli mode → 명령·옵션 일관성. research mode → 재현성·configs·metric 검증. 코드 외 결정 (PRD·스택·skeleton·ship setup) 은 autopilot-spec 영역."
 argument-hint: "--mode dev|debug <task/plan/error description> [--from <step>] [--qa quick|light|standard|thorough|adversarial] [--user-refine]"
 ---
 
-> **산출물 폴더 컨벤션**: [CONVENTIONS.md §5](../../CONVENTIONS.md#5-skill-output-convention-3-tier-t1t2t3) (3-tier: T1 root / T2 named subdir / T3 `_internal/`). plan/ + checklist는 T1 (root). dev_logs/, test_logs/는 T2 (root). reviewer 로그(plan_reviews, dev_reviews, test_reviews)는 모두 `_internal/` 하위. **앱 mode 자리**: `apps/<name>/dev_log/<date>_<slug>/` 안에 누적 (앱 전체 흐름 한 폴더에).
+> **산출물 폴더 컨벤션**: [CONVENTIONS.md §5](../../CONVENTIONS.md#5-skill-output-convention-3-tier-t1t2t3) (3-tier: T1 root / T2 named subdir / T3 `_internal/`). 코드 작업 산출물은 spec 유무와 무관하게 **항상** `.claude_reports/plans/<project>/<date>_<slug>/` (청사진은 `spec/<project>/`, 작업은 `plans/<project>/` — 같은 `<project>` 로 correlate 되는 형제 bucket; [CONVENTIONS §5.4.3](../../CONVENTIONS.md#5-skill-output-convention-3-tier-t1t2t3)). plan/ + checklist는 T1 (root). dev_logs/, test_logs/는 T2 (root). reviewer 로그(plan_reviews, dev_reviews, test_reviews)는 모두 `_internal/` 하위. `<project>` 는 spec 있으면 spec 이름, 없으면 cwd 폴더명으로 추론.
 
 ## Context Auto-Detection (spec mode 자동 분기 + 자료 자동 read)
 
@@ -14,17 +14,19 @@ argument-hint: "--mode dev|debug <task/plan/error description> [--from <step>] [
 |---|---|---|
 | `~/.claude/user_profile/07_coding_convention.md` | 사용자 cross-project 컨벤션 | 2순위 (default·fallback) |
 | `.claude_reports/analysis_project/code/experiment_conventions.md` | per-project 컨벤션 | **1순위** — 코드 수정 4 원칙의 source. 충돌 시 per-project 우선 |
-| `.claude_reports/specs/<name>/01_spec/PRD.md` (있으면) | spec 청사진 | spec mode 별 추가 logic 활성화 |
+| `.claude_reports/spec/<name>/prd.md` (있으면) | spec 청사진 | spec mode 별 추가 logic 활성화 |
 | `.claude_reports/analysis_project/code/` 4 종 실험 자료 (`experiment_readiness`·`cleanup_candidates`·`similar_models`) | _실험 ready 정돈_ 자리 input | autopilot-code "실험 ready 정돈" 발화 시 자동 read |
 
 ### 1단계 — spec 존재 여부
 
 | 감지 조건 | 처리 |
 |---|---|
-| `.claude_reports/specs/<name>/pipeline_state.yaml` 존재 | spec 자동 Read + 그 안 `mode` 배열 따라 _추가 logic_ 활성화. 산출 `specs/<name>/dev_log/<date>_<slug>/` 안 |
-| 부재 (spec 없이 호출) | 일반 mode — 표준 dev/debug. cwd 단서 (`package.json` framework·`argparse` 등) 만 보고 _경량 추론_. 산출 `plans/<date>_<slug>/` |
+| `.claude_reports/spec/<name>/pipeline_state.yaml` 존재 | spec 자동 Read + 그 안 `mode` 배열 따라 _추가 logic_ 활성화. `<project>` = spec 이름 |
+| 부재 (spec 없이 호출) | 일반 mode — 표준 dev/debug. cwd 단서 (`package.json` framework·`argparse` 등) 만 보고 _경량 추론_. `<project>` = cwd 폴더명 |
 
-spec 발견 시 사용자에 명시 보고 — _"spec 발견 (specs/<name>/, mode: [library, cli, research]). 그 청사진 따라 진행."_
+> **산출 경로는 두 자리 모두 동일** — spec 유무와 무관하게 작업 산출물은 항상 `plans/<project>/<date>_<slug>/`. spec 의 `pipeline_state.yaml` 감지는 _spec mode 별 추가 logic_ (app/library/api/cli/research) 을 활성화할 뿐, OUTPUT PATH 를 가르지 않음. `<project>` 만 spec 이름(있으면) vs cwd 폴더명(없으면) 으로 달라짐.
+
+spec 발견 시 사용자에 명시 보고 — _"spec 발견 (spec/<name>/, mode: [library, cli, research]). 그 청사진 따라 진행. 산출 plans/<name>/."_
 
 ### 2단계 — spec mode 별 추가 logic
 
@@ -70,12 +72,12 @@ spec 없이 호출된 자리에서도 cwd 단서로 _경량 mode 추정_:
 변경: prisma/schema.prisma 의 Task 모델에 category 필드 추가
 
 영향 받는 spec 자리 (묶음 갱신 권장):
-  - 01_spec/data_model.md (entity 필드 추가)
-  - 01_spec/api_contract.md (Task type 의 category 필드)
+  - spec/<name>/data_model.md (entity 필드 추가)
+  - spec/<name>/api_contract.md (Task type 의 category 필드)
   
 어떻게 진행할까요?
   (a) 지금 autopilot-spec 호출로 묶음 갱신 (back-jump)
-  (b) 코드 작업 먼저 끝낸 후 나중에 (현재 변경은 dev_log 에 기록)
+  (b) 코드 작업 먼저 끝낸 후 나중에 (현재 변경은 dev_logs/ 에 기록)
   (c) 무시 — spec 갱신 안 함 (drift 받아들임)
 ```
 
@@ -132,7 +134,7 @@ autopilot-lab "X 실험" — Step 0 에서 readiness ✓ 확인 후 진행
 
 ### Default 옵션 권장값 (컨펌 시 메인 Claude 가 제안)
 
-- `--mode`: 발화 신호로 dev/debug 자동 추론. cwd 가 plan 폴더 + 최근 dev_log 있으면 dev 우세, 에러 로그·traceback 있으면 debug 우세.
+- `--mode`: 발화 신호로 dev/debug 자동 추론. cwd 가 plan 폴더 + 최근 dev_logs/ 있으면 dev 우세, 에러 로그·traceback 있으면 debug 우세.
 - `--qa`: dev=thorough, debug=standard (default — global §6 high-stakes 신호 시 adversarial 자동 상향)
 - `--from`: 자동 추론 (`pipeline_state.yaml` 발견 시 마지막 성공 stage 다음부터)
 - `--user-refine`: **off** (글로벌 §4 — "사용자 검토 끼워" / "memo 추가하게 멈춰줘" 같은 명시 신호 있을 때만 켬)
@@ -231,7 +233,7 @@ The pipeline runs with sane defaults and only pauses on genuinely ambiguous or d
 Resolve `$ARG` to a plan file path:
 1. If it ends with `.md` → use as-is
 2. If it's a directory path → append `/plan/plan.md`
-3. Otherwise, fuzzy search: `ls -d .claude_reports/plans/*$ARG* 2>/dev/null`
+3. Otherwise, fuzzy search (project-keyed — search across all projects): `ls -d .claude_reports/plans/*/*$ARG* 2>/dev/null`
    - **1 match** → use `{match}/plan/plan.md`
    - **Multiple matches** → prefer folder without `_audit`/`_fix_` suffix; if still multiple, ask user
    - **No match** → report error
@@ -239,7 +241,7 @@ Resolve `$ARG` to a plan file path:
 ## Pipeline: Mode dev
 You (the main Claude) orchestrate by invoking each skill directly via the Skill tool. All tasks go through the full pipeline. The **연구팀** (research-team) agent is invoked only for Step 2 (plan review as user proxy) and Step 6 (meta-report).
 
-> **자료팀 위임 (옵션, 2026-05-22 신설)** — task 가 _결과 시각화·실험 log plot·result table 정리_ 같은 분석 자료를 요구하면 code-execute / code-report 단계 안에서 `Agent(자료팀, "<spec>")` 직접 호출. _훈련·실험 실행_ 자체는 autopilot-code 본 영역, 결과의 _후처리·시각화_ 만 자료팀 영역. 자료팀이 figure / 스크립트 / 표 한 묶음 생성 후 dev_log 의 해당 step 안에 결과 자산 경로 박음.
+> **자료팀 위임 (옵션, 2026-05-22 신설)** — task 가 _결과 시각화·실험 log plot·result table 정리_ 같은 분석 자료를 요구하면 code-execute / code-report 단계 안에서 `Agent(자료팀, "<spec>")` 직접 호출. _훈련·실험 실행_ 자체는 autopilot-code 본 영역, 결과의 _후처리·시각화_ 만 자료팀 영역. 자료팀이 figure / 스크립트 / 표 한 묶음 생성 후 dev_logs/ 의 해당 step 안에 결과 자산 경로 박음.
 
 ### Step 1: code-plan
 Invoke Skill: `code-plan` with the task description as args.
@@ -408,7 +410,7 @@ Proposed fix: {fix approach}
 Scope: Minimal — fix the root cause only. Do not refactor or improve surrounding code.
 ```
 
-The plan folder will be: `.claude_reports/plans/{YYYY-MM-DD}_fix_{short-error-name}/`
+The plan folder will be: `.claude_reports/plans/<project>/{YYYY-MM-DD}_fix_{short-error-name}/` (`<project>` = spec 이름 if spec present, else cwd 폴더명)
 
 ### Step 3: Review fix plan (QA only, skip research-team)
 - Skip 연구팀 review — debugging fixes should be fast.

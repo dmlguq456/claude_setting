@@ -25,9 +25,9 @@ argument-hint: "<task description> [--mode setup|eval|auto] [--parent <slug>] [-
 |---|---|---|
 | `autopilot-research` | 사전 조사 (외부 paper·tech·market) | markdown 보고서 |
 | `analyze-project` | 코드 청사진 추출 | `analysis_project/` |
-| `autopilot-spec` | 비코드 청사진 (PRD·스택·skeleton) | `specs/<name>/` |
+| `autopilot-spec` | 비코드 청사진 (PRD·스택·skeleton) | `spec/<name>/` |
 | **`autopilot-lab`** (본 skill) | **빠른 학습 실험 prototype (setup·eval, hands-on)** | **`experiments/`** |
-| `autopilot-code` | brownfield 정련·라이브러리화 (full) / `--qa quick`: 소규모 잡일 (가벼움 + 로그) | `plans/` 또는 `specs/<name>/dev_log/` |
+| `autopilot-code` | brownfield 정련·라이브러리화 (full) / `--qa quick`: 소규모 잡일 (가벼움 + 로그) | `plans/<name>/` |
 | `autopilot-draft / refine` | 문서 작업 | `documents/` |
 
 ## 흐름 안에서 본 skill 의 자리

@@ -131,7 +131,7 @@ export default function TasksPage() {
 
 autopilot-spec 위임:
 ```
-<app_path>/02_design/05_handoff/handoff.md -- ✅ handed off to autopilot-spec build phase
+<app_path>/design/05_handoff/handoff.md -- ✅ handed off to autopilot-spec build phase
 ```
 
 ## Update agent memory

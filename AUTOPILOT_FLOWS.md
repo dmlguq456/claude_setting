@@ -75,14 +75,14 @@
 
 **사용자 주도성**: 각 entry = 명시 의도 단위. 메인 Claude 가 옵션 자동 구성 + 자연어 요약 컨펌 → CONFIRM Gate 4 갈래(진행 / 수정-refine v2 / back-jump / 중단). 발화 모호 시 재질문(임의 추측 X). 호출 패턴 상세 = [`CLAUDE.md §6`](CLAUDE.md).
 
-## 6. 산출물 폴더 — 한 프로젝트 = 한 폴더
+## 6. 산출물 폴더 — 코드 = `spec/` + `plans/` 형제 2-bucket
 
 | 종류 | 폴더 |
 |---|---|
-| 코드 (spec 있음) | `specs/<name>/` 안 전체 흐름 누적 (01_spec/PRD + dev_log + 옵션 02_design + 05_ship) |
-| 코드 (spec 부재) | `plans/<date>_<slug>/` task 독립 |
+| 코드 청사진 | `spec/<project>/` — `prd.md`(항상 최신 T1)·`stack.md`·`design/`(자산 시)·`ship.md`·`pipeline_state.yaml`·`_internal/versions/v{N}/`(구 spec) |
+| 코드 작업 | `plans/<project>/<date>_<slug>/` — plan·dev_logs·test_logs·_internal (spec 유무 무관, spec 과 같은 `<project>` 이름) |
 | 실험 prototype | `experiments/{date}_{slug}/` + `experiments/_RUNLOG.md` |
 | 문서 | `documents/<date>_<name>/` |
 | 사전 조사·분석 | `research/<topic>/` · `analysis_project/<mode>/` |
 
-`specs/<name>/` subfolder prefix: `00_init`(환경·스택) · `01_spec`(PRD·api_contract·data_model·ui_flow) · `02_design`(옵션) · `03/04`(reserve) · `05_ship` · `dev_log/<date>_<slug>/` · `_internal/`(T3). 상세 매핑·T1/T2/T3 = [`CONVENTIONS.md §5·§6.5`](CONVENTIONS.md).
+숫자 prefix(00_/01_/02_/05_) 폐지 — `spec/<project>/` 안 평이한 이름·user-facing(위) vs `_internal/`(기계) 2분. spec versioning = doc 트랙 동일 원리 (autopilot-spec refine 이 `_internal/versions/v{N}/prd.md` 자동 snapshot). 상세 = [`CONVENTIONS.md §5·§6.5`](CONVENTIONS.md).
