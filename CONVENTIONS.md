@@ -24,6 +24,8 @@
 
 ² 다중 reviewer 는 _다른 axes_ 분담: opus 행은 도메인 expertise / methodology / completeness / safety 같은 깊이 필요 axis, sonnet 행은 coverage·typo·표기 일관성·structure 같은 surface scan axis. 각 skill SKILL.md 가 자기 axis 분담 명시.
 
+> **`quick` 는 모든 autopilot mode 공통의 경량 tier**: 작은 자연어 요청·tweak 도 ad-hoc 직접 Edit 으로 끝내지 않고 quick 으로 돌려 plan·log·snapshot artifact 를 남긴다 (1 라운드 강제 / refine 단계 skip). CLAUDE.md §9 (작업은 해당 autopilot-* 경유로 산출물 기록) 의 비용 거의 0 인 경로 — 누적 drift 를 막는다.
+
 ### §1.2. Codex availability 정책 (adversarial 전용)
 
 - Adversarial 선택 전 `codex --version 2>/dev/null` 실행
@@ -46,6 +48,7 @@
 | `autopilot-lab` | quick/light/standard/thorough/**adversarial** | `light` | ✓ | **X** (실험 prototype — code 와 동일 — fact-checker 없음) | default 가 light 인 이유: 실험 prototype 빠른 cycle 1순위. 사용자 high-stakes 발화 (논문 결과·외부 공개) 시 standard+ 자동 상향 |
 | `autopilot-draft` | quick/light/standard/thorough/**adversarial** | `thorough` | ✓ | standard+ | |
 | `autopilot-refine` | quick/light/standard/thorough/**adversarial** | `thorough` | ✓ | standard+ | default 변경 (이전 quick → thorough) |
+| `autopilot-spec` | quick/light/standard/thorough/**adversarial** | `thorough` | ✓ | **X** (spec 은 청사진 — verbatim 대조 대상 아님) | `quick` = 작은 spec tweak·update mode (기존 prd.md 갱신) 자리 — ad-hoc 직접 Edit 대신 quick 으로 돌려 snapshot·log artifact 를 남김 |
 | `autopilot-note` | quick/light/standard/thorough/**adversarial** | `light` | ✓ | standard+ | routing skill — default light (routine cron). standard+ 자리는 주말 묶음·노션 migration 검수. fact-check 는 source ↔ 카드 본문 verbatim 대조 |
 | `autopilot-apply` | — (`--qa` 없음) | — | — | **X** | verify = build/compile gate (latexmk) + latexdiff. reviewer QA loop 아님 — `run-test` 의 build 검증과 동류. ground-truth 는 컴파일 결과 |
 | `analyze-user` | **adversarial (고정)** | `adversarial` | ✓ (강제) | standard+ | user profile 정확성 critical — qa 협상 불가, 다른 level 명시해도 adversarial 로 force |
