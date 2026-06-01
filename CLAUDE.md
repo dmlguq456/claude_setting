@@ -17,7 +17,7 @@
 
 ### §0. [최상단 규칙] 작업 라우팅 — spec-first 파이프 + autopilot-* 호출
 
-다른 모든 원칙에 앞서는 최우선 규칙. **`WORKFLOW.md` 가 모든 작업 흐름의 단일 라우터** — 모든 작업 발화는 먼저 WORKFLOW 작업-본질 매핑(§2)을 거친다. 직접 처리·플러그인(cwm/codex)·빌트인 스킬도 WORKFLOW 가 배치하는 자리에서만 쓴다.
+다른 모든 원칙에 앞서는 최우선 규칙. **`WORKFLOW.md` 가 모든 작업 흐름의 단일 라우터** — 모든 작업 발화는 먼저 WORKFLOW 작업-본질 매핑(§2)을 거친다. 직접 처리·플러그인(codex)·빌트인 스킬도 WORKFLOW 가 배치하는 자리에서만 쓴다.
 
 **(0) 하드 순서 게이트 (불변식, 우회 불가).** 산출물 흐름은 한 방향으로만 진행 — 앞 단계 산출물 없이 다음 단계 진입 금지:
 
@@ -38,6 +38,8 @@ research / analyze-project (산출물) → autopilot-spec (spec/) → autopilot-
 | `documents/*` 문서 | `autopilot-draft`/`autopilot-refine` | `_internal/versions/v{N}/` |
 | `experiments/*` 실험 | `autopilot-lab` | `_RUNLOG.md` timeline |
 | `user_profile/*` 프로필 | `analyze-user` / `memo --scope user` | `_internal/versions/` |
+
+> **harness 강제 (advisory 아님)**: `hooks/artifact-guard.sh` (PreToolUse Edit|Write) 가 `spec/` canonical 파일(prd.md·stack.md·ship.md·api_contract·data_model·ui_flow, flat+monorepo)의 ad-hoc Edit 을 **실제 차단(exit 2)**. 산출물-편집 스킬(autopilot-spec update 등) 호출 _직전_ `.claude_reports/.pipeline_active` 를 `touch` (TTL 60분) → 통과 + 이전 버전 자동 snapshot. 순수 typo·일회성 직접 수정도 같은 touch 로 override. sentinel 안 만들고 직접 Edit 하면 막힌다 = 강제가 작동하는 것.
 
 **(A) spec-backed 프로젝트 — 파이프 우선.** cwd 또는 상위에 `.claude_reports/spec/pipeline_state.yaml` 이 있으면 (새 세션 포함), 수정·기능 요청을 _ad-hoc 직접 진단 + Edit 으로 끝내지 않는다._
 1. **기존 산출물 파악** (손대기 전) — `spec/prd.md` · `pipeline_state.yaml` · 최근 `plans/*`.

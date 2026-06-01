@@ -36,7 +36,7 @@ done
 read -r -d '' ctx <<'EOF' || true
 🧭 WORKFLOW 단일 라우터 — 작업 흐름 불변식 (~/.claude/WORKFLOW.md §0, CLAUDE.md §0)
 
-모든 작업 발화는 WORKFLOW §2 작업-본질 매핑을 먼저 거친다. 직접 처리·cwm/codex 플러그인·빌트인 스킬도 WORKFLOW 가 배치하는 자리에서만 쓴다.
+모든 작업 발화는 WORKFLOW §2 작업-본질 매핑을 먼저 거친다. 직접 처리·codex 플러그인·빌트인 스킬도 WORKFLOW 가 배치하는 자리에서만 쓴다.
 
 ■ 하드 순서 게이트 (앞 단계 산출물 없이 다음 단계 진입 금지):
   [코드]  research / analyze-project(code) → autopilot-spec (spec/) → autopilot-code (plans/)

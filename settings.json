@@ -2,16 +2,9 @@
   "agentPushNotifEnabled": true,
   "effortLevel": "high",
   "enabledPlugins": {
-    "codex@openai-codex": true,
-    "cwm@cwm": true
+    "codex@openai-codex": true
   },
   "extraKnownMarketplaces": {
-    "cwm": {
-      "source": {
-        "source": "git",
-        "url": "https://github.com/HSUNEH/dev_sys_template.git"
-      }
-    },
     "openai-codex": {
       "source": {
         "repo": "openai/codex-plugin-cc",
@@ -48,7 +41,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash '/home/Uihyeop/.claude/hooks/spec-prd-snapshot.sh'",
+            "command": "bash '/home/Uihyeop/.claude/hooks/artifact-guard.sh'",
             "timeout": 10
           }
         ]
@@ -123,9 +116,5 @@
     "defaultMode": "auto"
   },
   "skipAutoPermissionPrompt": true,
-  "skipDangerousModePermissionPrompt": true,
-  "statusLine": {
-    "command": "node /home/Uihyeop/.claude/plugins/cache/cwm/cwm/2.0.0/hud/cwm-hud.mjs",
-    "type": "command"
-  }
+  "skipDangerousModePermissionPrompt": true
 }
