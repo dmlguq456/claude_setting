@@ -29,6 +29,12 @@ for _ in $(seq 1 40); do
 done
 [ -n "$cr_root" ] && is_project=1
 
+# ⚡untracked 는 세션 단위 — 새 세션 진입 시 자동 정리(📌tracked 복귀).
+# 켜둔 채 까먹고 다음 세션까지 무방비로 가는 것 방지.
+if [ -n "$cr_root" ]; then
+  rm -f "$cr_root/.claude_reports/.untracked" 2>/dev/null || true
+fi
+
 # 프로젝트 아닌 scratch/home dir 면 조용히 종료.
 [ "$is_project" = "0" ] && exit 0
 

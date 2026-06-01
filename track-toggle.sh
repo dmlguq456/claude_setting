@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Toggle artifact-guard mode for the project containing cwd.
-# 📌tracked (flag 없음) ↔ ⚡untracked (.claude_reports/.untracked 존재, 끌 때까지 유지).
+# 📌tracked (flag 없음) ↔ ⚡untracked (.claude_reports/.untracked 존재). 세션 단위 —
+# SessionStart(spec-guard-hook)가 자동 정리하므로 새 세션은 📌 로 시작.
 # /track slash command 에서 호출. 단독 실행도 가능.
 set -euo pipefail
 
@@ -18,5 +19,5 @@ if [ -f "$f" ]; then
   echo "📌 tracked(pipeline) 모드 — canonical 산출물 직접 편집 차단. 수정은 autopilot-spec 경유(자체 버전관리)."
 else
   touch "$f"
-  echo "⚡ untracked(ad-hoc) 모드 — 직접 편집 허용·snapshot 없음 (다시 /track 까지 유지). [$root]"
+  echo "⚡ untracked(ad-hoc) 모드 — 직접 편집 허용·snapshot 없음 (이 세션 동안; 새 세션이면 자동 📌). [$root]"
 fi

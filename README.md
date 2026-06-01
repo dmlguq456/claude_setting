@@ -17,7 +17,7 @@
 | 모드 | 무엇이 막히나 |
 |---|---|
 | **📌 tracked** (기본) | 추적 산출물(`spec/`·`plans/`·`documents/`·`experiments/`·`user_profile/0*.md`) 직접 Edit/Write → **차단(exit 2)**, 소유 스킬 경유. `spec/` 있는 프로젝트는 _순서 체인_ 도 강제 — 코드 편집은 `plans/` plan 존재가 전제, 신규 spec·문서 작성은 research/analyze 가 전제 |
-| **⚡ untracked** | 차단 전부 해제 — 탐색·일회성 ad-hoc·설정 손보기. `/track` 로 토글, 다시 끌 때까지 유지 |
+| **⚡ untracked** | 차단 전부 해제 — 탐색·일회성 ad-hoc·설정 손보기. `/track` 로 토글, **세션 단위**(새 세션이면 자동 📌 복귀) |
 
 - **`/track`** — 현재 프로젝트 모드를 토글 (`.claude_reports/.untracked` on/off).
 - **statusline** 이 모드(📌/⚡) · git 브랜치 · context 사용량 막대를 표시 → 한눈에.
