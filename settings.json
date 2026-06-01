@@ -17,7 +17,7 @@
       {
         "hooks": [
           {
-            "command": "bash '/home/Uihyeop/.claude/hooks/herdr-agent-state.sh' blocked",
+            "command": "bash '$HOME/.claude/hooks/herdr-agent-state.sh' blocked",
             "timeout": 10,
             "type": "command"
           }
@@ -29,7 +29,7 @@
       {
         "hooks": [
           {
-            "command": "bash '/home/Uihyeop/.claude/hooks/herdr-agent-state.sh' working",
+            "command": "bash '$HOME/.claude/hooks/herdr-agent-state.sh' working",
             "timeout": 10,
             "type": "command"
           }
@@ -41,7 +41,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash '/home/Uihyeop/.claude/hooks/artifact-guard.sh'",
+            "command": "bash '$HOME/.claude/hooks/artifact-guard.sh'",
             "timeout": 10
           }
         ]
@@ -51,7 +51,7 @@
       {
         "hooks": [
           {
-            "command": "bash '/home/Uihyeop/.claude/hooks/herdr-agent-state.sh' release",
+            "command": "bash '$HOME/.claude/hooks/herdr-agent-state.sh' release",
             "timeout": 10,
             "type": "command"
           }
@@ -71,7 +71,7 @@
       {
         "hooks": [
           {
-            "command": "bash '/home/Uihyeop/.claude/hooks/herdr-agent-state.sh' idle",
+            "command": "bash '$HOME/.claude/hooks/herdr-agent-state.sh' idle",
             "timeout": 10,
             "type": "command"
           }
@@ -83,7 +83,7 @@
       {
         "hooks": [
           {
-            "command": "bash '/home/Uihyeop/.claude/hooks/herdr-agent-state.sh' idle",
+            "command": "bash '$HOME/.claude/hooks/herdr-agent-state.sh' idle",
             "timeout": 10,
             "type": "command"
           }
@@ -95,7 +95,7 @@
       {
         "hooks": [
           {
-            "command": "bash '/home/Uihyeop/.claude/hooks/herdr-agent-state.sh' working",
+            "command": "bash '$HOME/.claude/hooks/herdr-agent-state.sh' working",
             "timeout": 10,
             "type": "command"
           }
@@ -119,6 +119,6 @@
   "skipDangerousModePermissionPrompt": true,
   "statusLine": {
     "type": "command",
-    "command": "bash /home/Uihyeop/.claude/statusline.sh"
+    "command": "bash $HOME/.claude/statusline.sh"
   }
 }

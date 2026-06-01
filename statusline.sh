@@ -1,44 +1,43 @@
 #!/usr/bin/env bash
 # Custom statusline — cwm HUD 대체 (의존성 없음, python3 로 JSON 파싱).
-# 표시: 디렉토리 · git 브랜치 · spec-backed 게이트 상태 · 모델.
+# 표시: 디렉토리 · git 브랜치 · spec-gate 상태 · context 사용량 · 모델.
 # 입력: stdin JSON (Claude Code statusLine schema). 출력: 한 줄.
 set -euo pipefail
 input=$(cat)
 
-read -r cwd model <<EOF
-$(printf '%s' "$input" | python3 -c '
-import sys, json
-try:
-    d = json.load(sys.stdin)
-except Exception:
-    print(". ?"); sys.exit()
+# cwd / model / transcript_path 파싱
+eval "$(printf '%s' "$input" | python3 -c '
+import sys, json, shlex
+try: d = json.load(sys.stdin)
+except Exception: d = {}
 cwd = d.get("cwd") or (d.get("workspace") or {}).get("current_dir") or "."
 m = d.get("model") or {}
 model = m.get("display_name") or m.get("id") or "?"
-print(cwd, model)
-' 2>/dev/null)
-EOF
-[ -z "${cwd:-}" ] && cwd="$PWD"
+mid = (m.get("id") or "").lower()
+tx = d.get("transcript_path") or ""
+print("S_CWD="+shlex.quote(cwd))
+print("S_MODEL="+shlex.quote(model))
+print("S_MID="+shlex.quote(mid))
+print("S_TX="+shlex.quote(tx))
+' 2>/dev/null)"
+: "${S_CWD:=$PWD}" "${S_MODEL:=?}" "${S_MID:=}" "${S_TX:=}"
 
-dir=$(basename "$cwd")
+dir=$(basename "$S_CWD")
 
 # git 브랜치
 branch=""
-if command -v git >/dev/null 2>&1; then
-  branch=$(git -C "$cwd" rev-parse --abbrev-ref HEAD 2>/dev/null || true)
-fi
+command -v git >/dev/null 2>&1 && branch=$(git -C "$S_CWD" rev-parse --abbrev-ref HEAD 2>/dev/null || true)
 
-# spec-backed 게이트 상태 (WORKFLOW harness 테마)
+# spec-gate 상태 (artifact-guard harness 테마)
 gate=""
-d="$cwd"
+d="$S_CWD"
 for _ in $(seq 1 40); do
   if [ -f "$d/.claude_reports/spec/pipeline_state.yaml" ] || ls "$d"/.claude_reports/spec/*/pipeline_state.yaml >/dev/null 2>&1; then
     if [ -f "$d/.claude_reports/.pipeline_active" ]; then
       mod=$(stat -c %Y "$d/.claude_reports/.pipeline_active" 2>/dev/null || echo 0)
-      now=$(date +%s)
-      [ $((now - mod)) -lt 3600 ] && gate="◆spec:pipe" || gate="◇spec:gated"
+      [ $(( $(date +%s) - mod )) -lt 3600 ] && gate="◆pipe" || gate="◇gated"
     else
-      gate="◇spec:gated"
+      gate="◇gated"
     fi
     break
   fi
@@ -46,11 +45,39 @@ for _ in $(seq 1 40); do
   d=$(dirname "$d")
 done
 
-# ANSI 색 (dim/cyan/yellow/green)
-DIM=$'\033[2m'; CYAN=$'\033[36m'; YEL=$'\033[33m'; GRN=$'\033[32m'; RST=$'\033[0m'
+# context 사용량 (transcript 마지막 usage / window)
+ctx=""; ctx_pct=0
+if [ -n "$S_TX" ] && [ -f "$S_TX" ]; then
+  ctx_pct=$(tail -n 400 "$S_TX" 2>/dev/null | python3 -c '
+import sys, json
+mid = sys.argv[1]
+win = 1_000_000 if "1m" in mid else 200_000
+last = None
+for line in sys.stdin:
+    try: d = json.loads(line)
+    except Exception: continue
+    u = (d.get("message") or {}).get("usage")
+    if u: last = u
+if last:
+    t = (last.get("input_tokens",0) + last.get("cache_creation_input_tokens",0)
+         + last.get("cache_read_input_tokens",0))
+    print(min(99, round(100*t/win)))
+else:
+    print(-1)
+' "$S_MID" 2>/dev/null || echo -1)
+fi
+
+# ANSI 색
+DIM=$'\033[2m'; CYAN=$'\033[36m'; YEL=$'\033[33m'; GRN=$'\033[32m'; RED=$'\033[31m'; RST=$'\033[0m'
 
 out="${CYAN}${dir}${RST}"
 [ -n "$branch" ] && out="${out} ${DIM}⎇${RST}${YEL}${branch}${RST}"
 [ -n "$gate" ] && out="${out} ${GRN}${gate}${RST}"
-out="${out} ${DIM}${model}${RST}"
+if [ "${ctx_pct:-(-1)}" -ge 0 ] 2>/dev/null; then
+  if   [ "$ctx_pct" -ge 80 ]; then cc="$RED"
+  elif [ "$ctx_pct" -ge 50 ]; then cc="$YEL"
+  else cc="$GRN"; fi
+  out="${out} ${cc}ctx:${ctx_pct}%${RST}"
+fi
+out="${out} ${DIM}${S_MODEL}${RST}"
 printf '%s' "$out"
