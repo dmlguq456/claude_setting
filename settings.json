@@ -42,6 +42,16 @@
           }
         ],
         "matcher": "*"
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash '/home/Uihyeop/.claude/hooks/spec-prd-snapshot.sh'",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "SessionEnd": [
