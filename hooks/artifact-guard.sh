@@ -9,6 +9,7 @@
 #         · 소스 코드 Edit/Write → spec/ + plans/ plan 존재 필요 (spec 없는 프로젝트는 자유).
 #         · 신규 spec 작성       → research/ 또는 analysis_project/ 필요.
 #         · 신규 plan 작성        → spec/ 필요.
+#         · 신규 문서(documents) 작성 → research/ 또는 analysis_project/ 필요 (문서 트랙 대칭).
 #       spec 유무로 자동 scope — ~/.claude 설정 repo(spec 없음) 등 footgun 회피.
 # 단일 출처: CLAUDE.md §0 / WORKFLOW.md §0.
 set -euo pipefail
@@ -59,7 +60,9 @@ case "$fp" in
   */.claude_reports/plans/*)
     [ -f "$fp" ] || has_spec || block "신규 plan 작성 전 spec 필요" "→ autopilot-spec 먼저"
     block "tracked 산출물 직접 편집 차단 (plans: $base)" "→ autopilot-code" ;;
-  */.claude_reports/documents/*)   block "tracked 산출물 직접 편집 차단 (documents: $base)" "→ autopilot-draft / autopilot-refine" ;;
+  */.claude_reports/documents/*)
+    [ -f "$fp" ] || has_research || block "신규 문서 작성 전 research/analyze 필요 ($base)" "→ autopilot-research / analyze-project 먼저"
+    block "tracked 산출물 직접 편집 차단 (documents: $base)" "→ autopilot-draft / autopilot-refine" ;;
   */.claude_reports/experiments/*) block "tracked 산출물 직접 편집 차단 (experiments: $base)" "→ autopilot-lab" ;;
   */.claude/user_profile/0*.md)    block "tracked 산출물 직접 편집 차단 (user_profile: $base)" "→ analyze-user / memo --scope user" ;;
 esac
