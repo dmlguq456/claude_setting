@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # PreToolUse(Edit|Write|MultiEdit) — 산출물 추적 + 파이프 순서 체인 강제.
-# 모드: 📌tracked(기본) ↔ ⚡untracked(.claude_reports/.untracked 존재 시 → 전부 우회, /track 으로 토글).
+# 모드: 📌tracked(기본) ↔ ⚡untracked(.claude_reports/.untracked.<session_id> 존재 시 → 전부 우회).
+#       세션별 flag — 한 레포에 여러 세션 띄워도 격리. /track 토글, SessionStart 가 stale GC.
 #
 # 강제 2종 (tracked 모드):
 #   (1) 산출물 추적 [모든 .claude_reports 프로젝트] — spec/ canonical·plans/·documents/·
@@ -15,14 +16,15 @@
 set -euo pipefail
 
 input=$(cat)
-fp=$(printf '%s' "$input" | python3 -c '
-import sys, json
-try:
-    d = json.load(sys.stdin); ti = d.get("tool_input") or {}
-    print(ti.get("file_path", "") or "")
-except Exception:
-    print("")
-' 2>/dev/null)
+eval "$(printf '%s' "$input" | python3 -c '
+import sys, json, shlex
+try: d = json.load(sys.stdin)
+except Exception: d = {}
+ti = d.get("tool_input") or {}
+print("FP="+shlex.quote(ti.get("file_path","") or ""))
+print("SID="+shlex.quote(d.get("session_id","") or ""))
+' 2>/dev/null)"
+fp="${FP:-}"; sid="${SID:-}"
 [ -z "$fp" ] && exit 0
 case "$fp" in */_internal/*) exit 0 ;; esac   # 기계관리 스냅샷 → 통과
 
@@ -36,15 +38,16 @@ done
 [ -z "$root" ] && exit 0
 cr="$root/.claude_reports"
 
-# ---- ⚡untracked 우회 ----
-flag="$cr/.untracked"; [ -d "$cr" ] || flag="$root/.untracked"
+# ---- ⚡untracked 우회 (세션별 flag .untracked.<session_id> — 동시 세션 격리) ----
+flagbase="$cr/.untracked"; [ -d "$cr" ] || flagbase="$root/.untracked"
+[ -n "$sid" ] && flag="$flagbase.$sid" || flag="$flagbase"
 [ -f "$flag" ] && exit 0
 
 # ---- 존재 판정 헬퍼 ----
 has_spec(){ [ -f "$cr/spec/pipeline_state.yaml" ] || ls "$cr"/spec/*/pipeline_state.yaml >/dev/null 2>&1; }
 has_plan(){ ls -d "$cr"/plans/*/ >/dev/null 2>&1; }
 has_research(){ ls -A "$cr/research" >/dev/null 2>&1 || ls -A "$cr/analysis_project" >/dev/null 2>&1; }
-block(){ printf '───────────────────────────────────────────\n⛔ %s\n   %s\n───────────────────────────────────────────\n   우회: touch %s (또는 /track) → ⚡untracked\n' "$1" "$2" "$flag" >&2; exit 2; }
+block(){ printf '───────────────────────────────────────────\n⛔ %s\n   %s\n───────────────────────────────────────────\n   우회: /track → ⚡untracked (이 세션만)\n' "$1" "$2" >&2; exit 2; }
 
 base=$(basename "$fp")
 

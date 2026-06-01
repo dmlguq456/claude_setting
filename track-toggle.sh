@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Toggle artifact-guard mode for the project containing cwd.
-# 📌tracked (flag 없음) ↔ ⚡untracked (.claude_reports/.untracked 존재). 세션 단위 —
-# SessionStart(spec-guard-hook)가 자동 정리하므로 새 세션은 📌 로 시작.
+# Toggle artifact-guard mode for the project containing cwd — 세션별(.untracked.<session_id>).
+# 📌tracked (flag 없음) ↔ ⚡untracked. 한 레포에 여러 세션 띄워도 각 세션 독립.
+# 이 세션 동안만 유지 (SessionStart 가 오래된 flag GC, 세션 종료 후 무의미해짐).
 # /track slash command 에서 호출. 단독 실행도 가능.
 set -euo pipefail
 
@@ -13,11 +13,12 @@ for _ in $(seq 1 40); do
 done
 [ -z "$root" ] && { echo "⚠️  상위 트리에 .claude_reports 가 없어요 — 토글 대상 프로젝트가 아닙니다."; exit 0; }
 
-f="$root/.claude_reports/.untracked"
+sid="${CLAUDE_CODE_SESSION_ID:-}"
+[ -n "$sid" ] && f="$root/.claude_reports/.untracked.$sid" || f="$root/.claude_reports/.untracked"
 if [ -f "$f" ]; then
   rm -f "$f"
-  echo "📌 tracked(pipeline) 모드 — canonical 산출물 직접 편집 차단. 수정은 autopilot-spec 경유(자체 버전관리)."
+  echo "📌 tracked 모드 — 이 세션, 산출물 직접 편집 차단·코드는 spec+plan 전제."
 else
   touch "$f"
-  echo "⚡ untracked(ad-hoc) 모드 — 직접 편집 허용·snapshot 없음 (이 세션 동안; 새 세션이면 자동 📌). [$root]"
+  echo "⚡ untracked 모드 — 이 세션만 전부 우회(직접 편집 허용·snapshot 없음). [$root]"
 fi

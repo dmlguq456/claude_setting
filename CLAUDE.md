@@ -38,7 +38,7 @@ research / analyze-project (산출물) → autopilot-spec (spec/) → autopilot-
 | `experiments/*` 실험 | `autopilot-lab` | `_RUNLOG.md` timeline |
 | `user_profile/*` 프로필 | `analyze-user` / `memo --scope user` | `_internal/versions/` |
 
-> **harness**: `hooks/artifact-guard.sh` 가 위 표의 추적 산출물 직접 Edit/Write 를 **차단(exit 2)** → 소유 스킬 경유. 비가드: `_internal/`·`pipeline_state.yaml`·`research/`·`analysis_project/`. **⚡untracked**(`/track`, 세션 단위 — 새 세션 SessionStart 에서 자동 정리) = 우회·snapshot 없음 — 스킬로 산출물 쓰기 직전에도 flag 필요(ceremony). statusline 📌/⚡ 표시.
+> **harness**: `hooks/artifact-guard.sh` 가 위 표의 추적 산출물 직접 Edit/Write 를 **차단(exit 2)** → 소유 스킬 경유. 비가드: `_internal/`·`pipeline_state.yaml`·`research/`·`analysis_project/`. **⚡untracked**(`/track`, 세션별 flag `.untracked.<session_id>` — 한 레포 동시 세션도 격리, 세션 끝나면 무효) = 우회·snapshot 없음 — 스킬로 산출물 쓰기 직전에도 flag 필요(ceremony). statusline 📌/⚡ 표시.
 
 **(A) spec-backed 프로젝트 — 파이프 우선.** cwd/상위에 `spec/pipeline_state.yaml` 있으면(새 세션 포함) ad-hoc 직접 진단+Edit 로 끝내지 않는다. **순서·절차 = `WORKFLOW.md` §7** (기존 산출물 파악 → spec-drift 체크 → `autopilot-code --qa quick`; spec-guard-hook 이 감지 시 SessionStart 주입). 강제: 산출물 직접 Edit = hook 차단(§0(0b)) / 소스 코드 = `.pipeline` opt-in 프로젝트만 차단(§0(0)).
 

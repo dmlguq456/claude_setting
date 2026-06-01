@@ -15,12 +15,14 @@ m = d.get("model") or {}
 model = m.get("display_name") or m.get("id") or "?"
 mid = (m.get("id") or "").lower()
 tx = d.get("transcript_path") or ""
+sid = d.get("session_id") or ""
 print("S_CWD="+shlex.quote(cwd))
 print("S_MODEL="+shlex.quote(model))
 print("S_MID="+shlex.quote(mid))
 print("S_TX="+shlex.quote(tx))
+print("S_SID="+shlex.quote(sid))
 ' 2>/dev/null)"
-: "${S_CWD:=$PWD}" "${S_MODEL:=?}" "${S_MID:=}" "${S_TX:=}"
+: "${S_CWD:=$PWD}" "${S_MODEL:=?}" "${S_MID:=}" "${S_TX:=}" "${S_SID:=}"
 
 dir=$(basename "$S_CWD")
 
@@ -33,7 +35,7 @@ gate=""; gate_open=0
 d="$S_CWD"
 for _ in $(seq 1 40); do
   if [ -d "$d/.claude_reports" ]; then
-    [ -f "$d/.claude_reports/.untracked" ] && gate_open=1
+    if [ -n "$S_SID" ]; then [ -f "$d/.claude_reports/.untracked.$S_SID" ] && gate_open=1; else [ -f "$d/.claude_reports/.untracked" ] && gate_open=1; fi
     [ "$gate_open" = "1" ] && gate="⚡untracked(ad-hoc)" || gate="📌tracked(pipeline)"
     break
   fi
