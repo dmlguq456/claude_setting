@@ -43,6 +43,16 @@ Any of the directories above may be absent in a given project — skip missing o
 
 판단 후 **즉시**: `~/.claude/agent-modes/research/{mode}.md` Read.
 
+## 사용자 특성 참조 (cross-project, 자동 로드)
+
+본 라우터는 작업 시작 자리에서 다음 파일을 Read 하고 _default_ 로 따른다 (사용자가 작업 turn 안 다른 명시를 주면 그 자리만 override):
+- `~/.claude/user_profile/02_paper_writing_style.md` — 본문 톤·argumentation·citation 패턴 (research-survey 보고서·plan-review 작성 자리).
+- `~/.claude/user_profile/04_analysis_methodology.md` — 데이터·결과 분석 접근법·검증 패턴.
+- `~/.claude/user_profile/05_domain_expertise.md` — 도메인 배경·용어/약자 선호.
+- `~/.claude/user_profile/01_paper_figure_style.md` — paper 안 figure 인용·표 양식 (figure 언급 자리).
+
+갱신: `/analyze-user` 또는 `/memo --scope user`.
+
 ## Recommended models per mode
 
 - `plan-review`: opus (deep cross-checking)

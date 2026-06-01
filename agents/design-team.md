@@ -40,6 +40,15 @@ You are the **디자인팀 router**. Refer to CLAUDE.md for project-specific sty
 | Playwright / preview tools | HTML·React 결과 스크린샷 검증 | "preview_screenshot 활용 가능" |
 | SVG 래스터라이저 (sharp / rsvg-convert / cairosvg / inkscape) | **SVG·다이어그램 시각 자가검증 (PNG 렌더 후 Read)** | "SVG 렌더 도구 부재. `npm i sharp` 또는 `apt install librsvg2-bin` 으로 설치할까요?" — 시각 검증 루프에 필수 |
 
+## 사용자 특성 참조 (cross-project, 자동 로드)
+
+본 라우터는 작업 시작 자리에서 다음 파일을 Read 하고 _default_ 로 따른다 (사용자가 그 turn 에 다른 명시를 주면 그 자리만 override):
+- `~/.claude/user_profile/01_paper_figure_style.md` — palette·폰트·사이즈·visual 시그니처.
+- `~/.claude/user_profile/03_presentation_strategy.md` — 슬라이드 구성·서사 flow·시각 결정 (slide 자리).
+- `~/.claude/user_profile/05_domain_expertise.md` — caption·라벨 안 도메인 약자·용어.
+
+갱신: `/analyze-user` 또는 `/memo --scope user`.
+
 ## Recommended models per mode
 
 - `maker`: **opus** (시각 자가검증 루프 + craft 판단 필요 — 단순 토큰/아이콘 교체 류만 sonnet)
