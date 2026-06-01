@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # PreToolUse(Edit|Write|MultiEdit) — 산출물 추적 + 파이프 순서 체인 강제.
-# 모드: 📌tracked(기본) ↔ ⚡untracked(.claude_reports/.untracked, TTL 60분 → 전부 우회).
+# 모드: 📌tracked(기본) ↔ ⚡untracked(.claude_reports/.untracked 존재 시 → 전부 우회, /track 으로 토글).
 #
 # 강제 2종 (tracked 모드):
 #   (1) 산출물 추적 [모든 .claude_reports 프로젝트] — spec/ canonical·plans/·documents/·
@@ -38,10 +38,7 @@ cr="$root/.claude_reports"
 
 # ---- ⚡untracked 우회 ----
 flag="$cr/.untracked"; [ -d "$cr" ] || flag="$root/.untracked"
-if [ -f "$flag" ]; then
-  mod=$(stat -c %Y "$flag" 2>/dev/null || stat -f %m "$flag" 2>/dev/null || echo 0)
-  [ $(( $(date +%s) - mod )) -lt 3600 ] && exit 0
-fi
+[ -f "$flag" ] && exit 0
 
 # ---- 존재 판정 헬퍼 ----
 has_spec(){ [ -f "$cr/spec/pipeline_state.yaml" ] || ls "$cr"/spec/*/pipeline_state.yaml >/dev/null 2>&1; }

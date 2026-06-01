@@ -33,10 +33,7 @@ gate=""; gate_open=0
 d="$S_CWD"
 for _ in $(seq 1 40); do
   if [ -d "$d/.claude_reports" ]; then
-    if [ -f "$d/.claude_reports/.untracked" ]; then
-      mod=$(stat -c %Y "$d/.claude_reports/.untracked" 2>/dev/null || stat -f %m "$d/.claude_reports/.untracked" 2>/dev/null || echo 0)
-      [ $(( $(date +%s) - mod )) -lt 3600 ] && gate_open=1
-    fi
+    [ -f "$d/.claude_reports/.untracked" ] && gate_open=1
     [ "$gate_open" = "1" ] && gate="⚡untracked(ad-hoc)" || gate="📌tracked(pipeline)"
     break
   fi
