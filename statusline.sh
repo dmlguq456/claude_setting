@@ -77,7 +77,13 @@ if [ "${ctx_pct:-(-1)}" -ge 0 ] 2>/dev/null; then
   if   [ "$ctx_pct" -ge 80 ]; then cc="$RED"
   elif [ "$ctx_pct" -ge 50 ]; then cc="$YEL"
   else cc="$GRN"; fi
-  out="${out} ${cc}ctx:${ctx_pct}%${RST}"
+  segs=10
+  filled=$(( (ctx_pct * segs + 50) / 100 ))
+  [ "$filled" -gt "$segs" ] && filled=$segs
+  bar=""
+  i=0; while [ "$i" -lt "$filled" ]; do bar="${bar}█"; i=$((i+1)); done
+  while [ "$i" -lt "$segs" ]; do bar="${bar}░"; i=$((i+1)); done
+  out="${out} ${cc}${bar} ${ctx_pct}%${RST}"
 fi
 out="${out} ${DIM}${S_MODEL}${RST}"
 printf '%s' "$out"
