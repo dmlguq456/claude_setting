@@ -42,10 +42,7 @@ research / analyze-project (산출물) → autopilot-spec (spec/) → autopilot-
 
 > **hook 이 강제 (instruction 아님)**: `hooks/artifact-guard.sh` 가 위 표의 추적 산출물 직접 Edit/Write 를 **차단(exit 2)** → 소유 스킬 경유. 비가드: `_internal/`·`pipeline_state.yaml`·`research/`·`analysis_project/`. **⚡untracked**(`.claude_reports/.untracked` touch 또는 `/track`, 끌 때까지 유지) = 우회·snapshot 없음 — 스킬로 산출물 쓰기 직전에도 이 flag 가 필요(ceremony). statusline 📌/⚡ 표시.
 
-**(A) spec-backed 프로젝트 — 파이프 우선.** cwd 또는 상위에 `.claude_reports/spec/pipeline_state.yaml` 이 있으면 (새 세션 포함), 수정·기능 요청을 _ad-hoc 직접 진단 + Edit 으로 끝내지 않는다._
-1. **기존 산출물 파악** (손대기 전) — `spec/prd.md` · `pipeline_state.yaml` · 최근 `plans/*`.
-2. **spec-drift 사전 체크** — spec-significant (route / schema·entity / UI-flow / 외부 연동 / 마이그레이션) 면 `autopilot-spec` update (prd.md 갱신 + `_internal/versions/v{N}/` snapshot). drift 명확하면 자율 진행, 애매하면 확인. spec 없으면 `autopilot-spec` 먼저 (throwaway 1 회성만 예외).
-3. **`autopilot-code --qa quick` 경유** — 작은 요청도 파이프로 산출물 남김 → `plans/`. (산출물 직접 Edit 차단은 hook 강제 → (0b); 단 **소스 코드 편집 자체는 비차단** — 코드는 advisory 로 파이프 경유 권장.) 상세 = `WORKFLOW.md` §7.
+**(A) spec-backed 프로젝트 — 파이프 우선.** cwd/상위에 `spec/pipeline_state.yaml` 있으면(새 세션 포함) ad-hoc 직접 진단+Edit 로 끝내지 않는다. **순서·절차 = `WORKFLOW.md` §7** (기존 산출물 파악 → spec-drift 체크 → `autopilot-code --qa quick`; spec-guard-hook 이 감지 시 SessionStart 주입). 강제: 산출물 직접 Edit = hook 차단(§0(0b)) / 소스 코드 = `.pipeline` opt-in 프로젝트만 차단(§0(0)).
 
 **(B) autopilot-* 호출 패턴 — 옵션 자동 구성 + 컨펌.** 자연어 한 줄로 부르면 컨텍스트 (cwd / `.claude_reports/` / 발화) 보고 옵션 조합 → 한 번 컨펌 (자연어 한 줄 요약 + 옵션 + 근거) → invoke.
 - **발화 분류** (turn 첫 단계): ceremony 큰 6 (`autopilot-code/draft/research/refine/apply` + `analyze-user`) → 컨펌 흐름 / 작은 3 (`audit`/`memo`/`analyze-project`) → 즉시 invoke / sub-skill 자연어 → autopilot-* `--from <stage>` 재개 / 매칭 없음 → 직접 처리. 판단: 추적 필요 + 산출물 누적 → autopilot, 짧은 단발 → 직접.
