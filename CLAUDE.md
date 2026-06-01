@@ -17,7 +17,27 @@
 
 ### §0. [최상단 규칙] 작업 라우팅 — spec-first 파이프 + autopilot-* 호출
 
-다른 모든 원칙에 앞서는 최우선 규칙.
+다른 모든 원칙에 앞서는 최우선 규칙. **`WORKFLOW.md` 가 모든 작업 흐름의 단일 라우터** — 모든 작업 발화는 먼저 WORKFLOW 작업-본질 매핑(§2)을 거친다. 직접 처리·플러그인(cwm/codex)·빌트인 스킬도 WORKFLOW 가 배치하는 자리에서만 쓴다.
+
+**(0) 하드 순서 게이트 (불변식, 우회 불가).** 산출물 흐름은 한 방향으로만 진행 — 앞 단계 산출물 없이 다음 단계 진입 금지:
+
+```
+research / analyze-project (산출물) → autopilot-spec (spec/) → autopilot-code (plans/)
+```
+
+- **spec 없이 코드 작업 X** — 코드 요청인데 `spec/` 없으면 `autopilot-spec` 먼저 (throwaway 1 회성만 예외, 반복되면 spec 승격).
+- **사전 산출물 없이 spec X** — spec 만들 근거(`research/` 또는 `analysis_project/`)가 없으면 `autopilot-research`/`analyze-project` 먼저. 낯선 영역·신규 의도일수록 강제.
+- 문서 트랙도 동형: `research/analyze-project → autopilot-draft → autopilot-refine`.
+
+**(0b) 동일 스킬 수정 = 버전 트래킹 (불변식).** 각 산출물은 _그것을 만든 스킬로만_ 수정한다 — ad-hoc 직접 Edit 금지(순수 typo·1 줄 포맷만 예외), 매 수정 버전 snapshot:
+
+| 산출물 | 유일 수정 경로 | 버전 자리 |
+|---|---|---|
+| `spec/prd.md` 등 청사진 | `autopilot-spec` update | `_internal/versions/v{N}/` |
+| `plans/*` 코드 작업 | `autopilot-code` | `plans/<date>_<slug>/` (사이클 누적) |
+| `documents/*` 문서 | `autopilot-draft`/`autopilot-refine` | `_internal/versions/v{N}/` |
+| `experiments/*` 실험 | `autopilot-lab` | `_RUNLOG.md` timeline |
+| `user_profile/*` 프로필 | `analyze-user` / `memo --scope user` | `_internal/versions/` |
 
 **(A) spec-backed 프로젝트 — 파이프 우선.** cwd 또는 상위에 `.claude_reports/spec/pipeline_state.yaml` 이 있으면 (새 세션 포함), 수정·기능 요청을 _ad-hoc 직접 진단 + Edit 으로 끝내지 않는다._
 1. **기존 산출물 파악** (손대기 전) — `spec/prd.md` · `pipeline_state.yaml` · 최근 `plans/*`.

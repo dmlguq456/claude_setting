@@ -7,6 +7,32 @@
 
 ---
 
+## 0. 불변식 — 단일 라우터 + 하드 순서 게이트 (우회 불가)
+
+본 문서가 **모든 작업 흐름의 단일 라우터**. 모든 발화는 §2 작업-본질 매핑을 먼저 거치고, 직접 처리·플러그인(cwm/codex)·빌트인 스킬도 WORKFLOW 가 배치하는 자리에서만 쓴다.
+
+**(a) 하드 순서 게이트** — 산출물은 한 방향으로만, 앞 단계 산출물 없이 다음 단계 진입 금지:
+
+```
+[코드]  research / analyze-project(code) → autopilot-spec (spec/) → autopilot-code (plans/)
+[문서]  research / analyze-project(paper·doc) → autopilot-draft → autopilot-refine
+```
+
+- **spec 없이 코드 X**: 코드 요청인데 `spec/` 없으면 autopilot-spec 먼저 (throwaway 1 회성만 예외, 반복 시 spec 승격).
+- **사전 산출물 없이 spec X**: spec 근거(`research/` 또는 `analysis_project/`) 없으면 autopilot-research/analyze-project 먼저. 낯선 영역·신규 의도일수록 강제.
+
+**(b) 동일 스킬 수정 = 버전 트래킹** — 각 산출물은 _그것을 만든 스킬로만_ 수정(ad-hoc Edit 금지, 순수 typo·1 줄만 예외), 매 수정 버전 snapshot:
+
+| 산출물 | 유일 수정 경로 | 버전 자리 |
+|---|---|---|
+| `spec/` 청사진 | autopilot-spec update | `_internal/versions/v{N}/` |
+| `plans/` 코드 | autopilot-code | `plans/<date>_<slug>/` |
+| `documents/` 문서 | autopilot-draft/refine | `_internal/versions/v{N}/` |
+| `experiments/` 실험 | autopilot-lab | `_RUNLOG.md` |
+| `user_profile/` 프로필 | analyze-user / memo --scope user | `_internal/versions/` |
+
+> 단일 출처 = 글로벌 `CLAUDE.md` §0. 본 §0 은 그 라우팅 불변식의 WORKFLOW 측 거울. 위반 신호: ad-hoc Edit 으로 산출물 직접 수정 / 게이트 건너뛰고 코드부터 / 산출물 만든 스킬 외 경로로 수정.
+
 ## 1. 한 화면 청사진 — 4 트랙
 
 ```
