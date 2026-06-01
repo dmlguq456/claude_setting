@@ -20,7 +20,7 @@
 본 폴더의 파일은 두 경로로 갱신:
 
 1. **`/analyze-user <aspect>`** skill — 사용자 과거 산출물 (paper / presentation / code / report) 을 스캔해 패턴 추출 후 해당 파일에 누적. 처음 셋업 또는 새 자료 누적 시.
-2. **`/notes --scope user`** skill — 대화 중 발견한 _범용 패턴_ 을 사용자가 명시적으로 추가하고 싶을 때. project-level note 와 구분.
+2. **`/memo --scope user`** skill — 대화 중 발견한 _범용 패턴_ 을 사용자가 명시적으로 추가하고 싶을 때. project-level memo 와 구분.
 
 본 폴더는 _agent 정의_ 가 아니라 _사용자 자료_ — agent 본문에 박지 않고 _agent 가 작업 시작 자리에서 Read_ 하는 형태로 참조.
 

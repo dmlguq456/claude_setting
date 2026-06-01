@@ -12,7 +12,7 @@
 
 ## 🚦 작동 방식 — 📌 tracked ↔ ⚡ untracked
 
-이 설정의 토대는 **hook 이 워크플로우를 _기계적으로_ 강제**한다는 점이다. skill·`CLAUDE.md` 지침은 _권장(advisory)_ 이고, 진짜 강제는 `PreToolUse` hook (`hooks/artifact-guard.sh`) 이 한다. 두 모드로 작동한다:
+산출물 수정과 작업 순서를 `PreToolUse` hook (`hooks/artifact-guard.sh`) 이 강제한다. 두 모드로 작동한다:
 
 | 모드 | 무엇이 막히나 |
 |---|---|
@@ -24,7 +24,7 @@
 - 막히면? 차단 메시지가 _어느 스킬로 가야 하는지_ 알려준다. 정식 작업은 그 스킬(예 `autopilot-code --qa quick` — 작은 변경도 경량 트레일), 진짜 일회성이면 `/track`.
 - **opt-in** — 코드 편집 차단은 `.claude_reports/.pipeline` 마커 둔 프로젝트만 (블랭킷이면 설정 repo 까지 막힘). `touch .claude_reports/.pipeline` 로 켠다.
 
-> 왜? 산출물이 _소유 스킬로만_ 바뀌면 버전·트레일이 안 끊기고, 순서(research→spec→plan→code)가 강제되면 맥락 없는 코드가 안 생긴다. "하세요(instruction)" 가 아니라 "막는다(hook)".
+> 산출물은 소유 스킬로만 바뀌어 버전·트레일이 끊기지 않고, 순서(research→spec→plan→code)가 지켜진다.
 
 ---
 
@@ -104,6 +104,7 @@ analyze-project  →  autopilot-spec ↻  →  autopilot-code ↻
 | [`autopilot-refine`](skills/autopilot-refine/SKILL.md) | doc/research markdown _사후 정정_. prompt + memo 통합 entry, 버전·이력 자동 관리 |
 | [`audit`](skills/audit/SKILL.md) | 산출물 _읽기 전용_ multi-aspect 점검 + 기본 auto-fix dispatch. refine 이 _수정 흐름_ 이면 audit 은 _점검 흐름_ |
 | [`analyze-user`](skills/analyze-user/SKILL.md) | cross-project 사용자 산출물 분석 → `user_profile/` 갱신. 모든 sub-agent 의 default 자료라 QA adversarial 고정 |
+| [`autopilot-note`](skills/autopilot-note/SKILL.md) | 산출물·git log 변화를 주기적·on-demand 로 worklog 카드(task/project/tech)에 routing. 일일 digest 누적, idempotent (cron 친화 `--qa light`) |
 | [`memo`](skills/memo/SKILL.md) | 사용자 통제 메모. `--scope project` (cwd memo.md) / `--scope user` (user_profile aspect) |
 | [`sync-skills`](skills/sync-skills/SKILL.md) | 본 README 를 SKILL.md·agent 정의로부터 재생성·동기화 |
 
