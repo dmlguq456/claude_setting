@@ -116,5 +116,9 @@
     "defaultMode": "auto"
   },
   "skipAutoPermissionPrompt": true,
-  "skipDangerousModePermissionPrompt": true
+  "skipDangerousModePermissionPrompt": true,
+  "statusLine": {
+    "type": "command",
+    "command": "bash /home/Uihyeop/.claude/statusline.sh"
+  }
 }
