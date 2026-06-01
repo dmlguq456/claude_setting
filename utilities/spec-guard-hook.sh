@@ -7,7 +7,14 @@
 #       없으면 조용히 종료 (일반 cwd 엔 영향 0).
 set -euo pipefail
 
-spec=$(ls .claude_reports/spec/*/pipeline_state.yaml 2>/dev/null | head -1 || true)
+# cwd 에서 위로 올라가며 spec-backed 프로젝트 루트 탐색 (서브디렉토리에서 열어도 잡도록).
+d="$PWD"; spec=""
+for _ in $(seq 1 40); do
+  f=$(ls "$d"/.claude_reports/spec/*/pipeline_state.yaml 2>/dev/null | head -1 || true)
+  if [ -n "$f" ]; then spec="$f"; break; fi
+  [ "$d" = "/" ] || [ "$d" = "$HOME" ] && break
+  d=$(dirname "$d")
+done
 [ -z "$spec" ] && exit 0
 
 proj=$(basename "$(dirname "$spec")")
