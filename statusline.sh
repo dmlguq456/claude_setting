@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Custom statusline — cwm HUD 대체 (의존성 없음, python3 로 JSON 파싱).
+# Custom statusline (의존성 없음, python3 로 JSON 파싱).
 # 표시: 디렉토리 · git 브랜치 · spec-gate 상태 · context 사용량 · 모델.
 # 입력: stdin JSON (Claude Code statusLine schema). 출력: 한 줄.
 set -euo pipefail
@@ -28,13 +28,13 @@ dir=$(basename "$S_CWD")
 branch=""
 command -v git >/dev/null 2>&1 && branch=$(git -C "$S_CWD" rev-parse --abbrev-ref HEAD 2>/dev/null || true)
 
-# artifact-guard 상태: 📌tracked(pipeline 강제) ↔ ✏️untracked(ad-hoc 직접편집)
+# artifact-guard 상태: 📌tracked(pipeline 강제) ↔ ⚡untracked(ad-hoc 직접편집)
 gate=""; gate_open=0
 d="$S_CWD"
 for _ in $(seq 1 40); do
-  if [ -f "$d/.claude_reports/spec/pipeline_state.yaml" ] || ls "$d"/.claude_reports/spec/*/pipeline_state.yaml >/dev/null 2>&1; then
+  if [ -d "$d/.claude_reports" ]; then
     if [ -f "$d/.claude_reports/.untracked" ]; then
-      mod=$(stat -c %Y "$d/.claude_reports/.untracked" 2>/dev/null || echo 0)
+      mod=$(stat -c %Y "$d/.claude_reports/.untracked" 2>/dev/null || stat -f %m "$d/.claude_reports/.untracked" 2>/dev/null || echo 0)
       [ $(( $(date +%s) - mod )) -lt 3600 ] && gate_open=1
     fi
     [ "$gate_open" = "1" ] && gate="⚡untracked(ad-hoc)" || gate="📌tracked(pipeline)"

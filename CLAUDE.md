@@ -39,7 +39,7 @@ research / analyze-project (산출물) → autopilot-spec (spec/) → autopilot-
 | `experiments/*` 실험 | `autopilot-lab` | `_RUNLOG.md` timeline |
 | `user_profile/*` 프로필 | `analyze-user` / `memo --scope user` | `_internal/versions/` |
 
-> **harness 강제 (advisory 아님)**: `hooks/artifact-guard.sh` (PreToolUse Edit|Write) 가 두 모드를 기계로 가른다. **📌tracked(pipeline, 기본)** — `spec/` canonical 파일(prd.md·stack.md·ship.md·api_contract·data_model·ui_flow, flat+monorepo)의 직접 Edit 을 **차단(exit 2)** → autopilot-spec update 경유(자체 버전관리). **⚡untracked(ad-hoc)** — `.claude_reports/.untracked` 를 `touch` (TTL 60분) 하면 직접 편집 허용·**snapshot 안 함**(명시적 비추적). 산출물-편집 스킬 호출 직전 또는 추적 불필요한 일회성 수정 시 touch. touch 없이 직접 Edit 하면 막힌다 = 강제가 작동하는 것. statusline 의 📌/⚡ 가 이 상태를 비춘다.
+> **harness 강제 (advisory 아님 — 위 표 _전체_ 를 기계로 강제)**: `hooks/artifact-guard.sh` (PreToolUse Edit|Write) 가 (0b) 추적 산출물 **전부** — `spec/` canonical(prd·stack·stack_decision·ship·api_contract·data_model·ui_flow, flat+monorepo)·`plans/`·`documents/`·`experiments/`·`user_profile/0*.md` — 를 두 모드로 가른다. **📌tracked(기본)** = 직접 Edit/Write **차단(exit 2)** → 소유 스킬 경유(자체 버전관리). **⚡untracked** = `.claude_reports/.untracked` `touch`(TTL 60분) → 직접 편집 허용·**snapshot 안 함**(명시적 비추적). _내장 예외(비가드)_: `_internal/`·`pipeline_state.yaml` 등 기계관리 파일 + `research/`·`analysis_project/`(상류 입력). **ceremony**: 산출물 쓰는 autopilot 스킬 호출 _직전_ flag 를 touch(또는 `/track`)해 통과 — 안 하면 스킬 쓰기까지 막힌다(= 강제 작동). 따라서 이 불변식은 instruction 이 아니라 hook 이 보장한다. statusline 📌/⚡ 가 상태 표시.
 
 **(A) spec-backed 프로젝트 — 파이프 우선.** cwd 또는 상위에 `.claude_reports/spec/pipeline_state.yaml` 이 있으면 (새 세션 포함), 수정·기능 요청을 _ad-hoc 직접 진단 + Edit 으로 끝내지 않는다._
 1. **기존 산출물 파악** (손대기 전) — `spec/prd.md` · `pipeline_state.yaml` · 최근 `plans/*`.
