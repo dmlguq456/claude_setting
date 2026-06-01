@@ -107,7 +107,7 @@ Package:   <chosen>
 
 **3-5. pipeline_state.yaml 생성**
 
-`.claude_reports/spec/<name>/pipeline_state.yaml`:
+`.claude_reports/spec/pipeline_state.yaml`:
 
 ```yaml
 app_name: <name>
@@ -130,15 +130,15 @@ last_updated: <timestamp>
 
 ## Output
 
-- `.claude_reports/spec/<name>/environment_check.md`
-- `.claude_reports/spec/<name>/stack.md`
-- `.claude_reports/spec/<name>/pipeline_state.yaml`
+- `.claude_reports/spec/environment_check.md`
+- `.claude_reports/spec/stack.md`
+- `.claude_reports/spec/pipeline_state.yaml`
 - 프로젝트 루트의 `CLAUDE.md` (없을 시 신규 생성)
 
 ## Return Format
 
 ```
-.claude_reports/spec/<name>/ -- ✅ init completed (stack: <framework>+<db>)
+.claude_reports/spec/ -- ✅ init completed (stack: <framework>+<db>)
 ```
 
 ## Update agent memory

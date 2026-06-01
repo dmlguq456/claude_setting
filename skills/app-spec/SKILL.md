@@ -33,7 +33,7 @@ argument-hint: "<task or feature description> [--app <name>] [--user-refine]"
 
 ### Step 2: PRD 작성 또는 갱신
 
-`.claude_reports/spec/<name>/prd.md` 구조:
+`.claude_reports/spec/prd.md` 구조:
 
 ```markdown
 # <App Name> PRD
@@ -148,19 +148,19 @@ DELETE /api/tasks/:id             → { ok: true }
 
 ## Output
 
-- `.claude_reports/spec/<name>/prd.md`
-- `.claude_reports/spec/<name>/scenarios.md` (시나리오 5+ 시)
+- `.claude_reports/spec/prd.md`
+- `.claude_reports/spec/scenarios.md` (시나리오 5+ 시)
 - `_internal/refine_v{N}.md` (refine loop 시)
 
 ## Return Format
 
 ```
-.claude_reports/spec/<name>/ -- ✅ PRD completed (N features, M scenarios)
+.claude_reports/spec/ -- ✅ PRD completed (N features, M scenarios)
 ```
 
 업데이트 mode:
 ```
-.claude_reports/spec/<name>/prd.md -- ✅ PRD updated (+K features, +M scenarios)
+.claude_reports/spec/prd.md -- ✅ PRD updated (+K features, +M scenarios)
 ```
 
 ## Update agent memory

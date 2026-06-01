@@ -35,7 +35,7 @@ worklog-board 앱 (`~/worklog-board/`) 은 _카드를 보여주는 UI_, 본 skil
 |---|---|---|---|
 | 1 | autopilot-research | `.claude_reports/research/{topic}/pipeline_summary.md` + chapters + `cards/` | topic 이름 + cards 안 paper id |
 | 2 | autopilot-draft | `.claude_reports/documents/{date}_{name}/pipeline_summary.md` + draft | name + frontmatter `topic` / paper id |
-| 3 | autopilot-code | `.claude_reports/plans/<project>/{date}_{name}/pipeline_summary.md` + dev_logs / 또는 `plans/<name>/<date>_<slug>/` | spec 이름 + plan/checklist 키워드 |
+| 3 | autopilot-code | `.claude_reports/plans/<date>_<slug>/pipeline_summary.md` + dev_logs | plan/checklist 키워드 |
 | 4 | autopilot-lab | `experiment/<id>/STORY.md` + `experiment/_RUNLOG.md` | experiment id + 부모 link + similar_models 참조 |
 | 5 | analyze-project | `.claude_reports/analysis_project/{code,paper,doc}/{matching}/` | matching label |
 | 6 | git log | `git log --since=<scope> --name-only --pretty=oneline` | commit message + 변경 파일 path |

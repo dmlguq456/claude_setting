@@ -34,7 +34,7 @@ Before any code changes, ensure the working tree is clean and up-to-date:
 ## Initialization
 - Read the plan file at $ARG.
 - The log directory is the task root folder (two levels up from `plan/plan.md`).
-  - Example: `.claude_reports/plans/<project>/2026-03-18_refactor_engine/plan/plan.md` → log dir is `.claude_reports/plans/<project>/2026-03-18_refactor_engine/`
+  - Example: `.claude_reports/plans/2026-03-18_refactor_engine/plan/plan.md` → log dir is `.claude_reports/plans/2026-03-18_refactor_engine/`
 - **Check for existing log directory** at `{log_dir}`:
   - If `{log_dir}/plan/checklist.md` already exists with `[x]`/`[FAIL]`/`[SKIP-DEP]` marks: this is a **resume**. Read the checklist, update the `Safety commit:` line with the current `$SAFETY_COMMIT`, and skip all completed steps. Continue from the first `[ ]` step.
   - Otherwise: this is a **fresh execution**. Proceed to create the log directory and checklist.

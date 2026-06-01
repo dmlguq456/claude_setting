@@ -9,7 +9,7 @@ argument-hint: "<design task description> [--scope ui|slide|icon|diagram|mixed]"
 
 ## Pre-Check
 
-`.claude_reports/designs/<name>/` 또는 `.claude_reports/spec/<name>/design/` 에 이미 `design_state.yaml` 있는지 확인.
+`.claude_reports/designs/<name>/` 또는 `.claude_reports/spec/design/` 에 이미 `design_state.yaml` 있는지 확인.
 - 있음 → "이미 init 완료. 새 사이클 시작하려면 폴더 정리." 안내 후 중단
 - 부재 → 계속
 

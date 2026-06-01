@@ -79,26 +79,26 @@
 
 | 종류 | 폴더 |
 |---|---|
-| 코드 청사진 | `spec/<project>/` — `prd.md`(항상 최신 T1)·`stack.md`·`design/`(자산 시)·`ship.md`·`pipeline_state.yaml`·`_internal/versions/v{N}/`(구 spec) |
-| 코드 작업 | `plans/<project>/<date>_<slug>/` — plan·dev_logs·test_logs·_internal (spec 유무 무관, spec 과 같은 `<project>` 이름) |
+| 코드 청사진 | `spec/` — `prd.md`(항상 최신 T1)·`stack.md`·`design/`(자산 시)·`ship.md`·`pipeline_state.yaml`·`_internal/versions/v{N}/`(구 spec) |
+| 코드 작업 | `plans/<date>_<slug>/` — plan·dev_logs·test_logs·_internal (spec 유무 무관) |
 | 실험 prototype | `experiments/{date}_{slug}/` + `experiments/_RUNLOG.md` |
 | 문서 | `documents/<date>_<name>/` |
 | 사전 조사·분석 | `research/<topic>/` · `analysis_project/<mode>/` |
 
-숫자 prefix(00_/01_/02_/05_) 폐지 — `spec/<project>/` 안 평이한 이름·user-facing(위) vs `_internal/`(기계) 2분. spec versioning = doc 트랙 동일 원리 (autopilot-spec refine 이 `_internal/versions/v{N}/prd.md` 자동 snapshot). 상세 = [`CONVENTIONS.md §5·§6.5`](CONVENTIONS.md).
+숫자 prefix(00_/01_/02_/05_) 폐지 — `spec/` 안 평이한 이름·user-facing(위) vs `_internal/`(기계) 2분. spec versioning = doc 트랙 동일 원리 (autopilot-spec refine 이 `_internal/versions/v{N}/prd.md` 자동 snapshot). 상세 = [`CONVENTIONS.md §5·§6.5`](CONVENTIONS.md).
 
 ## 7. 사후 수정 라우팅 — spec-backed 프로젝트
 
-초기 빌드 후 수정·기능 요청 (특히 새 세션). cwd 에 `.claude_reports/spec/<project>/` 있으면 ad-hoc 직접 Edit 금지 — **순서 원칙 (기존 산출물 파악) → analyze → spec → dev** 를 지킨다 (CLAUDE.md §0 imperative).
+초기 빌드 후 수정·기능 요청 (특히 새 세션). cwd 에 `.claude_reports/spec/` 있으면 ad-hoc 직접 Edit 금지 — **순서 원칙 (기존 산출물 파악) → analyze → spec → dev** 를 지킨다 (CLAUDE.md §0 imperative).
 
-> 본 §7 의 단일 출처는 글로벌 [`CLAUDE.md`](CLAUDE.md) §0. `settings.json` 의 SessionStart hook (`utilities/spec-guard-hook.sh`) 이 cwd·상위의 `spec/*/pipeline_state.yaml` 을 감지하면 본 §7 을 `additionalContext` 로 주입한다.
+> 본 §7 의 단일 출처는 글로벌 [`CLAUDE.md`](CLAUDE.md) §0. `settings.json` 의 SessionStart hook (`utilities/spec-guard-hook.sh`) 이 cwd·상위의 `spec/pipeline_state.yaml` (모노레포는 `spec/*/`) 을 감지하면 본 §7 을 `additionalContext` 로 주입한다.
 
-0. **기존 `.claude_reports/` 산출물 파악 (1 순위, 특히 새 세션)** — 손대기 전 `spec/<project>/prd.md` · `pipeline_state.yaml` · 최근 `plans/<project>/*` 를 _필요에 따라_ 먼저 읽어 프로젝트 상태·진행 자리를 잡는다. 맥락 모른 채 작업 X.
+0. **기존 `.claude_reports/` 산출물 파악 (1 순위, 특히 새 세션)** — 손대기 전 `spec/prd.md` · `pipeline_state.yaml` · 최근 `plans/*` 를 _필요에 따라_ 먼저 읽어 프로젝트 상태·진행 자리를 잡는다. 맥락 모른 채 작업 X.
 1. **(필요 시) analyze 갱신** — `analysis_project/code/` 가 stale 하거나 낯선 영역이면 `analyze-project --mode code` (incremental) 먼저.
 2. **spec 존재 확인** — 없으면 `autopilot-spec` 먼저 유도 (**spec → dev 하드 원칙**; throwaway 1 회성만 예외, 반복 시 spec 승격 권장).
-3. **spec-drift 사전 체크 (code 경유 _전_, 최우선)** — `spec/<project>/prd.md` 대조:
+3. **spec-drift 사전 체크 (code 경유 _전_, 최우선)** — `spec/prd.md` 대조:
    - spec-significant (route / schema·entity / UI-flow / 외부 연동 / 마이그레이션) **또는 코드 기존 drift** → **`autopilot-spec` update 모드** (prd.md 최신화 + `_internal/versions/v{N}/prd.md` 스냅샷). drift 가 _명확_ 하면 자율 진행 후 한 줄 보고, **_애매_ 하면 사용자에 확인.**
    - within-spec (구현 디테일) → _"spec 영향 없음"_ 확인.
-4. **`autopilot-code` 경유** — 작은 자연어 요청도 `--qa quick` (모든 모드 공통 경량 tier) 로 산출물 남기며 진행 → `plans/<project>/<date>_<slug>/`. ad-hoc 직접 Edit 은 _순수 typo·1 줄 포맷_ 정도만.
+4. **`autopilot-code` 경유** — 작은 자연어 요청도 `--qa quick` (모든 모드 공통 경량 tier) 로 산출물 남기며 진행 → `plans/<date>_<slug>/`. ad-hoc 직접 Edit 은 _순수 typo·1 줄 포맷_ 정도만.
 
-> 핵심: ① 트레일 단절 (거의 모든 요청 quick-pipe → `plans/<project>/`) ② spec drift (spec 변경은 항상 autopilot-spec update + versioning) ③ 새 세션 맹목 (진입 시 기존 산출물 파악 1 순위 + 도메인 트리거) 셋을 닫는다. autopilot-spec·autopilot-code 둘 다 iterable — 사후 수정은 _재호출_ 이지 새 사이클이 아니다.
+> 핵심: ① 트레일 단절 (거의 모든 요청 quick-pipe → `plans/`) ② spec drift (spec 변경은 항상 autopilot-spec update + versioning) ③ 새 세션 맹목 (진입 시 기존 산출물 파악 1 순위 + 도메인 트리거) 셋을 닫는다. autopilot-spec·autopilot-code 둘 다 iterable — 사후 수정은 _재호출_ 이지 새 사이클이 아니다.

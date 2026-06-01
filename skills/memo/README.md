@@ -66,7 +66,7 @@ memo.md는 세션 시작 시 항상 읽히는 컨텍스트 파일 — **짧고 d
 ## What this skill is NOT
 
 - **자동 메모리 시스템 대체 X** — `~/.claude/projects/*/memory/`는 그대로 작동. 본 skill은 추가 layer.
-- **코드 변경 기록 X** — `autopilot-code` plans/<project>/.
+- **코드 변경 기록 X** — `autopilot-code` plans/.
 - **문서 변경 기록 X** — `autopilot-draft` documents/.
 - **세션 활동 로그 X** — pipeline_summary.md 등.
 

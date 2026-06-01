@@ -1,10 +1,10 @@
 ---
 name: autopilot-ship
-description: "_앱 배포 셋업_ entry — 이미 `spec/<name>/` 가 잡혀 있고 기능 어느 정도 완성된 자리에서 첫 ship setup·env·domain·migration deploy 안내. 호스팅 선정 (Vercel / Fly / Railway / Cloudflare / EAS) + CI/CD 파일 + `.env.example` + 도메인 가이드 + deploy_record. 실제 배포 명령은 사용자 직접 실행 — 본 skill 은 _안내만_. autopilot-spec 의 _초기 spec·skeleton_ 자리와 작업 본질 분리. 재호출 가능 (env 변경·domain 추가·migration 운영 배포 자리)."
+description: "_앱 배포 셋업_ entry — 이미 `spec/` 가 잡혀 있고 기능 어느 정도 완성된 자리에서 첫 ship setup·env·domain·migration deploy 안내. 호스팅 선정 (Vercel / Fly / Railway / Cloudflare / EAS) + CI/CD 파일 + `.env.example` + 도메인 가이드 + deploy_record. 실제 배포 명령은 사용자 직접 실행 — 본 skill 은 _안내만_. autopilot-spec 의 _초기 spec·skeleton_ 자리와 작업 본질 분리. 재호출 가능 (env 변경·domain 추가·migration 운영 배포 자리)."
 argument-hint: "<task description (선택)> [--qa quick|light|standard|thorough]"
 ---
 
-> 산출물 폴더: `.claude_reports/spec/<name>/ship.md` 안 누적 ([CONVENTIONS.md §5](../../CONVENTIONS.md#5-skill-output-convention-3-tier-t1t2t3) 3-tier).
+> 산출물 폴더: `.claude_reports/spec/ship.md` 안 누적 ([CONVENTIONS.md §5](../../CONVENTIONS.md#5-skill-output-convention-3-tier-t1t2t3) 3-tier).
 
 ## Purpose — _앱 배포 셋업_ entry
 
@@ -49,11 +49,11 @@ argument-hint: "<task description (선택)> [--qa quick|light|standard|thorough]
 
 ## Context Auto-Detection
 
-호출 자리에서 `.claude_reports/spec/<name>/pipeline_state.yaml` 자동 검사:
+호출 자리에서 `.claude_reports/spec/pipeline_state.yaml` 자동 검사:
 
 | 감지 | 처리 |
 |---|---|
-| `spec/<name>/ship.md` 부재 | **첫 ship setup** — 호스팅 선정 + CI/CD + env + domain |
+| `spec/ship.md` 부재 | **첫 ship setup** — 호스팅 선정 + CI/CD + env + domain |
 | `ship.md` 존재 | **재호출** — 발화 의도 분류 (env / domain / migration) 후 해당 자리만 |
 
 발화 → 자리 자동 분류:
@@ -72,7 +72,7 @@ argument-hint: "<task description (선택)> [--qa quick|light|standard|thorough]
 
 ### Step 1: 현재 상태 점검 (read-only)
 
-- `spec/<name>/pipeline_state.yaml` 의 `stack` 검증 (framework / DB)
+- `spec/pipeline_state.yaml` 의 `stack` 검증 (framework / DB)
 - `git remote -v` — GitHub 연결 여부
 - 기존 `vercel.json` / `.github/workflows/` / `.env.example` 발견 여부
 - `git status` — working tree clean 검증
@@ -119,7 +119,7 @@ vercel deploy --prod
 
 또는 호스팅 별 명령. **본 skill 안 _자동 실행 X_** — 사용자 직접 실행.
 
-#### 3-6. `spec/<name>/ship.md` 작성
+#### 3-6. `spec/ship.md` 작성
 
 ```markdown
 ---
@@ -159,7 +159,7 @@ changelog:
 
 ```
 === Ship 자리 ===
-대상: spec/<name>/
+대상: spec/
 자리: <첫 setup / env 보강 / domain / migration>
 주요 결정: <3-5 bullet>
 
@@ -187,7 +187,7 @@ changelog:
 ## Return Format
 
 ```
-spec/<name>/ship.md -- ✅ ship setup 완료
+spec/ship.md -- ✅ ship setup 완료
 다음 — push 후 자동 deploy (Vercel/Cloudflare 자리) 또는 사용자 직접 명령
 ```
 
