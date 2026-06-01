@@ -28,6 +28,7 @@ research / analyze-project (산출물) → autopilot-spec (spec/) → autopilot-
 - **spec 없이 코드 작업 X** — 코드 요청인데 `spec/` 없으면 `autopilot-spec` 먼저 (throwaway 1 회성만 예외, 반복되면 spec 승격).
 - **사전 산출물 없이 spec X** — spec 만들 근거(`research/` 또는 `analysis_project/`)가 없으면 `autopilot-research`/`analyze-project` 먼저. 낯선 영역·신규 의도일수록 강제.
 - 문서 트랙도 동형: `research/analyze-project → autopilot-draft → autopilot-refine`.
+- **harness 강제 (opt-in)**: `.claude_reports/.pipeline` 마커를 둔 프로젝트에선 이 순서 체인을 `hooks/artifact-guard.sh` 가 _기계 차단_ — 소스 코드 편집은 `spec/` + `plans/` plan 존재가 전제, 신규 spec 작성은 research/analyze 존재가 전제, plan 작성은 spec 존재가 전제. 작은 코드 변경도 `autopilot-code --qa quick` 으로 경량 plan 트레일을 남기면 통과. 마커 없는 프로젝트(`~/.claude` 등)는 코드 편집 advisory(비차단). `⚡untracked`(`/track`)는 전부 우회.
 
 **(0b) 동일 스킬 수정 = 버전 트래킹 (불변식, 아래 harness 가 강제).** 각 산출물은 _그것을 만든 스킬로만_ 수정한다. 직접 Edit 차단·예외(`.untracked`)는 instruction 이 아니라 hook 이 보장 → 아래 주석:
 

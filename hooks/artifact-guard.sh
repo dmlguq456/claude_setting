@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
-# PreToolUse(Edit|Write|MultiEdit) — 모든 추적 산출물의 tracking 의도를 강제.
-# 모델 (CLAUDE.md §0(0b) / WORKFLOW §0(b)):
-#   📌tracked (기본)   — 추적 산출물 직접 Edit/Write 차단(exit 2) → 소유 스킬 경유(자체 버전관리).
-#   ⚡untracked (flag) — .claude_reports/.untracked (mtime<60분) 있으면 직접 편집 허용, snapshot 없음.
-#                        autopilot 파이프(소유 스킬) 편집도 이 flag 로 통과 → 스킬이 자체 버전관리.
-# 가드 대상(0b 추적 산출물 전체):
-#   spec/ canonical · plans/ · documents/ · experiments/ · ~/.claude/user_profile/0*.md
-#   (_internal/ 스냅샷·spec/pipeline_state.yaml 등 기계관리 파일은 제외)
+# PreToolUse(Edit|Write|MultiEdit) — 산출물 추적 + 파이프 순서 체인 강제.
+# 모드: 📌tracked(기본) ↔ ⚡untracked(.claude_reports/.untracked, TTL 60분 → 전부 우회).
+#
+# 강제 2종 (tracked 모드):
+#   (1) 산출물 추적 [모든 .claude_reports 프로젝트] — spec/ canonical·plans/·documents/·
+#       experiments/·user_profile/0*.md 직접 Edit 차단(exit 2) → 소유 스킬 경유.
+#   (2) 순서 체인 [opt-in: .claude_reports/.pipeline 마커 둔 프로젝트만] — 의존 산출물 없이
+#       다음 단계 진입 차단:
+#         · 소스 코드 Edit/Write → spec/ 존재 + plans/ 에 plan 존재 필요.
+#         · 신규 spec 작성       → research/ 또는 analysis_project/ 필요.
+#         · 신규 plan 작성        → spec/ 필요.
+#       (마커 없는 프로젝트는 코드 편집 자유 — ~/.claude 설정 repo 등 footgun 회피.)
+# 단일 출처: CLAUDE.md §0 / WORKFLOW.md §0.
 set -euo pipefail
 
 input=$(cat)
@@ -19,27 +24,9 @@ except Exception:
     print("")
 ' 2>/dev/null)
 [ -z "$fp" ] && exit 0
+case "$fp" in */_internal/*) exit 0 ;; esac   # 기계관리 스냅샷 → 통과
 
-# _internal/ 기계관리 파일은 항상 통과 (스킬의 버전 snapshot 자리)
-case "$fp" in */_internal/*) exit 0 ;; esac
-
-# ---- 가드 대상 판정 + 소유 스킬 매핑 ----
-kind=""; skill=""
-case "$fp" in
-  */.claude_reports/spec/*)
-    case "$(basename "$fp")" in
-      prd.md|stack.md|stack_decision.md|ship.md|api_contract.md|data_model.md|ui_flow.md)
-        kind="spec 청사진"; skill="autopilot-spec update" ;;
-      *) exit 0 ;;   # pipeline_state.yaml 등 기계관리 → 통과
-    esac ;;
-  */.claude_reports/plans/*)        kind="plans 코드작업"; skill="autopilot-code" ;;
-  */.claude_reports/documents/*)    kind="documents 문서"; skill="autopilot-draft / autopilot-refine" ;;
-  */.claude_reports/experiments/*)  kind="experiments 실험"; skill="autopilot-lab" ;;
-  */.claude/user_profile/0*.md)     kind="user_profile 프로필"; skill="analyze-user / memo --scope user" ;;
-  *) exit 0 ;;
-esac
-
-# ---- 프로젝트 루트 + untracked flag ----
+# ---- 프로젝트 루트 (.claude_reports 또는 user_profile 보유) ----
 d=$(dirname "$fp"); root=""
 for _ in $(seq 1 40); do
   { [ -d "$d/.claude_reports" ] || [ -d "$d/user_profile" ]; } && { root="$d"; break; }
@@ -47,25 +34,46 @@ for _ in $(seq 1 40); do
   d=$(dirname "$d")
 done
 [ -z "$root" ] && exit 0
-# user_profile 는 ~/.claude 루트, 그 외는 프로젝트 .claude_reports 루트에 flag.
-flag="$root/.claude_reports/.untracked"
-[ -d "$root/.claude_reports" ] || flag="$root/.untracked"
+cr="$root/.claude_reports"
 
-# ---- untracked flag 신선도 (mtime < 3600s) → 직접 편집 허용 ----
+# ---- ⚡untracked 우회 ----
+flag="$cr/.untracked"; [ -d "$cr" ] || flag="$root/.untracked"
 if [ -f "$flag" ]; then
   mod=$(stat -c %Y "$flag" 2>/dev/null || stat -f %m "$flag" 2>/dev/null || echo 0)
   [ $(( $(date +%s) - mod )) -lt 3600 ] && exit 0
 fi
 
-# ---- tracked 모드(기본): ad-hoc 직접 편집 차단 ----
+# ---- 존재 판정 헬퍼 ----
+has_spec(){ [ -f "$cr/spec/pipeline_state.yaml" ] || ls "$cr"/spec/*/pipeline_state.yaml >/dev/null 2>&1; }
+has_plan(){ ls -d "$cr"/plans/*/ >/dev/null 2>&1; }
+has_research(){ ls -A "$cr/research" >/dev/null 2>&1 || ls -A "$cr/analysis_project" >/dev/null 2>&1; }
+block(){ printf '───────────────────────────────────────────\n⛔ %s\n   %s\n───────────────────────────────────────────\n   우회: touch %s (또는 /track) → ⚡untracked\n' "$1" "$2" "$flag" >&2; exit 2; }
+
 base=$(basename "$fp")
-cat >&2 <<MSG
-───────────────────────────────────────────
-📌 tracked 산출물 — 직접 편집 차단 ($kind: $base)
-───────────────────────────────────────────
-추적 산출물은 소유 스킬로만 수정한다 (CLAUDE.md §0(0b)).
-  · 정식 수정 → $skill (자체 버전관리)
-  · 추적 불필요한 일회성 직접 수정이면 → touch $flag (⚡untracked, TTL 60분)
-───────────────────────────────────────────
-MSG
-exit 2
+
+# ---- (1) 산출물 추적: tracked 산출물 직접 Edit 차단 ----
+case "$fp" in
+  */.claude_reports/spec/*)
+    case "$base" in
+      prd.md|stack.md|stack_decision.md|ship.md|api_contract.md|data_model.md|ui_flow.md)
+        [ -f "$fp" ] || has_research || block "신규 spec 작성 전 research/analyze 필요 ($base)" "→ autopilot-research / analyze-project 먼저"
+        block "tracked 산출물 직접 편집 차단 (spec: $base)" "→ autopilot-spec update (자체 버전관리)" ;;
+      *) exit 0 ;;
+    esac ;;
+  */.claude_reports/plans/*)
+    [ -f "$fp" ] || has_spec || block "신규 plan 작성 전 spec 필요" "→ autopilot-spec 먼저"
+    block "tracked 산출물 직접 편집 차단 (plans: $base)" "→ autopilot-code" ;;
+  */.claude_reports/documents/*)   block "tracked 산출물 직접 편집 차단 (documents: $base)" "→ autopilot-draft / autopilot-refine" ;;
+  */.claude_reports/experiments/*) block "tracked 산출물 직접 편집 차단 (experiments: $base)" "→ autopilot-lab" ;;
+  */.claude/user_profile/0*.md)    block "tracked 산출물 직접 편집 차단 (user_profile: $base)" "→ analyze-user / memo --scope user" ;;
+esac
+
+# ---- (2) 순서 체인: 소스 코드 (opt-in 프로젝트만) ----
+case "$fp" in
+  "$cr"/*) exit 0 ;;          # .claude_reports 내부 비추적 파일(research 등) → 통과
+esac
+[ -f "$cr/.pipeline" ] || exit 0   # opt-in 안 한 프로젝트 → 코드 편집 자유
+
+has_spec || block "코드 작업 전 spec 필요 (이 프로젝트는 .pipeline opt-in)" "→ autopilot-spec (그 전 research/analyze 필요)"
+has_plan || block "코드 작업 전 plan 필요 — 모든 코드 변경은 plans/ 트레일을 남긴다" "→ autopilot-code --qa quick (작은 변경도 경량 plan 트레일)"
+exit 0
