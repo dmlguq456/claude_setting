@@ -83,7 +83,7 @@ if [ "${ctx_pct:-(-1)}" -ge 0 ] 2>/dev/null; then
   bar=""
   i=0; while [ "$i" -lt "$filled" ]; do bar="${bar}█"; i=$((i+1)); done
   while [ "$i" -lt "$segs" ]; do bar="${bar}░"; i=$((i+1)); done
-  out="${out} ${cc}${bar} ${ctx_pct}%${RST}"
+  out="${out} ${DIM}context${RST} ${cc}${bar} ${ctx_pct}%${RST}"
 fi
 out="${out} ${DIM}${S_MODEL}${RST}"
 printf '%s' "$out"
