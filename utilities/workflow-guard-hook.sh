@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # workflow-guard-hook — WORKFLOW.md (tracked-mode 계약) 를 컨텍스트로 전달.
 #   SessionStart    : 라우팅 코어 전체 주입 (+ spec-backed 면 §7 디테일).
-#   UserPromptSubmit: 매 프롬프트 _thin reminder_ — tracked 면 "skill 경유" 한 줄 (규칙 복사 X, 포인터).
+#   UserPromptSubmit: 매 프롬프트 _모드 신호_ (cr_root 프로젝트) — 📌tracked(WORKFLOW 따름·skill 경유)
+#                     vs ⚡untracked(면제·자유). Claude 가 "WORKFLOW 지킬지" 를 positive 하게 인지.
 # 규칙의 단일 출처 = WORKFLOW.md §0/§7 (본 hook 은 _전달_ 만; UserPromptSubmit 은 재서술 없이 상기만).
 # 등록: ~/.claude/settings.json 의 hooks.SessionStart + hooks.UserPromptSubmit.
 set -euo pipefail
@@ -54,13 +55,20 @@ emit() {  # $1 = hookEventName, stdin = ctx 본문
 # UserPromptSubmit — 매 프롬프트 thin reminder (tracked 일 때만)
 # ============================================================
 if [ "$EVENT" = "UserPromptSubmit" ]; then
-  [ "$is_project" = "0" ] && exit 0      # 프로젝트 아님 → 침묵
-  [ "$untracked" = "1" ] && exit 0       # ⚡untracked → 침묵 (free)
-  spec_tail=""
-  [ -n "$spec_root" ] && spec_tail=" 이 프로젝트는 spec-backed → 수정·기능 요청은 WORKFLOW §7 (spec-drift 체크 → autopilot-code)."
-  emit UserPromptSubmit <<EOF
-🧭 📌tracked — 작업(코드/스펙/문서/실험)이면 직접 편집 말고 autopilot-* skill 경유. WORKFLOW §0 하드 순서(research→spec→plan→code) 따름; 산출물은 만든 스킬로만 수정. 단발·throwaway 만 직접.${spec_tail}
+  # .claude_reports 없음 → tracked/untracked 토글 자체가 무관 → 침묵.
+  [ -z "$cr_root" ] && exit 0
+  # 모드를 _양쪽 다 명시_ — Claude 가 "WORKFLOW 를 지킬지" 를 매 프롬프트 positive 하게 결정.
+  if [ "$untracked" = "1" ]; then
+    emit UserPromptSubmit <<'EOF'
+🧭 ⚡untracked — WORKFLOW 면제. 산출물·소스 코드 직접 편집 자유 (추적·trail 없음). 정식 파이프로 돌리려면 /track.
 EOF
+  else
+    spec_tail=""
+    [ -n "$spec_root" ] && spec_tail=" spec-backed → 수정·기능은 WORKFLOW §7 (spec-drift 체크 → autopilot-code)."
+    emit UserPromptSubmit <<EOF
+🧭 📌tracked — WORKFLOW(§0/§7) 따름. 작업(코드/스펙/문서/실험)이면 직접 편집 말고 autopilot-* skill 경유; 산출물은 만든 스킬로. 단발·throwaway 만 직접.${spec_tail}
+EOF
+  fi
   exit 0
 fi
 

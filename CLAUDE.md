@@ -40,7 +40,7 @@ research / analyze-project (산출물) → autopilot-spec (spec/) → autopilot-
 
 > **harness**: `hooks/artifact-guard.sh` 는 _신규 산출물 생성 순서_ 만 hard 강제 (신규 spec←research, 신규 plan←spec, 신규 문서←research). **기존 산출물 _편집_ · 소스 코드는 차단 안 함** — "소유 스킬로 수정"은 convention (hook 이 소유 스킬과 직접편집을 구분 못 함). 비가드: `_internal/`·`pipeline_state.yaml`·`research/`·`analysis_project/`·`post-it.md`·`user_profile/`. **⚡untracked**(`/track`) = 생성 순서까지 _전부_ 우회 — 사용자 결정·throwaway 전용. **Claude 는 우회용 untracked 를 자기 판단으로 켜지 않는다** (막히면 전제 산출물 생성 또는 보고). statusline 📌/⚡.
 
-**(A) spec-backed 프로젝트 — 파이프 우선.** cwd/상위에 `spec/pipeline_state.yaml` 있으면(새 세션 포함) ad-hoc 직접 진단+Edit 로 끝내지 않는다. **순서·절차 = `WORKFLOW.md` §7** (기존 산출물 파악 → spec-drift 체크 → `autopilot-code --qa quick`; `workflow-guard-hook` 이 감지 시 SessionStart 주입 + UserPromptSubmit 마다 thin reminder). 강제: 산출물 직접 Edit = hook 차단(§0(0b)) / 소스 코드 = `.pipeline` opt-in 프로젝트만 차단(§0(0)).
+**(A) spec-backed 프로젝트 — 파이프 우선.** cwd/상위에 `spec/pipeline_state.yaml` 있으면(새 세션 포함) ad-hoc 직접 진단+Edit 로 끝내지 않는다. **순서·절차 = `WORKFLOW.md` §7** (기존 산출물 파악 → spec-drift 체크 → `autopilot-code --qa quick`; `workflow-guard-hook` 이 SessionStart 주입 + 매 프롬프트 모드 신호 📌따름/⚡면제). 강제: 신규 산출물 _생성 순서_ 만 hook (§0(0)); 기존 편집·소스 코드는 convention + 라우팅 reminder.
 
 **(B) autopilot-* 호출 패턴 — 옵션 자동 구성 + 컨펌.** 자연어 한 줄로 부르면 컨텍스트 (cwd / `.claude_reports/` / 발화) 보고 옵션 조합 → 한 번 컨펌 (자연어 한 줄 요약 + 옵션 + 근거) → invoke.
 - **발화 분류** (turn 첫 단계): ceremony 큰 6 (`autopilot-code/draft/research/refine/apply` + `analyze-user`) → 컨펌 흐름 / 작은 3 (`audit`/`post-it`/`analyze-project`) → 즉시 invoke / sub-skill 자연어 → autopilot-* `--from <stage>` 재개 / 매칭 없음 → 직접 처리. 판단: 추적 필요 + 산출물 누적 → autopilot, 짧은 단발 → 직접.
