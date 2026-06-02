@@ -74,12 +74,12 @@ EOF
 fi
 
 # ============================================================
-# SessionStart (default) — 1일+ _비활성_ ⚡untracked flag GC.
-# flag mtime = heartbeat: 활성 세션은 UserPromptSubmit 마다 touch 로 갱신 → 1일 넘게 켜둔
-# 장기 세션의 flag 는 안 지워짐. mtime +1440 = "마지막 활동 1일 전" = 크래시·종료된 세션 잔재.
+# SessionStart (default) — 3일+ _비활성_ ⚡untracked flag GC.
+# flag mtime = heartbeat: 활성 세션은 UserPromptSubmit 마다 touch 로 갱신 → 3일 넘게 켜둔
+# 장기 세션의 flag 는 안 지워짐. mtime +4320 = "마지막 활동 3일 전" = 크래시·종료된 세션 잔재.
 # WORKFLOW.md·post-it 읽기는 _지침_ (CLAUDE.md 부트스트랩 + 도메인 트리거) 이 담당 — hook 주입 X.
 # ============================================================
 if [ -n "$cr_root" ]; then
-  find "$cr_root/.claude_reports" -maxdepth 1 -name '.untracked.*' -mmin +1440 -delete 2>/dev/null || true
+  find "$cr_root/.claude_reports" -maxdepth 1 -name '.untracked.*' -mmin +4320 -delete 2>/dev/null || true
 fi
 exit 0
