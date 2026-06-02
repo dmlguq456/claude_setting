@@ -86,7 +86,7 @@ analyze-project  →  autopilot-spec ↻  →  autopilot-code ↻
 
 > **점검·정정은 모든 트랙 공통, 사후** — `audit` (읽기 전용 점검) · `autopilot-refine` (markdown 정정) · `autopilot-apply` (cheatsheet → 실제 소스).
 > **코드 트랙 사후 수정** — `spec/` 잡힌 프로젝트의 수정·기능 요청은 _기존 산출물 파악 → spec-drift 체크 (`autopilot-spec` update) → `autopilot-code`_ 순서 (산출물 직접 Edit 은 [📌 tracked](#-작동-방식--tracked--untracked) hook 차단, spec→dev 하드 원칙). 상세 → [WORKFLOW](WORKFLOW.md) §7 · [CLAUDE](CLAUDE.md) §0.
-> **사용자 프로필은 cross-project** — `analyze-user` · `memo --scope user` 가 `~/.claude/user_profile/` 를 만들고, 모든 트랙이 작업 시작 자리에서 default 로 참조한다.
+> **사용자 프로필은 cross-project** — `analyze-user` · `post-it --scope user` 가 `~/.claude/user_profile/` 를 만들고, 모든 트랙이 작업 시작 자리에서 default 로 참조한다.
 
 체이닝 청사진·서브에이전트 분기·호출 예시는 → [`WORKFLOW.md`](WORKFLOW.md).
 
@@ -111,7 +111,7 @@ analyze-project  →  autopilot-spec ↻  →  autopilot-code ↻
 | [`audit`](skills/audit/SKILL.md) | 산출물 _읽기 전용_ multi-aspect 점검 + 기본 auto-fix dispatch. refine 이 _수정 흐름_ 이면 audit 은 _점검 흐름_ |
 | [`analyze-user`](skills/analyze-user/SKILL.md) | cross-project 사용자 산출물 분석 → `user_profile/` 갱신. 모든 sub-agent 의 default 자료라 QA adversarial 고정 |
 | [`autopilot-note`](skills/autopilot-note/SKILL.md) | 산출물·git log 변화를 주기적·on-demand 로 worklog 카드(task/project/tech)에 routing. 일일 digest 누적, idempotent (cron 친화 `--qa light`) |
-| [`memo`](skills/memo/SKILL.md) | 사용자 통제 _임시 포스트잇_ 메모. `--scope project`(cwd memo.md) / `--scope user`(user_profile aspect). `sweep`=산출물 졸업·stale prune · `promote`=user 메모 구조화 졸업 — 영구 누적 X |
+| [`post-it`](skills/post-it/SKILL.md) | 사용자 통제 _임시 포스트잇_ 메모. `--scope project`(cwd post-it.md) / `--scope user`(user_profile aspect). `sweep`=산출물 졸업·stale prune · `promote`=user 메모 구조화 졸업 — 영구 누적 X |
 | [`sync-skills`](skills/sync-skills/SKILL.md) | 본 README 를 SKILL.md·agent 정의로부터 재생성·동기화 |
 
 > sub-skill 은 autopilot 내부 자동 호출 (사용자가 직접 안 부름): code 가족 (`code-plan`/`-refine`/`-execute`/`-test`/`-report`) · draft 가족 (`draft-strategy`/`-refine`) · app 가족 (`app-init`/`app-spec`) · design 가족 (`design-init`/`-refs`/`-tokens`/`-components`/`-review`/`-handoff`).
@@ -135,7 +135,7 @@ analyze-project  →  autopilot-spec ↻  →  autopilot-code ↻
 | `plans/{date}_{slug}/` | 작업 사이클 (spec 유무 무관, spec 과 형제) |
 | `experiments/{date}_{slug}/` | ML 실험 prototype (`autopilot-lab`) — lab 이 세팅, 사용자가 실행. `_RUNLOG.md` 에 실험당 한 줄 (⏳ 대기 → ✅ 완료 상태) |
 
-**cross-project — `~/.claude/user_profile/`** — `analyze-user` 가 6 aspect 파일을 누적. 모든 트랙·sub-agent 가 작업 시작 자리에서 default 로 Read. 짧은 메모는 `/memo --scope user <aspect>` 가 같은 파일에 append.
+**cross-project — `~/.claude/user_profile/`** — `analyze-user` 가 6 aspect 파일을 누적. 모든 트랙·sub-agent 가 작업 시작 자리에서 default 로 Read. 짧은 메모는 `/post-it --scope user <aspect>` 가 같은 파일에 append.
 
 **3-tier 컨벤션** — 한 산출물 폴더 안에서 T1 root (메인 산출물) / T2 named subdir (검토 자료) / T3 `_internal/` (audit·raw·versions) 로 나뉜다. _사용자는 보통 T1 만 보면 된다._ 한 프로젝트는 `spec/`(청사진, 항상 최신) + `plans/`(작업 사이클) 두 형제 bucket 으로 같은 이름에 묶인다.
 
@@ -149,7 +149,7 @@ analyze-project  →  autopilot-spec ↻  →  autopilot-code ↻
 
 ### (1) 자연어 발화
 
-메인 Claude 가 옵션을 자동 구성하고 **한 줄 요약 + 옵션 펼침 + 선택 근거** 로 컨펌을 묻는다. yes / 수정 ("qa thorough 로", "X 빼고") / cancel. 무응답이면 추천안으로 자율 진행. ceremony 큰 10 개 (autopilot-\* 9 + analyze-user) 만 컨펌 의무, `audit`/`memo`/`analyze-project` 는 즉시 invoke. 상세 룰은 → [`CLAUDE.md`](CLAUDE.md) §0.
+메인 Claude 가 옵션을 자동 구성하고 **한 줄 요약 + 옵션 펼침 + 선택 근거** 로 컨펌을 묻는다. yes / 수정 ("qa thorough 로", "X 빼고") / cancel. 무응답이면 추천안으로 자율 진행. ceremony 큰 10 개 (autopilot-\* 9 + analyze-user) 만 컨펌 의무, `audit`/`post-it`/`analyze-project` 는 즉시 invoke. 상세 룰은 → [`CLAUDE.md`](CLAUDE.md) §0.
 
 | 사용자 발화 | 메인 Claude 컨펌 (자연어 요약) |
 |---|---|

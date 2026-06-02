@@ -30,7 +30,7 @@
 | `plans/` 코드 | autopilot-code | `plans/<date>_<slug>/` |
 | `documents/` 문서 | autopilot-draft/refine | `_internal/versions/v{N}/` |
 | `experiments/` 실험 | autopilot-lab | `_RUNLOG.md` |
-| `user_profile/` 프로필 | analyze-user / memo --scope user | `_internal/versions/` |
+| `user_profile/` 프로필 | analyze-user / post-it --scope user | `_internal/versions/` |
 
 > 단일 출처 = 글로벌 `CLAUDE.md` §0. 본 §0 은 그 라우팅 불변식의 WORKFLOW 측 거울. 위반 신호: ad-hoc Edit 으로 산출물 직접 수정 / 게이트 건너뛰고 코드부터 / 산출물 만든 스킬 외 경로로 수정.
 
@@ -43,7 +43,7 @@
 [앱]          autopilot-spec ↻ → autopilot-design → autopilot-code ↻(앱 mode 자동) → autopilot-ship ↻
 ```
 
-`↻` = 반복 자리. 사후 공통: `audit`(읽기 전용 점검) · `autopilot-refine`(markdown 정정). cross-project: `analyze-user` · `memo --scope user`.
+`↻` = 반복 자리. 사후 공통: `audit`(읽기 전용 점검) · `autopilot-refine`(markdown 정정). cross-project: `analyze-user` · `post-it --scope user`.
 
 ## 2. 작업 본질 매핑 (발화 → skill)
 
