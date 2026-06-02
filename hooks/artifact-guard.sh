@@ -5,7 +5,8 @@
 #
 # 강제 2종 (tracked 모드):
 #   (1) 산출물 추적 [모든 .claude_reports 프로젝트] — spec/ canonical·plans/·documents/·
-#       experiments/·user_profile/0*.md 직접 Edit 차단(exit 2) → 소유 스킬 경유.
+#       experiments/ 직접 Edit 차단(exit 2) → 소유 스킬 경유.
+#       (user_profile/0*.md 는 convention — agent read-only + analyze-user/post-it 권장, hook 비강제.)
 #   (2) 순서 체인 [spec/ 있는 프로젝트 자동] — 의존 산출물 없이 다음 단계 진입 차단:
 #         · 소스 코드 Edit/Write → spec/ + plans/ plan 존재 필요 (spec 없는 프로젝트는 자유).
 #         · 신규 spec 작성       → research/ 또는 analysis_project/ 필요.
@@ -28,10 +29,10 @@ fp="${FP:-}"; sid="${SID:-}"
 [ -z "$fp" ] && exit 0
 case "$fp" in */_internal/*) exit 0 ;; esac   # 기계관리 스냅샷 → 통과
 
-# ---- 프로젝트 루트 (.claude_reports 또는 user_profile 보유) ----
+# ---- 프로젝트 루트 (.claude_reports 보유) ----
 d=$(dirname "$fp"); root=""
 for _ in $(seq 1 40); do
-  { [ -d "$d/.claude_reports" ] || [ -d "$d/user_profile" ]; } && { root="$d"; break; }
+  [ -d "$d/.claude_reports" ] && { root="$d"; break; }
   [ "$d" = "/" ] && break
   d=$(dirname "$d")
 done
@@ -67,7 +68,6 @@ case "$fp" in
     [ -f "$fp" ] || has_research || block "신규 문서 작성 전 research/analyze 필요 ($base)" "→ autopilot-research / analyze-project 먼저"
     block "tracked 산출물 직접 편집 차단 (documents: $base)" "→ autopilot-draft / autopilot-refine" ;;
   */.claude_reports/experiments/*) block "tracked 산출물 직접 편집 차단 (experiments: $base)" "→ autopilot-lab" ;;
-  */.claude/user_profile/0*.md)    block "tracked 산출물 직접 편집 차단 (user_profile: $base)" "→ analyze-user / memo --scope user" ;;
 esac
 
 # ---- (2) 순서 체인: 소스 코드 — spec 관리 프로젝트면 자동 강제 ----

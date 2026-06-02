@@ -72,7 +72,7 @@ post-it 의 목적 = Claude 가 _사용자 흐름을 이어가고_(연속성) + 
 - 단 `promote` (또는 analyze-user 가 시작 시 manual 메모를 _반영 후보로 제시_, confirm) 로 안정된 manual 메모를 구조화 절로 졸업시킨 뒤 manual 에서 제거 — manual 절을 _staging post-it_ 으로 유지, 무한 누적 방지.
 - 그 외 모든 절 — _analyze-user 영역_. 사용자가 직접 Edit 하면 다음 update 에 덮어쓰일 수 있음 (frontmatter `changelog:` 에 남기면 보존).
 
-> **artifact-guard 주의**: project post-it (`.claude_reports/post-it.md`) 는 추적 대상이 아니라 직접 편집 자유. user scope (`user_profile/0*.md`) 는 추적 산출물 — 직접 Write 차단(exit 2)이라, `--scope user` 의 add/promote/sweep 는 쓰기 직전 untracked ceremony(`/track` 또는 flag) 가 필요 (CLAUDE.md §0(0b)). 메인 Claude 가 user scope 쓰기 자리에서 이 점을 안내.
+> **artifact-guard 주의**: project post-it (`.claude_reports/post-it.md`) 도, user scope (`user_profile/0*.md`) 도 **직접 편집 자유** — 둘 다 artifact-guard 비가드 (user_profile 은 hook 비강제 convention only, CLAUDE.md §0(0b)). 즉 `--scope user` 쓰기에 ceremony 불필요. 단 promote 처럼 _analyze-user 영역 절_ 을 건드릴 땐 preview→confirm 으로 사용자 확인 (계약 보존).
 
 ## 파일 위치 & 자동 로드
 
@@ -153,7 +153,7 @@ post-it 의 목적 = Claude 가 _사용자 흐름을 이어가고_(연속성) + 
 
 **user scope (`--scope user <aspect>`)**:
 - `## 사용자 수동 메모` 의 각 항목을 _같은 aspect 의 구조화 절_ 과 대조 → 이미 반영된 항목을 제거 후보로 preview → confirm.
-- user_profile 쓰기는 untracked ceremony 필요 (위 Scope 주의).
+- user_profile 직접 쓰기 자유 (convention — ceremony 불필요).
 
 ### `/post-it promote [<hint>] [--scope user [<aspect>]]`
 **user 메모를 구조화 aspect 절로 _졸업_ 시키는 sub-action** (user scope 전용 — project 졸업은 산출물 작업이 담당하므로 sweep 만).
@@ -161,7 +161,7 @@ post-it 의 목적 = Claude 가 _사용자 흐름을 이어가고_(연속성) + 
 2. 적절한 구조화 절(해당 aspect 본문)에 통합할 문안을 제안 → **preview → confirm** (analyze-user 의 "읽기만" 계약을 confirm 으로 보존).
 3. 확정 시 구조화 절에 추가 + `## 사용자 수동 메모` 에서 그 항목 제거 (졸업) + frontmatter `changelog:` 한 줄.
 4. _대량·정식 재구조화_ 가 필요하면 promote 대신 `/analyze-user` 를 권한다 (promote 는 가벼운 1-2 항목 졸업용).
-- user_profile 쓰기 = untracked ceremony 필요 (위 주의).
+- user_profile 직접 쓰기 자유 (convention) — 단 promote 는 analyze-user 영역 절을 건드리므로 preview→confirm 유지.
 
 ### `/post-it handoff [--no-confirm]`
 **세션 인계 — sweep 먼저, 그 다음 hints 생성** (Claude 가 내용 생성).
