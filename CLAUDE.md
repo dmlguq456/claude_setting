@@ -26,7 +26,7 @@ research / analyze-project (산출물) → autopilot-spec (spec/) → autopilot-
 ```
 
 - 코드엔 `spec/` 가, spec 엔 `research/`·`analysis_project/` 가 먼저 있어야 한다 (throwaway 1 회성만 예외, 반복 시 승격). 문서 트랙 동형: `research/analyze-project → autopilot-draft → autopilot-refine`.
-- **harness**: `artifact-guard.sh` 가 체인을 차단 — `spec/` 있는 프로젝트는 코드 편집이 `plans/` plan 전제(작은 변경도 `autopilot-code --qa quick` 트레일), 신규 spec·문서(documents) 작성은 research/analyze 전제. spec 없는 프로젝트(설정 repo·일반 repo)는 코드 자유 (자동 scope). `/track`(⚡untracked) 우회.
+- **harness**: `artifact-guard.sh` 는 _신규 산출물 생성 순서_ 만 차단 — 신규 spec·문서는 research/analyze 전제, 신규 plan 은 spec 전제. 기존 편집·소스 코드는 비차단(convention; autopilot-code 유도는 라우팅 reminder). `/track`(⚡untracked) 우회.
 
 **(0b) 동일 스킬 수정 = 버전 트래킹 (원칙·convention).** 각 산출물은 _그것을 만든 스킬로만_ 수정 — 버전·이력 보존. (hook 은 _생성 순서_ 만 하드 강제; _편집_ 차단은 안 함 — 아래 harness 참조.)
 
@@ -38,7 +38,7 @@ research / analyze-project (산출물) → autopilot-spec (spec/) → autopilot-
 | `experiments/*` 실험 | `autopilot-lab` | `_RUNLOG.md` timeline |
 | `user_profile/*` 프로필 | `analyze-user` / `post-it --scope user` | `_internal/versions/` (convention) |
 
-> **harness**: `hooks/artifact-guard.sh` 는 _생성 순서_ 만 hard 강제 — 신규 산출물은 앞 단계 전제(신규 spec←research, 신규 plan←spec, 신규 문서←research) + 소스 코드 편집←plan(spec 프로젝트). **기존 산출물의 _편집_ 은 차단하지 않는다** — 위 표의 "소유 스킬로 수정"은 convention (agent 지시 + 스킬 자체 버전관리; hook 은 소유 스킬과 직접편집을 구분 못 하고, 막으면 정당한 `autopilot-spec update` 도 막혀 세션째 untrack 을 유발하므로). _왜 편집까지 hook 으로 안 막나_: harness 는 shell 쥔 agent 앞에선 벽이 아니라 forcing-function — 사고·망각 방지가 목표지 완벽 강제는 불가. 비가드: `_internal/`·`pipeline_state.yaml`·`research/`·`analysis_project/`·`post-it.md`·`user_profile/`. **⚡untracked**(`/track`, 세션별 flag `.untracked.<session_id>`) = 생성 순서·코드 게이트까지 _전부_ 우회 — **사용자 결정·throwaway 전용. Claude 는 가드 우회용으로 untracked 를 _자기 판단으로_ 켜지 않는다** (막히면 전제 산출물 생성 또는 사용자 보고). statusline 📌/⚡ 표시.
+> **harness**: `hooks/artifact-guard.sh` 는 _신규 산출물 생성 순서_ 만 hard 강제 (신규 spec←research, 신규 plan←spec, 신규 문서←research). **기존 산출물 _편집_ · 소스 코드는 차단 안 함** — "소유 스킬로 수정"은 convention (hook 이 소유 스킬과 직접편집을 구분 못 함). 비가드: `_internal/`·`pipeline_state.yaml`·`research/`·`analysis_project/`·`post-it.md`·`user_profile/`. **⚡untracked**(`/track`) = 생성 순서까지 _전부_ 우회 — 사용자 결정·throwaway 전용. **Claude 는 우회용 untracked 를 자기 판단으로 켜지 않는다** (막히면 전제 산출물 생성 또는 보고). statusline 📌/⚡.
 
 **(A) spec-backed 프로젝트 — 파이프 우선.** cwd/상위에 `spec/pipeline_state.yaml` 있으면(새 세션 포함) ad-hoc 직접 진단+Edit 로 끝내지 않는다. **순서·절차 = `WORKFLOW.md` §7** (기존 산출물 파악 → spec-drift 체크 → `autopilot-code --qa quick`; `workflow-guard-hook` 이 감지 시 SessionStart 주입 + UserPromptSubmit 마다 thin reminder). 강제: 산출물 직접 Edit = hook 차단(§0(0b)) / 소스 코드 = `.pipeline` opt-in 프로젝트만 차단(§0(0)).
 

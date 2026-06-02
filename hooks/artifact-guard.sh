@@ -1,19 +1,15 @@
 #!/usr/bin/env bash
-# PreToolUse(Edit|Write|MultiEdit) — 산출물 추적 + 파이프 순서 체인 강제.
+# PreToolUse(Edit|Write|MultiEdit) — .claude_reports 산출물의 _생성 순서_ 만 강제.
 # 모드: 📌tracked(기본) ↔ ⚡untracked(.claude_reports/.untracked.<session_id> 존재 시 → 전부 우회).
-#       세션별 flag — 한 레포에 여러 세션 띄워도 격리. /track 토글, SessionStart 가 stale GC.
+#       /track 토글, SessionStart 가 stale flag GC.
 #
-# 강제 2종 (tracked 모드):
-#   (1) 산출물 추적 [모든 .claude_reports 프로젝트] — spec/ canonical·plans/·documents/·
-#       experiments/ 직접 Edit 차단(exit 2) → 소유 스킬 경유.
-#       (user_profile/0*.md 는 convention — agent read-only + analyze-user/post-it 권장, hook 비강제.)
-#   (2) 순서 체인 [spec/ 있는 프로젝트 자동] — 의존 산출물 없이 다음 단계 진입 차단:
-#         · 소스 코드 Edit/Write → spec/ + plans/ plan 존재 필요 (spec 없는 프로젝트는 자유).
-#         · 신규 spec 작성       → research/ 또는 analysis_project/ 필요.
-#         · 신규 plan 작성        → spec/ 필요.
-#         · 신규 문서(documents) 작성 → research/ 또는 analysis_project/ 필요 (문서 트랙 대칭).
-#       spec 유무로 자동 scope — ~/.claude 설정 repo(spec 없음) 등 footgun 회피.
-# 단일 출처: CLAUDE.md §0 / WORKFLOW.md §0.
+# 강제 (tracked): 신규 산출물은 앞 단계 산출물이 있어야 _만들_ 수 있다 (없으면 exit 2):
+#   · 신규 spec(prd/stack/ship/api_contract/data_model/ui_flow) ← research/ 또는 analysis_project/
+#   · 신규 plan ← spec/
+#   · 신규 documents ← research/ 또는 analysis_project/
+# 비차단 (convention): 기존 산출물 _편집_ · 소스 코드 · experiments/ · user_profile/0*.md.
+#   소유 스킬 경유·코드의 autopilot-code 유도는 workflow-guard-hook 라우팅 리마인더 + convention.
+# 단일 출처: WORKFLOW.md §0 (tracked 계약).
 set -euo pipefail
 
 input=$(cat)
@@ -46,7 +42,6 @@ flagbase="$cr/.untracked"; [ -d "$cr" ] || flagbase="$root/.untracked"
 
 # ---- 존재 판정 헬퍼 ----
 has_spec(){ [ -f "$cr/spec/pipeline_state.yaml" ] || ls "$cr"/spec/*/pipeline_state.yaml >/dev/null 2>&1; }
-has_plan(){ ls -d "$cr"/plans/*/ >/dev/null 2>&1; }
 has_research(){ ls -A "$cr/research" >/dev/null 2>&1 || ls -A "$cr/analysis_project" >/dev/null 2>&1; }
 block(){ printf '───────────────────────────────────────────\n⛔ %s\n   %s\n───────────────────────────────────────────\n   우회: /track → ⚡untracked (이 세션만)\n' "$1" "$2" >&2; exit 2; }
 
@@ -68,10 +63,6 @@ case "$fp" in
     [ -f "$fp" ] || has_research || block "신규 문서 작성 전 research/analyze 필요 ($base)" "→ autopilot-research / analyze-project 먼저" ;;
 esac
 
-# ---- (2) 순서 체인: 소스 코드 — spec 관리 프로젝트면 자동 강제 ----
-case "$fp" in
-  "$cr"/*) exit 0 ;;          # .claude_reports 내부 비추적 파일(research 등) → 통과
-esac
-has_spec || exit 0           # spec 없는 프로젝트(설정 repo·일반 repo) → 코드 편집 자유
-has_plan || block "코드 작업 전 plan 필요 — 모든 코드 변경은 plans/ 트레일을 남긴다" "→ autopilot-code --qa quick (작은 변경도 경량 plan 트레일)"
+# 소스 코드 편집은 hook 으로 막지 않는다 — autopilot-code 경유는 UserPromptSubmit 라우팅
+# 리마인더 + convention (예전 "code←plan floor" 은 stale 플랜 하나로도 통과해 실효 없어 제거).
 exit 0

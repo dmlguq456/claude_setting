@@ -16,16 +16,15 @@
 
 | | 📌 tracked (기본) | ⚡ untracked (예외) |
 |---|---|---|
-| **순서 강제** | 생성 순서 + 코드←plan 게이트 | 전부 우회 |
+| **생성 순서** | 신규 산출물 ← 앞 단계 (hook 차단) | 전부 우회 |
 | **라우팅** | 매 프롬프트 "작업이면 skill 경유" 리마인더 | 침묵 |
-| **전환** | (기본값) | `/track` — 세션별 flag |
+| **전환** | (기본값) | `/track` 토글 |
 
-**hook 이 hard 차단** (자동 scope — `.claude_reports`/`spec` 보유 프로젝트만):
+**hook 이 hard 차단하는 건 _신규 산출물 생성 순서_ 뿐** (자동 scope — `.claude_reports` 보유 프로젝트):
 
-- **① 생성 순서** — 신규 `spec` ← research · 신규 `plan` ← spec · 신규 `documents` ← research.
-- **② 코드 게이트** — `spec/` 프로젝트에서 코드 편집 ← `plans/` plan. spec 없으면 자유.
+- 신규 `spec` ← research · 신규 `plan` ← spec · 신규 `documents` ← research. 어기면 차단 + 권고.
 
-기존 산출물 _편집_·`user_profile`·`post-it.md` 는 convention (소유 스킬 권장, 비차단). 막히면 권고가 가리키는 skill 로. statusline 에 📌/⚡ 표시.
+기존 산출물 _편집_ · 소스 코드 · `user_profile` · `post-it.md` 는 convention (소유 스킬·autopilot-code 권장, 비차단). 작업 유도는 라우팅 리마인더가 맡는다. statusline 에 📌/⚡ 표시.
 
 ---
 
@@ -34,7 +33,7 @@
 자연어 한 줄로 부르면 메인 Claude 가 컨텍스트 (cwd / `.claude_reports/` 산출물 / 발화) 를 읽어 **skill + 옵션을 조립하고, 자연어 요약으로 컨펌받은 뒤 실행**한다. 사용자는 _운전자_ — 다음 의도만 말하면 된다.
 
 - **autopilot-\*** = 추적형 파이프라인. plan·log 가 `.claude_reports/` 에 누적돼 흐름이 남는다. 큰 작업·반복 작업용.
-- **직접 처리** = plan/log 안 남는 가벼운 일 (throwaway). 단, `spec/` 잡힌 프로젝트의 사후 수정은 거의 다 `--qa quick` 파이프로 _산출물 남기며_ 진행한다 — 생성 순서·코드←plan 은 [📌 tracked](#-작동-방식--tracked--untracked) hook 강제, 편집은 convention ([CLAUDE](CLAUDE.md) §0 · [WORKFLOW](WORKFLOW.md) §7).
+- **직접 처리** = plan/log 안 남는 가벼운 일 (throwaway). 단, `spec/` 잡힌 프로젝트의 사후 수정은 거의 다 `--qa quick` 파이프로 _산출물 남기며_ 진행한다 — 신규 산출물 생성 순서만 [📌 tracked](#-작동-방식--tracked--untracked) hook 강제, 편집·코드는 convention ([CLAUDE](CLAUDE.md) §0 · [WORKFLOW](WORKFLOW.md) §7).
 - 입력은 외부 flag 없이 **`.claude_reports/` 영속 산출물에서 자동 발견**. cross-project 는 `cd <other>` 후 별도 세션.
 
 > 본 문서는 _의미 지도_ 다. 옵션 spec·trigger 룰·QA 정의 같은 운영 디테일은 각 SKILL.md 와 [`CONVENTIONS.md`](CONVENTIONS.md) · [`CLAUDE.md`](CLAUDE.md) 가 단일 출처 — 여기서 중복하지 않고 링크한다.
