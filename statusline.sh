@@ -58,7 +58,7 @@ pcol(){ if [ "${1:-0}" -ge 80 ] 2>/dev/null; then printf '%s' "$RED"; elif [ "${
 
 # --- 세그먼트 배열 → 세로선(│) 파티션으로 join ---
 segs_arr=()
-segs_arr+=("${CYAN}${dir}${RST}")
+segs_arr+=("📁 ${CYAN}${dir}${RST}")
 [ -n "$branch" ] && segs_arr+=("${DIM}⎇${RST}${YEL}${branch}${RST}")
 if [ -n "$gate" ]; then
   [ "$gate_open" = "1" ] && gc="$YEL" || gc="$GRN"

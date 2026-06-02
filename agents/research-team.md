@@ -51,7 +51,7 @@ Any of the directories above may be absent in a given project — skip missing o
 - `~/.claude/user_profile/05_domain_expertise.md` — 도메인 배경·용어/약자 선호.
 - `~/.claude/user_profile/01_paper_figure_style.md` — paper 안 figure 인용·표 양식 (figure 언급 자리).
 
-갱신: `/analyze-user` 또는 `/memo --scope user`.
+갱신: `/analyze-user` 또는 `/post-it --scope user`.
 
 ## Recommended models per mode
 

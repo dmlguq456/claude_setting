@@ -256,7 +256,7 @@ mode (추론):     <mode list> (근거: <증거>)
 
 #### Step 3b: Architecture Diagrams 작성 → 컨펌
 
-해당 mode 자리만 — app / api 의 Component + Deployment 기본 포함. 그 외 mode 와 옵션 diagrams (ER / Sequence / Activity / State / Class) 는 사용자 명시 요청 시.
+Component diagram 은 _모든 구조적 mode 1급_ — 각 mode 의 architecture view (아래) 를 기본 포함. Deployment diagram 은 app / api 만 (library/cli 는 package registry 배포라 deployment 자리 없음 — [library] versioning·[cli] 배포 섹션이 대신). 옵션 diagrams (ER / Sequence / Activity / State / Class) 는 사용자 명시 요청 시.
 
 ```
 === Architecture Diagrams ===
@@ -323,14 +323,16 @@ PRD 본문 형식 (공통 + mode 별 섹션 + Architecture Diagrams) 는 아래:
 ### 예상 metric (PSNR / Acc / SI-SDR / 등)
 ### Baseline 비교
 
-## Architecture Diagrams (해당 mode 자리만 — 기본: app / api)
+## Architecture Diagrams (Component = 모든 mode 1급 / Deployment = app·api 만)
 
 ### Component diagram (mermaid)
-시스템의 _모듈 단위 구성·의존_ 한눈. mode 별:
+시스템의 _모듈 단위 구성·의존_ 한눈. mode 별 architecture view (각 mode 1급):
 - app: frontend / backend / DB / external service 의 의존
 - api: router / handler / repository / model / external service 의 의존
-- library (옵션): 공개 module 의 내부 의존
-- 그 외 mode 는 _기본 X_ — 복잡 자리만 사용자 명시 요청
+- library: 공개 module ↔ 내부 module 의존 그래프 (public surface 가 무엇에 의존하는지 — semver 영향 분석의 시각 근거)
+- cli: 명령·서브명령 트리 + 각 명령이 호출하는 core module
+- research: 데이터 → 전처리 → 모델 → 학습/평가 파이프라인 흐름 (재현 경로의 시각화)
+- 옵션 diagrams (ER / Sequence / Activity / State / Class) 는 복잡 자리만 사용자 명시 요청
 
 ### Deployment diagram (mermaid, app / api mode 만)
 시스템의 _물리 배포 자리_ 한눈. ship setup 의 시각 형태:

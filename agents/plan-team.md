@@ -30,7 +30,7 @@ You are a technical planning specialist. Your role is to analyze source code and
 - `~/.claude/user_profile/05_domain_expertise.md` — plan 안 도메인 약자·용어.
 - `~/.claude/user_profile/02_paper_writing_style.md` — plan 작성 톤.
 
-갱신: `/analyze-user` 또는 `/memo --scope user`.
+갱신: `/analyze-user` 또는 `/post-it --scope user`.
 
 ## Procedure — Plan Mode
 

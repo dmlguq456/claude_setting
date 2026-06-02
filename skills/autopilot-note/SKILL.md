@@ -1,6 +1,6 @@
 ---
 name: autopilot-note
-description: Autopilot family — periodic + on-demand 산출물 routing pipeline. Scans `.claude_reports/{research,documents,plans,analysis_project}/` + `experiment/` + `git log` for artifacts changed since last run, then routes each into the user's worklog-board cards (`kind: task | project | tech`) under a NAS-mounted `notes/cards/**.md`. 5-way routing — append to existing project card (auto), append to existing tech card (auto), propose new tech card (triage), propose new project card (triage), park as `kind: misc` (auto fallback). Daily digest accumulates at `notes/digests/YYYY-MM-DD.md`. Idempotent — same source processed twice never duplicates appends. Default `--qa light` (routine cron). Escalate to standard+ for weekly bulk consolidation, Notion migration, or pre-handoff cleanup. Source 6 includes Notion mirror (Phase 3, gated).
+description: Autopilot family — periodic + on-demand 산출물 routing pipeline. Scans `.claude_reports/{research,documents,plans,analysis_project}/` + `experiments/` + `git log` for artifacts changed since last run, then routes each into the user's worklog-board cards (`kind: task | project | tech`) under a NAS-mounted `notes/cards/**.md`. 5-way routing — append to existing project card (auto), append to existing tech card (auto), propose new tech card (triage), propose new project card (triage), park as `kind: misc` (auto fallback). Daily digest accumulates at `notes/digests/YYYY-MM-DD.md`. Idempotent — same source processed twice never duplicates appends. Default `--qa light` (routine cron). Escalate to standard+ for weekly bulk consolidation, Notion migration, or pre-handoff cleanup. Source 6 includes Notion mirror (Phase 3, gated).
 argument-hint: "[--scope today|yesterday|since <date>|all] [--target <cards-root>] [--dry-run] [--qa quick|light|standard|thorough|adversarial] [--digest-only] [--triage-only] [--source <list>] [--no-fact-check]"
 ---
 
@@ -10,7 +10,7 @@ argument-hint: "[--scope today|yesterday|since <date>|all] [--target <cards-root
 
 `autopilot-note` 는 _누적·routing_ 자리. 다른 autopilot-* 멤버는 _생성_ 자리:
 
-- `autopilot-research` / `autopilot-code` / `autopilot-draft` / `autopilot-lab` / `analyze-project` → 산출물 _생성_, `.claude_reports/{research,plans,documents,experiments,analysis_project}/` 또는 `experiment/` 에 떨어트림.
+- `autopilot-research` / `autopilot-code` / `autopilot-draft` / `autopilot-lab` / `analyze-project` → 산출물 _생성_, `.claude_reports/{research,plans,documents,experiments,analysis_project}/` 또는 `experiments/` 에 떨어트림.
 - `autopilot-note` → 위 산출물들을 _읽어서_ 사용자 카드 (`notes/cards/**.md`) 본문에 _routing 누적_. _원본 산출물 불변_.
 
 worklog-board 앱 (`~/worklog-board/`) 은 _카드를 보여주는 UI_, 본 skill 은 _카드 본문에 누적_, 사용자 cron 또는 수동 호출이 _트리거_. 세 자리 분리.
@@ -36,7 +36,7 @@ worklog-board 앱 (`~/worklog-board/`) 은 _카드를 보여주는 UI_, 본 skil
 | 1 | autopilot-research | `.claude_reports/research/{topic}/pipeline_summary.md` + chapters + `cards/` | topic 이름 + cards 안 paper id |
 | 2 | autopilot-draft | `.claude_reports/documents/{date}_{name}/pipeline_summary.md` + draft | name + frontmatter `topic` / paper id |
 | 3 | autopilot-code | `.claude_reports/plans/<date>_<slug>/pipeline_summary.md` + dev_logs | plan/checklist 키워드 |
-| 4 | autopilot-lab | `experiment/<id>/STORY.md` + `experiment/_RUNLOG.md` | experiment id + 부모 link + similar_models 참조 |
+| 4 | autopilot-lab | `experiments/<id>/STORY.md` + `experiments/_RUNLOG.md` | experiment id + 부모 link + similar_models 참조 |
 | 5 | analyze-project | `.claude_reports/analysis_project/{code,paper,doc}/{matching}/` | matching label |
 | 6 | git log | `git log --since=<scope> --name-only --pretty=oneline` | commit message + 변경 파일 path |
 | 7 | (Phase 3) Notion | `~/.claude_reports/notion_mirror/<date>/` 의 Notion API export | DB 별 page id + property |
@@ -268,7 +268,7 @@ Final user-facing report (≤8 줄):
 - **카드 frontmatter 불변** — 본 skill 은 frontmatter 안 건드림. 사용자 또는 worklog-board UI 가 책임.
 - **본문 append-only** — 기존 본문 줄 삭제·수정 X. 신규 줄·신규 섹션 추가만.
 - **Idempotent** — 같은 source 두 번 들어와도 중복 append X (`[<source: <path>>]` 마커 + `.last_run.yaml` 두 layer check).
-- **원본 산출물 불변** — `.claude_reports/{research,documents,plans,analysis_project}/` + `experiment/` 는 read-only.
+- **원본 산출물 불변** — `.claude_reports/{research,documents,plans,analysis_project}/` + `experiments/` 는 read-only.
 - **신설은 triage 의무** — 새 카탈로그 카드 (#3·#4) 는 _자동 생성 X_. 사용자 confirm 후 worklog-board UI 가 카드 실제 생성.
 - **misc 는 임시** — `_misc_*` 카드는 _자동 적재_, 단 _정기 사용자 cleanup_ 자리 (적재 후 N 일 지나면 alert).
 - **visibility 자동 추정 default 한 글자만** — 사용자 worklog-board UI 에서 줄 단위 조정.

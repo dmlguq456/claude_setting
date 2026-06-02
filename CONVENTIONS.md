@@ -278,7 +278,7 @@ scoping 비대칭 의도:
 
 ### §5.6. SKILL.md 작성 규칙
 
-본 절은 _artifact_dir 을 직접 만드는 orchestrator-level skill_ (`analyze-project`, `autopilot-{research,code,doc,draft}`, `autopilot-refine`, `audit`) 에만 적용. sub-skill (`init-plan` / `refine-plan` / `execute-plan` / `run-test` / `final-report` / `init-doc-strategy` / `refine-doc`) 은 orchestrator 가 만든 폴더 안에서 동작하므로 본 참조를 강제하지 않는다.
+본 절은 _artifact_dir 을 직접 만드는 orchestrator-level skill_ (`analyze-project`, `autopilot-{research,spec,code,lab,ship,draft,refine,design,note}`, `audit`) 에만 적용. sub-skill (`init-plan` / `refine-plan` / `execute-plan` / `run-test` / `final-report` / `init-doc-strategy` / `refine-doc`) 은 orchestrator 가 만든 폴더 안에서 동작하므로 본 참조를 강제하지 않는다.
 
 해당 orchestrator-level skill 의 SKILL.md 는:
 - 산출물 경로 명시 시 _구체적 file path_가 아닌 _Tier_ 또는 _폴더 컨벤션_으로 표현
@@ -381,6 +381,8 @@ PRD 의 textual 자리 (`api_contract.md` / `data_model.md` / `ui_flow.md`) + Ar
 | 외부 service 통합 | api_contract(auth) + Deployment + deploy_record + .env.example |
 | 스택 교체 | stack_decision + Component + Deployment |
 | 상태 모델 | data_model (+ 옵션 State) |
+| 공개 API 변경 (export 추가·제거·시그니처) [library] | 공개 API + 사용 예시 + 호환성·versioning(semver 영향) + Component(module dep) |
+| CLI 명령·옵션 변경 [cli] | 명령·옵션·exit code + 사용 예시(README) + Component(명령 트리) |
 
 **호출 자리**:
 - `autopilot-spec` refine (사용자 의도 변경) → 영향 자리 자동 list → confirm → 일괄

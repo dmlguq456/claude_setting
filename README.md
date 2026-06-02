@@ -108,7 +108,7 @@ analyze-project  →  autopilot-spec ↻  →  autopilot-code ↻
 | [`post-it`](skills/post-it/SKILL.md) | 사용자 통제 _임시 포스트잇_ 메모. `--scope project`(cwd post-it.md) / `--scope user`(user_profile aspect). `sweep`=산출물 졸업·stale prune · `promote`=user 메모 구조화 졸업 — 영구 누적 X |
 | [`sync-skills`](skills/sync-skills/SKILL.md) | 본 README 를 SKILL.md·agent 정의로부터 재생성·동기화 |
 
-> sub-skill 은 autopilot 내부 자동 호출 (사용자가 직접 안 부름): code 가족 (`code-plan`/`-refine`/`-execute`/`-test`/`-report`) · draft 가족 (`draft-strategy`/`-refine`) · app 가족 (`app-init`/`app-spec`) · design 가족 (`design-init`/`-refs`/`-tokens`/`-components`/`-review`/`-handoff`).
+> sub-skill 은 autopilot 내부 자동 호출 (사용자가 직접 안 부름): code 가족 (`code-plan`/`-refine`/`-execute`/`-test`/`-report`) · draft 가족 (`draft-strategy`/`-refine`) · design 가족 (`design-init`/`-refs`/`-tokens`/`-components`/`-review`/`-handoff`). (spec 은 `autopilot-spec` 본문이 mode 무관 직접 처리 — 별도 sub-skill 없음.)
 
 세부 옵션 (`--mode`·`--qa`·`--from`·`--user-refine`) 은 각 SKILL.md 의 `argument-hint`. QA 5단계 (quick/light/standard/thorough/adversarial) 정의는 [`CONVENTIONS.md`](CONVENTIONS.md) §1.
 

@@ -487,7 +487,7 @@ Invoke Skill: `draft-strategy` with args: `<resolved_mode> --inputs <comma-separ
 4. If no memos: Skip to Step 4. (When resumed via `--from strategy-refine`, the orchestrator skips the 연구팀 review and runs draft-refine directly using the pre-existing memos.)
 
 ### Step 4: Draft Generation
-**Applicable modes**: rebuttal, paper, report, proposal, review, presentation. (All 6 modes generate drafts.)
+**Applicable modes**: paper / presentation / doc — 모든 form mode 가 draft 를 생성 (doc 의 genre 세분 rebuttal·report·proposal·review 는 draft-strategy 내부 라벨).
 
 #### Step 4.0a: Multi-source Figure Discovery
 

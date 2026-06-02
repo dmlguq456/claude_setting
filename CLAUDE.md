@@ -43,7 +43,7 @@ research / analyze-project (산출물) → autopilot-spec (spec/) → autopilot-
 **(A) spec-backed 프로젝트 — 파이프 우선.** cwd/상위에 `spec/pipeline_state.yaml` 있으면(새 세션 포함) ad-hoc 직접 진단+Edit 로 끝내지 않는다. **순서·절차 = `WORKFLOW.md` §7** (기존 산출물 파악 → spec-drift 체크 → `autopilot-code --qa quick`; §7 은 지침으로 on-demand Read, `workflow-guard-hook` 매 프롬프트 모드 신호 📌따름/⚡면제 가 anchor). 강제: 신규 산출물 _생성 순서_ 만 hook (§0(0)); 기존 편집·소스 코드는 convention.
 
 **(B) autopilot-* 호출 패턴 — 옵션 자동 구성 + 컨펌.** 자연어 한 줄로 부르면 컨텍스트 (cwd / `.claude_reports/` / 발화) 보고 옵션 조합 → 한 번 컨펌 (자연어 한 줄 요약 + 옵션 + 근거) → invoke.
-- **발화 분류** (turn 첫 단계): ceremony 큰 6 (`autopilot-code/draft/research/refine/apply` + `analyze-user`) → 컨펌 흐름 / 작은 3 (`audit`/`post-it`/`analyze-project`) → 즉시 invoke / sub-skill 자연어 → autopilot-* `--from <stage>` 재개 / 매칭 없음 → 직접 처리. 판단: 추적 필요 + 산출물 누적 → autopilot, 짧은 단발 → 직접.
+- **발화 분류** (turn 첫 단계): ceremony 큰 (`autopilot-*` 전체 + `analyze-user`) → 컨펌 흐름 / 작은 (`audit`/`post-it`/`analyze-project`) → 즉시 invoke / sub-skill 자연어 → autopilot-* `--from <stage>` 재개 / 매칭 없음 → 직접 처리. 판단: 추적 필요 + 산출물 누적 → autopilot, 짧은 단발 → 직접. (lab/note 는 default 가 가벼워 컨펌도 한 줄로 최소.)
 - **Skip**: `/autopilot-code <args>` 같이 slash 직접 입력 = 컨펌 skip.
 - **High-stakes → qa 상향**: _신중히 / 꼼꼼히 / camera-ready / submission·PR open 직전_ → adversarial 자동. `analyze-user` 는 항상 adversarial 고정.
 - **무응답**: §2 대로 추천안 자율 진행.

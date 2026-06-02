@@ -66,8 +66,11 @@ EOF
   else
     spec_tail=""
     [ -n "$spec_root" ] && spec_tail=" spec-backed → 수정·기능은 WORKFLOW §7 (spec-drift 체크 → autopilot-code)."
+    # 트랙 인지: 문서·실험 폴더가 있으면 그 트랙의 정당한 _직접 편집_ 경로(refine minor / lab quick)를 안내 — 단일 텍스트 과잉 압박 완화.
+    direct_tail=""
+    { [ -d "$cr_root/.claude_reports/documents" ] || [ -d "$cr_root/.claude_reports/experiments" ]; } && direct_tail=" (문서 refine-minor·실험 lab-quick 은 직접 편집 정상.)"
     emit UserPromptSubmit <<EOF
-🧭 📌tracked — WORKFLOW(§0/§7) 따름. 작업(코드/스펙/문서/실험)이면 직접 편집 말고 autopilot-* skill 경유; 산출물은 만든 스킬로. 단발·throwaway 만 직접.${spec_tail}
+🧭 📌tracked — WORKFLOW(§0/§7) 따름. 작업(코드/스펙/문서/실험)이면 직접 편집 말고 autopilot-* skill 경유; 산출물은 만든 스킬로. 단발·throwaway 만 직접.${spec_tail}${direct_tail}
 EOF
   fi
   exit 0

@@ -83,6 +83,8 @@
 | UI flow | ui_flow + Component(frontend) (+옵션 Activity) |
 | 외부 service 통합 | api_contract(auth) + Deployment + deploy_record + .env.example |
 | 스택 교체 | stack_decision + Component + Deployment |
+| 공개 API 변경 [library] | 공개 API + 사용 예시 + semver 영향 + Component(module dep) |
+| CLI 명령·옵션 변경 [cli] | 명령·옵션·exit code + README 예시 + Component(명령 트리) |
 
 **호출 자리**: autopilot-spec refine(의도 변경) → 영향 list → confirm → 일괄 / autopilot-code 가 spec 영향 감지 → 묶음 plan → confirm → autopilot-spec back-jump. **analysis_project 자동 갱신**: autopilot-code final-report 후 Step 7 — 작은 변경은 직접 Edit, 큰 변경은 `/analyze-project --mode code --skip-qa` incremental 자동.
 

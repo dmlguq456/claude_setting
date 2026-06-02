@@ -50,7 +50,7 @@ You are the **디자인팀 router**. Refer to CLAUDE.md for project-specific sty
 - `~/.claude/user_profile/03_presentation_strategy.md` — 슬라이드 구성·서사 flow·시각 결정 (slide 자리).
 - `~/.claude/user_profile/05_domain_expertise.md` — caption·라벨 안 도메인 약자·용어.
 
-갱신: `/analyze-user` 또는 `/memo --scope user`.
+갱신: `/analyze-user` 또는 `/post-it --scope user`.
 
 ## Recommended models per mode
 

@@ -16,7 +16,7 @@
 |------|------|-----|--------------|
 | **Orchestrator** | Deterministic state machine. 라우팅·gate·verdict 만, content 안 봄. | `autopilot-code` / `autopilot-draft` / `autopilot-research` / `autopilot-refine` 의 SKILL.md 본체 | Orchestrator 가 file content 읽기·요약·판단 |
 | **Skill** | Expert capability module. WHAT + verification loop 정의. | `init-plan` · `execute-plan` · `run-test` · `init-doc-strategy` · `refine-doc` 등 | Skill 안에 orchestration 로직 (다른 skill 호출 chain, QA budget) |
-| **Agent** | Persona with tools. Skill 안에서 실제 작업 수행. | `기획팀` · `품질관리팀` · `연구팀` · `편집팀` · `테스트팀` · `개발팀` · `탐색팀` · `codex-review-team` | Agent 가 verbose 결과를 orchestrator 로 반환 |
+| **Agent** | Persona with tools. Skill 안에서 실제 작업 수행. | `기획팀` · `품질관리팀` · `연구팀` · `편집팀` · `자료팀` · `개발팀` · `디자인팀` · `codex-review-team` | Agent 가 verbose 결과를 orchestrator 로 반환 |
 
 > **이름 충돌 주의**: 본 절의 _3-Tier_ 는 _역할 분리_. §4 의 _3-tier T1/T2/T3_ 는 _산출물 가시성 분리_. 같은 숫자지만 다른 layer.
 
@@ -125,10 +125,10 @@ per-project 메모는 두 layer 분리.
 
 | Layer | 위치 | 갱신 주체 | 용도 |
 |---|---|---|---|
-| **사용자 통제** | `<cwd>/.claude_reports/NOTES.md` (1 파일 5 카테고리) | `/notes` 명령으로만 (Claude 자동 X) | conventions / external resources / open threads / decisions / next session hints |
+| **사용자 통제** | `<cwd>/.claude_reports/post-it.md` (1 파일 5 카테고리; legacy `memo.md` fallback) | `/post-it` 명령으로만 (Claude 자동 X) | conventions / external resources / open threads / decisions / next session hints |
 | **Claude 자동** | `~/.claude/projects/*/memory/MEMORY.md` + `feedback_*.md` / `reference_*.md` | Claude 가 feedback 인지 시 자동 누적 | 사용자가 _명시 지적_ 한 패턴 자동 학습 |
 
-세션 시작 시 CLAUDE.md 도메인 트리거 표 row 4 가 `cwd/.claude_reports/NOTES.md` 자동 Read.
+세션 시작 시 CLAUDE.md 도메인 트리거 표가 `cwd/.claude_reports/post-it.md` 자동 Read.
 
 **Why**: 자동 메모리가 모든 feedback 을 누적하면 사용자가 _명시적으로 박아두고 싶은_ 정보 (코딩 컨벤션 · 외부 자원 link · 미해결 thread) 가 noise 에 묻혀 보인다. layer 분리 후 우선순위 명확.
 
@@ -156,4 +156,4 @@ per-project 메모는 두 layer 분리.
 | §4 T1/T2/T3 + Minor·Major | 초기 SKILL_OUTPUT_CONVENTION 도입 → 2026-05-21 CONVENTIONS.md §5 흡수 / `56708c4` minor vs major + dual-perspective audit |
 | §5 Natural-integration | `bf8d565` rebuttal 표 본문 paste 거부 (2026-05-19 ICML camera-ready M11/M15 incident) + 2026-05-20 M8/M9 Paragraph Cohesion Pre-Check 4-step |
 | §6 편집팀 + 응답 원칙 | `3f5a48c` translation-team 신설 → `cfb0e12` editorial-team rename + scope 확장 / `bf8d565` 응답 원칙 §3 / `2058325` §4 / `3f5a48c` §1 (판교체) |
-| §7 Memory layers | `60f141a` `/notes` skill 신설 — 사용자 통제 layer 와 자동 메모리 분리 |
+| §7 Memory layers | `60f141a` `/notes` skill 신설 (현 `/post-it` — self-pruning lifecycle 로 진화) — 사용자 통제 layer 와 자동 메모리 분리 |
