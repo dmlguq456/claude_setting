@@ -207,6 +207,8 @@ autopilot-lab "X 실험" — Step 0 에서 readiness ✓ 확인 후 진행
 QA 5 단계 정의 + 모델·round 매트릭스는 [`CONVENTIONS.md §1`](../../CONVENTIONS.md#1-qa-levels-canonical) 단일 source. 본 skill 적용:
 
 - Supported: `quick` / `light` / `standard` / `thorough` (default) / `adversarial`
+- **security-review (code 트랙의 보안 축 — fact-check 부재 대체)**: auth / crypto·secrets / external input / api_contract / deserialization 을 건드리는 변경이 `adversarial` 이면 `Agent(품질관리팀 security-review)` 를 code QA 에 parallel 추가 — diff 의 _신규_ high-confidence(≥8) 취약점만. (내장 `/security-review` 온프레미스 — `agent-modes/qa/security-review.md`.)
+- **behavioral test (app/cli/api/library mode)**: code-test(품질관리팀 test)가 Level 5b _런타임 관찰_(실제 앱·CLI·API·라이브러리 구동 + 증거 캡처)을 자동 포함 — 단순 ML 학습 코드는 Level 1-5 로 충분. (내장 `/verify`·`/run` 온프레미스.)
 - Mode-specific:
   - dev: 5 levels 모두 accept. default `thorough`.
   - debug: `adversarial` 받으면 `thorough` 로 downgrade + warn. default `standard` (빠른 root-cause 우선).

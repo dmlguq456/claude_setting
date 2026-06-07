@@ -25,6 +25,15 @@ Determine test targets from the prompt:
 
 **Level 5: Integration Test (e.g., `run.py` execution).** Run an end-to-end entry-point with a real config for a short session (timeout 600s). Determine which variant was affected from the plan or changed files. Pick a suitable config (prefer small/simple). Success: runs without crashing for 10 minutes OR completes normally. If no GPU when required: skip and note.
 
+### Level 5b: Behavioral runtime observation (verify/run DNA — user-facing surface 변경 시)
+
+> 설계 출처: Claude Code 내장 `/verify` · `/run` 온프레미스 포팅. **검증 = 런타임 관찰** — 테스트 실행이 아니라 _앱을 실제로 띄워 변경 경로를 구동하고 본 것_ 이 증거. 테스트/타입체크/import-and-call 로 대체 금지 (그건 "CI 돌릴 수 있음"만 증명, 변경 동작은 미증명).
+
+- **surface 식별** (변경이 닿는 곳에서 관찰): CLI/TUI → 터미널에 명령 입력·pane 캡처 / Server·API → 소켓 요청·응답 캡처 / GUI → xvfb·Playwright screenshot / Library → public export 샘플 호출(`import pkg`, not `import ./src/...`) / Prompt·agent → 에이전트 구동·동작 캡처 / CI → workflow dispatch·run 확인. _내부 함수는 surface 아님_ — 그것을 부르는 caller 끝(위 행)까지 따라간다.
+- **handle**: repo `.claude/skills/` 의 `verifier-*`(증거-캡처 프로토콜)·`run-*`(빌드·실행 primitive) 먼저 확인. 없으면 README/Makefile/package.json 콜드스타트(~15min timebox).
+- **verdict**: PASS(증거 캡처) / FAIL(관찰된 잘못된 동작 = finding) / **SKIP(런타임 surface 없음** — docs·타입선언·동작 없는 build config; 테스트로 빈자리 채우지 않음) / BLOCKED(정확히 어디서 막혔는지 + 콜드스타트 메모).
+- **호출 자리**: autopilot-ship 배포 전 동작 확인 / autopilot-code 기능 변경의 functional 확인 (단순 ML 학습 코드는 Level 1-5 로 충분; 앱·CLI·API·라이브러리 변경에 5b 적용).
+
 ### Test Mode Rules
 
 - **Do NOT modify any code.** Read-only verification only.

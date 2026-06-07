@@ -77,6 +77,14 @@ argument-hint: "<task description (선택)> [--qa quick|light|standard|thorough]
 - 기존 `vercel.json` / `.github/workflows/` / `.env.example` 발견 여부
 - `git status` — working tree clean 검증
 
+### Step 1.5: 배포 전 게이트 (첫 production deploy 전 권장)
+
+운영 배포 전, 변경 표면에 따라 두 게이트 권고 (사용자가 skip 명시 가능). 둘 다 내장 명령의 온프레미스 흡수:
+- **보안** — auth / secret / 외부 입력 / DB migration 을 건드린 변경이면 `Agent(품질관리팀 security-review)` (diff 의 _신규_ high-confidence≥8 취약점만). 🔴 HIGH 잔존 시 배포 보류 권고.
+- **동작 확인** — `Agent(품질관리팀 test)` Level 5b _런타임 관찰_ (배포 대상 surface 실제 구동 + 증거 캡처). FAIL 시 배포 보류 권고.
+
+게이트는 _권고_ 이지 차단이 아님 — 실제 배포 명령은 사용자 직접. 결과는 `ship.md` 에 기록.
+
 ### Step 2: 자리 분기 (발화 기반)
 
 위 _Context Auto-Detection_ 의 _발화 → 자리_ 표 적용. 발화 모호 시 사용자 컨펌.

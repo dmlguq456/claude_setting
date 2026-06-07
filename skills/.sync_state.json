@@ -51,7 +51,7 @@
       "synced_at": "2026-06-08T00:00:00Z"
     },
     "skills/autopilot-ship": {
-      "sha256": "af170487f3ff036a0dd223567c30995334e331ba6027eca47252804c8ec4091c",
+      "sha256": "219eac44d6b9ce871be388a5f12acc84efccb5e30d87f439c4ab4986fb3af03b",
       "synced_at": "2026-06-08T00:00:00Z"
     },
     "skills/design-components": {
@@ -111,7 +111,7 @@
       "synced_at": "2026-06-08T00:00:00Z"
     },
     "skills/autopilot-code": {
-      "sha256": "6aab51dd3987c5961202c4c2eca645d6c2bb0735febce89ba3de543ef3962ddd",
+      "sha256": "592c90b1a30a2080b0319786a213b61934af670dc360d351d09aa3aface94ad5",
       "synced_at": "2026-06-08T00:00:00Z"
     },
     "agents/codex-review-team": {
@@ -119,7 +119,7 @@
       "synced_at": "2026-06-08T00:00:00Z"
     },
     "agents/qa-team": {
-      "sha256": "5504496c6d1a38233f44c44664c2364b9f9be30df1ae7dee241b001a2baff2fa",
+      "sha256": "e6ba8d31c38dd86615e75ae78cbf63f5ed9a307ac71754cf583bbe6ce5f9fedf",
       "synced_at": "2026-06-08T00:00:00Z"
     },
     "agents/research-team": {

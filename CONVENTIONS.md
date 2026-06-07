@@ -72,7 +72,7 @@
 | Agent | frontmatter `model:` | 실제 작동 |
 |---|---|---|
 | `기획팀` (plan-team) | opus | opus 단일 |
-| `품질관리팀` (qa-team) | opus | **가변** — review 모드: Light=1× sonnet / Standard=1× opus / Thorough=doc·research·refine 갈래 2× opus parallel · code 갈래 (init-plan/refine-plan/execute-plan) 1× opus + 1× sonnet parallel (completeness reviewer 가 비교적 mechanical 매칭이라 sonnet 가 cost-efficient — code 의 ground-truth 가 코드 자신이므로 verbatim 비교 비중이 큼). test 모드 (run-test): Agent A=sonnet coverage + Agent B=opus accuracy (2026-05-22 테스트팀 흡수) |
+| `품질관리팀` (qa-team) | opus | **가변** — review 모드: Light=1× sonnet / Standard=1× opus / Thorough=doc·research·refine 갈래 2× opus parallel · code 갈래 (init-plan/refine-plan/execute-plan) 1× opus + 1× sonnet parallel (completeness reviewer 가 비교적 mechanical 매칭이라 sonnet 가 cost-efficient — code 의 ground-truth 가 코드 자신이므로 verbatim 비교 비중이 큼). test 모드 (run-test): Agent A=sonnet coverage + Agent B=opus accuracy (2026-05-22 테스트팀 흡수) · security-review 모드: opus (취약점 추론·exploit 경로) |
 | `연구팀` (research-team) | opus | **가변** — default opus (Plan Review·domain reviewer); fact-checker subrole·light QA는 sonnet (cost-aware verbatim matching) |
 | `자료팀` (material-team) | opus | opus 단일 — 자료 수집·시각·분석 (browser-fetch / pdf-extract / web-image-search / figure-gen / data-script). 2026-05-25 분석팀 + 탐색팀 통합 |
 | `개발팀` (dev-team) | sonnet | sonnet 단일 |
