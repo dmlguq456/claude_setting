@@ -115,7 +115,7 @@ analyze-project / autopilot-research  →  autopilot-draft  →  autopilot-refin
 
 `~/.claude/README.md` 가 본 sync 의 단일 진실 출처 (reference layout). sync 시 다음 순서로 9 섹션을 채운다:
 
-1. **Header** — center div: title + 한 줄 설명 + 섹션 anchor 링크 (첫 anchor = §2 모드). sync 시각·이력은 git commit log 가 단일 출처.
+1. **Header** — center div: title + 한 줄 설명 + 섹션 anchor 링크 (첫 anchor = §2 모드). sync 시각·이력은 git commit log 가 단일 출처. **존재의의 blockquote(🧬 model-agnostic skeleton + DESIGN_PRINCIPLES §0 링크) 는 사람 유지 영역 — 현행 보존, 덮어쓰지 않음.**
 2. **🚦 작동 방식 — 📌tracked ↔ ⚡untracked** (_최상단 토대 섹션_) — hook 이 _신규 산출물 생성 순서_ 만 강제(신규 spec←research, plan←spec, 문서←research); 기존 편집·소스 코드는 convention. 두 모드 표 (**📌tracked** = 생성 순서 차단 + 매 프롬프트 모드 신호(WORKFLOW 따름) / **⚡untracked** = 전부 우회·면제 신호·`/track`) + statusline(📌/⚡·git·context) 한 줄 + 한 줄 quote(편집은 소유 스킬 권장·convention). 단일 출처 = `hooks/artifact-guard.sh`·`utilities/workflow-guard-hook.sh`·`statusline.sh`·WORKFLOW.md §0(tracked 계약).
 3. **🧭 Mental model** — 핵심 한 단락 (자연어로 부르면 메인 Claude 가 컨텍스트 읽어 옵션 조립·컨펌·실행 / 사용자는 운전자) + bullet 3 (autopilot-\* = 추적형 파이프라인 / 직접 처리 = 가벼운 일·단 산출물 직접 Edit 은 📌tracked hook 차단 / 입력은 `.claude_reports/` 자동 발견·cross-project 별 세션) + _의미 지도_ quote (옵션 spec·trigger·QA 는 SKILL.md·CONVENTIONS·CLAUDE.md 가 단일 출처, 링크만).
 4. **🌳 큰 갈래 4 트랙** — 트랙마다 `### 헤딩 → 텍스트 화살표 체인 (위 4a, mermaid 아님) → 설명 한 문단` 을 순서대로 짝지어 배치 (문서 / 연구·실험 / 앱 / 라이브러리·CLI — 왜 이 순서 / 무엇을 남기나) + 점검·정정·사용자 프로필 한 줄 quote + 체이닝 청사진 reference ([`WORKFLOW.md`](WORKFLOW.md)) + 이름 읽는 법 한 줄.

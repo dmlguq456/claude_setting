@@ -10,7 +10,7 @@ argument-hint: "<design task or app path> [--scope ui|webapp|slide|icon|diagram|
 >
 > CONVENTIONS.md §5 3-tier — T1: root + design_state.yaml / T2: `00_init/`, `01_refs/`, … / T3: `_internal/` per phase.
 
-## Default Invocation Rule (메인 Claude 자동 라우팅)
+> **역할·소유 (DESIGN_PRINCIPLES §9).** design 이 시각을 _먼저_ 잡고 code 는 _적용만_ 한다 (design = 시각 spec). **토큰은 단일 계약 — design 소유**: 디자인 토큰은 _앱이 실제 import 하는 파일_(globals.css `@theme` / tokens.css) 에만 산다. `designs/`(또는 `spec/design/`) 는 토큰 _사본이 아니라_ refs·mockup·결정 근거·specimen(=decision record, spec/prd 의 "왜" 자리). **빌트앱도 design-first** — mockup 이 아니라 _실제 돌아가는 앱 화면을 Design MCP 로 렌더_ 해서 시각 결정 (롱테일도 design 이 리드). **경계**: 방향·토큰·새 레이아웃·구조 변경=substantial → 본 skill (design-first). 한 요소 색 한 끗=trivial tweak 만 autopilot-code 직접.
 
 ### Trigger 신호 (자연어 발화 예시)
 

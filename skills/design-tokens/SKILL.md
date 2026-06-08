@@ -17,9 +17,13 @@ argument-hint: "<design path or app path>"
 - `phases.refs: done` 검증 → brief 없이는 token 결정 불가
 - `00_init/asset_inventory.md` Read — 기존 `tokens.css` 또는 `tailwind.config.ts` 발견 여부
 
-기존 토큰 발견 시:
-- 기본 mode: **확장** (기존 보존 + 새 토큰 추가)
-- 명시 요청 시: **재설계** (기존 백업 후 신규)
+> **토큰 = 단일 계약 (DESIGN_PRINCIPLES §9).** canonical 파일 = **앱이 실제 import 하는 파일** (`<project_root>/app/globals.css` 의 `@theme` / `styles/tokens.css` / `tailwind.config.ts`) _하나뿐_. design 이 그 파일을 소유·편집, code 는 참조만. **`designs/02_tokens/` 에 토큰 _사본_ 을 만들지 않는다** — 거기엔 `tokens.md`(결정 근거) + `specimen`(시각 증명) 만. `design_state.tokens_path` 는 _앱 실제 파일_ 을 가리킨다.
+
+**codebase seed (빌트앱·기존 토큰 — design-system awareness)**: 앱 코드를 먼저 스캔해 _실사용 토큰_ 추출·seed — `globals.css`/`tailwind.config` 의 색·폰트·spacing·radius + 컴포넌트의 반복 hex·px(인라인 흩어진 값 포함). 빈 캔버스에서 발명 말고 _현 코드를 계약으로 승격_ 후 정련.
+
+기존 토큰(=앱 실제 파일) 발견 시:
+- 기본 mode: **확장** (앱 파일 보존 + 새 토큰 추가, 그 파일에 직접)
+- 명시 요청 시: **재설계** (앱 파일 `_internal/versions/v{N}/` snapshot 후 신규)
 
 ## Procedure
 

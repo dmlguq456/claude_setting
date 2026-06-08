@@ -4,6 +4,12 @@
 
 **Claude Code 워크플로우 — skill·agent·운영 규칙을 한 장으로**
 
+</div>
+
+> **🧬 존재의의 — model-agnostic skeleton.** 이 레포는 _특정 LLM 에 종속되지 않는, 어떤 모델로 갈아타도 동작하는 작업 substrate_ 다. "평생 Claude 만 쓴다는 보장은 없다." 벤더 내장(Claude Design·deep-research 등)이 _지금 더 좋아도_ 우리 온프레미스 구현을 빼지 않는다 — advantage 는 벤더에 묶여 모델 전환 시 증발하지만 우리 골격은 살아남는다. 잘 설계된 내장은 _RE 해서 흡수_(자급 재구현). 단일 출처 = [`DESIGN_PRINCIPLES.md`](DESIGN_PRINCIPLES.md) §0.
+
+<div align="center">
+
 [📌/⚡ 모드](#-작동-방식--tracked--untracked) · [mental model](#-mental-model) · [4 트랙](#-큰-갈래-4-트랙--흐름의-의미) · [Skills](#-skill-카탈로그--의의핵심) · [산출물](#-산출물의-구조적-의미) · [부르는 법](#-부르는-법) · [Agents](#-agents) · [더 깊이](#-더-깊이)
 
 </div>

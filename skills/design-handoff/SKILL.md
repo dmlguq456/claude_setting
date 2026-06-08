@@ -67,7 +67,8 @@ node ~/.claude/tools/design-mcp/convert.mjs pptx   <slides>.html         [out.pp
 |---|---|---|
 | PDF | `05_handoff/exports/<name>.pdf` | `convert.mjs pdf` (덱: 1슬라이드=1페이지) |
 | PPTX | `05_handoff/exports/<name>.pptx` | `convert.mjs pptx` (slide scope) |
-| 단일 HTML 번들 | `05_handoff/exports/<name>.bundle.html` | `convert.mjs bundle` (오프라인) |
+| 단일 HTML 번들 (inline) | `05_handoff/exports/<name>.bundle.html` | `convert.mjs bundle` (기존 preview 오프라인화) |
+| production 번들 (ui/webapp) | `05_handoff/exports/<name>.bundle.html` | real Tailwind/shadcn 빌드 → 단일파일 — 레시피 [`tools/web-bundle`](../../tools/web-bundle/README.md) (Vite+singlefile). 배포 후보·design-system 정합 시 |
 
 ---
 

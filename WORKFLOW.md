@@ -54,7 +54,7 @@
 | **문서** (paper / 발표 / 보고서 / proposal / rebuttal) | research(academic·market) + analyze-project(paper·doc) | `autopilot-draft` | `autopilot-refine` |
 | **코드** (라이브러리·연구·앱·CLI·API 모두) | research(academic·tech) + analyze-project(code) | **`autopilot-spec`** (mode app/library/api/cli/research/복합/auto) | **`autopilot-code`** (spec mode 별 분기 자동) |
 | **실험 prototype** (ML / one-shot) | analyze-project(code) 의 4 종 자료(experiment_conventions·readiness·cleanup·similar_models) | — (spec 없이 빠른 cycle) | **`autopilot-lab`** (반복; 졸업 자리 autopilot-code) |
-| **시각 자산** | — | `autopilot-design` (신규 사이클) | `autopilot-design` 재호출 |
+| **시각 자산 / 디자인** | — | `autopilot-design` (신규 사이클·design-first) | _substantial 시각 결정_(방향·토큰·새 레이아웃·구조)·빌트앱 디자인 진화 → **`autopilot-design`** (실제 앱 렌더 → 토큰 계약 갱신, code 적용). _trivial tweak_(한 끗)만 `autopilot-code` 직접. 토큰=design 단일 계약 ([DESIGN_PRINCIPLES §9](DESIGN_PRINCIPLES.md)) |
 | **사용자 프로필** | — | `analyze-user` init | `analyze-user` update |
 
 **직접 처리 경계** — plan/log 안 남는 단발 작업(한 줄 수정·rename·cleanup·단발 리뷰)은 autopilot 우회: `Agent(개발팀)` / 직접 Edit. 추적 필요·산출물 누적 자리만 autopilot. minor vs major 판정은 [`DESIGN_PRINCIPLES.md §4`](DESIGN_PRINCIPLES.md) + 각 skill `--qa quick` tier.

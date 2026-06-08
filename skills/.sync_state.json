@@ -11,7 +11,7 @@
       "synced_at": "2026-06-08T00:00:00Z"
     },
     "skills/autopilot-design": {
-      "sha256": "621625a60a41d326267e78e0fc8f017805666d71bad34cd12ebf3bddd878ac1b",
+      "sha256": "c9bee540f352914403e10b533d1db973fb86d3e2f6e63d13ccad5024334ae75f",
       "synced_at": "2026-06-08T00:00:00Z"
     },
     "skills/autopilot-apply": {
@@ -19,7 +19,7 @@
       "synced_at": "2026-06-08T00:00:00Z"
     },
     "skills/design-handoff": {
-      "sha256": "e6402fca7ec89a59c9452c49ce5a11d1985c8c252cffeb827b82e7dff4057ac9",
+      "sha256": "9dfd3f542a9b15eac60194ec7ba603f5886996aaaee8f8ef1ed7b9de9c3cd850",
       "synced_at": "2026-06-08T00:00:00Z"
     },
     "skills/autopilot-refine": {
@@ -31,7 +31,7 @@
       "synced_at": "2026-06-08T00:00:00Z"
     },
     "skills/design-tokens": {
-      "sha256": "b1c0a9f705de224eef2498a8338965daa6a8d259fe6ce530da716a6f579e7743",
+      "sha256": "dec75d41d744b3ebdaffef1606377f44e106ceae683a72ee998ecf72fa75980d",
       "synced_at": "2026-06-08T00:00:00Z"
     },
     "skills/code-execute": {
@@ -55,7 +55,7 @@
       "synced_at": "2026-06-08T00:00:00Z"
     },
     "skills/design-components": {
-      "sha256": "b1da9792006a195cfda5814e11bdc90c777621e3de7a2710aac9e0c892c215b4",
+      "sha256": "909b095842344e59a7e79e704f5c7cb86dcabf2be17d2507969d46b6ca390820",
       "synced_at": "2026-06-08T00:00:00Z"
     },
     "skills/audit": {
@@ -87,7 +87,7 @@
       "synced_at": "2026-06-08T00:00:00Z"
     },
     "skills/sync-skills": {
-      "sha256": "ce381b8a2b3c939594ea526a2f30b56a1b1dc442451dd6404224c1d9a35f43bb",
+      "sha256": "07f27aad874587c2e908cdb8c0c8a728b0f0f9221df4a68a729b150d6f510d43",
       "synced_at": "2026-06-08T00:00:00Z"
     },
     "skills/code-plan": {
@@ -111,7 +111,7 @@
       "synced_at": "2026-06-08T00:00:00Z"
     },
     "skills/autopilot-code": {
-      "sha256": "592c90b1a30a2080b0319786a213b61934af670dc360d351d09aa3aface94ad5",
+      "sha256": "0ef0d742fdddf56a96e3bdb06b7cbdef24c46e8bd6fa194712cd13e904163b37",
       "synced_at": "2026-06-08T00:00:00Z"
     },
     "agents/codex-review-team": {

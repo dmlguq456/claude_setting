@@ -462,8 +462,8 @@ analyze-project 자체는 `_last_run.yaml` 기반 **incremental update** default
 | `analyze-project` | `.claude_reports/analysis_project/{code,paper,doc}/` (code mode 자리에 lab 사전 4 종 자료 포함) |
 | `autopilot-spec` | `.claude_reports/spec/` (청사진 한 폴더 — `prd.md` 의 mode 별 섹션 + stack.md·design/·ship.md) |
 | `autopilot-ship` | `.claude_reports/spec/ship.md` (배포 자료 누적, single source) + 프로젝트 root 의 `vercel.json` / `.github/workflows/deploy.yml` / `.env.example` (CI/CD·env 외부 자료, .claude_reports 밖) |
-| `autopilot-design` (단독) | `.claude_reports/designs/<name>/` |
-| `autopilot-design` (spec 위임) | `.claude_reports/spec/design/` |
+| `autopilot-design` (단독) | `.claude_reports/designs/<name>/` — _decision record_ (refs·mockup·결정 근거·specimen). **토큰 _사본 없음_** — 토큰은 앱 실제 파일(globals.css `@theme`/tokens.css)이 단일 계약 (DESIGN_PRINCIPLES §9) |
+| `autopilot-design` (spec 위임) | `.claude_reports/spec/design/` (동일 — decision record; 토큰은 앱 파일) |
 | `autopilot-code` | `.claude_reports/plans/<date>_<slug>/` (spec 유무 무관 — 청사진은 `spec/`, 작업은 항상 `plans/`) |
 | `autopilot-lab` | `.claude_reports/experiments/{date}_{slug}/` + `.claude_reports/experiments/_RUNLOG.md` (timeline) |
 | `autopilot-draft` | `.claude_reports/documents/<date>_<name>/` |

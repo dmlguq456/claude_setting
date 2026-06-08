@@ -35,7 +35,7 @@ spec 의 `mode` 배열 (단일 또는 복수) 에 따라 자동 활성화:
 
 | mode | 추가 logic |
 |---|---|
-| **app** | (1) UI 변경 자리 디자인팀 critic 자동 호출 (2) DB migration destructive 자리 명령 안내·자동 실행 X (3) push 후 CI/CD 자동 deploy 인지 |
+| **app** | (1) UI 변경 자리 디자인팀 critic 자동 호출 (2) DB migration destructive 자리 명령 안내·자동 실행 X (3) push 후 CI/CD 자동 deploy 인지 (4) **토큰 = design 계약 (DESIGN_PRINCIPLES §9)** — code 는 design 소유 토큰(globals.css `@theme`/tokens.css)을 _참조·사용만_, 인라인 hex·px 로 재정의·즉흥변경 X. _substantial 시각 결정_(방향·토큰·새 레이아웃·구조)은 코드에서 즉흥 말고 **autopilot-design 으로 리드**(실제 앱 렌더 → 결정 → 토큰 계약 갱신) 후 본 skill 이 적용. trivial tweak(한 끗)만 직접 |
 | **library** | (1) 공개 API 변경 자리 _semver 영향 분석_ (2) export 일관성 점검 (3) 사용 예시 갱신 권장 |
 | **api** | (1) endpoint·body·error 일관성 (spec contract 와) (2) auth 변경 자리 보안 검토 (3) rate limiting 변경 자리 마이그레이션 안내 |
 | **cli** | (1) 명령·옵션 일관성 (spec 과) (2) input/output 형식 점검 (3) exit code 일관성 |

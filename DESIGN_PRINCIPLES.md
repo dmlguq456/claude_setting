@@ -10,6 +10,18 @@
 
 ---
 
+## §0. 존재의의 — model-agnostic skeleton (다른 모든 절보다 상위)
+
+이 레포(`~/.claude/`)의 근본 목적은 **특정 LLM 에 종속되지 않는, 어떤 모델로 갈아타도 동작하는 작업 substrate(skeleton)** 다. _"평생 Claude 만 쓴다는 보장은 없다."_ 모든 스킬·에이전트·하네스는 _프롬프트 + 로컬 도구 + 인코딩된 판단 규칙 + scaffold_ 로 구성돼, 모델을 갈아끼워도 그 골격 위에서 동작한다.
+
+- **가치 판단 규칙 (불변)**: 어떤 능력이 특정 벤더 내장(Claude Design · deep-research 등)으로 _지금 더 잘_ 되더라도, **그것을 이유로 우리 온프레미스 구현을 빼지 않는다.** 벤더 advantage 는 그 벤더에 묶여 있어 모델 전환 시 증발하지만, 우리 스킬은 살아남는다.
+- **평가 기준의 전환**: 산출물·스킬을 _"현재 Claude 대비 우열"_ 로 재지 않는다. 기준은 _"다른 LLM(GPT·Gemini·로컬)이 몰아도 그럭저럭 동작하는가"_. 따라서 **_실사용 빈도 0 도 제거 근거가 아니다_** — 일부는 daily tool 이 아니라 _모델 전환 대비 보험·substrate_ 다.
+- **그래서 internalization**: 벤더 내장의 잘 설계된 파이프는 _RE 해서 우리 스킬로 흡수_ 한다 (deep-research → 연구팀 claim-verify, `/security-review` → qa security-review, Claude Design 공개 룰 → `_design_rules.md` 등). 호출이 아니라 _자급 재구현_ — 의존 없이 단독으로 돈다. 작업·소스 보존 = `nas_Uihyeop/claude-meta-spec/`.
+
+> 구조 결정(역할 분리·QA·산출물 컨벤션)이 이 §0 과 충돌하면 **이 원칙이 우선**한다.
+
+---
+
 ## 1. 3-Tier Role Separation
 
 | Tier | Role | 예 | Anti-pattern |
@@ -143,6 +155,17 @@ per-project 메모는 두 layer 분리.
 - 결과 흐름: file 통해 (verdict 만 token)
 
 ---
+
+## 9. Design ownership — design 이 리드, code 는 적용 (토큰 단일 계약)
+
+디자인은 _코드에서 즉흥_ 으로 정하지 않는다. **design 이 시각을 먼저 잡고, code 는 적용만** 한다 — design 이 spec 역할(시각 청사진).
+
+- **토큰은 _단일 계약_ — design 소유, code import.** 디자인 토큰(색·타이포·spacing·radius·shadow)은 _하나의 파일_ 에만 산다 = **앱이 실제로 import 하는 파일**(예: `app/globals.css` 의 `@theme`, 또는 `styles/tokens.css`). autopilot-design 이 그 파일을 _결정·편집_ 하고, autopilot-code 는 _참조·사용만_ 한다. **`designs/` 에 토큰 _사본_ 을 두지 않는다** (복제 = drift·화석의 근원). `designs/`(또는 `spec/design/`) 는 _refs·mockup·결정 근거·specimen_ 만 — spec/prd 가 "왜"를 담듯.
+- **code 는 토큰을 재정의·즉흥변경하지 않는다.** 컴포넌트는 design 계약의 토큰을 _쓰기만_ (인라인 hex·px 흩뿌리기 금지). 토큰을 바꿔야 하면 design 으로 돌아간다.
+- **빌트앱도 design-first** — mockup 이 아니라 **실제 돌아가는 앱 화면을 렌더(Design MCP)** 해서 시각 결정. 그래야 롱테일("쓰다 보니 거슬림")도 design 이 리드한다.
+- **경계 (substantial vs trivial)**: 방향·토큰·새 화면 레이아웃·구조 변경 = _substantial_ → **design-first** (실제 앱 렌더 → 결정 → 토큰 계약 갱신), code 적용. 한 요소 색 한 끗 같은 _trivial tweak_ 만 code 직접 허용.
+
+**Why**: design 결정이 code 로 새면 (a) 토큰이 코드에 흩어져 시각 일관성이 무너지고 (b) `designs/` 가 화석이 되며 (c) 디자인 이력의 단일 출처가 사라진다. 토큰을 _design 소유 단일 계약_ 으로 두면 design 이 진짜 spec 역할을 하고, 복제·drift 가 원천 소멸한다. (2026-06-08 worklog-board: `designs/02_tokens/tokens.css`(7KB·06-01 화석) vs `app/globals.css`(50KB·06-08) 복제·drift 진단에서 도출.)
 
 ## 부록 — 도입 이력 (간략)
 
