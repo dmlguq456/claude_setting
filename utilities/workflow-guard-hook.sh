@@ -61,16 +61,16 @@ if [ "$EVENT" = "UserPromptSubmit" ]; then
   if [ "$untracked" = "1" ]; then
     touch "$flag" 2>/dev/null || true   # heartbeat — 활성 세션이면 mtime 갱신 → GC 가 _비활성_ 만 지움 (장기 세션 안전)
     emit UserPromptSubmit <<'EOF'
-🧭 ⚡untracked — WORKFLOW 면제. 산출물·소스 코드 직접 편집 자유 (추적·trail 없음). 정식 파이프로 돌리려면 /track.
+🧭 ⚡untracked — WORKFLOW 면제, 직접 편집 자유 · 파이프 복귀 /track
 EOF
   else
     spec_tail=""
-    [ -n "$spec_root" ] && spec_tail=" spec-backed → 수정·기능은 WORKFLOW §7 (spec-drift 체크 → autopilot-code)."
-    # 트랙 인지: 문서·실험 폴더가 있으면 그 트랙의 정당한 _직접 편집_ 경로(refine minor / lab quick)를 안내 — 단일 텍스트 과잉 압박 완화.
+    [ -n "$spec_root" ] && spec_tail=" · spec-backed: spec 먼저(drift)"
+    # 트랙 인지: 문서·실험 repo 면 정당한 직접편집 경로(refine minor / lab quick) 한 구절 — 과잉 압박 완화.
     direct_tail=""
-    { [ -d "$cr_root/.claude_reports/documents" ] || [ -d "$cr_root/.claude_reports/experiments" ]; } && direct_tail=" (문서 refine-minor·실험 lab-quick 은 직접 편집 정상.)"
+    { [ -d "$cr_root/.claude_reports/documents" ] || [ -d "$cr_root/.claude_reports/experiments" ]; } && direct_tail=" · 문서·실험 minor/quick 직접 OK"
     emit UserPromptSubmit <<EOF
-🧭 📌tracked — WORKFLOW(§0/§7) 따름. 작업(코드/스펙/문서/실험)이면 직접 편집 말고 autopilot-* skill 경유; 산출물은 만든 스킬로. 단발·throwaway 만 직접.${spec_tail}${direct_tail}
+🧭 📌tracked — 작업은 autopilot-* 경유(직접편집 X), 산출물은 소유 스킬로, 단발만 직접 · WORKFLOW §0/§7${spec_tail}${direct_tail}
 EOF
   fi
   exit 0
