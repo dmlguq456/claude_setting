@@ -45,6 +45,16 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"$HOME/.claude/hooks/spec-skill-gate.sh\"",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -55,6 +65,16 @@
             "type": "command",
             "command": "bash \"$HOME/.claude/hooks/design-postwrite.sh\"",
             "timeout": 20
+          }
+        ]
+      },
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"$HOME/.claude/hooks/spec-read-marker.sh\"",
+            "timeout": 10
           }
         ]
       }
