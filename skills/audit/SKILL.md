@@ -48,7 +48,7 @@ threshold는 doc/research artifact의 `pipeline_summary.md` `## 마이너 변경
 
 ## Language Rule
 
-Reason internally in English. All user-facing output (chat report, audit log) in **Korean**.
+All user-facing output (chat report, audit log) in natural **Korean** (no translationese — write Korean natively, don't translate from an English draft).
 
 ## Argument Parsing
 

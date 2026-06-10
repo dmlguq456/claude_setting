@@ -18,9 +18,8 @@
 - 플래그 제거 후 남은 텍스트는 target directory / scope
 
 ## 언어 규칙
-- 내부 추론은 영어
 - `.claude_reports/analysis_project/` 산출 문서는 **영어**
-- 사용자 설명은 한국어
+- 사용자 설명은 자연스러운 한국어 (번역체 회피)
 
 ## Phase 1: Codebase Analysis (code mode)
 범위 결정:

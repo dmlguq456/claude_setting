@@ -7,7 +7,7 @@ argument-hint: "<task description> [--qa quick|light|standard|thorough|adversari
 > Caller note: planning benefits from `high` or `xhigh` effort; lower effort may miss call sites in cross-file analysis.
 
 ## Language Rule
-- Think and reason in English internally. Write all user-facing output in Korean.
+- All user-facing output in natural Korean (no translationese — write Korean natively, don't translate from an English draft).
 
 ## Pre-Check
 Check if a similar plan already exists in `.claude_reports/plans/`. Behavior depends on plan status:

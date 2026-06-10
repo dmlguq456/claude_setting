@@ -16,8 +16,7 @@ Resolve `$ARGUMENTS` to plan file paths. Always resolve BOTH `plan.md` and `plan
 Example: `/code-refine inference-refactor` → English: `.../plan/plan.md`, Korean: `.../plan/plan_ko.md`
 
 ## Language Rule
-- Think and reason in English internally.
-- Write all user-facing output in Korean.
+- All user-facing output in natural Korean (no translationese — write Korean natively, don't translate from an English draft).
 
 ## Delegate to 기획팀
 Invoke the **plan-team** (기획팀) agent as a subagent with the following prompt:

@@ -37,8 +37,7 @@ argument-hint: "<aspect> [--source <path>] [--mode init|update] [--from discover
 
 ## Language Rule
 
-- Think and reason in English internally.
-- All user-facing output and 산출물 (`user_profile/*.md`) 본문 in **한국어**.
+- All user-facing output and 산출물 (`user_profile/*.md`) 본문 in 자연스러운 **한국어** (번역체 회피).
 - 코드·파일 경로·식별자·도메인 표현은 영어 그대로.
 - 어미 톤 — chat 응답은 대화체, user_profile 본문은 _평어 단정형_ (보고서 톤 — `~다 / ~이다`).
 

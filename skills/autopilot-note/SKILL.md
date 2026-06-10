@@ -1,6 +1,6 @@
 ---
 name: autopilot-note
-description: Autopilot family — periodic + on-demand 산출물 routing pipeline (2-Layer 모델). Scans `.claude_reports/{research,documents,plans,analysis_project}/` + `experiments/` + `git log` for artifacts changed since last run, then turns each into a **Layer 2 산출물 노트** (`_layer2/notes/<id>.md`) and links it to the user's **Layer 1** board cards. 5-way routing — create L2 note row (auto), link note `card_id` → existing L1 card (auto ≥0.7), link `backbone_ids`/`task_ids` → L2 catalog (auto, emerge if needed), propose new L1 card (triage), park as ambient `card_id: null` note (auto fallback). Daily digest accumulates at `<target>/digests/YYYY-MM-DD.md`. Idempotent — same source processed twice never duplicates a note. Default `--qa light` (routine cron). Escalate to standard+ for weekly bulk consolidation, Notion migration, or pre-handoff cleanup. Source 6 includes Notion mirror (Phase 3, gated).
+description: Autopilot family — periodic + on-demand 산출물 routing pipeline (2-Layer 모델). Scans `.claude_reports/{research,documents,plans,analysis_project}/` + `experiments/` + `git log` for artifacts changed since last run, then turns each into a **Layer 2 산출물 노트** (`_layer2/notes/<id>.md`) and links it to the user's **Layer 1** board cards. 5-way routing — create L2 note row (auto), link note `card_id` → existing L1 card (auto-PROPOSE as `routing_status: inbox` with `routing_confidence`/`routing_reason`; unattended cron NEVER auto-confirms — user confirms in `/triage`), link `backbone_ids`/`task_ids` → L2 catalog (auto, emerge if needed), propose new L1 card (triage), park as ambient `card_id: null` note (auto fallback). Daily digest accumulates at `<target>/digests/YYYY-MM-DD.md`. Idempotent — same source processed twice never duplicates a note. Default `--qa light` (routine cron). Escalate to standard+ for weekly bulk consolidation, Notion migration, or pre-handoff cleanup. Source 6 includes Notion mirror (Phase 3, gated).
 argument-hint: "[--scope today|yesterday|since <date>|all] [--target <notes-root>] [--dry-run] [--qa quick|light|standard|thorough|adversarial] [--digest-only] [--triage-only] [--source <list>] [--no-fact-check]"
 ---
 
@@ -33,7 +33,12 @@ task_ids: [sep]                 # → _layer2/tasks/<slug>.md (M:N)
 paper_id: tf-restormer-icml2026 # → _layer2/papers/<slug>.md (optional)
 intent: 원천기술                # 원천기술 | 상용화 | 논문 | 수탁
 work_status: 검증               # 탐색 | 검증 | 통합 | 출시 | null (발산 단계)
-routing_status: confirmed       # inbox | confirmed | manual (본 skill 자동 = confirmed, ≥0.7 / inbox = 사용자 확인 대기)
+routing_status: inbox           # inbox | confirmed | manual — ⟨2026-06-10 prd §13.C ①⟩ 무인 cron = 항상 inbox(제안 staging). confirmed 승격은 사용자 컨펌만
+routing_confidence: 0.82        # ⟨§13.C ②⟩ 0–1 라우팅 신뢰도 — 자동확정 아님, /triage·홈 정렬·하이라이트용
+routing_reason: "TF window ablation → ICML TF-Restormer 과제 키워드 일치"  # ⟨§13.C ②⟩ 왜 이 카드/기술에 붙였나 (사용자 아침 교정용 한 줄)
+matched_signals: [project:TF-Restormer, path:plans/2026-..._exp-043, kw:ablation]  # ⟨§13.C ②⟩ 매칭 단서 (키워드·경로)
+run_id: run-20260610-0500       # ⟨§13.C ③⟩ 이 노트를 만든 밤 실행 배치 id
+run_at: 2026-06-10T05:00:00.000Z
 created_at: 2026-06-09T00:00:00.000Z
 source: .claude_reports/plans/2026-06-08_x/   # 원본 산출물 경로 (idempotency check key)
 ---
@@ -88,6 +93,10 @@ Phase 2 까지 source 1-6 활성, source 7 (노션) 은 _Phase 3 활성_ — `--
 | `<target>/_triage/{date}_<seq>.md` | **L1 제안** | 신규 L1 카드 (project/task) _제안_. worklog-board `/triage` UI 가 본 폴더 read |
 | `<target>/digests/YYYY-MM-DD.md` | — | 매일 다이제스트. 신규 entry 최상단, 과거 보존 (누적) |
 | `.claude_reports/notes/{date}/` | — | 본 skill 자체 routing log (T1 결과 표 / T2 source scan / T3 reviewer) |
+
+> 🗄️ **⟨2026-06-10 — DB 적재 step (worklog-board DB화 이후 필수)⟩**: worklog-board 앱은 이제 L2 를 **libSQL DB(`.cache/worklog.db`) 에서 read** 한다 (마크다운 `_layer2/*.md` = source/mirror). 따라서 노트·카탈로그 `.md` 를 쓴 _뒤_ Stage D 끝에 **`npm run migrate:fs-to-db`** (worklog-board cwd 에서) 를 돌려 DB 에 반영해야 허브에 보인다. idempotent upsert 라 재실행 안전. 검증 = `npx tsx scripts/verify-migration.ts` (count parity + extras round-trip). _다른 NAS 자리(`--target`) 에 쓴 경우엔 worklog-board 가 그 `_layer2` 를 가리키도록 LAYER2_DIR 일치 확인 후 migrate._
+>
+> 📝 **노트 본문 = rich (열람용 — 사용자가 파일 더미 안 뒤지고 이것만 읽음)**: frontmatter 아래 본문을 충실히 — `# 제목` / 1-2줄 요약 / `## 결과` (**실험·벤치마크면 metric·수치 반드시** — SI-SDR/PESQ/DER/WER/통과수 등) / `## 핵심 결정·해결` (root cause·설계 결정) / `## 변경 코드` (주요 파일·규모) / `## 남은 자리` (🔴/🟡) / `**원본**: <source 경로 또는 Notion URL>`. 품질 기준 = `_layer2/notes/note-20260528-onnxse.md`. 위키처럼 관련 노트·backbone 을 `[[slug]]` 로 cross-link. **backbone/tech 카탈로그 `.md` 본문 = 위키 앵커** (정의·계보·다룬 작업·주요 노트 [[링크]]·쓰인 과제) — emerge 시 채우고 노트 누적 시 갱신.
 
 ### NOT for
 
@@ -145,6 +154,8 @@ opt-out flag — `--no-fact-check` 만 (standard+ 자리에서).
 
 각 산출물에 대해 _어느 L1 카드 + 어느 L2 카탈로그_ 에 매달리나 결정.
 
+> ⚠️ **무인 cron = 제안 staging, 자동확정 금지 ⟨2026-06-10, prd §13.C ①⟩**: 본 skill 의 매칭은 _확정이 아니라 제안_. **무인 cron 실행(트리거가 사용자 직접 호출이 아닌 자리)은 confidence 무관 `routing_status: inbox`** 로 둔다 — confidence 는 `confirmed` 로 끌어올리는 스위치가 _아니라_ `routing_confidence` 필드로 emit 해 `/triage`·홈 정렬·하이라이트에만 쓴다. `confirmed` 승격은 **오직 사용자 컨펌**(worklog-board `/triage` 노트 라우팅 승인/고치기). 이유: 밤 실행이 자동 확정하면 아침 리뷰 큐가 비어 "에이전트 제안 → 사람 daily 보정" 루프(§4.3·§12.A)가 작동하지 않음(실측: confirmed 476 / inbox 4). _예외_ — 사용자가 `/autopilot-note` 를 **직접 호출**하며 즉시 확정을 명시(`--confirm-high` 또는 발화)한 자리만 ≥0.7 confirmed 허용.
+
 ### card_id (→ Layer 1) 결정 — 3 갈래
 
 #### 1차 — 결정론적 frontmatter
@@ -153,10 +164,10 @@ opt-out flag — `--no-fact-check` 만 (standard+ 자리에서).
 
 #### 2차 — fuzzy 키워드 매칭
 - 산출물 키워드 → `<target>/cards/**.md` 중 `kind: project`/`kind: task` 의 `title` / 본문 heading fuzzy 매칭.
-- confidence: **≥0.7** → `card_id` 자동 set + `routing_status: confirmed`. **0.4-0.7** → set + `routing_status: inbox` (사용자 확인). **<0.4** → 3차.
+- confidence ⟨2026-06-10⟩: **≥0.7** → `card_id` set + `routing_confidence` 기록(높음). **0.4-0.7** → `card_id` set + `routing_confidence` 기록(중). **<0.4** → 3차. **무인 cron 은 confidence 무관 `routing_status: inbox`** (위 banner) — confidence 는 정렬·하이라이트용 emit 일 뿐 자동 confirmed 아님. `routing_reason`·`matched_signals` 도 같이 기록(아침 교정 단서).
 
 #### 3차 — ambient
-- 어디에도 안 맞음 → `card_id: null` + `routing_status: inbox`. 사후 사용자 promote. (이전 `kind: misc` 의 Layer 2 대응.)
+- 어디에도 안 맞음 → `card_id: null` + `routing_status: inbox` + `routing_confidence: <낮음>`. 사후 사용자 promote. (이전 `kind: misc` 의 Layer 2 대응.)
 - 매칭 카드가 _없지만 새 과제·작업 단위_ 로 보이면 → 별도로 **신규 L1 카드 triage 제안** (routing #4).
 
 ### backbone_ids / task_ids / paper_id (→ Layer 2) 결정
@@ -165,24 +176,24 @@ opt-out flag — `--no-fact-check` 만 (standard+ 자리에서).
 - paper 산출물 (autopilot-draft paper / research paper id) → `papers/` slug, 없으면 emerge.
 
 ### intent / work_status 추정
-- `intent` — _horizontal 재사용 자산_ → `원천기술` / _특정 product·API_ → `상용화` / _외부 공표 텍스트_ → `논문` / _외부 납품_ → `수탁`. 산출물 종류·키워드로 default.
-- `work_status` — 산출물 단계: _아이디어·탐색_ → `탐색` / _실험·검증_ → `검증` / _통합·라이브러리화_ → `통합` / _릴리스·제출_ → `출시` / _불명_ → `null`.
+- `intent` — _horizontal 재사용 자산_ → `원천기술` / _특정 product·API_ → `상용화` / _외부 공표 텍스트_ → `논문` / _외부 납품_ → `수탁` / _연구실 운영·행정_ → `운영`. 산출물 종류·키워드로 default.
+- `work_status` — 산출물 단계: _청사진·설계_ → `설계` / _아이디어·탐색_ → `탐색` / _실험·검증_ → `검증` / _진행 중_ → `진행중` / _통합·라이브러리화_ → `통합` / _릴리스·제출_ → `출시` / _완료_ → `완료` / _불명_ → `null`.
+- **스키마 tolerance (2026-06-10)**: `intent`/`work_status` 는 NoteSchema 에서 `z.string()` (enum 아님) — 위 canonical 값을 _권장_ 하되 새 vocab 도 silent-drop 안 됨. 단 _일관성_ 위해 가능한 canonical 사용 (UI picker·badge 가 canonical 기준).
 
 ## Routing Rules (5 갈래 — 본 skill 핵심)
 
 | # | 자리 | Trigger | 동작 | 자동 / triage |
 |---|---|---|---|---|
 | **1** | L2 note row 생성 | 모든 trackable 산출물 | `_layer2/notes/<id>.md` 생성 (노트화 본문 + frontmatter) | **자동** |
-| **2** | note `card_id` → L1 카드 연결 | 1차/2차 매칭 ≥0.7 | frontmatter `card_id` set (confirmed) | **자동** |
+| **2** | note `card_id` → L1 카드 연결 | 1차/2차 매칭 | frontmatter `card_id` set + `routing_status: inbox`(제안) + `routing_confidence`/`routing_reason` ⟨2026-06-10⟩ | **자동(제안)** |
 | **3** | note `backbone_ids`/`task_ids` → L2 카탈로그 연결 (+emerge) | architecture·task 키워드 매칭 / emerge 단서 | frontmatter id list set + 없으면 카탈로그 entry 생성 | **자동 (카탈로그 emerge 포함)** |
 | **4** | 신규 L1 카드 _제안_ | 매칭 카드 없고 새 과제·작업 단위 | `_triage/{date}_<seq>.md` 제안 (project/task) | **triage** (자동생성 X — L1 사용자 소유) |
 | **5** | ambient note | 위 어디에도 확신 없음 | `card_id: null` + `routing_status: inbox` | **자동 (ambient)** |
 
-**L2 적재·연결은 자동 (#1·#2·#3·#5), L1 신설만 triage (#4)** — 사용자 부담 최소. 신설 confirm 은 worklog-board `/triage` UI 가 watcher.
+**L2 적재·연결은 자동 _제안_ (#1·#2·#3·#5 — 무인 cron 은 전부 `routing_status: inbox`), L1 신설만 triage (#4)** ⟨2026-06-10⟩ — 에이전트는 _제안_, 확정(`confirmed`)은 worklog-board `/triage` 노트 라우팅에서 사용자 컨펌. 신규 L1 카드 confirm 도 `/triage` UI 가 watcher.
 
 ### Language Rule
-- 내부 사고 / source 본문 scan / classification 분석은 영어.
-- 사용자 향 출력 (chat report / digest 본문 / triage 카드 본문 / **노트화 본문**) **한국어**.
+- 사용자 향 출력 (chat report / digest 본문 / triage 카드 본문 / **노트화 본문**) 은 자연스러운 **한국어** (번역체 회피).
 - frontmatter id / slug / file 이름은 영어·소문자·하이픈 (`note-20260609-a1b2c3` / `sr-corrnet` / `sep` / `tf-restormer-icml2026`).
 
 ## Process
@@ -202,10 +213,13 @@ opt-out flag — `--no-fact-check` 만 (standard+ 자리에서).
 6. 결과: `[(source, keywords, note_material, l1_hints, l2_hints)]`.
 
 ### Stage C — Target matching
-각 source 에 §Target Resolution 적용. 결과:
+각 source 에 §Target Resolution 적용. 결과 ⟨2026-06-10: routing_confidence/reason/signals + run 필드 추가⟩:
 ```
-[(source, note_id, card_id, backbone_ids, task_ids, paper_id, intent, work_status, routing_status, emerge_catalog[], propose_l1_card?)]
+[(source, note_id, card_id, backbone_ids, task_ids, paper_id, intent, work_status,
+  routing_status, routing_confidence, routing_reason, matched_signals[],
+  run_id, run_at, emerge_catalog[], propose_l1_card?)]
 ```
+`run_id`/`run_at` 은 _실행 1회 = 1 batch_ — Stage A 진입 시 한 번 정해 그 실행의 모든 노트에 동일하게 박는다 (`run-{YYYYMMDD}-{HHMM}`).
 
 ### Stage C.5 — Verification (light+)
 `--qa` level 매트릭스에 따라 reviewer 호출. CONVENTIONS.md §1 정합. 검수 자리:
@@ -219,7 +233,7 @@ reviewer issue flag 시 — `_internal/reviews/round_{N}.md` 기록 + report sur
 ### Stage D — Apply
 1. **L2 note 생성 (#1·#2·#3·#5)**:
    - `<target>/_layer2/notes/<id>.md` 생성. `id` = `note-{YYYYMMDD}-{source-path 해시 6자}` (idempotency).
-   - frontmatter = card_id / backbone_ids / task_ids / paper_id / intent / work_status / routing_status / created_at / source.
+   - frontmatter = card_id / backbone_ids / task_ids / paper_id / intent / work_status / routing_status / **routing_confidence / routing_reason / matched_signals / run_id / run_at** ⟨2026-06-10⟩ / created_at / source. (무인 cron 은 routing_status = `inbox` 고정.)
    - 본문 = source 핵심을 _읽기 편하게 노트화_ (한국어 — 결과·결정·metric·다음 단계 + `[[연결]]`).
 2. **L2 카탈로그 emerge (#3)**:
    - 참조 backbone/task/paper slug 가 `<target>/_layer2/{backbones,tasks,papers}/` 에 없으면 entry 생성 (각 README frontmatter spec). 로그에 emerge 기록.
@@ -228,14 +242,20 @@ reviewer issue flag 시 — `_internal/reviews/round_{N}.md` 기록 + report sur
 4. **idempotency check** — note `id` 또는 frontmatter `source` 마커가 이미 있으면 _갱신 또는 skip_ (재실행 안전). 같은 source → 같은 note (중복 X).
 5. **L1 카드 불변** — `<target>/cards/**.md` 는 read-only. 신규는 `_triage/` 제안만.
 
-### Stage E — Digest 생성
+### Stage E — Digest 생성 (run 기반 리뷰 그룹 ⟨2026-06-10, prd §13.C ③⟩)
+다이제스트는 _카운트 요약_ 이 아니라 **밤 실행(run) 단위 리뷰 그룹** — 홈/`/triage` 의 아침 리뷰 진입점. `run_id` 헤더 + "검토 필요(inbox)" 를 _맨 위_ 에 둔다.
 1. `<target>/digests/YYYY-MM-DD.md` 에 다이제스트 entry 추가:
 ```markdown
-## YYYY-MM-DD <weekday> (autopilot-note <scope>)
+## YYYY-MM-DD <weekday> (autopilot-note <scope> · run-<YYYYMMDD-HHMM>)
 
-- 노트화: <N> 건 (L1 연결 <P> / ambient <A>)
+- 이번 run: 생성 <N> · **검토 필요(inbox) <I>** · 카탈로그 emerge <E> · 신규 카드 제안 <M>
+- 노트화: <N> 건 (L1 연결 제안 <P> / ambient <A>)
 - 카탈로그 emerge: backbone <B> / task <T> / paper <Pa>
 - 신규 L1 카드 제안 (triage): <M> 건
+
+### ⚠ 검토 필요 (낮은 confidence·ambient — /triage 에서 보정)
+- ◯ <노트 한 줄> — _conf <0.xx>_ · <routing_reason>
+- ...
 
 ### 상위 노트
 - ◯ <backbone/task> · ▭ <연결 카드> — <노트 한 줄>
@@ -257,16 +277,15 @@ reviewer issue flag 시 — `_internal/reviews/round_{N}.md` 기록 + report sur
 
 Final user-facing report (≤8 줄):
 ```
-✓ autopilot-note 완료 — <scope>
-• 노트화: <N> 건 (L1 연결 <P> / ambient <A>)
+✓ autopilot-note 완료 — <scope> · run-<YYYYMMDD-HHMM>
+• 노트화: <N> 건 (전부 제안 — routing_status: inbox)
+• 검토 필요(낮은 confidence·ambient): <I> 건
 • 카탈로그 emerge: backbone <B> / task <T>
 • 신규 L1 카드 제안 (triage): <M> 건
 • 다이제스트: <target>/digests/<date>.md
 • 자체 로그: .claude_reports/notes/<date>/
-{if M > 0:}
-다음 자리: worklog-board /triage 에서 신규 L1 카드 제안 confirm
-{if inbox notes > 0:}
-ambient/inbox 노트 <A> 건 — /hubs 에서 사후 연결
+
+다음 자리 ⟨2026-06-10⟩: worklog-board 홈/`/triage` 에서 이번 run <N> 건 검토 — 승인/고치기/폐기로 confirmed 승격 (무인 실행은 자동확정 안 함). {if M > 0:}+ 신규 L1 카드 제안 <M> 건 confirm.
 ```
 
 ## Constraints

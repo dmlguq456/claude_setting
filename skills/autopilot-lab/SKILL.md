@@ -100,7 +100,7 @@ argument-hint: "<task description> [--mode setup|eval|auto] [--parent <slug>] [-
 - `/autopilot-lab <args>` slash 직접 입력 — 컨펌 skip
 
 ## Language Rule
-- Think and reason in English internally. Write user-facing output in Korean.
+- All user-facing output in natural Korean (no translationese — write Korean natively, don't translate from an English draft).
 - Code identifiers, layer names, config keys stay in English.
 
 ## Argument Parsing

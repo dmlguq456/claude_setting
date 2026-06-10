@@ -11,9 +11,8 @@ argument-hint: "[--mode code|paper|doc] [<scope/target/input-folder>] [--skip-qa
 > **Workspace assumption**: Claude는 프로젝트 루트에서 실행됨. `.claude_reports/`는 현재 dir에 생성. 본 skill의 input scope (코드 / PDFs / doc materials)도 현재 dir 또는 그 하위 폴더 기준.
 
 ## Language Rule
-- Think and reason in English internally.
 - Write documentation files in English (code/paper modes) or Korean+English mixed (doc mode).
-- When explaining something to the user, write in Korean.
+- When explaining something to the user, write in natural Korean (no translationese).
 
 ## Argument Parsing
 

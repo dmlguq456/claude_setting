@@ -171,7 +171,7 @@ Detect type by path prefix:
 
 ## Language Rule
 
-Reason internally in English. All user-facing output (chat diffs, pipeline_summary entries, reports) in **Korean**.
+All user-facing output (chat diffs, pipeline_summary entries, reports) in natural **Korean** (no translationese — write Korean natively, don't translate from an English draft).
 
 ---
 

@@ -23,7 +23,7 @@ Resolve `$ARGUMENTS` to document file paths. Detect whether this is a **strategy
    - **No match** → report error
 
 ## Language Rule
-- Think and reason in English internally. Write all user-facing output in Korean.
+- All user-facing output in natural Korean (no translationese — write Korean natively, don't translate from an English draft).
 
 ## Pre-Refine: Versioning Setup
 

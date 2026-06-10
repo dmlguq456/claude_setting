@@ -16,8 +16,7 @@ Resolve `$ARG` to a plan file path:
 Example: `/code-test inference-refactor` → `.claude_reports/plans/2026-03-18_inference-refactor/plan/plan.md`
 
 ## Language Rule
-- Think and reason in English internally.
-- Write all user-facing output in Korean.
+- All user-facing output in natural Korean (no translationese — write Korean natively, don't translate from an English draft).
 
 ## Delegate to 품질관리팀 (test 모드)
 Invoke the **품질관리팀** agent in **test mode** (the agent absorbed the former 테스트팀 in 2026-05-22; specify "test 모드" in the prompt so mode dispatch is unambiguous) with the following prompt:
