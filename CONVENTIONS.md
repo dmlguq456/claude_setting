@@ -366,15 +366,21 @@ head=$(git rev-parse --short HEAD 2>/dev/null)
 ahead_behind=$(git rev-list --left-right --count @{u}...HEAD 2>/dev/null)  # "behind  ahead"
 # 같은 브랜치를 잡고 있는 다른 worktree
 elsewhere=$(git worktree list --porcelain 2>/dev/null | awk -v b="$br" '/^worktree /{w=$2} /^branch /{if($2=="refs/heads/"b && w!=ENVIRON["PWD"]) print w}')
+# 브랜치 수명 — 현재 브랜치가 base(기본 브랜치)에 이미 다 반영됐나 (= 끝난 브랜치)
+def=$(git symbolic-ref -q --short refs/remotes/origin/HEAD 2>/dev/null | sed 's@^origin/@@'); def=${def:-main}
+git fetch -q origin "$def" 2>/dev/null
+merged_in=$( [ "$br" != DETACHED ] && [ "$br" != "$def" ] && [ "$(git rev-list --count origin/$def..HEAD 2>/dev/null)" = 0 ] && echo yes )
 if [ -n "$op" ];        then echo "STOP: $op 진행 중 — 해결(또는 --abort) 뒤 진행"; fi
 if [ "$br" = DETACHED ];then echo "STOP: detached HEAD($head) — commit 유실 위험, 브랜치 체크아웃 먼저"; fi
 [ -n "$elsewhere" ] && echo "WARN: 브랜치 '$br' 가 다른 worktree($elsewhere)에도 체크아웃됨"
 [ "${ahead_behind%%	*}" -gt 0 ] 2>/dev/null && echo "WARN: upstream 이 ${ahead_behind%%	*} 커밋 앞섬(머지/리베이스 발생) — 통합 후 진행 권장"
-echo "state: branch=$br head=$head dirty=$(git status --porcelain 2>/dev/null|wc -l|tr -d ' ')"
+[ -n "$merged_in" ] && echo "DONE-BRANCH: '$br' 가 origin/$def 에 ahead 0 (머지 완료/끝난 브랜치) — 새 작업은 base 최신에서 새 브랜치로: git switch -c <new-slug> origin/$def"
+echo "state: branch=$br head=$head base=$def dirty=$(git status --porcelain 2>/dev/null|wc -l|tr -d ' ')"
 ```
 
 - **STOP** (merge/rebase/cherry-pick 진행 중 · detached HEAD) → 편집·commit 멈추고 사용자 보고 + 처리 요청. 자동으로 `--abort`·강제 체크아웃 하지 않는다.
 - **WARN** (다른 worktree 동일 브랜치 · upstream 앞섬 · 진입 시 세션 무관 dirty) → 한 줄 알림 후 진행 판단.
+- **DONE-BRANCH (브랜치 수명)** — worktree 에서 판 브랜치가 base 에 머지되면 그 브랜치는 _끝난 것_. ahead 0 인데 그 위에 새 작업을 쌓으면 이미 머지된 죽은 브랜치에 commit 하는 꼴. **새 작업 cycle 진입 시 ahead 0 (+ base 아님 + 이번 작업용 브랜치가 아님) 이면 base 최신에서 새 브랜치를 판다** — `git fetch origin && git switch -c <slug> origin/$def` (worktree 안전 — base 를 체크아웃하지 않아 main worktree 와 충돌 없음). 이미 이번 작업용으로 갓 판 빈 브랜치면 그대로 사용.
 - **periodic 재확인**: 진입 시 `head` 를 기억 → 각 commit 직전 재실행해 `head` 가 바뀌었거나(아래서 머지·리베이스됨) 새 `MERGE_HEAD` 가 생겼으면 STOP. 비-worktree·비-git 자리에선 전부 `OK`/무해 통과.
 
 ---
