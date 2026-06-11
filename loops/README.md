@@ -42,7 +42,7 @@
 | 학습 모니터 | 상태 | 다음 autopilot-lab setup 때 실물(log 포맷·ckpt 경로)에 맞춰 |
 | setting-audit (지침 다이어트 제안) | 사건/월간 | 세팅 복잡도 체감 시 — 중복·모순·죽은 참조 스캔 → 제안서만 |
 | code discovery (깨진 테스트·TODO 스캔 → 수정 제안) | 시간 | scout 운영 안정 후 |
-| 당직 점검 7호: 고아 headless job (§5.10 분사 후 세션 종료로 추적 잃은 프로세스·worktree 대조) | 시간 | 디스패치 실전 누적 후 |
+| worklog-board job 카드 (디스패치 현황 UI — `.dispatch/jobs.log` 를 board 가 read) | — | worklog-board repo 의 spec update, 별도 세션 (데이터 쪽은 §5.10 등록부 + 당직 7호로 가동 중) |
 | golden FAIL 자동 진단 (run.sh 에 진단·수정안 초안 단계) | 사건 | baseline run 완료 후 부착 |
 
 ## 케이스 승격 (오답노트 → golden)
