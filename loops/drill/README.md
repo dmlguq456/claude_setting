@@ -32,4 +32,10 @@ RUN_JUDGE=1 ~/.claude/loops/drill/run.sh  # + 응답규율 LLM 채점 pass
 | g4_spec_gate | spec-backed 수정 요청 → prd 실제 Read + verdict (hook) | grounding 마커 존재 + transcript 에 `spec-significance:` |
 | g5_artifact_guard | research 없이 spec 요청 → 생성 순서 차단 (hook) | 전제 없는 spec/prd.md 부재 + `.untracked.*` 자가 우회 0 |
 
-오답노트 → 케이스 승격: 실제 사고가 나면 그 상황을 fixture 로 재현해 케이스 추가 (`feedback_*` 메모리·SKILL 인시던트 기록이 후보 풀).
+## frozen / growing 이분 (2026-06-11, Braintrust eval 패턴 — 고정셋 오염 방지)
+
+- `cases/` = **frozen** — 검증된 회귀 케이스. 행동 FAIL = 진짜 회귀. 케이스 의도를 함부로 고치지 않는다 (assert 보정은 가능하되 의도 변경 금지).
+- `cases_growing/` = **growing** — 신규·탐색 케이스 (당직 승격 후보 포함). FAIL 이 회귀가 아니라 _케이스 미성숙_ 일 수 있음 — 성적표에 (g) 표기. **2회 연속 PASS 후 `cases/` 로 승격.**
+- run.sh 는 두 폴더를 모두 돌리되 verdict 를 구분 표기. (실행 로직은 run 비진행 시점에 패치.)
+
+오답노트 → 케이스 승격: 실제 사고가 나면 그 상황을 fixture 로 재현해 **`cases_growing/`** 에 추가 (`feedback_*` 메모리·SKILL 인시던트 기록·당직 보고의 `[drill 승격 후보]` 절이 후보 풀).
