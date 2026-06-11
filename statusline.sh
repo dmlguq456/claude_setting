@@ -99,7 +99,8 @@ if [ -n "$branch" ]; then
 else segs_arr+=("${DIM}⎇ no-git${RST}"); fi
 
 # 도는 headless 파이프·루프 상세 ("N shells" 배지의 중간 단계 — 무엇이·얼마나·뭘 하는지)
-jobs_lbl=$(ps -eo pid=,etime=,args= 2>/dev/null | python3 -c '
+jobs_lbl=$(COLUMNS=100000 ps -eo pid=,etime=,args= 2>/dev/null | python3 -c '
+# COLUMNS 고정 필수 — CC 가 statusline env 에 터미널 폭을 넣고, ps 는 파이프여도 COLUMNS 로 args 를 잘라 /autopilot- 매칭이 전멸한다 (2026-06-11 실측)
 import sys, re, os
 CWD = sys.argv[1] if len(sys.argv) > 1 else ""
 def related(jcwd):
