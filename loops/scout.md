@@ -11,6 +11,7 @@
    - prunable worktree (`git worktree list --porcelain`)
 2. **산출물 누적 minor**: 각 `.claude_reports/*/pipeline_summary.md` 에서 마지막 audit 이후 minor 기록 5건 이상 → `/audit` 권장 표시.
 3. **실험 방치**: `experiments/_RUNLOG.md` 의 ⏳ 상태 entry 중 7일 이상 갱신 없음 → 목록.
+4. **golden 회귀 미실행**: `~/.claude` 의 최신 커밋 시각이 `~/.claude/loops/golden/results/` 의 최신 run 디렉토리 시각보다 새로움 → "지침 변경 후 golden 미실행 — `~/.claude/loops/golden/run.sh` 권장" 표시. (golden 을 직접 실행하지는 않는다 — 보고만.)
 
 ## 보고
 
