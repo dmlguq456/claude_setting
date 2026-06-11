@@ -105,7 +105,11 @@ CWD = sys.argv[1] if len(sys.argv) > 1 else ""
 def related(jcwd):
     # 프로젝트 파이프는 같은 디렉토리 트리의 세션에만 표시 (전사 루프는 무조건)
     if not CWD or not jcwd: return True
-    return jcwd == CWD or jcwd.startswith(CWD + "/") or CWD.startswith(jcwd + "/")
+    if jcwd == CWD or jcwd.startswith(CWD + "/") or CWD.startswith(jcwd + "/"): return True
+    # 형제 worktree(<repo>-wt/<slug>, §5.10 디스패치)는 같은 repo 로 취급 — 세션이 repo 안일 때 worktree job 누락 방지 (2026-06-11)
+    if jcwd.startswith(CWD + "-wt/") or CWD.startswith(jcwd + "-wt/"): return True
+    pj, pc = os.path.dirname(jcwd), os.path.dirname(CWD)
+    return pj == pc and pj.endswith("-wt")
 C = {"draft":"35","apply":"35","refine":"33","code":"32","spec":"36","research":"34","lab":"96","design":"95","ship":"32","note":"37","oncall":"37","study":"37","drill":"37"}
 def paint(key, s): return f"\033[{C.get(key,'33')}m{s}\033[0m"
 def mins(et):
