@@ -1,9 +1,18 @@
 # Document Pipeline Summary: 에이전트 엔지니어링 매뉴얼
 
-- **Date**: 2026-06-11 | **Mode**: doc (manual / README 확장판 — report 라벨) | **Format-ref**: fallback-generic | **Status**: done (draft v2, polished)
+- **Date**: 2026-06-11 | **Mode**: doc (manual / README 확장판 — report 라벨) | **Format-ref**: fallback-generic | **Status**: done (draft v3, polished)
 - **User-Refine**: false | **QA**: standard
 - **Discovered inputs**: `research/agent-engineering-principles/` (cards 63 + figures 27 + draft_directives 8종)
 - **Primary language**: Korean (단일본 — mirror 없음)
+- **Latest version**: **v3** (2026-06-11 — autopilot-note v32·v33·Stage D.5 반영, 4.2절 보강)
+
+## 버전 히스토리
+
+| 버전 | 일시 | 핵심 변경 |
+|---|---|---|
+| **v3** | 2026-06-11 | **4.2 autopilot-note 최신 반영 — secondary_card_ids(v32)·manifest 유지(v33)·Stage D.5 편집팀 polish 보강** |
+| v2 | 2026-06-11 | draft review memo 8건 반영 (draft-refine) + 편집팀 polish 11건 |
+| v1 | 2026-06-11 | autopilot-draft 초기 생성 (549줄) |
 
 ## Process Log
 | Step | Action | Result | Notes |
@@ -41,3 +50,15 @@
 - **§5 publish**: 완성본 확정 후 `/home/nas/user/Uihyeop/notes/` 트리로 publish (일지 note 루프가 라우팅). draft 단계라 보류.
 - **§7 양방향 보강 제안**: research 발견 → 우리 스킬·지침 보강 후보 actionable 목록 (연수 보고 형식) — 별도 트랙, 미실행.
 - **§8 산출물 이관**: research 폴더 + 본 documents 산출물 → `~/.claude/.claude_reports/research/` (스킬셋 repo 승격) — 완료 후 이관, 보류.
+
+## v3 변경 사항
+
+- **Mode**: Quick auto-applied (autopilot-refine --qa quick)
+- **Prompt**: "autopilot-note 최신 변경(dd8dafc — QA 표 정정, Stage D.5, manifest, secondary_card_ids prd v32)과 sync-skills Step 5d 신설이 매뉴얼 3·4부와 어긋나는 자리 점검·정정"
+- **Reason**: sync-skills Step 5d(매뉴얼 동기 검토) 첫 작동 — autopilot-note 의 당일 확정 변경 3건이 4.2절에 누락. 직접 충돌은 0 (매뉴얼이 note QA 수위를 서술하지 않아 light/quick 역할 교체와 비충돌, sync-skills 는 매뉴얼 미등장).
+- **Files touched**:
+  - `draft/draft.md` §4.2 흐름 2번 — secondary_card_ids 보조 카드 복수 제안 (prd v32) 한 문장
+  - `draft/draft.md` §4.2 규칙 문단 뒤 — backbone manifest 유지 문단 (prd v33) + Stage D.5 편집팀 polish 문장 (2.2 P3 cross-ref)
+- **Skipped**: —
+- **Snapshot**: `_internal/versions/v2/draft/draft.md`
+- **Downstream sync needed**: No (worklog-board prd 가 source 방향 — 매뉴얼은 소비자)
