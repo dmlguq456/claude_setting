@@ -51,3 +51,4 @@ user_profile/assets/
 .cache/
 loops/*.log
 loops/golden/results/
+loops/golden/metrics.csv

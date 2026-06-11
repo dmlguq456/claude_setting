@@ -1,5 +1,6 @@
 #!/bin/bash
 # Golden set runner — 지침 회귀 테스트. 사용: run.sh [case_id ...]
+# 행동 판정(assert) + 컨텍스트 소모 계측(턴·토큰·비용) — g0_overhead 가 세팅 고정 세금 추세.
 set -u
 GOLD="$HOME/.claude/loops/golden"
 CLAUDE_BIN="$HOME/.local/bin/claude"
@@ -11,7 +12,7 @@ mkdir -p "$RESULTS"
 cases=("$@")
 [ ${#cases[@]} -eq 0 ] && cases=($(ls "$GOLD/cases"))
 
-declare -A verdicts
+declare -A verdicts metrics
 for c in "${cases[@]}"; do
   CASE_DIR="$GOLD/cases/$c"
   [ -d "$CASE_DIR" ] || { echo "SKIP $c (없음)"; continue; }
@@ -23,9 +24,23 @@ for c in "${cases[@]}"; do
   bash "$CASE_DIR/fixture.sh" "$WORK" || { verdicts[$c]="FIXTURE-ERR"; continue; }
 
   T="$RESULTS/$c.transcript.txt"
+  J="$RESULTS/$c.json"
   ( cd "$WORK/repo" && timeout "$TIMEOUT" "$CLAUDE_BIN" -p "$(cat "$CASE_DIR/prompt.md")" \
-      --allowedTools "$TOOLS" ${MAX_TURNS:+--max-turns "$MAX_TURNS"} ) > "$T" 2>&1
+      --allowedTools "$TOOLS" --output-format json ${MAX_TURNS:+--max-turns "$MAX_TURNS"} ) \
+      > "$J" 2> "$RESULTS/$c.stderr.txt"
   rc=$?
+
+  # JSON → transcript(result 본문) + 계측 (turns|in_tok|out_tok|cost)
+  metrics[$c]=$(python3 - "$J" "$T" <<'PYEOF'
+import json, sys
+try: d = json.load(open(sys.argv[1]))
+except Exception: d = {}
+open(sys.argv[2], 'w').write(d.get('result', '') or '')
+u = d.get('usage', {})
+tin = u.get('input_tokens',0)+u.get('cache_creation_input_tokens',0)+u.get('cache_read_input_tokens',0)
+print(f"{d.get('num_turns','?')}|{tin}|{u.get('output_tokens',0)}|{round(d.get('total_cost_usd') or 0,3)}")
+PYEOF
+)
 
   if out=$(bash "$CASE_DIR/assert.sh" "$WORK" "$T" 2>&1); then
     verdicts[$c]="PASS"
@@ -33,7 +48,7 @@ for c in "${cases[@]}"; do
     verdicts[$c]="FAIL"
   fi
   echo "$out" | tee "$RESULTS/$c.assert.txt"
-  echo "  → ${verdicts[$c]} (claude exit $rc)"
+  echo "  → ${verdicts[$c]} (claude exit $rc, ${metrics[$c]})"
 
   # FAIL 자동 진단 — 원인 추정 + 수정안 초안까지 (적용은 사용자 서명)
   if [ "${verdicts[$c]}" = "FAIL" ]; then
@@ -47,10 +62,18 @@ done
 {
   echo "# Golden run $STAMP"
   echo
-  echo "| case | verdict |"
-  echo "|---|---|"
-  for c in "${cases[@]}"; do echo "| $c | ${verdicts[$c]:-?} |"; done
+  echo "| case | verdict | turns | in_tok | out_tok | cost\$ |"
+  echo "|---|---|---|---|---|---|"
+  for c in "${cases[@]}"; do
+    IFS='|' read -r mt mi mo mc <<< "${metrics[$c]:-?|?|?|?}"
+    echo "| $c | ${verdicts[$c]:-?} | $mt | $mi | $mo | $mc |"
+  done
 } | tee "$RESULTS/summary.md"
+
+# 추세 누적 (지침 부풀림 감시 — 특히 g0_overhead 의 in_tok)
+for c in "${cases[@]}"; do
+  echo "$STAMP,$c,${verdicts[$c]:-?},${metrics[$c]:-?|?|?|?}" | tr '|' ',' >> "$GOLD/metrics.csv"
+done
 
 # 옵션: 응답규율 채점 pass (약자 풀이·번역체·약속-행동) — transcript 일괄 LLM 채점
 if [ "${RUN_JUDGE:-0}" = "1" ]; then
