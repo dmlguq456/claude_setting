@@ -98,6 +98,13 @@ else segs_arr+=("${DIM}⎇ no-git${RST}"); fi
 # 도는 headless 파이프·루프 상세 ("N shells" 배지의 중간 단계 — 무엇이·얼마나·뭘 하는지)
 jobs_lbl=$(ps -eo etime=,args= 2>/dev/null | python3 -c '
 import sys, re
+def mins(et):
+    et = et.strip(); d = 0
+    if "-" in et: d, et = et.split("-", 1)
+    parts = [int(x) for x in et.split(":")]
+    while len(parts) < 3: parts.insert(0, 0)
+    tot = int(d) * 1440 + parts[0] * 60 + parts[1]
+    return f"{tot//60}h{tot%60:02d}m" if tot >= 60 else f"{tot}m"
 seen = {}
 for line in sys.stdin:
     line = line.rstrip("\n")
@@ -108,13 +115,13 @@ for line in sys.stdin:
         key = m.group(1)
         mode = re.search(r"--mode (\w+)", args); qa = re.search(r"--qa (\w+)", args)
         tail = args[m.end():]
-        desc = re.sub(r"--\w+ \S+", "", tail).strip()[:26]
+        desc = re.sub(r"--\w+ \S+", "", tail).strip()[:14]
         opts = "·".join(x.group(1) for x in (mode, qa) if x)
-        lbl = key + (f"({opts})" if opts else "") + f" {etime.strip()}" + (f" {desc}…" if desc else "")
+        lbl = key + (f"({opts})" if opts else "") + f" {mins(etime)}" + (f" {desc}…" if desc else "")
     else:
         l = re.search(r"loops/(oncall|note|study|drill)", args)
         if not l: continue
-        key = l.group(1); lbl = f"{key} {etime.strip()}"
+        key = l.group(1); lbl = f"{key} {mins(etime)}"
     seen.setdefault(key, lbl)
 out = list(seen.values())[:2]
 if len(seen) > 2: out.append(f"+{len(seen)-2}")
