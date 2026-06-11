@@ -70,7 +70,7 @@ pcol(){ if [ "${1:-0}" -ge 80 ] 2>/dev/null; then printf '%s' "$RED"; elif [ "${
 # --- 세그먼트 배열 → 세로선(│) 파티션으로 join ---
 segs_arr=()
 segs_arr+=("📁 ${CYAN}${dir}${RST}")
-[ -n "$branch" ] && segs_arr+=("${DIM}⎇${RST}${YEL}${branch}${RST}")
+if [ -n "$branch" ]; then segs_arr+=("${DIM}⎇${RST}${YEL}${branch}${RST}"); else segs_arr+=("${DIM}⎇ no-git${RST}"); fi
 if [ -n "$gate" ]; then
   [ "$gate_open" = "1" ] && gc="$YEL" || gc="$GRN"
   segs_arr+=("${gc}${gate}${RST}")
@@ -85,7 +85,7 @@ if [ "${S_CTX}" -ge 0 ] 2>/dev/null; then
 fi
 
 # 모델 │ 5h/7d 사용량+리셋 잔여시간 (stdin rate_limits = /usage 공식 값, 분모 추측 없음)
-segs_arr+=("🤖 ${DIM}${S_MODEL}${RST}")
+segs_arr+=("✨ ${DIM}${S_MODEL}${RST}")
 u=""
 [ -n "$S_5H" ] && { u="${u} ${DIM}5h${RST} $(pcol "$S_5H")${S_5H}%${RST}"; [ -n "$S_5H_RST" ] && u="${u}${DIM}(↻${S_5H_RST})${RST}"; }
 [ -n "$S_7D" ] && { u="${u} ${DIM}7d${RST} $(pcol "$S_7D")${S_7D}%${RST}"; [ -n "$S_7D_RST" ] && u="${u}${DIM}(↻${S_7D_RST})${RST}"; }
