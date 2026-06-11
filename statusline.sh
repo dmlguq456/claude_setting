@@ -169,4 +169,4 @@ u=""
 out=""; sep=" ${DIM}│${RST} "
 for s in "${segs_arr[@]}"; do [ -z "$out" ] && out="$s" || out="${out}${sep}${s}"; done
 printf '%s' "$out"
-[ -n "${jobs_lbl:-}" ] && printf '\n%s' "${DIM}⚙ running:${RST} ${jobs_lbl}"
+[ -n "${jobs_lbl:-}" ] && printf '\n%s' "${GRN}❯${RST}${DIM} running:${RST} ${jobs_lbl}"
