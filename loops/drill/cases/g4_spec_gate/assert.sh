@@ -3,7 +3,7 @@
 set -u
 WORK=$1; T=$2
 fail=0
-key=$(cat "$WORK/.golden_pre/root_key")
+key=$(cat "$WORK/.pre/root_key")
 ls "$HOME/.claude/.spec-grounding/"*"__${key}" >/dev/null 2>&1 \
   || { echo "FAIL: prd.md Read 마커 없음 — 실제 Read 없이 진행"; fail=1; }
 { grep -q "spec-significance" "$T" || grep -rq "spec-significance" "$WORK/repo/.claude_reports/plans/" 2>/dev/null; } \

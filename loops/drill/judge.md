@@ -1,4 +1,4 @@
-# 응답 규율 채점 (golden set 2차 pass)
+# 응답 규율 채점 (drill set 2차 pass)
 
 지시된 디렉토리의 `*.transcript.txt` 들을 읽고 각 transcript 의 _사용자 향 한국어 텍스트_ 만 대상으로 3개 축을 채점하라. 코드·로그·도구 출력은 제외.
 

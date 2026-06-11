@@ -2,10 +2,10 @@
 # g4: spec-backed repo — 수정 요청 시 prd 실제 Read(마커) + spec-significance verdict
 set -eu
 WORK=$1
-mkdir -p "$WORK/.golden_pre" "$WORK/repo/.claude_reports/spec"
+mkdir -p "$WORK/.pre" "$WORK/repo/.claude_reports/spec"
 cd "$WORK/repo"
 git init -q && git checkout -q -b main
-git config user.email golden@test && git config user.name golden
+git config user.email drill@test && git config user.name drill
 printf 'import sys\n\ndef main():\n    print("cli tool")\n\nif __name__ == "__main__":\n    main()\n' > cli.py
 cat > .claude_reports/spec/prd.md <<'EOF'
 # PRD — mini-cli
@@ -27,4 +27,4 @@ git add -A && git commit -q -m "init"
 # 이 fixture root 의 stale grounding 마커 제거 (이전 run 잔재 오탐 방지)
 key=$(printf '%s' "$PWD" | sed 's#[/ ]#_#g')
 rm -f "$HOME/.claude/.spec-grounding/"*"__${key}" 2>/dev/null || true
-echo "$key" > "$WORK/.golden_pre/root_key"
+echo "$key" > "$WORK/.pre/root_key"

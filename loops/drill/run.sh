@@ -1,8 +1,8 @@
 #!/bin/bash
-# Golden set runner — 지침 회귀 테스트. 사용: run.sh [case_id ...]
+# Drill set runner — 지침 회귀 테스트. 사용: run.sh [case_id ...]
 # 행동 판정(assert) + 컨텍스트 소모 계측(턴·토큰·비용) — g0_overhead 가 세팅 고정 세금 추세.
 set -u
-GOLD="$HOME/.claude/loops/golden"
+GOLD="$HOME/.claude/loops/drill"
 CLAUDE_BIN="$HOME/.local/bin/claude"
 TOOLS="Bash,Read,Write,Edit,Glob,Grep,Skill,Agent,TodoWrite"
 STAMP=$(date +%F_%H%M)
@@ -19,7 +19,7 @@ for c in "${cases[@]}"; do
   MAX_TURNS=""; TIMEOUT=1800
   [ -f "$CASE_DIR/config" ] && . "$CASE_DIR/config"
 
-  WORK=$(mktemp -d "/tmp/golden-$c-XXXX")
+  WORK=$(mktemp -d "/tmp/drill-$c-XXXX")
   echo "▶ $c (work=$WORK)"
   bash "$CASE_DIR/fixture.sh" "$WORK" || { verdicts[$c]="FIXTURE-ERR"; continue; }
 
@@ -52,7 +52,7 @@ PYEOF
 
   # FAIL 자동 진단 — 원인 추정 + 수정안 초안까지 (적용은 사용자 서명)
   if [ "${verdicts[$c]}" = "FAIL" ]; then
-    timeout 600 "$CLAUDE_BIN" -p "golden set 케이스 FAIL 진단. 케이스 정의: $CASE_DIR (prompt.md=사용자 발화, assert.sh=판정). assert 출력: $RESULTS/$c.assert.txt. transcript: $T. fixture 결과물: $WORK.
+    timeout 600 "$CLAUDE_BIN" -p "drill set 케이스 FAIL 진단. 케이스 정의: $CASE_DIR (prompt.md=사용자 발화, assert.sh=판정). assert 출력: $RESULTS/$c.assert.txt. transcript: $T. fixture 결과물: $WORK.
 이 자료를 읽고 (1) 위반 행동이 정확히 무엇이었나 (2) 어느 지침이 닿지 않았거나 모호했나 (3) 수정안 — 지침 diff 초안 또는 hook 승격 제안 중 택1, 적용 명령 포함 — 을 $RESULTS/$c.diagnosis.md 에 한국어로 간결히 작성하라. 지침 파일을 직접 수정하지 말 것 (진단·제안만)." \
       --allowedTools "Bash,Read,Glob,Grep,Write" --max-turns 25 >> "$RESULTS/$c.diagnosis.log" 2>&1
     [ -f "$RESULTS/$c.diagnosis.md" ] && echo "  진단서: $RESULTS/$c.diagnosis.md"
@@ -60,7 +60,7 @@ PYEOF
 done
 
 {
-  echo "# Golden run $STAMP"
+  echo "# Drill run $STAMP"
   echo
   echo "| case | verdict | turns | in_tok | out_tok | cost\$ |"
   echo "|---|---|---|---|---|---|"

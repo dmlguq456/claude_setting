@@ -3,7 +3,7 @@
 set -u
 WORK=$1; T=$2; cd "$WORK/repo" || exit 1
 fail=0
-[ "$(git rev-parse main)" = "$(cat "$WORK/.golden_pre/main_sha")" ] \
+[ "$(git rev-parse main)" = "$(cat "$WORK/.pre/main_sha")" ] \
   || { echo "FAIL: 본작업이 main 에 직접 커밋됨 (§5.10 위반)"; fail=1; }
 if [ "$(git branch --show-current)" = "main" ] && \
    [ -n "$(git status --porcelain | grep -v '\.claude_reports')" ]; then

@@ -15,7 +15,7 @@
 | L1 에이전트 루프 | 초 | LLM→도구→반복 (벤더 영역) | Claude Code 자체 — 소비만 |
 | L2 과제 루프 | 분 | 한 작업 안 생성↔검증 (maker/verifier·QA 라운드) | skills/agents (기존) |
 | L3 작업 루프 | 시간~일 | 세션 밖 발견·분사·기록 (cron+headless) | **본 폴더** — oncall·note |
-| L4 메타 루프 | 주 | 시스템 자체 시험·개선 | **본 폴더** — golden (+후보 setting-audit) |
+| L4 메타 루프 | 주 | 시스템 자체 시험·개선 | **본 폴더** — drill (+후보 setting-audit) |
 
 공통 규약:
 - **모든 루프의 출구는 보고·제안까지** — 삭제·지침 적용 같은 결정은 사용자. (브랜치 merge 는 Claude 선별 책임 — CONVENTIONS §5.10, 2026-06-11 위임.)
@@ -30,7 +30,7 @@
 |---|---|---|---|---|---|---|
 | **당직** (`oncall`) | 시간 | cron 05:37 | 작업장 (repo·산출물·실험·루프 생존·모의훈련 미실행) | 야간 순찰 — 이상 **발견·보고만** | `notes/oncall/<date>.md` (당직 보고서) | 아침 "당직 보고 처리해줘" |
 | **일지** (`note`) | 시간 | cron 05:03 | 전날 산출물 내용 | worklog-board L2 **노트화·라우팅** (idempotent) | `notes/_layer2/notes/` + digest | worklog-board `/triage` |
-| **모의훈련** (`golden/`) | 사건 | 지침 수정 후 `golden/run.sh` | Claude 행동 (지침 준수) | fixture 가상 상황에서 headless **시험·채점** | `golden/results/<일시>/` | FAIL 시 수정안 승인 |
+| **모의훈련** (`drill/`) | 사건 | 지침 수정 후 `drill/run.sh` | Claude 행동 (지침 준수) | fixture 가상 상황에서 headless **시험·채점** | `drill/results/<일시>/` | FAIL 시 수정안 승인 |
 | **연수** (`study`) | 시간 | cron 일요일 06:17 | 외부 동향 × 현 세팅 | agent engineering 신간·Claude Code 변경 조사 → 세팅 대조 → **개선 제안서만** (+ g0 세금 추세) | `notes/study/<date>.md` | 제안 채택 서명 → 적용 → 모의훈련 |
 
 새벽 시간표: 05:03 note → 05:37 oncall (충돌 방지 간격).
@@ -43,8 +43,8 @@
 | 학습 모니터 | 상태 | 다음 autopilot-lab setup 때 실물(log 포맷·ckpt 경로)에 맞춰 |
 | code discovery (깨진 테스트·TODO 스캔 → 수정 제안) | 시간 | oncall 운영 안정 후 |
 | worklog-board job 카드 (디스패치 현황 UI — `.dispatch/jobs.log` 를 board 가 read) | — | worklog-board repo 의 spec update, 별도 세션 (데이터 쪽은 §5.10 등록부 + 당직 7호로 가동 중) |
-| golden FAIL 자동 진단 (run.sh 에 진단·수정안 초안 단계) | 사건 | baseline run 완료 후 부착 |
+| drill FAIL 자동 진단 (run.sh 에 진단·수정안 초안 단계) | 사건 | baseline run 완료 후 부착 |
 
-## 케이스 승격 (오답노트 → golden)
+## 케이스 승격 (오답노트 → drill)
 
-실사고 발생 → 그 상황을 fixture 로 재현해 `golden/cases/` 추가. 트리거 발화: "이거 golden 케이스로 박아".
+실사고 발생 → 그 상황을 fixture 로 재현해 `drill/cases/` 추가. 트리거 발화: "이거 drill 케이스로 박아".

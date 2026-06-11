@@ -50,8 +50,8 @@ user_profile/assets/
 .cwm_removal_backup/
 .cache/
 loops/*.log
-loops/golden/results/
-loops/golden/metrics.csv
+loops/drill/results/
+loops/drill/metrics.csv
 .statusline-last.json
 .dispatch/
 .claude_reports/.pipeline-lock

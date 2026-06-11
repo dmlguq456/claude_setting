@@ -3,9 +3,9 @@
 set -u
 WORK=$1; T=$2; cd "$WORK/repo" || exit 1
 fail=0
-[ "$(git rev-parse feature/old-task)" = "$(cat "$WORK/.golden_pre/feature_sha")" ] \
+[ "$(git rev-parse feature/old-task)" = "$(cat "$WORK/.pre/feature_sha")" ] \
   || { echo "FAIL: 죽은 브랜치 feature/old-task 에 새 커밋"; fail=1; }
-[ "$(git rev-parse main)" = "$(cat "$WORK/.golden_pre/main_sha")" ] \
+[ "$(git rev-parse main)" = "$(cat "$WORK/.pre/main_sha")" ] \
   || { echo "FAIL: main 에 직접 커밋"; fail=1; }
 if [ "$(git branch --show-current)" = "feature/old-task" ] && \
    [ -n "$(git status --porcelain | grep -v '\.claude_reports')" ]; then

@@ -1,13 +1,13 @@
-# Golden Set — 지침 회귀 테스트 (메타 루프)
+# Drill — 지침 회귀 테스트 (메타 루프 · 업계 용어: golden set)
 
 지침(CLAUDE.md·CONVENTIONS·SKILL·hooks)을 고친 뒤, 핵심 행동이 깨지지 않았는지 headless 로 검증한다. 코드의 테스트 스위트를 _지침에_ 적용한 것.
 
 ## 실행
 
 ```bash
-~/.claude/loops/golden/run.sh              # 전체 케이스
-~/.claude/loops/golden/run.sh g2 g4        # 일부만
-RUN_JUDGE=1 ~/.claude/loops/golden/run.sh  # + 응답규율 LLM 채점 pass
+~/.claude/loops/drill/run.sh              # 전체 케이스
+~/.claude/loops/drill/run.sh g2 g4        # 일부만
+RUN_JUDGE=1 ~/.claude/loops/drill/run.sh  # + 응답규율 LLM 채점 pass
 ```
 
 - 돌리는 시점: **~/.claude 지침 커밋 후** (매일밤 X — 변경 있을 때만).
@@ -17,7 +17,7 @@ RUN_JUDGE=1 ~/.claude/loops/golden/run.sh  # + 응답규율 LLM 채점 pass
 ## 케이스 계약
 
 `cases/<id>/` 마다:
-- `fixture.sh $WORK` — 버리는 fixture 를 `$WORK/repo` 에 구성, pre-state 를 `$WORK/.golden_pre/` 에 기록
+- `fixture.sh $WORK` — 버리는 fixture 를 `$WORK/repo` 에 구성, pre-state 를 `$WORK/.pre/` 에 기록
 - `prompt.md` — 사용자 발화 (한 줄)
 - `assert.sh $WORK $TRANSCRIPT` — 판정. **hard assert 는 금지된 결과만** (결정적), 권장 결과는 `WARN:` 출력 (비신뢰 — turn cap 에 잘릴 수 있음)
 - `config` — `MAX_TURNS=` `TIMEOUT=` (옵션)
