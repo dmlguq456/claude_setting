@@ -299,6 +299,14 @@ README 는 mermaid 를 안 쓰고 _4 트랙 텍스트 화살표 체인_ (```text
   - 산출물 폴더 명 — CONVENTIONS.md §6.5 canonical 로 자동 정정
 - **`--check` 모드**: drift 만 보고하고 종료
 
+### Step 5d: 에이전트 엔지니어링 매뉴얼 동기 검토 (autopilot-refine 경유)
+
+**왜 신설** (2026-06-11): `~/.claude/.claude_reports/documents/{date}_agent-engineering-manual/draft/draft.md` 는 업계 원칙 ↔ 우리 세팅을 _라이브 파일 anchor_ 로 매핑한 참조서 (autopilot-draft 산출물). skills/agents/지침이 바뀌면 매뉴얼 2부(세팅 매핑)·anchor 가 조용히 stale 해지는데 이를 잡는 자리가 없었다. sync 가 drift 를 보는 자리에서 매뉴얼 검토를 **항상** 같이 본다.
+
+- Step 3 의 변경(신규·변경·삭제) ≥ 1 이면 final report 에 매뉴얼 검토 항목을 항상 포함 — 변경된 skill/agent 명단을 들어 `/autopilot-refine` (대상: agent-engineering-manual draft) 검토 제안. 변경 0 이어도 매뉴얼이 last sync 이후 갱신 안 됐고 지침 파일(CLAUDE.md / WORKFLOW / CONVENTIONS)이 바뀌었으면 동일 제안.
+- 매뉴얼은 autopilot-draft 산출물 — **직접 Edit 금지**, 수정은 소유 스킬 `autopilot-refine` 경유 (버전 snapshot·changelog 보존).
+- `--check` 모드 포함 모든 모드에서 _보고만_ — refine 실행 자체는 사용자 컨펌 후 (ceremony 분류상 자동 invoke 아님).
+
 ### Step 6: Update sync state
 `~/.claude/skills/.sync_state.json` 을 새 SHA + 시각으로 저장. v4 스키마 필드 모두 갱신:
 
