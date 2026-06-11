@@ -137,7 +137,7 @@ for line in sys.stdin:
     seen.setdefault(key, lbl)
 out = list(seen.values())[:2]
 if len(seen) > 2: out.append(f"+{len(seen)-2}")
-print(" \033[1;37m/\033[0m ".join(out))
+if seen: print(str(len(seen)) + "\t" + " \033[1;37m/\033[0m ".join(out))
 ' 2>/dev/null || true)
 
 # 당직 보고 미처리 nudge (✅ 처리됨·"이상 없음" heartbeat 는 표시 안 함)
@@ -169,4 +169,7 @@ u=""
 out=""; sep=" ${DIM}│${RST} "
 for s in "${segs_arr[@]}"; do [ -z "$out" ] && out="$s" || out="${out}${sep}${s}"; done
 printf '%s' "$out"
-[ -n "${jobs_lbl:-}" ] && printf '\n%s' "${GRN}❯${RST}${DIM} running:${RST} ${jobs_lbl}"
+if [ -n "${jobs_lbl:-}" ]; then
+  jobs_cnt="${jobs_lbl%%$'\t'*}"; jobs_txt="${jobs_lbl#*$'\t'}"
+  printf '\n%s' "${GRN}❯${RST} ${jobs_cnt}${DIM} running:${RST} ${jobs_txt}"
+fi
