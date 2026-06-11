@@ -134,9 +134,15 @@ for line in sys.stdin:
         if not related(jcwd): continue
         key = m.group(1)
         mode = re.search(r"--mode (\w+)", args); qa = re.search(r"--qa (\w+)", args)
-        tail = args[m.end():]
-        full = re.sub(r"--\w+ \S+", "", tail).strip()
-        desc = " ".join(full.split()[:2])
+        # 제목 = worktree/디렉토리 슬러그 우선 (프롬프트 어절 추출은 한국어 프롬프트에서 노이즈 — 2026-06-11)
+        slug = os.path.basename(jcwd.rstrip("/")) if jcwd else ""
+        if slug and slug != os.path.basename(CWD.rstrip("/")):
+            desc = slug
+        else:
+            tail = args[m.end():]
+            full = re.sub(r"--\w+ \S+", "", tail).strip()
+            cand = " ".join(full.split()[:2])
+            desc = cand if re.fullmatch(r"[ -~]+", cand or " ") else ""
         QA = {"quick":"qck","light":"lgt","standard":"std","thorough":"thr","adversarial":"adv"}
         QAC = {"qck":"2","lgt":"32","std":"33","thr":"35","adv":"31"}
         D = "\033[2m"; R = "\033[0m"
@@ -148,13 +154,15 @@ for line in sys.stdin:
         opts = f"{D}\u00b7{R}".join(parts)
         head = paint(key, key) + (f"{D}({R}{opts}{D}){R}" if opts else "")
         lbl = head + f" {D}\u23f3{mins(etime)}{R}" + (f" {desc}" if desc else "")
+        dkey = f"{key}:{slug}"  # \uc2ac\ub7ec\uadf8 \ub2e8\uc704 \u2014 \uac19\uc740 \ud30c\uc774\ud504 N\uac1c \ubcd1\ub82c \ubd84\uc0ac\uac00 \ud55c \ud56d\ubaa9\uc73c\ub85c \ubb49\uac1c\uc9c0\uc9c0 \uc54a\uac8c (2026-06-11)
     else:
         l = re.search(r"loops/(oncall|note|study|drill)", args)
         if not l: continue
         key = l.group(1); lbl = paint(key, key) + f" \033[2m\u23f3{mins(etime)}\033[0m"
-    seen.setdefault(key, lbl)
-out = list(seen.values())[:2]
-if len(seen) > 2: out.append(f"+{len(seen)-2}")
+        dkey = key
+    seen.setdefault(dkey, lbl)
+out = list(seen.values())[:3]
+if len(seen) > 3: out.append(f"+{len(seen)-3}")
 print(" \033[1;37m/\033[0m ".join(out))
 ' "$S_CWD" 2>/dev/null || true)
 
