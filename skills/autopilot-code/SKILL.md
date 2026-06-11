@@ -49,6 +49,8 @@ spec 의 `mode` 배열 (단일 또는 복수) 에 따라 자동 활성화:
 
 > **DONE-BRANCH → 새 브랜치 (이 cycle 이 새 작업일 때)**: §5.9 게이트가 `DONE-BRANCH`(현재 브랜치가 base 에 ahead 0 = 머지 완료된 끝난 브랜치) 를 내면, 이 plan 의 slug(`plans/<date>_<slug>/` 와 동일)로 **base 최신에서 새 브랜치를 판 뒤** 코드 작업 진행 — `git fetch origin && git switch -c <slug> origin/<base>` (worktree 안전: base 를 체크아웃 안 해 main worktree 와 비충돌). 현재 브랜치가 이미 이번 작업용 빈 브랜치면 그대로 사용. 죽은(머지된) 브랜치 위에 새 작업을 쌓지 않게 하는 자리 — worktree+merge 워크플로우의 핵심 누락. 한 줄 보고 후 진행.
 
+> **규모 분기 ([CONVENTIONS.md §5.10](../../CONVENTIONS.md#510-작업-격리병렬-디스패치-worktree-정책-canonical))**: qa standard 이상(또는 plan 추적 본작업)이면 **main 워킹트리 직접 작업 금지** — worktree+작업 브랜치 확보 후 진행. quick 급 소규모만 현재 트리 직접. 작업 진행 중 새 독립 요청이 오면 §5.10 디스패치 규칙 (파일 겹침 triage → 병렬 worktree 분사 / 겹치면 큐잉, merge 는 사용자).
+
 **0b. spec-significance 트리아지** — spec/ 존재 시, _어떤_ 코드 요청이든 plan 전에 **이 게이트를 먼저 통과하고 한 줄 verdict 를 반드시 출력**한다. WORKFLOW §7-3 의 spec-drift 사전 체크를 _메인 Claude 의 라우팅 판단_ (잘 건너뜀) 이 아니라 _본 skill 의 강제 첫 단계_ 로 내재화 — "그냥 code 로 진입" 으로 스킵 못 하게.
 
 1. 요청 + `spec/prd.md` (+ 해당 시 `api_contract.md`·`data_model.md`·`ui_flow.md`) 대조.

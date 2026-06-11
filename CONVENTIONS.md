@@ -383,6 +383,25 @@ echo "state: branch=$br head=$head base=$def dirty=$(git status --porcelain 2>/d
 - **DONE-BRANCH (브랜치 수명)** — worktree 에서 판 브랜치가 base 에 머지되면 그 브랜치는 _끝난 것_. ahead 0 인데 그 위에 새 작업을 쌓으면 이미 머지된 죽은 브랜치에 commit 하는 꼴. **새 작업 cycle 진입 시 ahead 0 (+ base 아님 + 이번 작업용 브랜치가 아님) 이면 base 최신에서 새 브랜치를 판다** — `git fetch origin && git switch -c <slug> origin/$def` (worktree 안전 — base 를 체크아웃하지 않아 main worktree 와 충돌 없음). 이미 이번 작업용으로 갓 판 빈 브랜치면 그대로 사용.
 - **periodic 재확인**: 진입 시 `head` 를 기억 → 각 commit 직전 재실행해 `head` 가 바뀌었거나(아래서 머지·리베이스됨) 새 `MERGE_HEAD` 가 생겼으면 STOP. 비-worktree·비-git 자리에선 전부 `OK`/무해 통과.
 
+### §5.10. 작업 격리·병렬 디스패치 (worktree 정책, canonical)
+
+**왜**: 사용자가 요구사항을 연속으로 던질 때 main 세션이 한 건씩 직렬 처리하면 느리다. 실작업(편집·테스트·QA)은 worktree 로 격리해 background 병렬, 조정(triage·분사·보고)만 main 이 맡는다. **확정 제약 (스모크 테스트 2026-06-11)**: 서브에이전트에는 Agent 툴이 노출되지 않는다 — **중첩 1단 한계**. 따라서 오케스트레이션은 항상 main 전담이고, 팀 에이전트는 prompt 에 명시된 worktree 경로에서만 일한다 (Skill·Bash·Edit 는 서브에이전트에서 정상).
+
+**규모 분기** (요청 진입 시 main 이 판정):
+
+| 규모 | 처리 |
+|---|---|
+| 자잘한 단발 (typo·1줄·quick 급 소규모) | main 워킹트리에서 바로 (현행) |
+| 본작업 (qa standard 이상 · plan 추적 대상) | **worktree + 작업 브랜치** — base 최신에서 plan slug 브랜치 (§5.9 DONE-BRANCH 연계), mutation 커밋 누적 |
+| 병렬 요청 (작업 진행 중 새 독립 요청) | 즉시 새 worktree 로 분사 (아래 규칙) — 앞 job 완료를 기다리지 않는다 |
+
+**디스패치 규칙**:
+1. **파일 겹침 triage**: 새 요청이 진행 중 job 과 같은 파일을 건드릴 것으로 추정되면 병렬 금지 — 그 job 뒤에 큐잉 (같은 브랜치에 이어서). 안 겹치면 병렬.
+2. **실행**: worktree 생성 (`git worktree add <path> -b <slug> origin/<base>`, base 선정은 §5.9) → 팀 에이전트를 `run_in_background` 로 분사, prompt 에 작업 루트 경로 명시. 검증도 main 이 같은 경로로 QA 팀을 spawn (maker/verifier 분리 유지).
+3. **merge = 사용자**: 에이전트 산출은 _브랜치 + diff 요약 + 테스트 결과_ 까지. main 이 자동 merge 하지 않는다.
+4. **공유 산출물**: `.claude_reports` 공유 단일파일 쓰기는 §5.8 lock 경유. `plans/<slug>/` 는 경로 분리라 비경합.
+5. **컨텍스트**: job 조정 기록 누적으로 main 컨텍스트 압박 시 post-it handoff 제안 (글로벌 §2).
+
 ---
 
 ## §6. Autopilot-* 흐름 매트릭스 (사용자 호출 단위)

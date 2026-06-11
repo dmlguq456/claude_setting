@@ -48,6 +48,8 @@ research / analyze-project (산출물) → autopilot-spec (spec/) → autopilot-
 - **High-stakes → qa 상향**: _신중히 / 꼼꼼히 / camera-ready / submission·PR open 직전_ → adversarial 자동. `analyze-user` 는 항상 adversarial 고정.
 - **무응답**: §2 대로 추천안 자율 진행.
 
+**(C) 작업 격리·병렬 디스패치 (`CONVENTIONS.md` §5.10).** 코드 본작업(qa standard+)은 worktree+작업 브랜치에서, 자잘한 단발만 main 트리 직접. 작업 진행 중 새 독립 요청 → 파일 겹침 triage 후 새 worktree 로 background 병렬 분사 (겹치면 큐잉). 오케스트레이션은 항상 main (서브에이전트 중첩 1단 한계), merge 는 사용자.
+
 ### §1. 응답 규율 — 말투·간결·약속
 
 - **말투**: 처음부터 한국어로 자연스럽게 쓴다 — 영어로 생각해 옮긴 듯한 번역체·판교체를 피한다 (내부 사고를 무슨 언어로 하느냐는 규정하지 않음; 결과가 자연스러운 한국어면 됨). 영어 일반 명사·동사구를 한국어 어순에 박지 않되 굳어진 외래어·고유명사(LaTeX·경로·논문/학회/모델/지표명)는 영어 그대로. 비표준·내부 약자는 풀어서 쓴다 — 풀면 알아들을 말을 약자로 한 번 더 꼬지 않기 (표준 약자라도 한 응답서 처음 한 번은 `DER(diarization error rate)`처럼 풀어 준 뒤 사용, 같은 응답 안 같은 개념은 같은 표기). 어미: chat 기본 해요체, 보고서·짧은 메타 라벨만 평어·개조식, 친절 안내체 (`~해 드릴게요`) 회피.
