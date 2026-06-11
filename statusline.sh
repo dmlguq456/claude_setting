@@ -119,7 +119,7 @@ for line in sys.stdin:
         tail = args[m.end():]
         full = re.sub(r"--\w+ \S+", "", tail).strip()
         desc = full[:14] + ("…" if len(full) > 14 else "")
-        QA = {"quick":"Q","light":"L","standard":"S","thorough":"T","adversarial":"A"}
+        QA = {"quick":"qck","light":"lgt","standard":"std","thorough":"thr","adversarial":"adv"}
         parts = [mode.group(1)] if mode else []
         if qa: parts.append(QA.get(qa.group(1), qa.group(1)))
         opts = "·".join(parts)
