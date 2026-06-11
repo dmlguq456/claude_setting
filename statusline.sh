@@ -123,12 +123,13 @@ for line in sys.stdin:
         parts = [mode.group(1)] if mode else []
         if qa: parts.append(QA.get(qa.group(1), qa.group(1)))
         opts = "·".join(parts)
-        lbl = key + (f"({opts})" if opts else "") + f" — ⏳{mins(etime)}" + (f" — {desc}" if desc else "")
+        head = key + (f"({opts})" if opts else "")
+        lbl = paint(key, head) + f" \033[2m⏳{mins(etime)}\033[0m" + (f" {desc}" if desc else "")
     else:
         l = re.search(r"loops/(oncall|note|study|drill)", args)
         if not l: continue
-        key = l.group(1); lbl = f"{key} — ⏳{mins(etime)}"
-    seen.setdefault(key, paint(key, lbl))
+        key = l.group(1); lbl = paint(key, key) + f" \033[2m⏳{mins(etime)}\033[0m"
+    seen.setdefault(key, lbl)
 out = list(seen.values())[:2]
 if len(seen) > 2: out.append(f"+{len(seen)-2}")
 print(" │ ".join(out))
