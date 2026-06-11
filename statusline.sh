@@ -46,9 +46,25 @@ print("S_CTX=" + shlex.quote(str(cpct)))
 
 dir=$(basename "$S_CWD")
 
-# git 브랜치
-branch=""
-command -v git >/dev/null 2>&1 && branch=$(git -C "$S_CWD" rev-parse --abbrev-ref HEAD 2>/dev/null || true)
+# git 브랜치 + 위험 상태 플래그 (⚠️ merge/rebase 진행 중 · 💀 머지 완료된 죽은 브랜치)
+branch=""; gflag=""
+if command -v git >/dev/null 2>&1; then
+  branch=$(git -C "$S_CWD" rev-parse --abbrev-ref HEAD 2>/dev/null || true)
+  if [ -n "$branch" ]; then
+    gd=$(git -C "$S_CWD" rev-parse --git-dir 2>/dev/null || true)
+    if [ -n "$gd" ]; then
+      case "$gd" in /*) ;; *) gd="$S_CWD/$gd" ;; esac
+      if [ -f "$gd/MERGE_HEAD" ]; then gflag="⚠️merge"
+      elif [ -d "$gd/rebase-merge" ] || [ -d "$gd/rebase-apply" ]; then gflag="⚠️rebase"
+      else
+        def=$(git -C "$S_CWD" symbolic-ref -q --short refs/remotes/origin/HEAD 2>/dev/null | sed 's@^origin/@@' || true); def=${def:-main}
+        if [ "$branch" != "$def" ] && [ "$branch" != "HEAD" ] && git -C "$S_CWD" rev-parse -q --verify "origin/$def" >/dev/null 2>&1; then
+          [ "$(git -C "$S_CWD" rev-list --count "origin/$def..HEAD" 2>/dev/null)" = "0" ] && gflag="💀merged"
+        fi
+      fi
+    fi
+  fi
+fi
 
 # artifact-guard 상태: 📌tracked(pipeline 강제) ↔ ⚡untracked(ad-hoc 직접편집)
 gate=""; gate_open=0
@@ -70,7 +86,17 @@ pcol(){ if [ "${1:-0}" -ge 80 ] 2>/dev/null; then printf '%s' "$RED"; elif [ "${
 # --- 세그먼트 배열 → 세로선(│) 파티션으로 join ---
 segs_arr=()
 segs_arr+=("📁 ${CYAN}${dir}${RST}")
-if [ -n "$branch" ]; then segs_arr+=("${DIM}⎇${RST}${YEL}${branch}${RST}"); else segs_arr+=("${DIM}⎇ no-git${RST}"); fi
+if [ -n "$branch" ]; then
+  bseg="${DIM}⎇${RST}${YEL}${branch}${RST}"
+  [ -n "$gflag" ] && bseg="${bseg} ${RED}${gflag}${RST}"
+  segs_arr+=("$bseg")
+else segs_arr+=("${DIM}⎇ no-git${RST}"); fi
+
+# 당직 보고 미처리 nudge (✅ 처리됨·"이상 없음" heartbeat 는 표시 안 함)
+latest_scout=$(ls -t /home/nas/user/Uihyeop/notes/scout/*.md 2>/dev/null | head -1 || true)
+if [ -n "$latest_scout" ] && ! grep -qE '✅|이상 없음' "$latest_scout" 2>/dev/null; then
+  segs_arr+=("${YEL}📋당직${RST}")
+fi
 if [ -n "$gate" ]; then
   [ "$gate_open" = "1" ] && gc="$YEL" || gc="$GRN"
   segs_arr+=("${gc}${gate}${RST}")
