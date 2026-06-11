@@ -146,7 +146,7 @@ for line in sys.stdin:
             parts.append(f"\033[{QAC.get(q,'33')}m{q}{R}")
         opts = f"{D}\u00b7{R}".join(parts)
         head = paint(key, key) + (f"{D}({R}{opts}{D}){R}" if opts else "")
-        lbl = head + f" {D}\u23f3{mins(etime)}{R}" + (f" {desc}" if desc else "")
+        lbl = head + f" {D}\u23f3{mins(etime)}{R}"  # desc \uc0dd\ub7b5 \u2014 \ud55c \uc904 \uc138\uadf8\uba3c\ud2b8 \ud3ed \ubcf4\ud638 + \ube44ASCII \ud504\ub86c\ud504\ud2b8 \uaf2c\ub9ac \ub178\uc774\uc988 (2026-06-11)
     else:
         l = re.search(r"loops/(oncall|note|study|drill)", args)
         if not l: continue
@@ -182,9 +182,11 @@ u=""
 [ -n "$S_7D" ] && { u="${u} ${DIM}7d${RST} $(pcol "$S_7D")${S_7D}%${RST}"; [ -n "$S_7D_RST" ] && u="${u}${DIM}(↻${S_7D_RST})${RST}"; }
 [ -n "$u" ] && segs_arr+=("${u# }")
 
+# running job 은 첫 줄 세그먼트로 — 두 번째 줄은 이 환경(CC 2.1.173)에서 렌더 안 됨 실측 (2026-06-11)
+[ -n "${jobs_lbl:-}" ] && segs_arr+=("${GRN}>_${RST} ${jobs_lbl}")
+
 # join with 세로선 파티션
 out=""; sep=" ${DIM}│${RST} "
 for s in "${segs_arr[@]}"; do [ -z "$out" ] && out="$s" || out="${out}${sep}${s}"; done
-printf '%s' "$out"
-[ -n "${jobs_lbl:-}" ] && printf '\n%s' "${GRN}>_${RST}${DIM} running:${RST} ${jobs_lbl}"
+printf '%s\n' "$out"
 exit 0  # 마지막 && list 가 비어있는 jobs_lbl 로 exit 1 → statusline 미표시 (2026-06-11 점검에서 발견)
