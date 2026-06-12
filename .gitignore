@@ -57,3 +57,6 @@ loops/drill/metrics.csv
 .dispatch/
 .claude_reports/.pipeline-lock
 .claude_reports/.untracked*
+
+# loop 일시 hold 토글 (per-machine, 만료일 담긴 런타임 플래그)
+loops/.hold
