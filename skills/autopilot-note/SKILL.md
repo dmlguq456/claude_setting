@@ -171,6 +171,10 @@ opt-out flag — `--no-fact-check` 만 (standard+ 자리에서).
 #### 3차 — ambient
 - 어디에도 안 맞음 → `card_id: null` + `routing_status: inbox` + `routing_confidence: <낮음>`. 사후 사용자 promote. (이전 `kind: misc` 의 Layer 2 대응.)
 - 매칭 카드가 _없지만 새 과제·작업 단위_ 로 보이면 → 별도로 **신규 L1 카드 triage 제안** (routing #4). ⟨2026-06-12 prd v41⟩ 제안 기본 단위는 **task 카드** (`type: new-card` + `payload`{…·`source_note_ids: [<note id>, …]`}) — _이 산출물을 담을 카드를 사용자가 아직 못 만든_ 자리라 자연 단위가 task(작업)이지 project 가 아니다. 승인 1번 = 카드 생성 + source 노트 연결. project 제안은 보조 — _여러 task 제안이 같은 미존재 project 맥락을 가리킬 때만_ 'project + task 세트' 제안(보수적). 기존 `proposal_type: new_l1_card`(project) 포맷은 세트의 project 절반으로 하위호환.
+- **제안만 · 자동 생성 절대 금지 + 묶음 우선 + 기존 task 매칭 우선 ⟨2026-06-12 prd v45⟩** (사용자 강한 반대 후 — verbatim: _"노션 아닌 경우 새 카드는 애초에 제안만 하라니까? 혹은 하나의 카드에 묶어서 넣을 수 있으면 하나로."_): no-match 산출물은 **검토함 보드 세그먼트 _제안_ 으로만** 올린다 — skill·cron 어느 경로도 `l1_cards` 를 **직접 생성하지 않는다**(생성은 오직 사용자 승인 시 보드 approve). 3 규칙:
+  - ① **묶음 우선** — 여러 산출물이 같은 project + 내용/키워드로 묶이면 **한 제안에 `source_note_ids` 복수**로(산출물마다 제안 1개 금지). 묶음은 _의미 기반_ 클러스터(rule 문자열 매칭 아님).
+  - ② **기존 task 매칭 우선** — 신규 task 를 제안하기 _전에_ 그 project 안 기존 task 와 의미상 부합하는지 본다. 강하게 부합하면 **`type: link-note` 제안**(`payload`{`target_card_id`=기존 task·`source_note_ids` 복수}) — 카드 생성 없이 _연결만_ 제안(보수적, 강한 부합만). 부합 task 없을 때만 ①의 `new-card` 신규 제안.
+  - ③ **생성 0 불변식** — 제안은 `_triage/<id>.md` 파일만(`id`=묶음 note_ids stable hash → idempotent). `l1_cards` 생성·`l2_notes.card_id` 변경 0 — 332건 재라우팅(prd v44 ④)도 _제안_ 으로(스크립트 직접 DB 생성 번복). 상세 = worklog-board prd §4.3 ⟨v45⟩.
 
 ### backbone_ids / task_ids / paper_id (→ Layer 2) 결정
 - 산출물 본문의 _architecture·기법 키워드_ (SR-CorrNet / TF-Restormer / attention / separation / enhancement …) → `<target>/_layer2/backbones/` · `tasks/` slug 매칭.
@@ -189,7 +193,7 @@ opt-out flag — `--no-fact-check` 만 (standard+ 자리에서).
 | **1** | L2 note row 생성 | 모든 trackable 산출물 | `_layer2/notes/<id>.md` 생성 (노트화 본문 + frontmatter) | **자동** |
 | **2** | note `card_id` → L1 카드 연결 | 1차/2차 매칭 | frontmatter `card_id` set + `routing_status: inbox`(제안) + `routing_confidence`/`routing_reason` ⟨2026-06-10⟩ | **자동(제안)** |
 | **3** | note `backbone_ids`/`task_ids` → L2 카탈로그 연결 (+emerge) | architecture·task 키워드 매칭 / emerge 단서 | frontmatter id list set + 없으면 카탈로그 entry 생성 | **자동 (카탈로그 emerge 포함)** |
-| **4** | 신규 L1 카드 _제안_ | 매칭 task 없고 새 작업 단위 | `_triage/{date}_<seq>.md` 제안 — ⟨v41/v44⟩ **기본 = task 카드**(`new-card` + `source_note_ids`), project 는 보수적 세트 제안 한정 | **triage** (자동생성 X — L1 사용자 소유) |
+| **4** | 신규 L1 카드 / 기존 task 연결 _제안_ | 매칭 task 없고 새 작업 단위 / 기존 task 강하게 부합 | `_triage/<id>.md` 제안 — ⟨v41/v44⟩ **기본 = task 카드**(`new-card` + `source_note_ids`), ⟨v45⟩ **묶음 우선**(노트당 1제안 금지)·**기존 task 부합 시 `link-note`**(연결만, 생성 0), project 는 보수적 세트 제안 한정 | **triage** (자동생성 X — L1 사용자 소유) |
 | **5** | ambient note | 위 어디에도 확신 없음 | `card_id: null` + `routing_status: inbox` | **자동 (ambient)** |
 
 **L2 적재·연결은 자동 _제안_ (#1·#2·#3·#5 — 무인 cron 은 전부 `routing_status: inbox`), L1 신설만 triage (#4)** ⟨2026-06-10⟩ — 에이전트는 _제안_, 확정(`confirmed`)은 worklog-board `/triage` 노트 라우팅에서 사용자 컨펌. 신규 L1 카드 confirm 도 `/triage` UI 가 watcher.
