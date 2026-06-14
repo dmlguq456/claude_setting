@@ -30,8 +30,8 @@
 |---|---|---|---|---|---|---|
 | **당직** (`oncall`) | 시간 | cron 05:37 | 작업장 (repo·산출물·실험·루프 생존·모의훈련 미실행) | 야간 순찰 — 이상 **발견·보고만** | `notes/oncall/<date>.md` (당직 보고서) | 아침 "당직 보고 처리해줘" |
 | **일지** (`note`) | 시간 | cron 05:03 | 전날 산출물 내용 | worklog-board L2 **노트화·라우팅** (idempotent) | `notes/_layer2/notes/` + digest | worklog-board `/triage` |
-| **모의훈련** (`drill/`) | 사건 | 지침 수정 후 `drill/run.sh` | Claude 행동 (지침 준수) | fixture 가상 상황에서 headless **시험·채점** | `drill/results/<일시>/` | FAIL 시 수정안 승인 |
-| **연수** (`study`) | 시간 | cron 일요일 06:17 | 외부 동향 × 현 세팅 | agent engineering 신간·Claude Code 변경 조사 → 세팅 대조 → **개선 제안서만** (+ g0 세금 추세) | `notes/study/<date>.md` | 제안 채택 서명 → 적용 → 모의훈련 |
+| **모의훈련** (`drill/`) | 사건 | 지침 수정 후 `drill/run.sh` | Claude 행동 (지침 준수) | fixture 가상 상황에서 headless **시험·채점** + FAIL 시 **진단·수정안 초안** 자동 작성(적용 X) | `drill/results/<일시>/` (+ `<case>.diagnosis.md`) | FAIL 시 수정안 승인 |
+| **연수** (`study`) | 시간 | cron 일요일 06:17 | 외부 동향 × 현 세팅 | agent engineering 신간·Claude Code 변경 조사 → 세팅 대조 → **개선 제안서만** (🔴 한정 **자동 초안** 동반) (+ g0 세금 추세) | `notes/study/<date>.md` | 제안 채택 서명 → 적용 → 모의훈련 |
 
 새벽 시간표: 05:03 note → 05:37 oncall (충돌 방지 간격).
 
@@ -43,7 +43,8 @@
 | 학습 모니터 | 상태 | 다음 autopilot-lab setup 때 실물(log 포맷·ckpt 경로)에 맞춰 |
 | code discovery (깨진 테스트·TODO 스캔 → 수정 제안) | 시간 | oncall 운영 안정 후 |
 | worklog-board 운영 패널 3종 — ①결재함(triage 확장: 당직 보고 미처리·연수 제안 채택) ②운영 현황 스트립(당직·drill 성적·디스패치 job·연수 D-day) ③매뉴얼 탭(`notes/manual/`) | — | worklog-board repo 의 spec update, 별도 세션. 데이터는 전부 기존 산출물(`notes/oncall`·`notes/study`·`drill/results`·`.dispatch/jobs.log`) — board 는 read+view 만 |
-| drill FAIL 자동 진단 (run.sh 에 진단·수정안 초안 단계) | 사건 | baseline run 완료 후 부착 |
+
+> _졸업_: `drill FAIL 자동 진단` 은 backlog 졸업 — `run.sh` 에 FAIL→`<case>.diagnosis.md`(진단+수정안 초안, 적용 X) 단계로 부착됨(현역 표 모의훈련 행). `study 🔴 자동 초안`(T2, 2026-06-15) 도 동반 — 둘 다 _초안까지, 적용은 사용자 서명_.
 
 ## 케이스 승격 (오답노트 → drill)
 
