@@ -573,3 +573,30 @@ analyze-project 자체는 `_last_run.yaml` 기반 **incremental update** default
 | `autopilot-apply` | 대상 artifact 는 `.claude_reports/` 밖 실제 소스 (e.g., `main.tex`). 버전 자리는 git branch + commit (mutation 마다 한 commit) — `_internal/versions/` 자리 X |
 | `autopilot-apply` | 자체 artifact_dir 없음 — `.claude_reports/` _밖_ 실제 source 편집 (git branch 위) + 로그는 cheatsheet artifact 의 `_internal/apply/` |
 
+## §7. Memory write 휴리스틱 (canonical)
+
+> auto-memory (`~/.claude/projects/<encoded-cwd>/memory/*.md`) 의 _무엇을 저장/생략하고 어떻게 쓰는지_ 단일 출처. 하네스 `# Memory` 지침과 정합하며, Hermes Agent 의 `write_approval` 게이트·promote/skip 휴리스틱을 벤치마킹해 이식(T5, 2026-06-15). **행동양식·운영규율은 메모리가 아니다** — 원칙 문서(CLAUDE.md/CONVENTIONS/WORKFLOW/SKILL) 또는 cross-project `user_profile/`. 프로젝트 진행 맥락·handoff 는 `post-it`.
+
+### §7.1. Promote (저장) vs Skip (생략)
+
+| 저장한다 (promote) | 생략한다 (skip) |
+|---|---|
+| **preferences** — 사용자 선호·작업 방식 (비자명) | **재발견 가능** — 코드·git 이력·CLAUDE.md 에 이미 있는 것 |
+| **conventions** — 코드에 안 드러나는 프로젝트 규약 | **trivial / ephemera** — 이 대화에서만 의미 있는 것 |
+| **corrections** — 사용자 교정 (같은 실수 반복 방지) | **행동양식 변경** — → 원칙 문서 자리 (메모리 X) |
+| **lessons** — 비자명 결정의 _이유·맥락_ | **진행 맥락·handoff** — → `post-it` 자리 |
+| **references** — 외부 자원 포인터(URL·티켓·대시보드) | **stale 확정** — 틀린 것으로 판명 → 저장 말고 기존 것 삭제 |
+
+판단 한 줄: _"다음 세션의 다른 나에게 이게 비자명하게 유용한가, 그리고 코드/이력에서 다시 못 찾는가?"_ 둘 다 yes 면 promote.
+
+### §7.2. Write 연산 (add / replace / remove) + dedup
+
+- 저장 전 기존 메모리 확인 — 같은 사실을 이미 다루는 파일이 있으면 _새 파일 만들지 말고 그 파일 갱신_(replace). 한 사실 = 한 파일(near-duplicate 거부).
+- 틀렸다고 판명된 메모리는 즉시 삭제(remove) — 누적 stale 금지.
+- 관련 메모리는 본문에서 `[[name]]` 로 링크. 저장 후 `MEMORY.md` 인덱스에 한 줄 포인터.
+- Hermes 처럼 _capacity 압박 시 consolidation_ 을 원칙으로 — cwd 메모리가 비대해지면 통합·압축(별 파일 난립 대신).
+
+### §7.3. 자율 자리는 _제안만_ (불변식)
+
+oncall self-review nudge(`loops/oncall.md` item 9) 등 _자동_ 자리는 승격 후보 **제시까지** — 실제 write 는 사용자 흐름 안에서(`/post-it` 또는 메모리 저장 발화). 루프 출구는 제안까지, 결정은 사용자([loops/README](loops/README.md) 공통 규약).
+
