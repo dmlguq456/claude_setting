@@ -5,7 +5,7 @@ scope_note: "통합 기억 시스템 — post-it(단기)·auto-memory(장기)·u
 phases:
   spec: done               # v3 PRD 확정 (D-1~7 lock — DB화·저장소분리·통합강화)
   scaffolding: pending
-  dev: in_progress         # autopilot-code 재구현 착수 (DB-backed)
+  dev: done                # DB-backed 재구현·200레코드 이주·저장소 분리 완료 (claude-memory private repo, config repo memory/ 이력 filter-repo 제거+force-push)
 last_updated: 2026-06-15  # v3 update: D1 반전(SoT=SQLite), 저장소 분리(claude-memory repo), 통합 강화. snapshot v2
 inputs:
   - .claude_reports/research/hermes-agent/

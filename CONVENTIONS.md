@@ -579,7 +579,7 @@ analyze-project 자체는 `_last_run.yaml` 기반 **incremental update** default
 
 ### §7.0. store 아키텍처 (개요)
 
-- **store** = `~/.claude/memory/` (git추적 markdown 원본 = 단일소스·포터블) + `.index.db`(SQLite FTS5, 파생·gitignore). 레코드 = `tier`(working 단기 / durable 장기) × `scope`(project / global) × `type`.
+- **store** = `~/.claude/memory/memory.db` (SQLite WAL = 진실원천 SoT, FTS5 내장) + `dump.jsonl`(결정론적 텍스트 mirror, git추적). **전용 private repo `claude-memory`** 로 분리 — config repo(`claude_setting`)에선 `memory/` gitignore. 레코드 = `tier`(working 단기 / durable 장기) × `scope`(project / global) × `type`. (2026-06-15 DB-as-SoT 전환 — 구 markdown 원본 SoT + `.index.db` 파생색인 모델 대체. 복원 = `mem import dump.jsonl`.)
 - **3 면 → store mirror** (각 면은 live 역할 유지, store 가 canonical 가시 소스):
 
   | 면 (live 역할) | store tier/scope | 동기화 |
@@ -590,7 +590,7 @@ analyze-project 자체는 `_last_run.yaml` 기반 **incremental update** default
 
 - **자체 하네스 (store 가 세션 주입의 source)**: SessionStart hook `mem inject --hook` → store 의 현 cwd working+durable + global profile 을 `additionalContext` 로 주입. SessionEnd hook `mem sync` → 하네스 write 회수 + 색인 재생성. (단일 출처 = `settings.json` hooks.)
 - **회상**: `tools/memory/recall.sh` = `mem recall` thin wrapper — store FTS5 + `--sessions`(raw 대화 jsonl) + `--all`(전 scope). 트리거 = CLAUDE.md §도메인 + §7.4.
-- **CLI**: `mem {add, note, recall, index, sync, inject, migrate, lifecycle, project, stats, register-postit}`.
+- **CLI**: `mem {add, note, recall, index, sync, inject, export, import, migrate, lifecycle, project, stats, register-postit}`. (`export --target dump|profile` = DB→git mirror / user_profile view, `import <dump.jsonl>` = 복원.)
 - **불변식**: 기억 저장 = 자동(품질필터만 — §7.1·§7.2, 사람 승인 게이트 없음). 삭제(gc)·세팅변경은 사람 게이트. lifecycle = working 시간만료 / durable consolidate(§7.3 lifecycle).
 
 > 위 intro 의 _write 면_ 세부 (무엇을 저장/생략하고 어떻게 쓰는지) 는 §7.1–§7.2, recall 은 §7.4. Hermes `write_approval` 게이트·promote/skip·session_search 벤치마킹(T5/T1).
@@ -625,7 +625,7 @@ oncall self-review nudge(`loops/oncall.md` item 9) 등 _자동_ 자리는 승격
 | helper | 용도 | 비고 |
 |---|---|---|
 | `tools/memory/recall.sh "<query>" [--all] [--sessions]` | `mem recall` thin wrapper — store FTS5 색인(bm25 랭킹) 검색, 색인 없으면 LIKE/rg fallback. 현 cwd / `--all`=전 cwd. `--sessions` = raw 세션 transcript(`*.jsonl`)까지 | per-cwd 격리 = 기본 현 cwd. cross-cwd·raw 는 명시 플래그 시만. |
-| `tools/memory/index-check.sh [dir] [--fix]` | *legacy* `projects/<cwd>/memory/` 의 `MEMORY.md` *텍스트 인덱스* drift 점검 전용 (누락·고아). `--fix` = 누락 포인터 _append-only_ | store FTS5 색인(`.index.db`)은 `mem index` 관할 — 별개 대상. 기존 큐레이션 줄 보존 |
+| `tools/memory/index-check.sh [dir] [--fix]` | *legacy* `projects/<cwd>/memory/` 의 `MEMORY.md` *텍스트 인덱스* drift 점검 전용 (누락·고아). `--fix` = 누락 포인터 _append-only_ | store FTS5 색인(`memory.db` 내장)은 `mem index` 관할 — 별개 대상. 기존 큐레이션 줄 보존 |
 
 **두 검색면 (Hermes session_search 의 두 절반)**: (1) _정제 메모리_(store durable+working, 기본) = `mem recall` 이 SQLite FTS5(bm25 랭킹)로 검색, 색인 없으면 LIKE/rg fallback. Hermes 와 동형으로 수렴. (2) _raw 세션_(`*.jsonl`, `--sessions`) = 메모리로 정제 안 된 과거 대화까지, 노이즈 크니 정제 메모리로 안 나올 때만 보조로.
 
