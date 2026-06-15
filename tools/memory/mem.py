@@ -183,29 +183,34 @@ def _fts_available(con):
 
 def index_build(rebuild=False):
     if rebuild and INDEX.exists():
-        INDEX.unlink()
+        try:
+            INDEX.unlink()
+        except OSError as e:
+            sys.stderr.write(f"[index] unlink 실패(계속): {e}\n")
     STORE.mkdir(parents=True, exist_ok=True)
     con = sqlite3.connect(INDEX)
-    fts = _fts_available(con)
-    con.execute("DROP TABLE IF EXISTS records")
-    con.execute("""CREATE TABLE records(id TEXT PRIMARY KEY, tier TEXT, scope TEXT,
-                   type TEXT, cwd_origin TEXT, created TEXT, updated TEXT,
-                   expires TEXT, path TEXT, body TEXT)""")
-    if fts:
-        con.execute("DROP TABLE IF EXISTS records_fts")
-        con.execute("CREATE VIRTUAL TABLE records_fts USING fts5("
-                    "id UNINDEXED, body, tokenize='unicode61')")
-    n = 0
-    for meta, body in iter_records():
-        con.execute("INSERT OR REPLACE INTO records VALUES(?,?,?,?,?,?,?,?,?,?)",
-                    (meta["id"], meta.get("tier"), meta.get("scope"), meta.get("type"),
-                     meta.get("cwd_origin"), meta.get("created"), meta.get("updated"),
-                     meta.get("expires"), str(meta["_path"]), body))
+    try:
+        fts = _fts_available(con)
+        con.execute("DROP TABLE IF EXISTS records")
+        con.execute("""CREATE TABLE records(id TEXT PRIMARY KEY, tier TEXT, scope TEXT,
+                       type TEXT, cwd_origin TEXT, created TEXT, updated TEXT,
+                       expires TEXT, path TEXT, body TEXT)""")
         if fts:
-            con.execute("INSERT INTO records_fts(id, body) VALUES(?,?)", (meta["id"], body))
-        n += 1
-    con.commit()
-    con.close()
+            con.execute("DROP TABLE IF EXISTS records_fts")
+            con.execute("CREATE VIRTUAL TABLE records_fts USING fts5("
+                        "id UNINDEXED, body, tokenize='unicode61')")
+        n = 0
+        for meta, body in iter_records():
+            con.execute("INSERT OR REPLACE INTO records VALUES(?,?,?,?,?,?,?,?,?,?)",
+                        (meta["id"], meta.get("tier"), meta.get("scope"), meta.get("type"),
+                         meta.get("cwd_origin"), meta.get("created"), meta.get("updated"),
+                         meta.get("expires"), str(meta["_path"]), body))
+            if fts:
+                con.execute("INSERT INTO records_fts(id, body) VALUES(?,?)", (meta["id"], body))
+            n += 1
+        con.commit()
+    finally:
+        con.close()
     print(f"[index] {n} records → {INDEX}  (FTS5={'on' if fts else 'off, LIKE fallback'})")
     return n
 
@@ -258,7 +263,10 @@ def recall(query, tier=None, scope=None, cwd=None, sessions=False, limit=20):
         encc = enc_cwd(Path.cwd())
         kept = []
         for h in hits:
-            m, _ = parse_record(Path(h[3]).read_text(encoding="utf-8"))
+            try:
+                m, _ = parse_record(Path(h[3]).read_text(encoding="utf-8"))
+            except Exception:
+                continue  # 삭제/깨진 파일 hit — skip
             if m.get("scope") == "global" or m.get("cwd_origin") == encc:
                 kept.append(h)
         hits = kept
@@ -294,21 +302,28 @@ def migrate(apply=False):
     created, skipped = 0, 0
     existing_src = {m.get("source") for m, _ in iter_records() if m.get("source")}
     # 1) auto-memory: projects/<cwd>/memory/*.md
-    for mp in PROJECTS.glob("*/memory/*.md"):
-        if mp.name == "MEMORY.md":
-            continue
-        src = f"auto-memory:{mp.parent.parent.name}/{mp.name}"
-        if src in existing_src:
-            skipped += 1
-            continue
-        meta, body = parse_record(mp.read_text(encoding="utf-8"))
-        rtype = meta.get("type", "project")
-        scope = "global" if rtype == "user" else "project"
-        cwd_origin = mp.parent.parent.name
-        if apply:
-            write_record("durable", scope, rtype, body, cwd_origin=cwd_origin,
-                         source=src, quiet=True)
-        created += 1
+    try:
+        for mp in PROJECTS.glob("*/memory/*.md"):
+            if mp.name == "MEMORY.md":
+                continue
+            src = f"auto-memory:{mp.parent.parent.name}/{mp.name}"
+            if src in existing_src:
+                skipped += 1
+                continue
+            try:
+                meta, body = parse_record(mp.read_text(encoding="utf-8"))
+                rtype = meta.get("type", "project")
+                scope = "global" if rtype == "user" else "project"
+                cwd_origin = mp.parent.parent.name
+                if apply:
+                    write_record("durable", scope, rtype, body, cwd_origin=cwd_origin,
+                                 source=src, quiet=True)
+                created += 1
+            except Exception as e:
+                sys.stderr.write(f"[migrate] skip {mp}: {e}\n")
+                continue
+    except Exception as e:
+        sys.stderr.write(f"[migrate] auto-memory source 실패(계속): {e}\n")
     # 2) post-it: 얕은 find(maxdepth 5)로 전 프로젝트 post-it.md 발견 → working records.
     #    표준 5섹션은 type 매핑, 미지정 섹션(worklog-board 의 ★현재상태·🔴결재대기 등)은 generic 'note' 로 보존.
     POST_SECT = {"Open Threads": "thread", "Decisions": "decision",
@@ -316,51 +331,65 @@ def migrate(apply=False):
                  "External Resources": "reference"}
     # post-it 발견 = 레지스트리(~/.claude/memory/.postit-roots, 경로 목록) + 현 cwd.
     #    NAS(네트워크 FS) 재귀 find 는 느리고 불안정(timeout 빈번) → 직접 stat 만. /post-it 가 생성 시 등록.
-    postits = set()
-    reg = STORE / ".postit-roots"
-    if reg.exists():
-        for line in reg.read_text(encoding="utf-8").splitlines():
-            p = Path(line.strip())
-            if p.name == "post-it.md" and p.exists():
-                postits.add(p)
-    cwd_pi = Path.cwd() / ".claude_reports" / "post-it.md"
-    if cwd_pi.exists():
-        postits.add(cwd_pi)
-    postits = sorted(postits)
-    print(f"  post-it 발견: {len(postits)}개 (registry+cwd)")
-    for pi in postits:
-        cwd_origin = enc_cwd(pi.parent.parent)
-        cur = "note"
-        for line in pi.read_text(encoding="utf-8", errors="ignore").splitlines():
-            m = re.match(r"##\s+(.*)", line)
-            if m:
-                cur = POST_SECT.get(m.group(1).strip(), "note")
+    try:
+        postits = set()
+        reg = STORE / ".postit-roots"
+        if reg.exists():
+            for line in reg.read_text(encoding="utf-8").splitlines():
+                p = Path(line.strip())
+                if p.name == "post-it.md" and p.exists():
+                    postits.add(p)
+        cwd_pi = Path.cwd() / ".claude_reports" / "post-it.md"
+        if cwd_pi.exists():
+            postits.add(cwd_pi)
+        postits = sorted(postits)
+        print(f"  post-it 발견: {len(postits)}개 (registry+cwd)")
+        for pi in postits:
+            try:
+                cwd_origin = enc_cwd(pi.parent.parent)
+                cur = "note"
+                for line in pi.read_text(encoding="utf-8", errors="ignore").splitlines():
+                    m = re.match(r"##\s+(.*)", line)
+                    if m:
+                        cur = POST_SECT.get(m.group(1).strip(), "note")
+                        continue
+                    b = re.match(r"\s*[-*]\s+(.*)", line)
+                    if cur and b and len(b.group(1).strip()) > 14:
+                        src = f"post-it:{cwd_origin}:{hashlib.sha256(b.group(1).encode()).hexdigest()[:8]}"
+                        if src in existing_src:
+                            skipped += 1
+                            continue
+                        if apply:
+                            write_record("working", "project", cur, b.group(1).strip(),
+                                         cwd_origin=cwd_origin, source=src, quiet=True)
+                        created += 1
+            except Exception as e:
+                sys.stderr.write(f"[migrate] skip {pi}: {e}\n")
                 continue
-            b = re.match(r"\s*[-*]\s+(.*)", line)
-            if cur and b and len(b.group(1).strip()) > 14:
-                src = f"post-it:{cwd_origin}:{hashlib.sha256(b.group(1).encode()).hexdigest()[:8]}"
+    except Exception as e:
+        sys.stderr.write(f"[migrate] post-it source 실패(계속): {e}\n")
+    # 3) user_profile/*.md → durable/global mirror (파일은 source 로 제자리 유지 — 경로참조·analyze-user).
+    #    각 aspect 문서 = 1 레코드(type=profile, body=전문). store sync 가 갱신. auto-memory 와 동형 mirror.
+    try:
+        if USER_PROFILE.exists():
+            for up in sorted(USER_PROFILE.glob("*.md")):
+                if up.name == "README.md":
+                    continue
+                src = f"user-profile:{up.stem}"
                 if src in existing_src:
                     skipped += 1
                     continue
-                if apply:
-                    write_record("working", "project", cur, b.group(1).strip(),
-                                 cwd_origin=cwd_origin, source=src, quiet=True)
-                created += 1
-    # 3) user_profile/*.md → durable/global mirror (파일은 source 로 제자리 유지 — 경로참조·analyze-user).
-    #    각 aspect 문서 = 1 레코드(type=profile, body=전문). store sync 가 갱신. auto-memory 와 동형 mirror.
-    if USER_PROFILE.exists():
-        for up in sorted(USER_PROFILE.glob("*.md")):
-            if up.name == "README.md":
-                continue
-            src = f"user-profile:{up.stem}"
-            if src in existing_src:
-                skipped += 1
-                continue
-            if apply:
-                write_record("durable", "global", "profile",
-                             up.read_text(encoding="utf-8", errors="ignore"),
-                             cwd_origin="global", source=src, quiet=True)
-            created += 1
+                try:
+                    if apply:
+                        write_record("durable", "global", "profile",
+                                     up.read_text(encoding="utf-8", errors="ignore"),
+                                     cwd_origin="global", source=src, quiet=True)
+                    created += 1
+                except Exception as e:
+                    sys.stderr.write(f"[migrate] skip {up}: {e}\n")
+                    continue
+    except Exception as e:
+        sys.stderr.write(f"[migrate] user_profile source 실패(계속): {e}\n")
     print(f"  → {'생성' if apply else '생성 예정'} {created} · 기존 skip {skipped}")
     return created
 
@@ -383,7 +412,10 @@ def lifecycle(apply=False):
     for m in expired:
         print(f"  [expire] {m['id']} (expires {m['expires']})")
         if apply:
-            Path(m["_path"]).unlink(missing_ok=True)
+            try:
+                Path(m["_path"]).unlink(missing_ok=True)
+            except Exception as e:
+                sys.stderr.write(f"[lifecycle] unlink 실패(계속): {m['id']}: {e}\n")
     for ids in dups:
         print(f"  [dup-flag] {ids}  (consolidate 후보 — 자동삭제 X)")
     print(f"  → 만료 {len(expired)}{'(삭제)' if apply else ''} · dup-flag {len(dups)}")
@@ -435,8 +467,12 @@ def register_postit(path):
     if p in existing:
         print(f"[register] 이미 등록: {p}")
         return
-    with reg.open("a", encoding="utf-8") as f:
-        f.write(p + "\n")
+    try:
+        with reg.open("a", encoding="utf-8") as f:
+            f.write(p + "\n")
+    except Exception as e:
+        sys.stderr.write(f"[register] 레지스트리 write 실패: {e}\n")
+        return
     print(f"[register] {p}")
 
 
@@ -482,7 +518,7 @@ def inject(max_working=40, max_durable=40, hook=False):
         out.append("")
     if dur:
         out.append("## 장기 — 이 프로젝트 (durable)")
-        for m, b in dur[:max_durable]:
+        for m, b in sorted(dur, key=lambda x: x[0].get("updated", ""), reverse=True)[:max_durable]:
             out.append(f"- [{m.get('type')}] {_first_line(b)[:160]}")
         out.append("")
     if prof:
@@ -500,8 +536,15 @@ def sync():
     """하네스가 projects/<cwd>/memory/ 에 쓴 auto-memory 를 store 로 멱등 mirror + 색인 재생성.
     하네스가 메모리 write 를 소유하므로 store 는 source 가 아니라 _포터블 추적 mirror_ — 주기 sync(oncall/note)로 최신 유지."""
     print("# sync (projects → store mirror)")
-    n = migrate(apply=True)
-    index_build(rebuild=True)
+    n = 0
+    try:
+        n = migrate(apply=True)
+    except Exception as e:
+        sys.stderr.write(f"[sync] migrate 실패(계속): {e}\n")
+    try:
+        index_build(rebuild=True)
+    except Exception as e:
+        sys.stderr.write(f"[sync] index 실패: {e}\n")
     return n
 
 

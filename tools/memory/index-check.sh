@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # MEMORY.md 인덱스 drift 점검 (+ --fix: 누락 포인터 append) — T1 인덱스 보강 (2026-06-15)
+# NOTE(2026-06-15): store FTS5 색인은 'mem index' 가 관할. 본 스크립트는 legacy projects/<cwd>/memory/ 의 MEMORY.md *텍스트 인덱스* 점검 전용(별개 대상). store 색인 점검 아님.
 #
 # auto-memory 의 cwd 마다 MEMORY.md 인덱스가 얇아(파일은 있는데 인덱스 누락) recall 이
 # 약해지는 문제를 잡는다. 기본은 _report_ — 누락·고아 줄만 보고. --fix 는 _append-only_:

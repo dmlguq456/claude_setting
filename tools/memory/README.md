@@ -10,7 +10,7 @@ Hermes 메모리 벤치마킹의 store/write 층. spec: [`.claude_reports/spec/p
 |---|---|---|---|
 | 원본(SoT) | `~/.claude/memory/<tier>/<scope>/*.md` | tracked | markdown, 포터블(repo 따라 이동), 사람이 읽고 diff |
 | 색인 | `~/.claude/memory/.index.db` | gitignore | SQLite FTS5, rebuildable |
-| 주입 projection | `~/.claude/projects/<cwd>/memory/` | gitignore | 세션 시작 하네스 주입용, store에서 생성 |
+| 하네스 write 면 | `~/.claude/projects/<cwd>/memory/` | gitignore | 하네스가 auto-memory 쓰는 자리 → `mem sync` 로 store durable mirror. `mem project` 는 보조 projection 생성 |
 
 레코드 = `tier`(working/durable) × `scope`(project/global) × `type`. 단기=working(자동 만료/졸업), 장기=durable(영구+consolidate).
 
@@ -21,19 +21,24 @@ Hermes 메모리 벤치마킹의 store/write 층. spec: [`.claude_reports/spec/p
 | `note "<body>"` | working tier 단축 기록 |
 | `recall "<q>" [--tier] [--scope] [--all] [--sessions]` | 회상 (FTS5 or fallback, +raw 세션) |
 | `index [--rebuild]` | FTS5 색인 생성 |
-| `project [--cwd]` | 주입 projection 생성 |
+| `project [--cwd]` | 보조 projection 생성 (세션 주입은 `inject` 담당) |
 | `migrate [--apply]` | auto-memory(전 cwd) + 현 cwd post-it → store (멱등, default dry-run) |
 | `lifecycle [--apply]` | working 만료 + durable dup-flag |
 | `stats` | store 통계 |
+| `inject [--hook]` | SessionStart 주입 — store(durable+working+profile)→context 직접 주입. `--hook` 시 `additionalContext` JSON 출력 |
+| `sync` | SessionEnd 회수 — `projects/<cwd>/memory/` auto-memory → store durable mirror + FTS5 색인 재생성 |
+| `register-postit <path>` | post-it.md 절대 경로를 레지스트리(`~/.claude/memory/.postit-roots`)에 등록 (store sync 가 직접 stat — NAS 재귀 스캔 회피) |
 
-env override (테스트): `MEM_STORE` · `MEM_PROJECTS`.
+env override (테스트): `MEM_STORE` · `MEM_PROJECTS` · `MEM_PROFILE`.
 
 ## 자동 write 불변식
 기억 저장 = **자동**(사람 승인 게이트 없음 — "결정은 사용자"는 *세팅 변경*용이지 *기억 기록*용 아님). 안전장치는 자동 필터뿐: 품질게이트(promote/skip) · dedup · injection/secret 가드. 세팅·원칙 변경은 본 모듈 영역 아님(여전히 사람 게이트).
 
-## 전환 상태 (2026-06-15)
-- ✅ 모듈(store/write/index/recall/migrate/lifecycle/project) 구현·테스트
+## 운영 현황 (2026-06-15)
+- ✅ 모듈(store/write/index/recall/migrate/lifecycle/project/inject/sync/register-postit) 구현·테스트
+- ✅ **하네스 wired**: SessionStart `mem inject --hook` (settings.json, timeout 20) + SessionEnd `mem sync` (timeout 120) 연결 완료
+- ✅ **recall.sh 전환 완료**: `mem recall` thin wrapper 로 동작 (store FTS5 + LIKE/rg fallback)
+- ✅ **register-postit 운영 중**: 레지스트리(`~/.claude/memory/.postit-roots`) 기반 store sync
 - ⏳ **live 적용**: `migrate --apply`로 기존 메모 → store (추가형 — 기존 `projects/*/memory/` 안 지움)
-- ⏳ **소스 전환**(후속·신중): recall.sh → `mem recall` alias / post-it → `mem` alias / projection 세션-시작 hook(D-4). store 안정 확인 후.
 
-legacy `recall.sh`·`index-check.sh`는 전환 완료까지 기존 위치(`projects/*/memory/`) 대상으로 병행 동작.
+`index-check.sh` 는 *legacy `projects/*/memory/` 의 MEMORY.md 텍스트 인덱스 점검 전용*으로 잔존 — store FTS5 색인(`.index.db`)은 `mem index` 가 관할하므로 별개 대상.

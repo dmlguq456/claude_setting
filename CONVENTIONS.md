@@ -575,7 +575,7 @@ analyze-project 자체는 `_last_run.yaml` 기반 **incremental update** default
 
 ## §7. Memory write 휴리스틱 (canonical)
 
-> auto-memory (`~/.claude/projects/<encoded-cwd>/memory/*.md`) 의 _무엇을 저장/생략하고 어떻게 쓰는지_ 단일 출처. 하네스 `# Memory` 지침과 정합하며, Hermes Agent 의 `write_approval` 게이트·promote/skip 휴리스틱을 벤치마킹해 이식(T5, 2026-06-15). **행동양식·운영규율은 메모리가 아니다** — 원칙 문서(CLAUDE.md/CONVENTIONS/WORKFLOW/SKILL) 또는 cross-project `user_profile/`. 프로젝트 진행 맥락·handoff 는 `post-it`.
+> auto-memory 의 *하네스 write 면* (`~/.claude/projects/<encoded-cwd>/memory/*.md`) — _무엇을 저장/생략하고 어떻게 쓰는지_ 단일 출처. 하네스가 이 경로에 쓰고, SessionEnd `mem sync` 가 store(`~/.claude/memory/` tier×scope) durable 로 mirror 한다(store 가 단일소스). Hermes Agent 의 `write_approval` 게이트·promote/skip 휴리스틱을 벤치마킹해 이식(T5, 2026-06-15). **행동양식·운영규율은 메모리가 아니다** — 원칙 문서(CLAUDE.md/CONVENTIONS/WORKFLOW/SKILL) 또는 cross-project `user_profile/`. 프로젝트 진행 맥락·handoff 는 `post-it`.
 
 ### §7.1. Promote (저장) vs Skip (생략)
 
@@ -606,10 +606,10 @@ oncall self-review nudge(`loops/oncall.md` item 9) 등 _자동_ 자리는 승격
 
 | helper | 용도 | 비고 |
 |---|---|---|
-| `tools/memory/recall.sh "<query>" [--all] [--sessions]` | 정제 메모리 검색(기본) — 현 cwd / `--all`=전 cwd. `--sessions` = raw 세션 transcript(`*.jsonl`)까지 (매치 주변 context 추출) | per-cwd 격리 = 기본 현 cwd. cross-cwd·raw 는 명시 플래그 시만. rg(PCRE2), grep fallback |
-| `tools/memory/index-check.sh [dir] [--fix]` | `MEMORY.md` 인덱스 drift 점검 (누락·고아). `--fix` = 누락 포인터 _append-only_ | 기존 큐레이션 줄 보존. 인덱스 얇은 cwd 보강용 |
+| `tools/memory/recall.sh "<query>" [--all] [--sessions]` | `mem recall` thin wrapper — store FTS5 색인(bm25 랭킹) 검색, 색인 없으면 LIKE/rg fallback. 현 cwd / `--all`=전 cwd. `--sessions` = raw 세션 transcript(`*.jsonl`)까지 | per-cwd 격리 = 기본 현 cwd. cross-cwd·raw 는 명시 플래그 시만. |
+| `tools/memory/index-check.sh [dir] [--fix]` | *legacy* `projects/<cwd>/memory/` 의 `MEMORY.md` *텍스트 인덱스* drift 점검 전용 (누락·고아). `--fix` = 누락 포인터 _append-only_ | store FTS5 색인(`.index.db`)은 `mem index` 관할 — 별개 대상. 기존 큐레이션 줄 보존 |
 
-**두 검색면 (Hermes session_search 의 두 절반)**: (1) _정제 메모리_(`memory/*.md`, 기본) = 신호 깨끗, 먼저 본다. (2) _raw 세션_(`*.jsonl`, `--sessions`) = 메모리로 정제 안 된 과거 대화까지, 노이즈 크니 메모리로 안 나올 때만 보조로. Hermes 는 FTS5 DB 색인이지만 우리는 ripgrep 즉석 검색(외부 의존·유지 DB 0 — 우리 규모에 충분, 폭증 시 같은 인터페이스로 FTS5 교체).
+**두 검색면 (Hermes session_search 의 두 절반)**: (1) _정제 메모리_(store durable+working, 기본) = `mem recall` 이 SQLite FTS5(bm25 랭킹)로 검색, 색인 없으면 LIKE/rg fallback. Hermes 와 동형으로 수렴. (2) _raw 세션_(`*.jsonl`, `--sessions`) = 메모리로 정제 안 된 과거 대화까지, 노이즈 크니 정제 메모리로 안 나올 때만 보조로.
 
 **언제 recall 하나** — 작업이 _이 프로젝트의 과거 비자명 결정/선호/교정_ 에 닿는데 주입된 인덱스로 안 풀릴 때 (예: "전에 이 모듈 왜 이렇게 정했더라", 같은 실수 반복 회피). 메모리 먼저 → 안 나오면 `--sessions`. 매 턴 습관적 호출 X — 필요 자리에서만(token 절약). 결과는 _현재 코드_ 로 교차검증(메모리는 작성 시점 진실, stale 가능 — 글로벌 메모리 규율과 동일).
 

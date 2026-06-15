@@ -76,15 +76,17 @@
 
 ## What this skill is NOT
 
-- **자동 메모리 대체 X** — `~/.claude/projects/*/memory/` 는 그대로. 본 skill 은 추가 layer.
+- **자동 메모리 시스템 대체 X** — post-it 은 store 의 _working tier 사람-편집 자리_(`mem recall` 한 면에서 검색). 하네스 auto-memory(`projects/*/memory/` → store durable mirror)와 역할이 다르다. `/post-it` alias 유지(spec D-2).
 - **영구 기록 X** — 포스트잇. 영구 진실은 산출물·코드·git·구조화 프로필. 졸업하면 뗀다.
 - **코드/문서 변경 기록 X** — `autopilot-code` plans/ · `autopilot-draft` documents/.
 
 ## Auto-memory와의 경계
 
-| 위치 | 범위 | 갱신 |
-|---|---|---|
-| `~/.claude/projects/*/memory/` | account-wide cross-project | Claude 자동 학습·기록 |
-| `.claude_reports/post-it.md` | per-project (cwd 한정) | 사용자가 `/post-it`로만 |
+store 단일소스 모델에서 두 경로는 같은 store 의 다른 면이다.
 
-이 레포에만 적용되는 사실 → post-it.md / 사용자·일반 작업 선호 → auto memory 또는 `--scope user`.
+| 경로 | store 위치 | 갱신 |
+|---|---|---|
+| `~/.claude/projects/*/memory/` (하네스 auto-memory write 면) | SessionEnd `mem sync` → store **durable** mirror | 하네스 자동 write → sync |
+| `.claude_reports/post-it.md` (store working cwd 면) | SessionEnd `mem sync` → store **working** mirror | 사용자가 `/post-it`로만 |
+
+이 레포에만 적용되는 사실 → post-it.md / 사용자·일반 작업 선호 → durable auto-memory 또는 `--scope user`. `mem recall` 이 양쪽을 한 면에서 검색.
