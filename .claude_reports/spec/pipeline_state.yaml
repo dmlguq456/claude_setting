@@ -6,7 +6,7 @@ phases:
   spec: done               # 통합 PRD 확정 (D-1~4 lock)
   scaffolding: pending
   dev: in_progress         # autopilot-code 구현 착수
-last_updated: 2026-06-15
+last_updated: 2026-06-15  # v2 update: D5/mermaid/D-4 drift 정정 (자체 하네스 inject/sync), snapshot v1
 inputs:
   - .claude_reports/research/hermes-agent/
   - VISION.md

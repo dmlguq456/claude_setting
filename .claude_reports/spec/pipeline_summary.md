@@ -20,5 +20,16 @@
 ## Open (사용자 확인)
 - D-open-1 삭제 정책 / D-open-2 projection 갱신 시점 / D-open-3 이주 후 기존 폴더
 
+## Update Log
+
+### v1 → v2 (2026-06-15, update mode — drift 정정, snapshot `_internal/versions/v1/`)
+구현이 spec 보다 앞서 만든 drift 정정 (코드가 진실, spec 후행):
+- **D5** "주입은 Claude Code 가 projects/ 에서, 우리가 못 바꿈" (outdated) → **자체 하네스**로 정정: SessionStart `mem inject --hook`(store→additionalContext 직접 주입) + SessionEnd `mem sync`(projects/ auto-memory→store mirror+색인). store 가 세션 주입의 source.
+- **Architecture mermaid**: PROJ→CC projection 주입 흐름(old) → `SRC ==mem inject==> CC`(주입) + `projects/ ==mem sync==> SRC`(회수) + 하네스 write→projects/ 로 교체.
+- **D-4** projection 갱신 → inject(세션시작)+sync(세션종료) hook 자동.
+- **cli 표·[library] API**: `mem inject`·`mem sync` 행 추가, `mem project` 는 "보조(주입은 inject)" 주석.
+- 근거(검증): `settings.json` SessionStart=`mem.py inject --hook`·SessionEnd=`mem.py sync` 확인, 이번 세션 상단 inject 블록 실측.
+- 스코프 한정: D1~D4·D6·D7·통합모델·데이터모델 불변.
+
 ## Next
-open 결정 확정 → autopilot-code --mode dev
+지침 정합·mem.py 견고성·README → autopilot-code --mode dev (본 spec 따라)
