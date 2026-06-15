@@ -1,0 +1,19 @@
+project_name: unified-memory-system
+created: 2026-06-15
+mode: [library, cli]
+scope_note: "통합 기억 시스템 — post-it(단기)·auto-memory(장기)·user_profile(전역) 1 store + tier 모델. Hermes 적극 결합 + 중복 cut."
+phases:
+  spec: done               # 통합 PRD 확정 (D-1~4 lock)
+  scaffolding: pending
+  dev: in_progress         # autopilot-code 구현 착수
+last_updated: 2026-06-15
+inputs:
+  - .claude_reports/research/hermes-agent/
+  - VISION.md
+  - CONVENTIONS.md#7
+  - skills/post-it/ + tools/memory/ + user_profile/
+open_decisions:
+  - D-open-1: 삭제 정책 (working 자동만료 / durable gc 플래깅 추천)
+  - D-open-2: post-it 스킬 운명 (mem alias 유지 추천)
+  - D-open-3: user_profile 통합 깊이 (raw만 store, aspect는 view 추천)
+  - D-open-4: projection 갱신 시점 (세션 시작 hook 추천)
