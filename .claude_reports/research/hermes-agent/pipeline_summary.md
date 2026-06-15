@@ -32,3 +32,21 @@
 ## Next Pipeline
 - 채택 결정 시: 지침 문서 수정 = 직접 Edit + drill 회귀테스트 / 새 루프·스킬 신설 = autopilot-spec → autopilot-code
 - **북극성 PRD** (자율 에이전트 플러그인 → 설치 프로그램, 먼 미래): `/autopilot-spec` — 본 research + 07_security 체크리스트가 필수 입력. 별도 세션 권장.
+
+---
+
+## 보강 entry — source-grounding (실소스 검증)
+- **Date**: 2026-06-15
+- **Commit**: `29c6985` (NousResearch/hermes-agent, 2026-06-15 06:18 -0700) — clone @ `_ref_src/hermes-agent/`
+- **Mode**: source-grounded verification (docs·2차 자료 기반 03/axis3 의 ❓미검증 항목을 실소스로 검증·정정·보강)
+- **산출물**: `08_source_grounded.md` (신규 챕터 — 기존 03/axis3 미수정, 정정은 08 검증표 [CORRECTED] 로 명시)
+- **방법**: 메모리 서브시스템 8 모듈(`hermes_state.py`·`tools/memory_tool.py`·`tools/write_approval.py`·`agent/{curator,memory_manager,memory_provider,background_review,turn_context}.py`·`plugins/memory/*`) 직접 read — Agent ×4 병렬(FTS/스키마·write/nudge/capacity·Curator·provider) + 핵심 정정 citation 6건 main-context spot-check 일치
+- **집계**: claim 31건 검증 → **CONFIRMED 17 · CORRECTED 8 · FILLED-❓ 8 · REFINED 4**, ❓ 6개 전부 해소
+- **핵심 해소·정정**:
+  - `nudge_interval` = **10턴** (`agent_init.py:1113`; memory write 없이 10턴 → background review fork)
+  - 이중 테이블 결합 = **결합 없음, CJK 감지 3-way 라우팅**(unicode61/trigram/LIKE 상호배타); bm25 = FTS5 `rank`(암묵)
+  - `schema_version` **11 → 16**; `messages_fts` external-content → **inline standalone**(pre-v11 폐기형 인용됨)
+  - Curator `interval_hours`=168h/`min_idle_hours`=2h CONFIRMED, active→stale(30d)→archived(90d) timestamp 기반; **Curator 는 skill 전용**(`skip_memory=True`) — nudge(메모리)와 분리
+  - promote/skip = **양쪽(Hermes·우리) 다 프로즈**(코드 게이트 환상) → 03 §7 표 정정
+  - provider "9종" = **번들 8 + out-of-tree Memori**; `gateway/memory_monitor.py` = RSS 누수 모니터(무관)
+- **우리 시스템 대조(e)**: memory.db 전환으로 **FTS5 cross-session recall 갭 사실상 닫힘**(우리 = unicode61 항상+CJK시 trigram UNION+explicit bm25, mixed-script 에 더 강함). 남은 진짜 갭 = ① `session_search` 자율 턴-호출 통합, ② 자동 턴 카운터 회고. promote/skip 갭은 환상.
