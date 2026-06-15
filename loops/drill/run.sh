@@ -87,3 +87,9 @@ if [ "${RUN_JUDGE:-0}" = "1" ]; then
     --allowedTools "Read,Glob,Grep,Write" > "$RESULTS/judge.md" 2>&1
   echo "judge → $RESULTS/judge.md"
 fi
+
+# --- 정리: 헤드리스 케이스가 남긴 세션 detritus 제거 (projects/ 레지스트리·세션목록 오염 방지) ---
+# 각 case 의 claude -p 는 cwd=/tmp/drill-* 라 projects/-tmp-drill-*-repo 세션이 등록됨 → run 후 청소.
+rm -rf /tmp/drill-* 2>/dev/null || true
+rm -rf "$HOME/.claude/projects/"*tmp-drill*-repo 2>/dev/null || true
+echo "cleanup: drill tmp + 세션 detritus 제거"
