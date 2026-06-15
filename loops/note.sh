@@ -21,6 +21,9 @@ ARGS="${*:---scope yesterday --qa light}"
     --allowedTools "Bash,Read,Write,Edit,Glob,Grep,Skill,Agent,TodoWrite" \
     2>&1
   echo "=== exit $? $(date -Iseconds) ==="
+  # 통합 기억 store mirror — 하네스가 projects/<cwd>/memory 에 쓴 auto-memory 를 포터블 store 로 멱등 sync + 색인
+  echo "--- mem sync $(date -Iseconds) ---"
+  timeout 300 python3 "$HOME/.claude/tools/memory/mem.py" sync 2>&1 || echo "(mem sync 실패 — 비치명)"
 } >> "$LOG"
 
 tail -n 2000 "$LOG" > "$LOG.tmp" && mv "$LOG.tmp" "$LOG"

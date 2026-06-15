@@ -12,6 +12,8 @@ argument-hint: "[show] | init | add <category> <text> | resolve <hint> | decide 
 
 > **불변식 — 사용자는 post-it 을 들여다보지 않는다 (fire-and-forget).** post-it 은 _Claude 의 세션-간 연속성 작업면_ 이지 사용자 읽기용 문서가 아니다. 따라서 (1) lean 유지·졸업 prune 는 **Claude 책임** — 사용자에게 파일을 줄 단위로 검토시키지 않는다. (2) 자동 nudge 자리의 sweep 은 _확실한_ 졸업·stale 만 **자동 제거 + 한 줄 보고** (애매하면 keep). (3) 사용자에겐 _짧은 요약_ 만 주고, 액션 _저장 여부_ 만 confirm 받는다. 줄 단위 preview 는 사용자가 `/post-it sweep` 를 직접 칠 때만.
 
+> **통합 기억 store 연동 (2026-06-15).** post-it 은 _프로젝트 단위 working tier_ 로서 통합 store([tools/memory](../../tools/memory/README.md))에 미러된다 — `recall`(=`mem recall`)이 post-it 내용까지 한 면에서 검색하고, working lifecycle(만료·졸업)을 store 가 관할. post-it.md 는 여전히 _세션 시작 하네스 주입_ 의 1급 자리(이 파일 형식 유지). **`init` 으로 새 post-it.md 를 만들면 즉시 `python3 ~/.claude/tools/memory/mem.py register-postit <abs-path>` 로 레지스트리 등록** (NAS 재귀 스캔 회피 — store sync 가 직접 stat). sweep 의 시간 lifecycle 은 `mem lifecycle` 과 동형(working 30d/90d).
+
 ## Lifecycle (post-it 원칙 — 모든 엔트리는 졸업하거나 만료한다)
 
 엔트리는 영구 누적되지 않는다. 각 bullet 은 둘 중 하나로 끝난다:
@@ -114,7 +116,7 @@ post-it 의 목적 = Claude 가 _사용자 흐름을 이어가고_(연속성) + 
 파일을 Read 해서 그대로 표시 (`post-it.md` → 없으면 legacy `memo.md`). 둘 다 없으면 `/post-it init` 안내.
 
 ### `/post-it init`
-`.claude_reports/post-it.md` 가 없으면 위 템플릿으로 생성 (`.claude_reports/` 없으면 함께). `Project` = cwd basename, `Last Updated` = 오늘. 이미 있으면 "이미 존재" 표시 후 중단. legacy `memo.md` 가 있으면 "내용을 post-it.md 로 이전할까요?" 제안 (confirm 시 rename).
+`.claude_reports/post-it.md` 가 없으면 위 템플릿으로 생성 (`.claude_reports/` 없으면 함께). `Project` = cwd basename, `Last Updated` = 오늘. 이미 있으면 "이미 존재" 표시 후 중단. legacy `memo.md` 가 있으면 "내용을 post-it.md 로 이전할까요?" 제안 (confirm 시 rename). **생성 직후** `python3 ~/.claude/tools/memory/mem.py register-postit "$(pwd)/.claude_reports/post-it.md"` 실행 — 통합 store sync 가 이 post-it 을 발견하도록 레지스트리 등록 (한 번만).
 
 ### `/post-it add <category> <text>`
 - `<category>` ∈ {`convention`, `resource`, `thread`, `decision`}. Alias: `conv`, `res`, `th`, `dec`.
