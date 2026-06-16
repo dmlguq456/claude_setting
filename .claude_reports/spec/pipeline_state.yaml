@@ -6,7 +6,7 @@ phases:
   spec: done               # v3 PRD 확정 (D-1~7 lock — DB화·저장소분리·통합강화)
   scaffolding: pending
   dev: in_progress         # v3 완료(DB화·분리). v4 신규 = Cluster A(profile 완전통합)+B(Hermes port) 구현 대기
-last_updated: 2026-06-16  # v6: Cluster C — 세션 자동 distillation(orchestration raw log → tier 메모리). snapshot v5
+last_updated: 2026-06-16  # v7: D-13 외부 분사화 + distiller sonnet + D-14 보안 하드닝(mem.py-only). snapshot v6 (v6 구현 main e491241 머지됨)
 inputs:
   - .claude_reports/research/hermes-agent/
   - VISION.md
@@ -25,4 +25,5 @@ decisions_locked:
   - D-10: Hermes 잔여 port — session_search 자율호출 + turn-counter 자기회고, 둘 다 결정론-우선 (Cluster B)
   - D-11: harness-agnostic 세션 source 추상화 — ingest_session(source), 현재 Claude Code jsonl adapter 1개, 미래 하네스는 adapter 추가 (Cluster C)
   - D-12: SessionEnd distiller — detached claude -p로 세션 jsonl → working/durable distill, 재귀가드 MEM_DISTILL=1, 증분 marker (Cluster C)
-  - D-13: in-session 증분 consolidation — turn-nudge 확장, 메인 에이전트가 delta만 정리(요약 추가/해결분 prune), low-load (Cluster C)
+  - D-13: in-session 증분 consolidation — turn-nudge 확장, delta만 정리(요약 추가/해결분 prune). v7: 메인 아니라 외부 detached distiller 분사(메인 load 0), D-12와 같은 worker·marker (Cluster C)
+  - D-14: distiller 권한 하드닝 — mem.py 명령만 허용(임의 bash·dangerously-skip 제거), R1 신뢰경계 근본 차단. distiller 모델 sonnet (Cluster C v7)
