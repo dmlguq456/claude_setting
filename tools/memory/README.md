@@ -29,11 +29,15 @@ Hermes 메모리 벤치마킹의 store/write 층. spec: [`.claude_reports/spec/p
 | `stats` | store 통계 (`records` 테이블 GROUP BY) |
 | `inject [--hook]` | SessionStart 주입 — DB(durable+working+profile)→context 직접 주입. `--hook` 시 `additionalContext` JSON 출력 |
 | `sync` | SessionEnd 회수 — `projects/<cwd>/memory/` auto-memory → DB durable 흡수 + FTS5 재구축 + `dump.jsonl` 재export |
+| `distill <sid> [--advance]` | 세션 jsonl 의 공유 marker 이후 정규화 텍스트 출력(+`--advance` 로 marker 전진). SessionEnd distiller(D-12)·in-session consolidation(D-13) 공용 헬퍼 |
 | `register-postit <path>` | **deprecated (legacy-migration-only)** — `.postit-roots` 레지스트리 등록. skills 에서 더 이상 호출 안 함 (post-it 은 DB working 레코드 직접 write). |
 
-env override (테스트용): `MEM_STORE` · `MEM_PROJECTS` · `MEM_PROFILE`.
+env override (테스트용): `MEM_STORE` · `MEM_PROJECTS` · `MEM_PROFILE` · `MEM_DISTILL` · `MEM_DISTILL_ENABLE` · `MEM_DISTILL_MODEL`.
 - `MEM_STORE` → `memory.db` 경로와 `dump.jsonl` 경로 모두 이 디렉터리 하위로 파생됨.
 - `MEM_PROFILE` → `export --target profile` 의 출력 디렉터리. 테스트 시 `/tmp/...` 로 지정해 실 `user_profile/` 보호.
+- `MEM_DISTILL_ENABLE` → **distiller opt-in 게이트**. `1` 일 때만 `mem-distill-dispatch.sh` 가 실제 분사. 미설정(기본)이면 hook 은 no-op — settings.json 배선은 돼 있어도 _켜야_ 동작. 이유: 매 세션 종료마다 background LLM 자동 실행(비용·동작 인지) + distiller 가 대화 본문(외부 입력일 수 있음)을 권한 모드로 읽는 신뢰경계 확장 → 사용자가 검토 후 명시 활성화.
+- `MEM_DISTILL` → `1` 이면 `hooks/mem-distill-dispatch.sh` 의 재귀가드가 즉시 exit(distiller 세션 SessionEnd 가 다시 분사를 트리거하지 않도록 차단).
+- `MEM_DISTILL_MODEL` → distiller 분사 모델 지정 (default: `claude-haiku-4-5`).
 
 ## 자동 write 불변식
 기억 저장 = **자동**(사람 승인 게이트 없음 — "결정은 사용자"는 *세팅 변경*용이지 *기억 기록*용 아님). 안전장치는 자동 필터뿐: 품질게이트(promote/skip) · dedup · injection/secret 가드. 세팅·원칙 변경은 본 모듈 영역 아님(여전히 사람 게이트).
@@ -41,7 +45,7 @@ env override (테스트용): `MEM_STORE` · `MEM_PROJECTS` · `MEM_PROFILE`.
 ## 운영 현황 (2026-06-15)
 - **저장 구조**: `memory.db` (SQLite WAL) — `records` 테이블 12컬럼(id, tier, scope, type, cwd_origin, created, updated, expires, source, tags, links, body) + FTS5 unicode61 가상테이블(`records_fts`) + trigram CJK 보조 테이블(`records_trig`). `.index.db` 파생 파일 폐기(DB 내장으로 통합).
 - **git mirror**: `dump.jsonl` — id 정렬, `sort_keys=True`, 레코드당 1줄, NULL은 JSON `null`로 표기(키 누락·빈문자열 금지). 복원: `mem import dump.jsonl`.
-- **하네스 wired**: SessionStart `mem inject --hook` (settings.json, timeout 20) + SessionEnd `mem sync` (timeout 120) 연결 완료. `sync`는 흡수 + FTS 재구축 + `dump.jsonl` 재export 3단계 수행.
+- **하네스 wired**: SessionStart `mem inject --hook` (settings.json, timeout 20) + SessionEnd `mem sync` (timeout 120) + SessionEnd `mem-distill-dispatch.sh` (detached distiller 분사 — 세션 자동 distillation, D-12, timeout 30) 연결 완료. `sync`는 흡수 + FTS 재구축 + `dump.jsonl` 재export 3단계 수행. `mem-distill-dispatch.sh` 는 빈-delta 조기 exit + detached spawn(`setsid`)으로 SessionEnd 블로킹 없음. **단 distiller 는 `MEM_DISTILL_ENABLE=1` opt-in 전엔 no-op**(기본 비활성 — 비용·신뢰경계 검토 후 사용자가 켬).
 - **recall.sh**: `mem recall` thin wrapper (store FTS5 bm25 + trigram CJK + LIKE fallback). 파일 불변.
 - **register-postit deprecated**: legacy-migration-only. 현 post-it 경로는 DB working 레코드 직접 write (`mem note`/`mem add`) — `.postit-roots` 레지스트리·`migrate` post-it 소스는 구 markdown 이관 전용.
 - ✅ **live 적용 완료**: `migrate --apply` 로 기존 markdown SoT + auto-memory + post-it → DB 이관 완료. DB-as-SoT 전환 끝 (구 `projects/*/memory/` 는 보존, 추가형).

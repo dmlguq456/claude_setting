@@ -46,7 +46,7 @@ printf '%s\n%s\n' "$counter" "$db_mtime" > "$STATE" 2>/dev/null || true
 find "$STORE" -maxdepth 1 -name '.turn-state-*' -mmin +4320 -delete 2>/dev/null || true
 
 if [ "$fire" = "1" ]; then
-  MEM_MSG="🧠 turn-counter($N턴 기억 기록 없음) — 지금까지의 작업 맥락·결정·교훈 중 재사용 가치 있는 것을 \`mem note\`/\`mem add\` 로 promote 회고하세요 (없으면 무시). 기록하면 카운터 자동 리셋." \
+  MEM_MSG="🧠 turn-counter($N턴) — 공유 marker 이후 새 맥락만 증분 정리: 재사용 가치 있는 요약을 \`mem add\`/\`note\` 로 추가 + 이미 해결된 working 항목은 \`mem recall\` 로 id 확인 후 \`mem delete <id>\`, 처리 후 \`mem distill $SID --advance\` 로 marker 전진 (정리할 새 맥락 없으면 무시)." \
   python3 -c 'import json,os; print(json.dumps({"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext":os.environ["MEM_MSG"]}}, ensure_ascii=False))'
 fi
 exit 0

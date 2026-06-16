@@ -118,6 +118,16 @@
             "timeout": 120
           }
         ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.claude/hooks/mem-distill-dispatch.sh\"",
+            "timeout": 30
+          }
+        ]
       }
     ],
     "SessionStart": [

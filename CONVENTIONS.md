@@ -589,9 +589,9 @@ analyze-project 자체는 `_last_run.yaml` 기반 **incremental update** default
   | `projects/<cwd>/memory/` (하네스 auto-write inbox) | durable/project | 하네스 write → SessionEnd `mem sync` |
   | DB `type=profile` 레코드 (cross-project 프로필 SoT) | durable/global (type=profile) | `analyze-user` → `mem add` → `mem sync`; `user_profile/*.md` = on-demand `mem export` 사람 열람 캐시 (SoT 아님) |
 
-- **자체 하네스 (store 가 세션 주입의 source)**: SessionStart hook `mem inject --hook` → store 의 현 cwd working+durable + global profile 을 `additionalContext` 로 주입. SessionEnd hook `mem sync` → 하네스 write 회수 + 색인 재생성. (단일 출처 = `settings.json` hooks.)
+- **자체 하네스 (store 가 세션 주입의 source)**: SessionStart hook `mem inject --hook` → store 의 현 cwd working+durable + global profile 을 `additionalContext` 로 주입. SessionEnd hook `mem sync` → 하네스 write 회수 + 색인 재생성. SessionEnd hook `mem-distill-dispatch.sh` → 세션 jsonl 의 공유 marker 이후 구간을 detached `claude -p` distiller 로 분사해 working/durable 흡수 자동화(D-12, 재귀가드 `MEM_DISTILL=1`; **단 `MEM_DISTILL_ENABLE=1` opt-in 전엔 no-op** — 매 세션 background LLM 실행 비용 + distiller 가 대화 본문을 권한 모드로 읽는 신뢰경계 확장 때문에 기본 비활성, 사용자가 검토 후 켬). (단일 출처 = `settings.json` hooks.)
 - **회상**: `tools/memory/recall.sh` = `mem recall` thin wrapper — store FTS5 + `--sessions`(raw 대화 jsonl) + `--all`(전 scope). 트리거 = CLAUDE.md §도메인 + §7.4.
-- **CLI**: `mem {add, note, recall, index, sync, inject, export, import, migrate, lifecycle, project, stats, profile, register-postit}`. (`profile <stem>` = DB type=profile 레코드 body 출력 — read-only; `export --target dump|profile` = DB→git mirror / on-demand 사람 열람 캐시 (SoT 아님); `import <dump.jsonl>` = 복원; `register-postit` = deprecated/legacy-migration-only, skills 에서 더 이상 호출 안 함.)
+- **CLI**: `mem {add, note, recall, index, sync, inject, export, import, migrate, lifecycle, project, stats, profile, distill, register-postit}`. (`profile <stem>` = DB type=profile 레코드 body 출력 — read-only; `export --target dump|profile` = DB→git mirror / on-demand 사람 열람 캐시 (SoT 아님); `import <dump.jsonl>` = 복원; `register-postit` = deprecated/legacy-migration-only, skills 에서 더 이상 호출 안 함.)
 - **불변식**: 기억 저장 = 자동(품질필터만 — §7.1·§7.2, 사람 승인 게이트 없음). 삭제(gc)·세팅변경은 사람 게이트. lifecycle = working 시간만료 / durable consolidate(§7.3 lifecycle).
 
 > 위 intro 의 _write 면_ 세부 (무엇을 저장/생략하고 어떻게 쓰는지) 는 §7.1–§7.2, recall 은 §7.4. Hermes `write_approval` 게이트·promote/skip·session_search 벤치마킹(T5/T1).

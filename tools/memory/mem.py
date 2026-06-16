@@ -11,6 +11,7 @@ spec: ~/.claude/.claude_reports/spec/prd.md (Unified Memory System v3).
   - 외부 의존 0 (stdlib: sqlite3/argparse/json/hashlib/...). rg 있으면 회상 가속.
 """
 import argparse, datetime, hashlib, json, os, re, sqlite3, subprocess, sys
+from collections import namedtuple
 from pathlib import Path
 
 HOME = Path.home()
@@ -60,6 +61,24 @@ def slugify(text, n=4):
 
 def norm_body(body):
     return re.sub(r"[\s\W_]+", " ", body.lower()).strip()
+
+
+def _distill_state_path(sid):
+    return STORE / f".distill-state-{sid}"
+
+
+def read_marker(sid):
+    """세션 distill 의 마지막 처리 uuid 읽기 (없으면 "")."""
+    p = _distill_state_path(sid)
+    if not p.exists():
+        return ""
+    return p.read_text(encoding="utf-8").strip()
+
+
+def advance_marker(sid, last_uuid):
+    """marker 를 last_uuid 로 전진 (turn-state write 동형, atomic 불요)."""
+    STORE.mkdir(parents=True, exist_ok=True)
+    _distill_state_path(sid).write_text(last_uuid + "\n", encoding="utf-8")
 
 
 # ---------- frontmatter (migration source 읽기 / projection 출력 용) ----------
@@ -171,6 +190,9 @@ def get_con():
     con.execute("PRAGMA journal_mode=WAL")
     con.execute("PRAGMA synchronous=NORMAL")
     con.execute("PRAGMA foreign_keys=ON")
+    # busy_timeout: SessionEnd 에서 부모 `mem sync` 와 분사된 distiller 가 같은 DB 에 동시
+    # write 할 수 있어(WAL 도 writer 2개는 충돌) "database is locked" 즉시 실패를 5s 재시도로 완화.
+    con.execute("PRAGMA busy_timeout=5000")
     _ensure_schema(con)
     return con
 
@@ -520,6 +542,116 @@ def _recall_sessions(query, cwd):
         cmd = ["grep", "-i", "-rn", "--include=*.jsonl", query, str(base)]
     out = subprocess.run(cmd, capture_output=True, text=True).stdout.splitlines()[:30]
     print("\n".join(out) if out else "(세션 매칭 없음)")
+
+
+# ---------- session distill (Cluster C, D-11~13) ----------
+Msg = namedtuple("Msg", "role ts text uuid is_sidechain")
+
+
+def _user_text(content):
+    """user message.content (str 또는 list) → 텍스트. tool_result·image 블록 제외."""
+    if isinstance(content, str):
+        return content
+    parts = []
+    if isinstance(content, list):
+        for b in content:
+            if isinstance(b, dict) and b.get("type") == "text":
+                parts.append(b.get("text", ""))
+    return "\n".join(p for p in parts if p)
+
+
+def _assistant_text(content):
+    """assistant message.content (list) → 텍스트 + [tool:Name] 라벨. thinking 제외."""
+    parts = []
+    if isinstance(content, list):
+        for b in content:
+            if not isinstance(b, dict):
+                continue
+            bt = b.get("type")
+            if bt == "text":
+                parts.append(b.get("text", ""))
+            elif bt == "tool_use":
+                parts.append(f"[tool:{b.get('name', '?')}]")
+            # thinking 블록은 제외
+    return "\n".join(p for p in parts if p)
+
+
+class ClaudeCodeJsonlSource:
+    """Claude Code 하네스 adapter: projects/<enc_cwd>/<sid>.jsonl → 정규화 Msg 스트림.
+    .messages() 가 role 메시지를 파일 순서로 yield (전체 — marker 필터는 ingest_session)."""
+
+    def __init__(self, sid, projects=None):
+        self.sid = sid
+        self.projects = projects or PROJECTS
+
+    def locate(self):
+        return next(iter(self.projects.glob(f"*/{self.sid}.jsonl")), None)
+
+    def messages(self):
+        path = self.locate()
+        if path is None:
+            return
+        with path.open(encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    d = json.loads(line)
+                except Exception:
+                    continue
+                t = d.get("type")
+                if t not in ("user", "assistant"):
+                    continue  # 비-role (last-prompt/attachment/system/ai-title/mode 등) skip
+                if d.get("isMeta"):
+                    continue  # 하네스 주입 메타(시스템 reminder 등) = 사용자 발화 아님 → drop
+                content = (d.get("message") or {}).get("content")
+                if t == "user":
+                    text = _user_text(content)
+                else:
+                    text = _assistant_text(content)
+                yield Msg(t, d.get("timestamp"), text,
+                          d.get("uuid"), d.get("isSidechain", False))
+
+
+# YAGNI: 다른 하네스용 adapter 는 같은 .messages() 인터페이스
+# (role,ts,text,uuid,is_sidechain Msg yield)만 구현하면 ingest_session·distill 불변.
+
+
+def ingest_session(source):
+    """source 의 정규화 메시지 중 공유 marker(read_marker(sid)) 이후만 yield.
+    marker 없으면 전체. marker uuid 가 파일에 있으면 그 다음부터(exclusive).
+    marker 가 파일에 없으면 아무것도 yield 안 함(보수적 — 재-dup 방지)."""
+    after = read_marker(source.sid)
+    started = not after
+    for msg in source.messages():
+        if not started:
+            if msg.uuid == after:
+                started = True
+            continue
+        yield msg
+
+
+def distill(sid, advance=False):
+    """marker 이후 메시지를 정규화 텍스트로 stdout. --advance 면 marker 전진.
+    sidechain·빈-text 는 출력 제외하되 last_uuid(marker 전진)는 전 구간 끝까지."""
+    source = ClaudeCodeJsonlSource(sid)
+    last_uuid = None
+    out = []
+    for msg in ingest_session(source):
+        # last_uuid 는 marker 전진 대상(전 구간 끝까지 — sidechain 포함). 단 uuid 가 None 인
+        # 줄에는 갱신하지 않는다: 마지막 줄 uuid 가 None 이면 advance 가 skip 돼 같은 delta 로
+        # 매 SessionEnd 재분사되는 루프가 생기므로, 마지막 *유효* uuid 를 유지한다.
+        if msg.uuid is not None:
+            last_uuid = msg.uuid
+        if msg.is_sidechain or not (msg.text or "").strip():
+            continue
+        out.append(f"[{msg.role}] {msg.text}")
+    sys.stdout.write("\n\n".join(out))
+    if out:
+        sys.stdout.write("\n")
+    if advance and last_uuid:
+        advance_marker(sid, last_uuid)
 
 
 # ---------- export / import ----------
@@ -1232,6 +1364,10 @@ def main():
     pf.add_argument("aspect", nargs="?", help="stem '07_coding_convention' / 숫자 '07' / alias 'coding'")
     pf.add_argument("--list", action="store_true", help="가용 aspect 목록 (stem + 라벨 + body 길이); aspect 인자 무시 — 전체 목록 출력")
 
+    ds = sub.add_parser("distill", help="세션 jsonl 의 marker 이후 정규화 텍스트 출력(+--advance 로 marker 전진)")
+    ds.add_argument("sid")
+    ds.add_argument("--advance", action="store_true", help="처리 후 marker 를 마지막 메시지 uuid 로 전진")
+
     args = ap.parse_args()
 
     if args.cmd == "add":
@@ -1274,6 +1410,8 @@ def main():
         import_dump(args.path)
     elif args.cmd == "profile":
         profile(args.aspect, list_mode=args.list)
+    elif args.cmd == "distill":
+        distill(args.sid, advance=args.advance)
 
 
 if __name__ == "__main__":
