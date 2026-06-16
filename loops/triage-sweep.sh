@@ -18,6 +18,8 @@ fi
   echo "=== triage-sweep run $(date -Iseconds) ==="
   cd "$BOARD" || exit 1
   set -a; . "$BOARD/.env.local" 2>/dev/null; set +a   # CARDS_DIR/LAYER2_DIR 등
+  # ⟨v52⟩ Turso 자격 — 있으면 제안이 클라우드 DB(앱과 동일)로. 없으면 로컬 file DB.
+  set -a; [ -f "$LOOP_DIR/.worklog-turso.env" ] && . "$LOOP_DIR/.worklog-turso.env"; set +a
   timeout 600 "$HOME/.local/bin/npx" tsx scripts/generate-link-proposals.ts --apply 2>&1
   echo "=== exit $? $(date -Iseconds) ==="
 } >> "$LOG"

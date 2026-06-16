@@ -17,6 +17,9 @@ ARGS="${*:---scope yesterday --qa light}"
 {
   echo "=== note run $(date -Iseconds) args: $ARGS ==="
   cd /home/nas/user/Uihyeop || exit 1
+  # ⟨v52⟩ Turso 자격 주입 — 있으면 autopilot-note 의 DB 쓰기(migrate-fs-to-db 등)가
+  #   클라우드 DB(앱과 동일)로 간다. 파일 없으면 로컬 file DB(이식 안 된 서버 graceful).
+  [ -f "$LOOP_DIR/.worklog-turso.env" ] && . "$LOOP_DIR/.worklog-turso.env"
   timeout 2400 "$HOME/.local/bin/claude" -p "/autopilot-note $ARGS" \
     --allowedTools "Bash,Read,Write,Edit,Glob,Grep,Skill,Agent,TodoWrite" \
     2>&1
