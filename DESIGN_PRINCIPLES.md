@@ -151,10 +151,12 @@ per-project 메모는 두 layer 분리.
 
 | Layer | 위치 | 갱신 주체 | 용도 |
 |---|---|---|---|
-| **사용자 통제** | DB working tier — `/post-it` 스킬이 `mem note`/`mem add` 로 author; 5 카테고리(conventions·external resources·open threads·decisions·next session hints)는 `type` taxonomy 로 유지 (파일 face 아님) | `/post-it` 명령으로만 (Claude 자동 X) → `mem note`/`mem add` → SessionEnd `mem sync` | conventions / external resources / open threads / decisions / next session hints |
-| **하네스 자동** | `~/.claude/projects/*/memory/` (하네스 auto-write 면) → SessionEnd `mem sync` → store(`~/.claude/memory/` tier×scope) durable mirror | 하네스 자동 write + `mem sync` | 재사용 절차·교정·컨벤션·교훈 자동 학습. store 가 세션 주입 source(`mem inject --hook`) |
+| **사용자 수동** | DB working tier — `/post-it` 가 `mem note`/`mem add` 로 author; 5 카테고리(conventions·external resources·open threads·decisions·next session hints)는 `type` taxonomy 로 유지 | `/post-it` (사용자 명시) | 사용자가 박아두려는 conventions / resources / threads / decisions / hints |
+| **자동 학습** | DB working/durable — 외부 distiller 가 세션 delta 를 distill → `mem add` (Cluster C) | **외부 detached distiller** (메인 아님; turn-counter·SessionEnd hook 트리거 — §0.5 판단 외부화) | 재사용 절차·교정·컨벤션·교훈 자동 학습 |
 
-세션 주입은 `mem inject --hook` 가 DB working tier 에서 수행 (CLAUDE.md post-it.md 도메인 트리거는 v5 에서 제거됨, Step 2.15).
+- 내장 file 메모리(`~/.claude/projects/*/memory/`)는 **직접 write hard-block**(`builtin-memory-guard.sh`); `mem sync` 는 다른 세션·하네스의 stray write 만 안전망 흡수. 기억 write 경로 = `mem`(DB) 단일.
+- **삭제·prune·consolidate·graduate(비가역) = 메인 직접** (Cluster D — `mem inject` 정리후보 노출 받아 in-context). working TTL(21일) = deterministic backstop. (원칙: 추가[가역]=외부 자동 / 삭제[비가역]=메인.)
+- 세션 주입 = `mem inject --hook` (DB working+durable+profile). 상세 SoT = CLAUDE.md §0.5/§2 + CONVENTIONS §7.
 
 **Why**: 자동 메모리가 모든 feedback 을 누적하면 사용자가 _명시적으로 박아두고 싶은_ 정보 (코딩 컨벤션 · 외부 자원 link · 미해결 thread) 가 noise 에 묻혀 보인다. layer 분리 후 우선순위 명확.
 

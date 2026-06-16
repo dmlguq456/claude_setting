@@ -38,8 +38,10 @@
 #       로 date>>file 이 차단되고 hang 없음 실측. allowlist probe 아님 — disallow>allow 우선순위를
 #       실 환경에서 검증해야 한다(빈-allow 환경에서의 PASS 는 "allow 없으면 no Bash"로 false PASS).
 #       --permission-mode 는 default(미지정) 유지 — dontAsk/bypassPermissions 는 allow-all 이라 금지.
-#     R1 env-상속 1회 / ghost-marker 1회 / R7(mem sync 이중흡수) — 미검증.
-#   ⚠️ 하드룰: 미검증 항목 통과 전 `MEM_DISTILL_ENABLE=1` 금지.
+#     검증 완료(2026-06-16): ⑤ acceptance(임의명령 차단 실측, control/test counterfactual)·
+#     R1 env-상속(claude -p SessionEnd 발화 + MEM_DISTILL=1 상속 probe)·ghost-marker·e2e(84줄→6레코드).
+#     → MEM_DISTILL_ENABLE=1 활성(settings.json env). R7(mem sync 이중흡수)는 distiller=mem add(DB),
+#     sync=stray 흡수라 비충돌 — 잔여 관찰 항목.
 #
 #   $OUT 캡처파일 ($STORE/.distill-out-<sid>): 일시적(transient) — trap rm -f + 진입부 stale GC.
 #     verbatim 대화 delta 를 보유하므로, SIGKILL-orphan 시 /memory/ gitignore 커버 하에 60분 후 GC.
