@@ -1,4 +1,7 @@
 {
+  "env": {
+    "MEM_DISTILL_ENABLE": "1"
+  },
   "permissions": {
     "allow": [
       "Bash",
