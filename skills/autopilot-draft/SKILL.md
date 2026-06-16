@@ -354,17 +354,11 @@ Invoke Skill: `draft-strategy` with args: `<resolved_mode> --inputs <comma-separ
 
     > 본 산출물 전반에 적용되는 양식 규칙. Draft 생성·refine 모든 단계에서 이 섹션을 우선 참조.
 
-    ### Citation format
-    - 학회/저널 published 우선: `IS 2024`, `T-ASLP 2023`, `ICASSP 2025`, `Interspeech 2024`, `NeurIPS 2024` (학회명 약어 + 4-digit year, 공백 1개).
-    - arXiv-only 논문: `_arXiv:XXXX.XXXXX_` (italic, prefix `arXiv:`).
-    - 둘 다 존재: 학회 우선 표기 + arXiv id 보조 `IS 2024 / arXiv:2402.XXXXX` (slash 구분, 학회 → arXiv 순).
-    - Author-year inline: `[Wang et al., 2024]` (대괄호 + comma + space).
-
-    ### Year / venue 표기 표준
-    - 학회 논문: `{학회 약어} {year}` (e.g., `Interspeech 2024`, `ICASSP 2025`).
-    - 약어 매핑 고정: `Interspeech → IS`, `ICASSP → ICASSP`, `NeurIPS → NeurIPS`, `ICLR → ICLR`, `T-ASLP → T-ASLP`, `JASA → JASA`.
-    - arXiv preprint: `arXiv:{YYMM.XXXXX}` (italic 권장).
-    - Year 단독 표기 금지: 항상 venue 동반.
+    ### Citation / venue 표기
+    > **사용자 venue 약어맵·표기 선호는 `mem profile 02_paper_writing_style` 의 "Citation·venue 표기" 섹션이 1순위** (사용자 도메인별 venue 약어·형식 — skeleton 이 아니라 profile taste). profile 에 없으면 아래 generic 기본 seed 적용. (2026-06-16 audit #2 — venue 약어맵을 skill 에서 profile 02 로 이관.)
+    - published 우선: `{venue 약어} {year}` (공백 1개). arXiv-only: `_arXiv:XXXX.XXXXX_` (italic). 둘 다: `{venue} {year} / arXiv:2402.XXXXX` (학회 → arXiv, slash).
+    - Author-year inline: `[Author et al., YYYY]` (대괄호 + comma + space).
+    - venue 약어 매핑: `mem profile 02` 의 약어맵 참조 (없으면 published 학회명 그대로). Year 단독 표기 금지 — 항상 venue 동반.
 
     ### Figure caption template
     - `**Figure N**: {caption 1줄}. Source: cards/{file}.md` (논문 인용 figure인 경우)

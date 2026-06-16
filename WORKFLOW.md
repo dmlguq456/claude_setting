@@ -124,7 +124,7 @@
 
 > 본 §7 은 _지침_ 으로 적재된다 — CLAUDE.md 부트스트랩이 세션 시작에 WORKFLOW.md 를 Read (spec-backed 사후 수정은 §0(A) 도메인 트리거가 가리킴). `workflow-guard-hook` 은 매 프롬프트에 모드 신호(📌tracked 따름 / ⚡untracked 면제)만 띄운다(런타임 flag 상태). 규칙 본문의 단일 출처는 본 §0/§7.
 
-0. **기존 `.claude_reports/` 산출물 파악 (1 순위, 특히 새 세션)** — 손대기 전 `spec/prd.md` · `pipeline_state.yaml` · 최근 `plans/*` 를 _필요에 따라_ 먼저 읽어 프로젝트 상태·진행 자리를 잡는다. 맥락 모른 채 작업 X.
+0. **기존 `.claude_reports/` 산출물 파악 (1 순위, 특히 새 세션)** — 손대기 전 `spec/prd.md` · `pipeline_state.yaml` · 최근 `plans/*` 를 먼저 읽어 프로젝트 상태·진행 자리를 잡는다. 맥락 모른 채 작업 X. **spec-backed cwd 에선 `prd.md` Read 가 _필수 게이트_** — `spec-skill-gate` hook 이 이번 세션 prd.md 미Read(또는 Read 후 prd 갱신) 시 `autopilot-code`/`autopilot-spec` 호출을 hard DENY 한다 (선택 아님; settings.json 등록, [README](README.md) 'hard 차단 셋' 중 하나).
 1. **(필요 시) analyze 갱신** — `analysis_project/code/` 가 stale 하거나 낯선 영역이면 `analyze-project --mode code` (incremental) 먼저.
 2. **spec 존재 확인** — 없으면 `autopilot-spec` 먼저 유도 (**spec → dev 하드 원칙**; throwaway 1 회성만 예외, 반복 시 spec 승격 권장).
 3. **spec-drift 사전 체크 (code 경유 _전_, 최우선)** — `spec/prd.md` 대조:

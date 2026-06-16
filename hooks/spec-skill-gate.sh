@@ -1,15 +1,16 @@
 #!/bin/sh
-# PreToolUse(Skill): spec-governed skill(autopilot-code/spec/note)을 spec-backed cwd에서
+# PreToolUse(Skill): spec 청사진을 _변경_ 하는 skill(autopilot-code/spec)을 spec-backed cwd에서
 # 호출할 때, 이번 세션에 prd.md를 '실제 Read'(마커 존재)하지 않았으면 DENY.
 # prd.md가 Read 이후 갱신됐으면(역방향 drift)도 DENY → 재Read 강제.
 # self-report가 아니라 검증 가능한 하드 게이트. POSIX sh, no jq.
+# (autopilot-note 제외 — digest skill 이라 spec 청사진을 안 바꿈. 2026-06-16 audit #16.)
 
 input=$(cat 2>/dev/null)
 [ -z "$input" ] && exit 0
 
 skill=$(printf '%s' "$input" | grep -o '"skill"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 | sed 's/.*"skill"[[:space:]]*:[[:space:]]*"//; s/"$//')
 case "$skill" in
-  autopilot-code|autopilot-spec|autopilot-note) ;;
+  autopilot-code|autopilot-spec) ;;
   *) exit 0 ;;   # spec-governed 아닌 skill → 통과
 esac
 
