@@ -6,7 +6,7 @@ phases:
   spec: done               # v3 PRD 확정 (D-1~7 lock — DB화·저장소분리·통합강화)
   scaffolding: pending
   dev: in_progress         # v3 완료(DB화·분리). v4 신규 = Cluster A(profile 완전통합)+B(Hermes port) 구현 대기
-last_updated: 2026-06-17  # v9: Cluster D — 결정론-first lifecycle(add=외부/삭제=메인, recall hook, 정리후보 노출). snapshot v8 (v6~v8 머지·distiller ENABLE: cd9f220)
+last_updated: 2026-06-17  # v10: Cluster E — 큐레이션 단순화(세션끝 opus 풀 큐레이터)+audit P0 하드닝(strength·project_key·recall·내구성)+E-7 프록시 폐기. snapshot v9
 inputs:
   - .claude_reports/research/hermes-agent/
   - VISION.md
@@ -29,4 +29,5 @@ decisions_locked:
   - D-14: distiller 신뢰경계 차단 — v7 권한 allowlist(mem.py-only) 무력 실측(settings.json blanket Bash allow) → v8 재설계: distiller no-tools(--disallowedTools) + JSON-lines 출력 → 스크립트가 검증 후 mem add 직접 실행(LLM 판단·코드 실행, §0.5). distiller 모델 sonnet (Cluster C v8)
   - D-15: recall 자동주입 hook — B1 instruction → UserPromptSubmit hook(신호어 regex → mem recall → additionalContext). 메인 "recall 할까" 판단 제거 (Cluster D v9)
   - D-16: 정리 후보 메인 노출 — lifecycle durable near-dup(+옵션 capacity·만료임박 working)를 mem inject 에 노출 → 메인이 consolidate/prune/graduate (Cluster D v9)
-  - D-17: add=외부 offload·삭제=메인 원칙 — distiller add-only 확정, working prune/graduate·consolidation=메인, TTL=deterministic backstop(2차) (Cluster D v9)
+  - D-17: add=외부 offload·삭제=메인 원칙 — distiller add-only 확정, working prune/graduate·consolidation=메인, TTL=deterministic backstop(2차) (Cluster D v9) [v10에서 삭제=세션끝 opus로 정정]
+  - D-18~D-24: Cluster E(v10) — 세션끝 opus 풀 큐레이터(단순화)·strength reinforcement·폭증방지 4겹·project_key robust(worktree/이동)·recall 엔진(OR+bm25)·내구성(dump commit·user_version·INJECTION persist)·E-7 프록시 폐기(model-agnostic=D-11 adapter)

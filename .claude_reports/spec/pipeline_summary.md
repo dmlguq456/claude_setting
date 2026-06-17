@@ -80,5 +80,12 @@ v8 머지·enable·e2e(84줄→6레코드 정확) 완료 후, 사용자와 lifec
 - **발견된 갭**: ① recall 이 instruction(메인 판단) — hook 으로 결정론화 가능(B1 미완분). ② lifecycle durable near-dup `[dup-flag]` 가 sync 출력으로 흘러 死(아무도 안 봄). ③ working "졸업"(working→durable)이 구현된 적 없음 — blind TTL delete 만. 외부화 때 prune 도 빠져(distiller add-only) 검토 삭제 부재.
 - **D-15 recall hook** / **D-16 정리후보 mem inject 노출** / **D-17 distiller add-only 확정·삭제=메인·TTL backstop**.
 
+### v9 → v10 (2026-06-17, update mode — Cluster E: 큐레이션 단순화 + audit P0 하드닝, snapshot `_internal/versions/v9/`)
+Cluster B/C/D 머지·enable 후 사용자 "메모리=가장 중요한 시스템, 다각도 점검+강화" → 8각도 read-only audit(`analysis_project/memory-audit/findings.md`, 716줄, workflow 9 agent) 실측. + 설계 심화 대화로 두 축 확정:
+- **(A) 큐레이션 단순화** (사용자 "구조 너무 복잡 → 세션끝 opus 가 메인 일까지"): 3자(distiller add→script flag→메인) → **세션끝 opus 풀 큐레이터** collapse. "새 메인이 해결 모름" 문제 소멸. D-12 sonnet→opus·add-only→full-curate, D-17 삭제=메인→세션끝 opus(dump 복구 안전망·worst=비효율). no-tools 유지·action JSON·script 실행.
+- **(B) audit P0 하드닝**: strength reinforcement(재출현=중요도, dedup=reinforce)·폭증방지 4겹(durable snapshot·ceiling·budget·decay)·project_key robust(worktree/이동 오펀 해소)·recall 엔진(단일phrase→OR+bm25+top-K)·내구성(dump commit·import 멱등·user_version·INJECTION persist).
+- **(C) E-7 프록시 폐기**(사용자 재검토): on-premise 로깅 프록시는 redundant — 다른 하네스도 자기 로그 남김 → D-11 adapter 만으로 model-agnostic 달성, 비용≫이득. graduate(working→durable)는 opus 가 수행.
+- audit 발견 신규: 내구성 갭(dump push 0)·INJECTION_PAT 미persist(poisoning)·graduate/cold-decay 미구현.
+
 ## Next
-**Cluster D 구현** → autopilot-code --mode dev (본 v9 spec), worktree. ① `mem-recall-inject.sh` hook(신호어→recall→주입)+settings 배선 ② `mem inject` 정리후보 섹션(lifecycle dup 탐지 재사용) ③ CONVENTIONS §7·CLAUDE.md §2 원칙 명문화. distiller·TTL 코어 무변경. 지침파일 변경 → 머지 후 drill.
+**Cluster E 구현** → autopilot-code, worktree, **phase 분할**(한 사이클 X — schema·로직 큼): E-α(DB 하드닝: user_version+strength+project_key+마이그레이션) → E-β(recall 엔진+내구성) → E-γ(세션끝 opus 풀 큐레이터+폭증 4겹+graduate, no-tools 보안 재검증). 각 phase 머지 후 회귀. E-7 프록시 구현 없음.

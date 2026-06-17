@@ -1,6 +1,6 @@
 # Unified Memory System — PRD
 
-> mode: **library + cli** · 작성 2026-06-15 · v3(DB화·저장소분리) · v4(결정론-우선 원칙·Hermes port) · v5(Option 2 — user_profile·post-it 파일 메커니즘 제거, DB 단일 store, sub-agent DB 직접 읽기) · v6(Cluster C — 세션 자동 distillation: orchestration raw log → tier 메모리, "기억해둬" 수동 의존 제거) · v7(D-13 외부 분사화 + distiller sonnet + D-14 권한 하드닝 시도) · v8(D-14 권한 allowlist 무력 → no-tools+스크립트 실행 재설계) · v9(Cluster D — 결정론-first lifecycle 정비) · **v10 2026-06-17** (Cluster E — 큐레이션 단순화[세션끝 opus 풀 큐레이터, 메인 housekeeping 0] + audit P0 하드닝[strength·project_key·recall엔진·내구성])
+> mode: **library + cli** · 작성 2026-06-15 · v3(DB화·저장소분리) · v4(결정론-우선 원칙·Hermes port) · v5(Option 2 — user_profile·post-it 파일 메커니즘 제거, DB 단일 store, sub-agent DB 직접 읽기) · v6(Cluster C — 세션 자동 distillation: orchestration raw log → tier 메모리, "기억해둬" 수동 의존 제거) · v7(D-13 외부 분사화 + distiller sonnet + D-14 권한 하드닝 시도) · v8(D-14 권한 allowlist 무력 → no-tools+스크립트 실행 재설계) · **v9 2026-06-17** (Cluster D — 결정론-first lifecycle 정비: add=외부 offload·delete=메인 원칙, recall 자동주입 hook, consolidation/prune 후보 메인 노출)
 > 입력: `research/hermes-agent/{03_memory_system,04_benchmark_gap,07_security,08_source_grounded}.md` · 기존 `tools/memory/*` · `skills/{post-it,analyze-user}/` · `user_profile/`
 > 본 문서는 청사진(PRD). 구현은 autopilot-code (산출물 `plans/`).
 > **방향(사용자 확정 2026-06-15)**: "대공사 OK, 보수적 현상유지 X, 제대로·깔끔·근본부터." Hermes 메모리 적극 결합 + 중복 cut + DB-SoT.
@@ -132,53 +132,6 @@ markdown 186 SoT → DB 1개 + dump.jsonl · `.index.db` 파생색인 → DB 내
 - **working TTL(21일) = deterministic backstop** 유지 — 메인이 검토 못 하고 방치된 working 만 시간 정리(안전망). 1차=메인 검토(노출 기반), 2차=TTL. (spec §1 "자동만료/졸업" 중 _졸업_ 은 메인이 D-16 노출 받아 수행 — 그간 미구현분 충원.)
 - Hermes 대비: Hermes 는 시간 prune 없음(capacity-only), 우리는 TTL backstop + 메인검토 hybrid.
 
-## 5.7 Cluster E — 큐레이션 단순화 + audit P0 하드닝 + model-agnostic 캡처 (v10, 사용자 확정 2026-06-17)
-
-> **계기**: 사용자 "메모리는 가장 중요한 시스템 — 다각도 점검+강화". 8각도 read-only audit(`analysis_project/memory-audit/findings.md`, 716줄) 실측 + "구조가 너무 복잡 → 세션끝 distiller 를 opus 로 올려 메인 일까지 위임" 단순화 지시 + "대화 로깅을 일반화해 on-premise 로(궁극 솔루션)" 결정. 결정론-first 정합: schema·marker·script 실행·dump·프록시 = 코드, opus 판단 = salience·병합·prune 만.
-
-### 5.7.1 큐레이션 단순화 (Cluster C/D 정정 — 역할 collapse)
-복잡했던 3자(distiller add → script flag → 다음세션 메인 consolidate)를 **세션끝 opus 1주체**로 collapse:
-- **세션끝 distiller = opus 풀 큐레이터** (D-12 모델 sonnet→**opus**, 역할 add-only→full-curate): 전체 세션 + 현 프로젝트 메모리 읽어 **add + semantic consolidate + strength 합산 + resolved-working prune** 통째로. "새 메인이 뭐가 해결됐는지 모름" 문제 소멸(세션끝이 full context 보유 — 해결·dup 을 직접 앎).
-- **N턴 in-session distiller = sonnet, 경량 add-only 유지** (D-13). 증분 capture 만.
-- **메인 세션 = 메모리 housekeeping 0** — D-16 정리후보의 _메인 실행_ 부분을 세션끝 opus 로 위임(메인 load 0 완성). inject 정리후보는 informational 로 축소.
-- **D-17 "삭제=메인" → "삭제=세션끝 opus"** 이전. 정당화: opus capable + full context + **worst=비효율(손실 아님)** + dump 버저닝(E-5)으로 잘못된 prune 복구가능. durable 삭제도 opus 가 보수적 프롬프트 + dump 안전망 하에.
-- **보안 불변(v8 D-14 확장)**: distiller 여전히 **no-tools**. 출력계약을 `{tier,type,body}` → **action JSON**(`add`/`reinforce(id)`/`merge(ids→canonical)`/`prune(id)`)으로 확장. **script 가 검증 후 실행**(INSERT/strength++/merge/DELETE, shell=False, LLM 실행 0). prune/merge id 는 현 프로젝트 records 화이트리스트 대조(profile 등 보호).
-
-### 5.7.2 E-1 — strength/reinforcement 차원
-- records 에 **`strength`(재출현 횟수) + `last_accessed`** 칼럼 추가(schema 변경 — E-5 user_version 게이트 선행).
-- **dedup = 버리기 아니라 reinforce**: ≈이미 있으면 새 레코드 대신 strength++ (2번 나옴 = 중요 신호, Hebbian). **exact-match = script 결정론 reinforce / fuzzy 근접 = script 가 후보 flag → opus 가 병합 판단**(flag 는 비파괴라 false-positive 무해 — 메인/opus 가 거름).
-- strength → injection 랭킹 · recall 랭킹 · cold-decay 저항.
-
-### 5.7.3 E-2 — 폭증 방지 (distiller 가 add 엔진이라 필수)
-- **add-time dedup(원천)**: distiller 에 현 durable snapshot 주입 → "이미 있는 것 재기록 마라".
-- **durable soft-ceiling** passive 한 줄 → opus 큐레이터 트리거 신호로 격상 (현 78/80, 임박).
-- **injection budget**: strength 랭크 top-K(폭증해도 컨텍스트 bounded).
-- **cold-decay**: `last_accessed` 오래된 durable = prune 후보(opus 판단).
-
-### 5.7.4 E-3 — project_key robust (audit P0 #1 — 폭증·recall·inject·lifecycle 4면 동시해소)
-- 현 raw `enc_cwd(Path.cwd())` → worktree·이동에 silo/오펀(worklog-board 3분할 실증). → **project_key 해석순서**: ① git remote URL → ② `git-common-dir` 캐노니컬 repo root(worktree→main 매핑) → ③ `.claude-project-id` 마커(이동 견딤) → ④ cwd(최후).
-- **fail-safe**: hard-fail 금지(항상 ④까지)·키 불확실 시 broad inject(놓치는 것보다 안전)·**삭제는 opus+dump 안전망**이라 오인식해도 손실 0.
-- **고아 탐지**: 어떤 live 프로젝트로도 해석 안 되는 cwd_origin → 고아 후보 surface. 기존 cwd_origin 옛경로 → project_key 마이그레이션.
-
-### 5.7.5 E-4 — recall 엔진 교체 (audit P0 #2 — 死 promise)
-- 현 `recall()` query 통째 단일 phrase FTS → 다단어·NL hit 0. → **multi-term OR + bm25 + top-K** + strength 가중. D-15 recall-inject hook 이 prompt 전체 넘기던 것 → **신호어 strip + 키워드 추출**.
-
-### 5.7.6 E-5 — 내구성 봉합 (audit P0 #3, dump 버저닝이 삭제 안전망)
-- `mem sync` 에 **dump 자동 commit(+버전 이력 = 잘못된 prune 복구 안전망)**. 현재 push 0 → 머신 손실 시 영구소실 갭.
-- import 멱등화(FTS ghost fix) · **`PRAGMA user_version` 마이그레이션 게이트**(다발 schema 변경 C5 선행) · **INJECTION_PAT flag persist**(현재 계산만·persist X → poisoning 무한재주입 — 데이터펜스로 차단).
-
-### 5.7.7 E-6 — graduate (working→durable, 미구현 확정)
-- 세션끝 opus 가 "이 working 은 durable 가치"면 promote(졸업). spec §1 "자동만료/졸업" 의 졸업분 충원.
-
-### 5.7.8 E-7 — model-agnostic 캡처 = D-11 adapter (프록시 폐기, 사용자 재검토 2026-06-17)
-- **검토 결론**: on-premise 로깅 프록시(API 경계 캡처)는 **redundant** 로 폐기. 근거(사용자 지적): **다른 하네스도 _자기_ 세션 로그를 남긴다** → 우리가 캡처를 새로 만들 필요 없이 **그 로그를 읽는 D-11 adapter 만 추가** 하면 model-agnostic 달성. 프록시는 fidelity 이득 0(둘 다 같은 대화), 한계이득(미로깅 하네스·포맷 통일·로깅 독립)은 좁은데 비용(상시 서비스·SSE 재조립·보안 surface·fail-open)은 큼 → 비용 ≫ 이득.
-- **확정 방향**: model-agnostic 캡처 = **D-11 source 추상화(이미 보유) + "하네스는 어차피 로그를 남긴다"**. Claude Code 외 하네스로 가면 그때 그 포맷 adapter 1개 추가. 신규 컴포넌트·상시 서비스 없음.
-- **optional(미채택, 메모만)**: 현 vendor jsonl 을 우리 store 로 미러하는 hook(durability 사본) — jsonl 이 이미 디스크에 있어 실익 낮아 보류.
-
-### 5.7.9 데이터 모델 영향
-- records 신규 칼럼: `strength` INTEGER · `last_accessed` TEXT (E-1). `cwd_origin` → project_key 값(E-3, 의미 변경+마이그레이션). **`PRAGMA user_version` 마이그레이션 프레임**(E-5) — 다발 schema 변경의 단일 게이트.
-- 신규 컴포넌트 **없음** (E-7 프록시 폐기). raw 대화는 계속 vendor jsonl(하네스 native)에 — distiller 가 D-11 adapter 로 읽고 distill, DB 복제 X. dump.jsonl·claude-memory 동기엔 distill 결과만(raw 비포함) 유지.
-
 ## [library] 공개 API (v3 + v4 추가)
 ```
 mem_write / mem_recall / mem_index_rebuild / mem_inject / mem_sync / mem_export(dump|profile) / mem_import / mem_migrate / mem_lifecycle / mem_project
@@ -216,15 +169,7 @@ v3 그대로 (`records` 12컬럼 + `records_fts` FTS5 + trigram 보조 + `idx_re
   - **원칙**: 추가(가역) 판단 → 외부 에이전트 offload / 삭제·정리(비가역) 판단 → 메인 직접. (Hermes 도 consolidation=메인.)
   - **D-15 (recall 자동주입 hook)**: B1 instruction → UserPromptSubmit hook(신호어 regex → `mem recall` → additionalContext 주입). 메인의 "recall 할까" 판단 제거.
   - **D-16 (정리 후보 메인 노출)**: lifecycle 의 durable near-dup(+옵션 capacity·만료임박 working)를 `mem inject` 에 노출 → 메인이 consolidate/prune/graduate. 死 dup-flag 부활.
-  - **D-17 (TTL backstop·삭제=메인)**: distiller add-only 확정. working prune/graduate·durable consolidation=메인. TTL=deterministic 안전망(2차). **→ v10 Cluster E 에서 정정: 삭제=세션끝 opus distiller.**
-- **v10 신규 (Cluster E — 큐레이션 단순화 + audit P0 하드닝, §5.7)**:
-  - **D-18 (큐레이션 단순화)**: 세션끝 distiller = **opus 풀 큐레이터**(add+consolidate+strength+prune), N턴=sonnet add-only, 메인 housekeeping 0. D-17 "삭제=메인" → "삭제=세션끝 opus"(opus capable + full context + dump 복구 안전망 + worst=비효율). no-tools 유지, 출력=action JSON(add/reinforce/merge/prune), script 검증·실행.
-  - **D-19 (strength)**: records 에 strength+last_accessed 칼럼. dedup=reinforce(재출현=중요도). exact=script 결정론, fuzzy=script flag→opus 병합. strength→injection·recall 랭킹·decay.
-  - **D-20 (폭증 방지)**: add-time dedup(durable snapshot 주입)·durable soft-ceiling 트리거·injection budget strength top-K·cold-decay.
-  - **D-21 (project_key robust)**: remote URL→git-common-dir→.claude-project-id 마커→cwd. worktree·이동 오펀 해소. fail-safe·고아 탐지·마이그레이션.
-  - **D-22 (recall 엔진)**: 단일 phrase → multi-term OR+bm25+top-K+strength. recall-inject 신호어 strip.
-  - **D-23 (내구성)**: dump 자동 commit(삭제 복구 안전망)·import 멱등·user_version 게이트·INJECTION_PAT persist(anti-poisoning).
-  - **D-24 (E-7 폐기·model-agnostic=D-11)**: 로깅 프록시 redundant 폐기(하네스는 어차피 로그 남김→adapter 만). + graduate(working→durable) opus 가 수행.
+  - **D-17 (TTL backstop·삭제=메인)**: distiller add-only 확정. working prune/graduate·durable consolidation=메인. TTL=deterministic 안전망(2차).
 
 ## Next (구현 순서 — autopilot-code, 본 v5 입력)
 1. **Cluster A (파일 메커니즘 제거, Option 2)** 먼저 — 사용자 지적 incoherence 해소:
@@ -244,8 +189,3 @@ v3 그대로 (`records` 12컬럼 + `records_fts` FTS5 + trigram 보조 + `idx_re
    - **D-15**: `hooks/mem-recall-inject.sh` 신설 + settings.json UserPromptSubmit 배선 — 신호어 regex → `mem recall` → additionalContext 주입(MEM_DISTILL=1 skip, 신호어 없으면/결과 비면 no-op).
    - **D-16**: `mem inject` 에 "정리 후보" 섹션 — lifecycle 의 durable near-dup(+옵션 capacity·만료임박 working) 노출. `mem lifecycle` 의 dup 탐지 재사용(read-only projection).
    - **D-17**: distiller add-only 유지(무변경). CONVENTIONS §7 + CLAUDE.md §2 에 "add=외부·삭제=메인, working 졸업=메인, TTL=backstop" 명문화.
-6. **Cluster E (큐레이션 단순화 + audit P0 하드닝, v10 신규)** — autopilot-code, worktree, **phase 분할 권장**(한 사이클에 다 X):
-   - **Phase E-α (DB 하드닝 기반)**: user_version 마이그레이션 프레임 + strength/last_accessed 칼럼 + project_key(remote→git-common-dir→marker→cwd) + cwd_origin 마이그레이션·고아 탐지. (다발 schema 라 user_version 선행 — audit C5.)
-   - **Phase E-β (recall·내구성)**: recall 엔진 교체(multi-term OR+bm25+top-K+strength, 신호어 strip) + dump 자동 commit·import 멱등·INJECTION_PAT persist.
-   - **Phase E-γ (큐레이션 단순화)**: 세션끝 distiller opus 풀 큐레이터(action JSON add/reinforce/merge/prune + script 실행) + N턴 sonnet add-only + 폭증 4겹(durable snapshot 주입·ceiling 트리거·budget·cold-decay) + graduate. 메인 housekeeping 0. v8 no-tools 보안 유지·acceptance 재검증.
-   - E-7(프록시) 구현 없음 — D-11 adapter 원칙으로 충분.
