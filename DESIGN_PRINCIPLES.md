@@ -85,13 +85,13 @@ orchestrator 가 _단일 expert flow_ 만 다루는 경우 (예: `autopilot-refi
 
 family 의 모든 멤버는 confirm 없이 pipeline 을 끝까지 돌린다. 사용자가 명시할 때만 멈춘다.
 
-- `--user-refine` / `--confirm` 같은 pause flag 는 **사용자가 직접 typed 했을 때만** 켠다. 메인 Claude 가 _신중을 위해_ 임의 추가 금지.
+- `--user-refine` / `--confirm` 같은 pause flag 는 **사용자가 직접 typed 한 자리에서만** 켠다 (default false).
 - `--qa thorough` / `--qa adversarial` 같은 비싼 옵션도 명시했을 때만. default 는 skill 별 권장값 — CONVENTIONS.md §1.4 매트릭스.
 - 실패 시 fail loudly + `pipeline_summary.md` 미해결 기록. 다음 호출에서 `--from <stage>` 재개.
 
 **Why**: 사용자가 _명시 요청_ 을 했는데 메인 Claude 가 _신중을 위해_ 라며 confirm 단계를 추가하면 작업이 한 turn 지연되고 "이미 했어?" 같은 follow-up 으로 갈등이 누적. high-stakes 일수록 사용자가 _직접_ pause 를 거는 게 자연스럽다.
 
-**강제 위치**: CLAUDE.md 응답 원칙 §4 (args 구성 단계 차단) + 각 SKILL.md `--user-refine` 절 default false.
+**강제 위치**: CLAUDE.md 응답 원칙 §2 (Pause·자율 진행) + 각 SKILL.md `--user-refine` 절 default false.
 
 ---
 

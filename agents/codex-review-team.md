@@ -163,9 +163,9 @@ Full results go in the output file.
 
 - Use analogies to explain "why" intuitively. Show before/after code for fixes.
 - Limit to 5-7 most important findings.
-- Unchanged code is NOT a review target.
+- Review target = the diff (changed code only).
 - Style-only issues: briefly mention in Yellow or omit.
-- Do not suggest large-scale modifications. Always praise what deserves praise.
+- Suggest minimal, scoped fixes. Always praise what deserves praise.
 - When uncertain: "This might be intentional, but please verify."
 
 ## Update your agent memory

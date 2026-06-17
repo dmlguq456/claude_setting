@@ -94,7 +94,7 @@ Phase 2 까지 source 1-6 활성, source 7 (노션) 은 _Phase 3 활성_ — `--
 | `<target>/digests/YYYY-MM-DD.md` | — | 매일 다이제스트. 신규 entry 최상단, 과거 보존 (누적) |
 | `.claude_reports/notes/{date}/` | — | 본 skill 자체 routing log (T1 결과 표 / T2 source scan / T3 reviewer) |
 
-> 🗄️ **⟨2026-06-10 — DB 적재 step (worklog-board DB화 이후 필수)⟩**: worklog-board 앱은 이제 L2 를 **libSQL DB(`.cache/worklog.db`) 에서 read** 한다 (마크다운 `_layer2/*.md` = source/mirror). 따라서 노트·카탈로그 `.md` 를 쓴 _뒤_ Stage D 끝에 **`npm run migrate:fs-to-db`** (worklog-board cwd 에서) 를 돌려 DB 에 반영해야 허브에 보인다. idempotent upsert 라 재실행 안전. 검증 = `npx tsx scripts/verify-migration.ts` (count parity + extras round-trip). _다른 NAS 자리(`--target`) 에 쓴 경우엔 worklog-board 가 그 `_layer2` 를 가리키도록 LAYER2_DIR 일치 확인 후 migrate._
+> 🗄️ **DB 적재 step (필수)**: worklog-board 앱은 이제 L2 를 **libSQL DB(`.cache/worklog.db`) 에서 read** 한다 (마크다운 `_layer2/*.md` = source/mirror). 따라서 노트·카탈로그 `.md` 를 쓴 _뒤_ Stage D 끝에 **`npm run migrate:fs-to-db`** (worklog-board cwd 에서) 를 돌려 DB 에 반영해야 허브에 보인다. idempotent upsert 라 재실행 안전. 검증 = `npx tsx scripts/verify-migration.ts` (count parity + extras round-trip). _다른 NAS 자리(`--target`) 에 쓴 경우엔 worklog-board 가 그 `_layer2` 를 가리키도록 LAYER2_DIR 일치 확인 후 migrate._
 >
 > 📝 **노트 본문 = rich (열람용 — 사용자가 파일 더미 안 뒤지고 이것만 읽음)**: frontmatter 아래 본문을 충실히 — `# 제목` / 1-2줄 요약 / `## 결과` (**실험·벤치마크면 metric·수치 반드시** — SI-SDR/PESQ/DER/WER/통과수 등) / `## 핵심 결정·해결` (root cause·설계 결정) / `## 변경 코드` (주요 파일·규모) / `## 남은 자리` (🔴/🟡) / `**원본**: <source 경로 또는 Notion URL>`. 품질 기준 = `_layer2/notes/note-20260528-onnxse.md`. 위키처럼 관련 노트·backbone 을 `[[slug]]` 로 cross-link. **backbone/tech 카탈로그 `.md` 본문 = 위키 앵커** (정의·계보·다룬 작업·주요 노트 [[링크]]·쓰인 과제) — emerge 시 채우고 노트 누적 시 갱신.
 

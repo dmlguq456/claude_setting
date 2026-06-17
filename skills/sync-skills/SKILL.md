@@ -177,7 +177,7 @@ Step 5 에서 README 본문 wording 을 자동 생성·갱신한 자리 (§1 Hea
 
 **Skip 조건** — `--check` 는 drift 보고만이라 Step 5 자체가 안 돌아 검수 무관. `--force` / default 는 검수 포함.
 
-> 본 step 추가 사유 (2026-05-22): 사용자가 README §3 사용 방식 첫 줄 _"두 가지 입구가 평등하게 있습니다 — 자연어로 부르기 와 직접 slash 입력. 어느 쪽을 써도 같은 skill 이 같은 방식으로 동작합니다."_ 같은 LLM 스러운 어조 지적. 자동 sync 가 매번 같은 risk 재발하지 않도록 검수 단계 의무화.
+> 본 step 의 규칙: 자동 sync 가 LLM 스러운 어조를 재발시키지 않도록 README 생성물의 편집팀 검수를 의무화한다.
 
 ### Step 5b: Cross-doc invariant scan (QA 정의 & family-wide 규칙)
 

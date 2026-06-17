@@ -60,7 +60,7 @@ Body structure (in English):
    - In the step description, add: `[decision: critical|significant|routine] — {what to decide}`
    - Example: "Step 3.2: Rename `get_correlation` → `compute_scot_correlation` [decision: significant — public API rename affects external callers]"
    - The code-execute skill uses these tags alongside its own static decision points.
-   - Do NOT over-tag — only tag steps where the plan-specific context makes the decision genuinely important. Most plans will have 0-2 tagged steps.
+   - Tag sparingly — only steps where plan-specific context makes the decision genuinely important (most plans: 0-2 tags).
 
 5. **Do NOT create the Korean version yet.** It will be created after the QA review loop finalizes the plan.
 
@@ -108,8 +108,8 @@ When the prompt does NOT include a "QA review file" path (called from code-refin
 - If scope is too large for a single plan, recommend splitting and explain the split.
 
 ## Constraints
-- **DO NOT implement any code.** Only produce plan documents.
-- Do not invoke other agents. Return results to the orchestrator.
+- **Produce plan documents only** (no implementation).
+- Return results to the orchestrator (no nested agent calls).
 - Keep plans actionable — every step should be specific enough for a developer agent to execute without ambiguity.
 
 ## Return Format (CRITICAL)

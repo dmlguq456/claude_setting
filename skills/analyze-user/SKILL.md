@@ -344,7 +344,7 @@ mode=init 통째 교체, mode=update 누적.
   - arrow: solid 1.5pt, label 산세리프 8pt
   ```
 
-5K 이하 무리 — _agent 자체 자체 self-contained_ 자체 자체 _구체 anchor 필요_. 7-10K 가 적정선.
+5K 이하는 무리 — agent 가 self-contained 하려면 구체 anchor 가 필요. 7-10K 가 적정선.
 
 절차:
 

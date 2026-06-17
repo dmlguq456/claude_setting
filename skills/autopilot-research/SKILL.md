@@ -65,7 +65,7 @@ The mode determines (a) search sources used in Step 2, (b) Phase A/B/C activatio
 **Use when**: 학술 논문 중심 조사 (deep learning method survey, 알고리즘 비교, 분야 trend).
 - **Search sources**: arXiv, Semantic Scholar, OpenAlex, Hugging Face paper_search, Google Scholar
 - **Phases**: A (skimming) + B (reference chaining) + C (code & model search) — 모두 활성
-- **Reports**: 9개 (briefing → landscape → core_papers → baselines → technical_deep_dive → datasets → implementation → resources → reading_guide) — 현행 동일
+- **Reports**: 9개 (briefing → landscape → core_papers → baselines → technical_deep_dive → datasets → implementation → resources → reading_guide)
 
 ### `--mode technology`
 **Use when**: 산업 표준·기술 ecosystem 조사 (코덱/프로토콜, 표준 문서, vendor 솔루션 비교, 배포 고려사항).
@@ -448,7 +448,7 @@ Agent(subagent_type="자료팀"):
 
 ### Step 4: Report Generation (direct Agent call + QA loop)
 
-> **자료팀 위임 (옵션)** — 보고서에 _집계 통계 시각화_ 나 _cross-card metric 비교 plot_ 등 _custom 분석 figure_ 가 필요하면 본 Step 안에서 `Agent(자료팀, "<spec>")` 직접 호출 가능. paper figure 직접 추출 (자료팀 영역) 과 다른 자리 — 자료팀은 _카드 데이터로부터 새 시각화_ 만들 때. 일반 survey 자료 (taxonomy table / lineage ASCII / per-paper card) 는 연구팀 본 자리 처리. (2026-05-22 신설.)
+> **자료팀 위임 (옵션)** — 보고서에 _집계 통계 시각화_ 나 _cross-card metric 비교 plot_ 등 _custom 분석 figure_ 가 필요하면 본 Step 안에서 `Agent(자료팀, "<spec>")` 직접 호출 가능. paper figure 직접 추출 (자료팀 영역) 과 다른 자리 — 자료팀은 _카드 데이터로부터 새 시각화_ 만들 때. 일반 survey 자료 (taxonomy table / lineage ASCII / per-paper card) 는 연구팀 본 자리 처리.
 
 #### Step 4a: Generate Reports
 ```

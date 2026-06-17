@@ -24,7 +24,7 @@
 
 ² 다중 reviewer 는 _다른 axes_ 분담: opus 행은 도메인 expertise / methodology / completeness / safety 같은 깊이 필요 axis, sonnet 행은 coverage·typo·표기 일관성·structure 같은 surface scan axis. 각 skill SKILL.md 가 자기 axis 분담 명시.
 
-> **`quick` 는 모든 autopilot mode 공통의 경량 tier**: 작은 자연어 요청·tweak 도 ad-hoc 직접 Edit 으로 끝내지 않고 quick 으로 돌려 plan·log·snapshot artifact 를 남긴다 (1 라운드 강제 / refine 단계 skip). CLAUDE.md §0 (작업은 해당 autopilot-* 경유로 산출물 기록) 의 비용 거의 0 인 경로 — 누적 drift 를 막는다.
+> **`quick` 는 모든 autopilot mode 공통의 경량 tier**: 작은 자연어 요청·tweak 도 quick 으로 돌려 plan·log·snapshot artifact 를 남긴다 (1 라운드 강제 / refine 단계 skip). CLAUDE.md §0 (작업은 해당 autopilot-* 경유로 산출물 기록) 의 비용 거의 0 인 경로 — 누적 drift 를 막는다.
 
 ### §1.2. Codex availability 정책 (adversarial 전용)
 
@@ -427,7 +427,7 @@ echo "state: branch=$br head=$head base=$def dirty=$(git status --porcelain 2>/d
 | **공통 시각 자산** | — | `autopilot-design` (신규 디자인 사이클) | `autopilot-design` 재호출 (cycle 2+) |
 | **공통 사용자 프로필** | — | `analyze-user --mode init` (aspect 7 종 — figure / writing / presentation / analysis / domain / collab / **coding_convention**) | `analyze-user --mode update` |
 
-> **`coding_convention` aspect 의 자리** (2026-05-26): 사용자 cross-project 코드 일관 패턴 (model 폴더 / config / prefix / preferred layer / framework / metric / log·ckpt / seed) 을 `mem profile 07_coding_convention` 에 누적. autopilot-lab / autopilot-spec / autopilot-code / 개발팀 _new-lib_ 의 _cross-project default · fallback_ 자리 (2순위). **개별 프로젝트의 `analysis_project/code/experiment_conventions.md` 가 1순위 source of truth** — 충돌 자리는 per-project 우선, `mem profile 07` 은 _per-project 부재·빈 자리만_ 보강. 사용자 첫 호출 자리에 source 폴더 명시 (cwd 자동 발견 + `--source <path>`) — 하드코딩 path X.
+> **`coding_convention` aspect 의 자리** (2026-05-26): 사용자 cross-project 코드 일관 패턴 (model 폴더 / config / prefix / preferred layer / framework / metric / log·ckpt / seed) 을 `mem profile 07_coding_convention` 에 누적. autopilot-lab / autopilot-spec / autopilot-code / 개발팀 _new-lib_ 의 _cross-project default · fallback_ 자리 (2순위). **개별 프로젝트의 `analysis_project/code/experiment_conventions.md` 가 1순위 source of truth** — 충돌 자리는 per-project 우선, `mem profile 07` 은 _per-project 부재·빈 자리만_ 보강. 사용자 첫 호출 자리에 source 폴더는 cwd 자동 발견 또는 `--source <path>` 로 명시한다.
 
 ### §6.2. 사용자 호출 단위 흐름 (3 패턴)
 

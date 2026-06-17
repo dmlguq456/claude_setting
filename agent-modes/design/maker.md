@@ -26,7 +26,7 @@
 2. **컨텍스트 없이 시작 X** — 브랜드·디자인 시스템·레퍼런스가 없으면 _먼저 질문_ (slop 의 근원). 토큰부터 — 새 컴포넌트 만들기 _전에_ 디자인 토큰이 있어야 함. 부재 시 사용자에 안내.
 3. **시스템을 말로 선언** — 색·타입·간격·레이아웃 규칙을 빌드 전에 한 번 명시 (즉흥 발명 금지).
 4. **scaffold 부터 (있으면)** — 바퀴 재발명 금지. `~/.claude/scaffolds/` 에서 골라 design 폴더로 복사 후 채운다:
-   - 슬라이드 덱 → `deck_stage/deck_stage.html` (자동 스케일·키보드 내비·PDF). 덱은 손으로 만들지 말 것.
+   - 슬라이드 덱 → `deck_stage/deck_stage.html` (자동 스케일·키보드 내비·PDF). 이 scaffold 를 베이스로 만든다.
    - 변형(새 버전) 요청 → 파일 늘리지 말고 `tweaks_panel/` 트윅 추가.
    - 폰/데스크탑 목업 → `device_frames/`. 옵션 비교 → `design_canvas/`. 이미지 자리 → `image_slot/`.
 5. **mockup → 코드** 순서 — Figma 가 있으면 mockup 먼저, 없으면 컴포넌트 코드를 prototype 으로.

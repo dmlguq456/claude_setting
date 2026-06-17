@@ -12,8 +12,7 @@ argument-hint: "[show] | add <category> <text> | resolve <hint> | decide <text> 
 
 > **불변식 — 사용자는 post-it 을 들여다보지 않는다 (fire-and-forget).** post-it 은 _Claude 의 세션-간 연속성 작업면_ 이지 사용자 읽기용 문서가 아니다. 따라서 (1) lean 유지·졸업 prune 는 **Claude 책임** — 사용자에게 레코드를 줄 단위로 검토시키지 않는다. (2) 자동 nudge 자리의 sweep 은 _확실한_ 졸업·stale 만 **자동 제거 + 한 줄 보고** (애매하면 keep). (3) 사용자에겐 _짧은 요약_ 만 주고, 액션 _저장 여부_ 만 confirm 받는다. 줄 단위 preview 는 사용자가 `/post-it sweep` 를 직접 칠 때만.
 
-> **통합 기억 store 연동 (2026-06-15, v5).** post-it 은 _프로젝트 단위 working tier_ 로서 통합 store([tools/memory](../../tools/memory/README.md)) DB(`memory.db`, SQLite WAL) 에 저장된다 — `mem note`/`mem add` 로 working 레코드 write, `mem recall` 로 검색, working lifecycle(만료·졸업)은 `mem lifecycle` 이 관할. 세션 주입은 `python3 ~/.claude/tools/memory/mem.py inject --hook` 가 DB working tier 에서 수행. sweep 의 시간 lifecycle 은 `mem lifecycle` 과 동류(시간 기반 working lifecycle)이되 임계값·동작이 다름 — post-it 은 ≥30d stale·≥90d archive 를 _플래깅_(사람-점검), store 는 `WORKING_TTL_DAYS`(현재 21d)로 _자동 만료_. (참고: `register-postit` 명령은 `mem.py migrate()` 의 이력 재생용으로만 유지되며 본 skill 에서는 더 이상 호출하지 않음 — 향후 cleanup 대상.)
-
+> **통합 기억 store 연동 (2026-06-15, v5).** post-it 은 _프로젝트 단위 working tier_ 로서 통합 store([tools/memory](../../tools/memory/README.md)) DB(`memory.db`, SQLite WAL) 에 저장된다 — `mem note`/`mem add` 로 working 레코드 write, `mem recall` 로 검색, working lifecycle(만료·졸업)은 `mem lifecycle` 이 관할. 세션 주입은 `python3 ~/.claude/tools/memory/mem.py inject --hook` 가 DB working tier 에서 수행. sweep 의 시간 lifecycle 은 `mem lifecycle` 과 동류(시간 기반 working lifecycle)이되 임계값·동작이 다름 — post-it 은 ≥30d stale·≥90d archive 를 _플래깅_(사람-점검), store 는 `WORKING_TTL_DAYS`(현재 21d)로 _자동 만료_.
 ## Lifecycle (post-it 원칙 — 모든 엔트리는 졸업하거나 만료한다)
 
 엔트리는 영구 누적되지 않는다. 각 레코드는 둘 중 하나로 끝난다:

@@ -98,14 +98,14 @@ mutation 을 cheatsheet 순서대로 적용. **각 mutation 하나당 git commit
 - **MECH / SEM mutation** → 자동 적용 + commit.
 - **STRUCT mutation** (단락 통째 재작성 / section 이동 / 5+ 위치 동시 변경) → _자동 적용 안 함_. halt + 사용자에게 알림: "M{id} 는 구조적 변경 — 직접 검토 후 적용 권장." 나머지 MECH/SEM 은 계속 진행하고 STRUCT 만 skip-list 에 남긴다.
 - Edit 은 exact-string match. anchor (section/subsection 기준 + 보조 line number) 로 위치 확정. `replace_all` 금지.
-- 적용 중 mutation 이 cheatsheet 설명과 실제 source 가 안 맞으면 (anchor 못 찾음 등) 그 mutation 만 skip + skip-list 기록, 나머지 진행. 절대 추측으로 위치 잡지 않는다 (빈칸 > 잘못 채우기).
+- 적용 중 mutation 이 cheatsheet 설명과 실제 source 가 안 맞으면 (anchor 못 찾음 등) 그 mutation 만 skip + skip-list 기록, 나머지 진행. anchor 가 exact-match 될 때만 적용한다 (빈칸 > 잘못 채우기).
 
 ### Stage C — Verify (compile gate + rendered diff)
 
 1. **Compile gate**: build 재실행. baseline 대비 _새_ 에러 / `undefined reference` / **`multiply defined` label** 경고 증가분 계산 (경고지만 `multiply defined` 는 `\ref` 가 엉뚱한 대상을 가리키는 실제 버그라 게이트에 포함). 단 _시각 레이아웃_(본문 페이지 한도·footnote split·widow/orphan·overfull) 은 여기서 보지 않는다 — 그건 연구팀 review(autopilot-draft)의 책임이고, 수정은 사용자 몫이다. apply 에 build-반복 시각 게이트를 넣지 않는다(비용).
    - 증가분 0 → 통과.
    - 증가분 > 0 → 원인 mutation 식별 (마지막 commit 부터 이진 탐색 또는 직전 commit revert 후 재컴파일). 해당 commit `git revert` + skip-list 기록. 자동 격리 불가하면 **fail loudly + halt** — branch 는 그대로 두고 사용자에게 보고 (canonical 은 애초에 안 건드렸으므로 안전).
-   - PDF 가 아예 안 나오면 halt — 절대 "컴파일 깨진 branch 를 merge 권장" 하지 않는다.
+   - PDF 가 아예 안 나오면 halt — compile gate 통과한 branch 만 handback (미통과 시 fail loudly + halt).
 2. **Rendered diff**: `latexdiff <base>.tex <head>.tex > diff.tex` → 컴파일 → `_internal/apply/latexdiff.pdf`. 추가=파랑, 삭제=빨강. 이게 사용자의 검토 화면 (paste 하며 읽던 것을 렌더 결과에서 한 번에). latexdiff 가 복잡한 매크로/표에서 실패하면 `git diff base..head -- '*.tex'` 텍스트로 fallback (merge 막지 않음).
 
 ### Stage D — Handback (사용자 검토 → merge 가 paste 를 대체)
@@ -157,9 +157,9 @@ last_completed_stage: verify
 ## Constraints
 
 - **canonical source 불가침** — Stage B/C 의 모든 편집·컴파일은 branch/worktree 위에서만. 사용자가 merge 하기 전까지 main 브랜치 source 는 안 건드린다.
-- **깨진 채 넘기지 않기** — compile gate 통과 못 하면 fail loudly + halt. "사용자가 알아서 고치겠지" 로 broken branch 를 merge 권장하지 않는다.
+- **compile gate 통과한 branch 만 handback** — 통과 못 하면 fail loudly + halt.
 - **baseline 없이는 compile gate 없다** — Stage A.6 baseline compile 생략 금지.
-- **mutation 위치는 추측 금지** — anchor 못 맞추면 그 mutation skip + 기록. 빈칸 > 잘못 채우기.
+- **mutation 위치는 exact-match 만** — anchor 못 맞추면 그 mutation skip + 기록. 빈칸 > 잘못 채우기.
 - **plan 을 만들지 않는다** — cheatsheet 내용을 _재해석·증보_ 하지 않고 적힌 대로 적용만. cheatsheet 가 틀렸으면 autopilot-refine/draft 로 먼저 고친다.
 - **merge 는 사용자 몫** — autopilot-apply 는 절대 자동 merge 하지 않는다 (사용자 검토 checkpoint 보존).
 

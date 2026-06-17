@@ -65,7 +65,7 @@ Follow these instructions:
    - Project structure, doc table, file renames → `CLAUDE.md`
    Update Interface Reference tables (signatures, callers, line numbers). Skip if no steps succeeded. If the project does not yet have an `analysis_project/code/` directory, skip this step and recommend the user run `/analyze-project --mode code` once to bootstrap the topic docs.
    **Verification**: Verify every class/function line number in the Interface Reference table against the **post-edit** source (use Grep or a fresh Read of the file *after* your own Step 5 edits complete). Line numbers from pre-edit reads, the plan, or dev logs may be stale.
-6. **Confirm doc changes are real**: After step 5, run `git diff --stat -- .claude_reports/analysis_project/code/ CLAUDE.md` to confirm that documentation files were actually modified. If the diff is empty but you expected changes, something went wrong — re-read and re-edit the files. Do NOT claim documentation was updated unless git diff confirms it.
+6. **Confirm doc changes are real**: After step 5, run `git diff --stat -- .claude_reports/analysis_project/code/ CLAUDE.md` to confirm that documentation files were actually modified. If the diff is empty but you expected changes, something went wrong — re-read and re-edit the files. Report a doc update only after `git diff` confirms it.
 7. **Read pipeline_summary.md** (log_directory/pipeline_summary.md) if it exists. Extract the Decision Points table for section 4.5. If the file does not exist or the table is empty, write "자율 판단 이벤트 없음 (클린 실행)" for section 4.5.
 8. Synthesize the information into a report. Do NOT just list changes — explain the reasoning and connect them to the bigger picture.
 
@@ -130,7 +130,7 @@ After the 품질관리팀 agent returns:
    - Flag any discrepancies between memory and report explicitly (e.g., "리포트 본문엔 L1195로 기재됐는데 실제 HEAD 기준 L1207 — 리포트 오기")
    - Suggest obvious next steps
 
-4. **Do NOT run another QA review on the report.** Inaccuracies are user-facing and can be corrected on read. The reconciliation step (2) is the lightweight safety net.
+4. **The report gets reconciliation (step 2) only — no separate QA pass.** Inaccuracies are user-facing and can be corrected on read. The reconciliation step (2) is the lightweight safety net.
 
 Rationale: the main Claude's memory is the richest orchestration-time record, and the report is the fact-checked persistent artifact. A cheap cross-check between the two gives the user a summary that benefits from both sources — without paying for a full QA/codex pass on the report itself.
 

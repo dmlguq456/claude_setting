@@ -193,7 +193,7 @@ changelog:
 
 ## Other rules
 - Do NOT touch the version archive of previous versions (`*_v{prev_version}.md` and earlier) — they are immutable historical record.
-- Do NOT skip ref-grounding even if memo seems trivial. Trivial-looking memos can have hidden errors.
+- Apply ref-grounding to every memo, even trivial-looking ones (they can carry hidden errors).
 - **Paragraph Cohesion Pre-Check (mandatory for every memo that rewrites paste-ready content — all modes)** (cross-ref `draft-strategy/SKILL.md` § _Paragraph Cohesion Pre-Check_ for the full 4-step spec; single source of truth there):
   Before applying any memo that adds or rewrites a paste-ready block (LaTeX / markdown / slide / table), run the 4-step pre-check on the **target paragraph as a whole**: (1) is the substance already stated? (2) does the new sentence break the paragraph axis (motivation → design → formalization, claim → evidence → caveat, etc.)? (3) is this substance already canonical at another §-level / slide-level site? (4) classify the edit as EDIT (in-line) / REPLACE / INSERT / DROP — prefer EDIT/REPLACE over INSERT for cohesion. **When refining an existing mutation that fails this check** (e.g., a trailing INSERT whose content overlaps a prior sentence, or a cross-ref that restates substance already covered elsewhere), the correct refine action is to **rewrite the mutation as EDIT / REPLACE / DROP**, not polish the existing INSERT further.
 - **Paper mode — Natural-integration rule** (cross-ref `draft-strategy/SKILL.md` paper mode for full spec; single source of truth there):

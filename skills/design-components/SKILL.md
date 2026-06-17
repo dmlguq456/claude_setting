@@ -23,7 +23,7 @@ argument-hint: "<design path or app path>"
 - `01_refs/brief.md` — 의도·톤
 - `02_tokens/tokens.md` — 디자인 토큰 (단일 source)
 - **scaffold 매칭** — 바퀴 재발명 금지. `~/.claude/scaffolds/` 에서 골라 design 폴더로 복사 후 채운다:
-  - `slide` → `deck_stage/deck_stage.html` (자동 스케일·키보드 내비·PDF). **덱은 손으로 만들지 말 것.**
+  - `slide` → `deck_stage/deck_stage.html` (자동 스케일·키보드 내비·PDF). **덱은 `deck_stage` scaffold 를 베이스로 만든다.**
   - variant 요청 → `tweaks_panel/` (파일 늘리지 말고 트윅). 목업 → `device_frames/`. 옵션 비교 → `design_canvas/`. 이미지 자리 → `image_slot/`.
 
 ### Step 2: scope 별 dispatch
@@ -108,7 +108,7 @@ pnpm dlx shadcn@latest add button card dialog
 
 생성된 코드는 프로젝트 루트의 `components/ui/` 에. 03_components/ 에는 customization · 사용 가이드만.
 
-### Step 4: 시각 자가검증 (필수 — "valid/코드 작성됨" 으로 끝내지 말 것)
+### Step 4: 시각 자가검증 (필수 — 렌더해서 본 것으로만 완료)
 
 maker 가 산출 직후 **반드시 렌더해서 본다** (Design MCP 경유). 좌표·코드만으로 완료 보고 금지. 상세 루프는 `agent-modes/design/maker.md` + `_design_rules.md` "시각 자가검증 루프".
 

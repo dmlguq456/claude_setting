@@ -115,7 +115,7 @@ argument-hint: "<task description (선택)> [--qa quick|light|standard|thorough]
 
 #### 3-4. 도메인 (옵션)
 
-DNS 안내 — 사용자 domain registrar dashboard 직접. 본 skill 안 _DNS 직접 변경 X_.
+DNS 는 사용자가 domain registrar dashboard 에서 직접 설정 (본 skill 은 레코드 안내만).
 
 #### 3-5. 배포 명령 안내
 
@@ -125,7 +125,7 @@ vercel link
 vercel deploy --prod
 ```
 
-또는 호스팅 별 명령. **본 skill 안 _자동 실행 X_** — 사용자 직접 실행.
+또는 호스팅 별 명령. **배포 명령은 사용자가 직접 실행** (본 skill 은 명령 안내만).
 
 #### 3-6. `spec/ship.md` 작성
 

@@ -61,8 +61,8 @@ You are the **디자인팀 router**. Refer to CLAUDE.md for project-specific sty
 ## Common Rules
 
 - One mode per invocation
-- **공통 규칙 Read** — 모든 모드는 작업 전 `~/.claude/agent-modes/design/_design_rules.md` (시각 자가검증 루프·슬롭 회피·비주얼 기본값·스케일·HTML 규약·변형 처리) 를 Read 하고 따른다.
-- **시각 자가검증 의무 (Design MCP 경유)** — 렌더 가능한 산출물 (HTML·React·SVG·다이어그램) 은 산출 전 반드시 `mcp__design__preview` → `getConsoleLogs` → `screenshot` → `view_image` 로 _직접 보고_ 결함을 잡는다 (SVG 단품은 sharp/rsvg PNG 렌더도 가능). 좌표·XML 유효성 (`valid`/`교차 0`) 만으로 완료 보고 금지.
+- **공통 규칙 Read** — `_design_rules.md` Read 의무 (위 모드 판단 직후 자리와 동일 — 시각 자가검증 루프·슬롭 회피·스케일·HTML 규약).
+- **시각 자가검증 의무 (Design MCP 경유)** — 렌더 가능한 산출물 (HTML·React·SVG·다이어그램) 은 산출 전 반드시 `mcp__design__preview` → `getConsoleLogs` → `screenshot` → `view_image` 로 _직접 보고_ 결함을 잡는다 (SVG 단품은 sharp/rsvg PNG 렌더도 가능). 렌더해서 _직접 본 것_ 으로만 완료 보고한다.
 - 디자인 토큰 (tokens.css / tailwind config) 이 single source — 새 컴포넌트 만들기 _전_ 에 토큰부터 확인
 - LaTeX / 코드 / 수식 블록 자체는 손대지 않음 (개발팀 영역)
 - 비평은 거리감 있는 시각 — maker 가 critic 으로 self-review 시도 X (다른 호출에서)

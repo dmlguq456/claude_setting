@@ -284,8 +284,8 @@ When the strategy includes a slide-by-slide outline (presentation mode Section 4
   📌 **핵심 키워드 — "X"**: 한국어 풀이 1문장
   ```
 
-**5. Speaker notes default = empty (do NOT auto-fill)**
-- The strategy outline and the initial draft must NOT auto-fill speaker notes
+**5. Speaker notes default = empty**
+- The strategy outline and the initial draft leave speaker notes empty by default
 - Only generate speaker notes when the user explicitly requests as a separate post-polish step
 - Reason: speaker notes drift with slide-content edits; auto-fill produces wasted regeneration cost in iterative refinement
 

@@ -26,7 +26,7 @@ Naming consistency: same `--qa quick|light|standard|thorough|adversarial` flag a
 
 1. **사용자 명시 표현**: "major", "v{N+1}", "/autopilot-refine", "메이저 버전", "전면 재작성", "phase 재시작", "cycle 재진입"
 2. **구조적 대규모 변경**: ≥200 줄 영향 / 전체 section rewrite / mutation tier 재분류 batch / strategy↔draft alignment overhaul
-3. **외부 검토 직전 ceremony**: 사용자 prompt 본문에 verbatim 으로 "camera-ready 마무리" / "submission 직전 finalize" / "external review 전 마지막" / "grant 제출" / "PR open 직전" 표현이 _직접_ 등장한 경우만. cwd 이름 (예: `..._camera_ready/`) · 메모리 맥락 · 작업 디렉토리 신호로 추론 금지 (응답 원칙 §4 정합)
+3. **외부 검토 직전 ceremony**: 사용자 prompt 본문에 verbatim 으로 "camera-ready 마무리" / "submission 직전 finalize" / "external review 전 마지막" / "grant 제출" / "PR open 직전" 표현이 _직접_ 등장한 경우만. cwd 이름 (예: `..._camera_ready/`) · 메모리 맥락 · 작업 디렉토리 신호로 추론 금지 (응답 원칙 §2 정합)
 
 **Minor** (default — 위 3-criteria 미해당):
 

@@ -232,8 +232,7 @@ QA 5 단계 정의 + 모델·round 매트릭스는 [`CONVENTIONS.md §1`](../../
 
 ### --user-refine (boolean flag — opt-in only)
 
-**Default: false. The orchestrator (메인 Claude) MUST NOT add this flag on its own — it is set only when the user typed `--user-refine` (or an explicit Korean equivalent like "사용자 검토 끼워" / "memo 추가하게 멈춰줘") in the original prompt.** Inferring this flag from generic "신중히 진행해 줘" / "한 번 봐줘" / 길고 복잡한 task 같은 신호로 자동 추가하는 행동 금지 — 그 경우 사용자가 의도하지 않은 pause 가 걸려 작업이 멈춘다.
-
+**Default: false. The orchestrator (메인 Claude) MUST NOT add this flag on its own — it is set only when the user typed `--user-refine` (or an explicit Korean equivalent like "사용자 검토 끼워" / "memo 추가하게 멈춰줘") in the original prompt.**
 When present, the orchestrator **pauses** at refine points so the user can add their own `<!-- memo: ... -->` comments on top of 연구팀's memos before code-refine runs.
 
 - Applies to: **dev mode only** (Step 2 plan refine, and the failure-loop refine after test failure).
@@ -292,7 +291,7 @@ Resolve `$ARG` to a plan file path:
 ## Pipeline: Mode dev
 You (the main Claude) orchestrate by invoking each skill directly via the Skill tool. All tasks go through the full pipeline. Step 2 (plan review as user proxy) uses a **task-aware expert** — UI/visual → `디자인팀`, 그 외 → `연구팀`; Step 6 (meta-report) = 연구팀.
 
-> **자료팀 위임 (옵션, 2026-05-22 신설)** — task 가 _결과 시각화·실험 log plot·result table 정리_ 같은 분석 자료를 요구하면 code-execute / code-report 단계 안에서 `Agent(자료팀, "<spec>")` 직접 호출. _훈련·실험 실행_ 자체는 autopilot-code 본 영역, 결과의 _후처리·시각화_ 만 자료팀 영역. 자료팀이 figure / 스크립트 / 표 한 묶음 생성 후 dev_logs/ 의 해당 step 안에 결과 자산 경로 박음.
+> **자료팀 위임 (옵션)** — task 가 _결과 시각화·실험 log plot·result table 정리_ 같은 분석 자료를 요구하면 code-execute / code-report 단계 안에서 `Agent(자료팀, "<spec>")` 직접 호출. _훈련·실험 실행_ 자체는 autopilot-code 본 영역, 결과의 _후처리·시각화_ 만 자료팀 영역. 자료팀이 figure / 스크립트 / 표 한 묶음 생성 후 dev_logs/ 의 해당 step 안에 결과 자산 경로 박음.
 
 ### Step 1: code-plan
 Invoke Skill: `code-plan` with the task description as args.
@@ -516,7 +515,7 @@ _코드베이스/앱 "전수 자체점검 + 자율 수정"_ 자리. 발화 예: 
 ### Step 1: Review fan-out (병렬, 읽기전용)
 `Workflow` 로 다수 병렬 리뷰어 — _영역 × 차원_. 규모는 요청에 맞춤 ("많이/전수" → 10~16+).
 - UI·시각·반응형·a11y → `agentType: 디자인팀` (render-aware). 코드·동작·perf·일관성·데이터레이어 → `agentType: 품질관리팀` (code-review).
-- 각 리뷰어: 코드 직접 읽고(+가능 시 렌더) 구조화 finding — `{title, severity, category, files, proposed_fix, risk(low/med/high), confidence}`. **읽기전용·수정 금지.** 과대추정 금지 (코드로 확인한 것만, 모호하면 제외).
+- 각 리뷰어: 코드 직접 읽고(+가능 시 렌더) 구조화 finding — `{title, severity, category, files, proposed_fix, risk(low/med/high), confidence}`. **읽기전용 — finding 만 작성.** 코드로 확인한 것만 보고 (모호하면 제외).
 
 ### Step 2: Triage (1 에이전트)
 중복 병합, 저가치·과도·모호·confidence<0.6 드롭. 남은 것 분류:
@@ -576,8 +575,8 @@ Populate the Decision Points table from in-memory decision records. If none: `| 
 
 ### Common (all modes)
 - If execution fails catastrophically (plan status = `failed`), stop and report to user immediately.
-- Do NOT skip testing — always verify.
-- Do NOT intervene in individual skill execution — let each skill handle its own QA loops.
+- Always verify — testing 은 모든 path 에서 실행.
+- 각 skill 의 QA loop 는 그 skill 이 자체 처리 (orchestrator 는 위임).
 
 ### Mode dev
 (No additional mode-specific rules beyond common.)

@@ -55,7 +55,7 @@ Before any code changes, ensure the working tree is clean and up-to-date:
 - Subagents will create their own step log files inside this directory (they have the Write tool).
 - Use this checklist file as the sole tracking document for orchestration.
   - Mark `[x]` or `[FAIL]` as steps complete or fail.
-  - Do NOT modify the plan files (neither English nor Korean) during execution.
+  - plan files (English/Korean) 는 실행 중 불변 — checklist 만 추적 갱신.
 
 ## Rules
 - Read the English checklist file before each step to decide what to do next.
@@ -67,7 +67,7 @@ Before any code changes, ensure the working tree is clean and up-to-date:
 - After completing each step:
   - Mark `[x]` in the English checklist file
   - Syntax/import verification is handled by the code reviewer during phase review
-- Do NOT stop until all processable steps are done (marked `[x]` or `[FAIL]`).
+- 처리 가능한 모든 step 을 `[x]`/`[FAIL]` 까지 진행한다.
 
 ## QA Scaling
 `qa_level` in plan frontmatter overrides auto-detect for ALL phases. Otherwise, detect per phase.

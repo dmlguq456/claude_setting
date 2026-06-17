@@ -58,7 +58,7 @@ Format:
 ```
 
 ## QA Requirements (Mandatory Thorough, Adversarial if Codex available)
-**code-test always uses at minimum Thorough mode (2 parallel QA agents).** The `qa_level` flag does NOT apply to code-test — testing rigor is non-negotiable.
+**code-test always uses at minimum Thorough mode (2 parallel QA agents).** Testing rigor is fixed independent of `qa_level` — code-test always enforces at least Thorough.
 
 **Adversarial auto-escalation**: Before launching QA, run `codex --version 2>/dev/null`. If Codex is available and authenticated, automatically escalate to Adversarial mode (add Codex agent to the parallel batch). If Codex is unavailable, proceed with Thorough.
 

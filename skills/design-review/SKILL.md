@@ -35,11 +35,11 @@ Agent(디자인팀, mode=verifier):
    verdict: done | needs_work + issues[]."
 ```
 
-`needs_work` 면 — `design_state.yaml` `phases.review: failed`, 사용자 보고 후 **critic 까지 가지 않고** components phase 재호출 권장 (깨진 화면을 미감 비평해봐야 무의미).
+`needs_work` 면 — `design_state.yaml` `phases.review: failed`, 사용자 보고 후 **critic 까지 가지 않고** components phase 재호출 권장.
 
-### Step 2: 검토 대상을 **렌더해서 본다** (critic 입력 — 코드 텍스트 검토 아님)
+### Step 2: 검토 대상을 **렌더해서 본다** (critic 입력 — 렌더한 이미지로 본다)
 
-critic 은 코드를 읽고 비평하지 않는다. **Design MCP** 로 렌더한 _이미지_ 를 직접 본다: `mcp__design__preview` → `screenshot` → `view_image`. 반응형은 `preview` viewport 를 바꿔 mobile/desktop 각각.
+critic 은 렌더한 _이미지_ 를 직접 본다. **Design MCP** 로: `mcp__design__preview` → `screenshot` → `view_image`. 반응형은 `preview` viewport 를 바꿔 mobile/desktop 각각.
 
 | scope | 렌더 → 본다 |
 |---|---|
