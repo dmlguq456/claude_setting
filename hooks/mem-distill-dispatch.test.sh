@@ -244,7 +244,7 @@ MEM_STORE="$STOREa" MEM_PROJECTS="$PROJa" MEM_DISTILL_ENABLE=1 PATH="$STUBa:$PAT
 # 유효 2줄 → row count == 2 기대, 하지만 quality_ok(≥15자) 이미 충족
 for _ in $(seq 1 50); do
   cnt_a="$(MEM_STORE="$STOREa" python3 "$MEM" stats 2>/dev/null | grep -E '^\s+total:' | awk '{print $2}')"
-  [ "${cnt_a:-0}" -ge 1 ] 2>/dev/null && break
+  [ "-e" -ge 2 ] 2>/dev/null && break
   sleep 0.1
 done
 cnt_a="$(MEM_STORE="$STOREa" python3 "$MEM" stats 2>/dev/null | grep -E '^\s+total:' | awk '{print $2}')"
@@ -284,7 +284,7 @@ MEM_STORE="$STOREm3" MEM_PROJECTS="$PROJm3" MEM_DISTILL_ENABLE=1 PATH="$STUBm3:$
 # 폴링: row count ≥ 1 대기 (내부 유효 2줄 기대)
 for _ in $(seq 1 50); do
   cnt_m3="$(MEM_STORE="$STOREm3" python3 "$MEM" stats 2>/dev/null | grep -E '^\s+total:' | awk '{print $2}')"
-  [ "${cnt_m3:-0}" -ge 1 ] 2>/dev/null && break
+  [ "-e" -ge 2 ] 2>/dev/null && break
   sleep 0.1
 done
 cnt_m3="$(MEM_STORE="$STOREm3" python3 "$MEM" stats 2>/dev/null | grep -E '^\s+total:' | awk '{print $2}')"
