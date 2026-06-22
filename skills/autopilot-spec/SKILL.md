@@ -280,6 +280,23 @@ mode: <두번째>
 ok? (진행 / 수정 / back-jump Step 3a / 중단)
 ```
 
+#### Step 3d: 의미↔규칙 경계 체크 (DESIGN_PRINCIPLES §0.7)
+
+> worklog-board 참사 (2026-06-22) 계기 — spec 이 "의미 판단"을 규칙 스크립트로 떠넘기는 모순을 PRD 작성 시점에 잡는 substep. 상세 정의 = DESIGN_PRINCIPLES §0.7 (재정의 X, 참조).
+
+1. PRD 본문에서 _의미 판단 구간_ grep — 키워드 신호: `의미 / 판단 / 적절 / 맥락 / contextual / semantic / 자연스러운 / 알맞은` 등. 매칭 구간을 list.
+2. 각 구간의 _대응 구현 계획_ 이 그 의미를 **규칙·토큰 매칭으로 떨궜는지** 확인 — spec 이 "의미상 맞는 X"를 요구하는데 구현이 고정 룰·정규식·토큰 일치만으로 대신하려 하면 충돌.
+3. 충돌 시 PRD 에 표시 + 이유 기록 + **3선택** 제시 (① spec 재정의 / ② 구현을 LLM 판단 단계로 / ③ 규칙 뒤 LLM fallback 명시 — §0.7).
+
+```
+=== 의미↔규칙 경계 체크 ===
+의미 판단 구간: <list — PRD line ref>
+충돌: <없음 / N건 — 각 구간 → 규칙 떨굼 여부>
+(충돌 시) 3선택: ① spec 재정의 / ② 구현 LLM 판단 / ③ 규칙 뒤 LLM fallback
+
+ok? (진행 / 수정 / 중단)
+```
+
 PRD 본문 형식 (공통 + mode 별 섹션 + Architecture Diagrams) 는 아래:
 
 ```markdown
