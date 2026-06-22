@@ -90,6 +90,7 @@
 4. `--no-fact-check` / `--no-style-audit`는 autopilot-refine / audit 외 다른 skill에 노출되면 안 됨.
 5. `codex-review-team`의 model 표기가 `opus` 단독이면 drift — 실제 review는 Codex CLI (GPT-5). §2 매트릭스에 따라 "Codex CLI (GPT-5) + opus orchestrator" 같이 분리 표기.
 6. **의도 동반 (2026-06-11)**: 지침·규칙·hook 의 신설/강화에는 _왜(계기 사건 + 날짜)_ 를 인라인 주석 또는 commit message 에 남긴다 — 예: "(drill g2 가 잡은 구멍, 2026-06-11)". 의도 없는 규칙은 시간이 지나면 정리도 못 하고 의심도 못 하는 짐 — 연수 루프가 _의도 불명 지침_ 을 정리 후보로 보고한다. 의도의 최상위 보존 형태는 drill 케이스 (실행 가능한 의도 — 오답노트 승격 채널).
+7. **의미↔규칙 경계 (2026-06-22, worklog-board 참사)**: 의미 판단을 규칙·토큰 매칭 스크립트로 내리지 말 것 — spec 이 "의미 판단"을 명시하면 구현이 그 의미를 capture 했는지 검증한다 (상세·검증 절차·3선택 = DESIGN_PRINCIPLES §0.7).
 
 새 invariant 추가는 본 섹션 list에 한 행 추가하면 sync-skills Step 5b.5의 자동 검사 list에 포함.
 
