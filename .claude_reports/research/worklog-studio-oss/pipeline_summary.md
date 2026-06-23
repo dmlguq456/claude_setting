@@ -37,5 +37,14 @@
 | pipeline shape | 학술 paper 파이프 vs OSS 레포 조사 | OSS 적응 | WebSearch+GitHub API, 4축 커스텀 포맷 |
 | 4b | QA 재실측 경로 | 비인증 한도 소진 → gh api | 인증 경로로 12 repo 재검증, 통과 |
 
+## Addendum — spec-grounded 보완 (2026-06-23, A+B 전체 정조준)
+worklog-board spec이 이미 §24(스튜디오)·§25(실험대시보드)로 lift 타깃 확정(일부 studio-c1 구현)임을 발견 → 1차 research를 spec 확정결정·미결에 정조준 재평가. 4 deep-dive(general-purpose ×4) + arXiv 인용 WebFetch 검증.
+- **A1 §24.4 브리지**: ACP→**OD-lift 유지**(이미 ~2232 LOC 구현, ACP는 §24.19 future)
+- **A2 §24.5 캔버스**: Sandpack→**srcdoc 유지**(Sandpack self-host stale·renderify CDN본드)
+- **A3+B2 §24.12 검증**: odiff→**getBoundingClientRect 유지 + axe-core 편입**(odiff는 baseline 전제라 생성물 부적합 — 1차 odiff 픽 supersede)
+- **B1 §25 E4**: **min/max decimation 확정**(§25.14 미결 해소)
+- 순효과 = spec 검증 + 오정제 3건 차단 + 진짜 추가 2건. 산출: `addendum_spec_deltas.md` + `_internal/addendum_*.md` 4종 + `_internal/reviews/round_2_factcheck.md`(Macaron-A2UI 수치 🟡강등).
+- **spec 미수정**(사용자 결정 "spec 보류") — 순 변경목록은 addendum에 additive로 정리(승인 시 autopilot-spec update).
+
 ## 다음 파이프라인
-`/autopilot-spec --mode app "worklog 디자인/실험 스튜디오 — ACP 브리지 + Sandpack 프리뷰 + Trackio·uPlot 추적 + gray-matter manifest·odiff 검증"` → 확정 후 `/autopilot-code --mode dev`
+spec 반영 시(사용자 승인 후): `/autopilot-spec --mode update` — addendum_spec_deltas.md "순 spec 변경 목록" 4건을 §24.4/§24.5/§24.12/§25.8 에 additive 반영(기존 결정 무번복). 그 외엔 feat-studio-c1 구현이 이미 OD-lift·srcdoc 경로로 진행 중.

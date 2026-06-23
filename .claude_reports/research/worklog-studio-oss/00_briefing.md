@@ -4,6 +4,8 @@
 > **렌즈**: local-first · BYOK · 기존 하네스(PATH 의 claude/codex CLI + skills/memory) 재사용 · 디스크=상태(live-REPL 회피) · 앱 임베드(통째 채택 X) · 라이선스 MIT/Apache
 > **기준선(중복 서술 금지)**: OD = nexu-io/open-design(web+daemon spawn·srcdoc iframe·agents.ts 어댑터) · OCD = opencoworkai/open-codesign(Electron + pi 내장·boolean parity 검증)
 > **상세 카드**: [축1 브리지](axis1_bridge.md) · [축2 프리뷰](axis2_preview.md) · [축3 추적](axis3_tracking.md) · [축4 허브·검증](axis4_manifest_design.md)
+>
+> ⚠️ **spec-grounded 보완 추가됨 → [addendum_spec_deltas.md](addendum_spec_deltas.md)**: worklog-board spec은 이미 §24(스튜디오)·§25(실험대시보드)로 lift 타깃을 확정했다. addendum이 본 briefing의 픽을 spec에 대질해 재평가 — **3건(ACP·Sandpack·odiff)은 전환 비권고로 뒤집힘**(spec 결정 검증), 2건은 진짜 추가. 특히 본 briefing 축4(b) **"odiff 1픽"은 *생성 UI 검증*에선 supersede됨** — odiff는 baseline 전제라 부적합, getBoundingClientRect baseline-free 사다리가 1차(addendum §A3+B2 참조).
 
 ---
 
