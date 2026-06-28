@@ -127,8 +127,8 @@ family 의 모든 멤버는 confirm 없이 pipeline 을 끝까지 돌린다. 사
 
 입력 자료는 _프로젝트 컨텍스트 내부의 영속 산출물_ 에서 자동 발견한다.
 
-- `.claude_reports/analysis_project/{code,paper,doc}/*` — analyze-project 산출물
-- `.claude_reports/research/{topic}/*` — autopilot-research 산출물
+- `<artifact-root>/analysis_project/{code,paper,doc}/*` — analyze-project 산출물
+- `<artifact-root>/research/{topic}/*` — autopilot-research 산출물
 - 외부 raw 자료는 `analyze-project --mode {code|paper|doc}` 으로 먼저 영속화 → 이후 skill 이 fuzzy match 로 implicit 인지
 
 **Why**: 한 세션 한 프로젝트의 단순한 가정 (cwd = working dir) 이 cognitive cost 를 낮추고, 영속 산출물 재활용성을 높인다. cross-project 작업은 `cd <other>` 후 별도 세션.

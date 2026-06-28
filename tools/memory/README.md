@@ -1,6 +1,6 @@
 # tools/memory — 통합 기억 시스템 (`mem`)
 
-Hermes 메모리 벤치마킹의 store/write 층. spec: [`.claude_reports/spec/prd.md`](../../.claude_reports/spec/prd.md) (Unified Memory System).
+Hermes 메모리 벤치마킹의 store/write 층. spec: `<artifact-root>/spec/prd.md` (`.agent_reports` 우선, legacy `.claude_reports` 호환) (Unified Memory System).
 
 ## 한 줄
 흩어진 기억(post-it 단기 · auto-memory 장기 · user_profile 전역)을 **하나의 SQLite store + tier 모델**로 통합. 자동 기록 + FTS 회상. 진실원천은 `memory.db`(DB-SoT), git은 텍스트 덤프(`dump.jsonl`)를 mirror.

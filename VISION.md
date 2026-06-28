@@ -1,7 +1,7 @@
 # VISION.md — 북극성 (먼 미래 목표)
 
 > 1페이지 vision 메모. 정식 PRD 아님 — 방향 합의 후 `autopilot-spec` 으로 승격한다.
-> 근거: `.claude_reports/research/hermes-agent/` (Hermes Agent 벤치마킹) + `07_security.md` (보안 체크리스트).
+> 근거: artifact root 의 `research/hermes-agent/` (Hermes Agent 벤치마킹) + `07_security.md` (보안 체크리스트).
 > 작성 2026-06-15.
 
 ## 한 줄
