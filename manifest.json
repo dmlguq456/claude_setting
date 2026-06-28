@@ -562,7 +562,7 @@
       "mono": "study",
       "type": "time",
       "schedule": "cron 일요일 06:17",
-      "blurb": "agent engineering 신간·Claude Code 변경 조사 → 세팅 대조 → **개선 제안서만** (🔴 한정 **자동 초안** 동반) (+ g0 세금 추세)",
+      "blurb": "agent engineering 신간·현재 주 adapter 변경 조사 → 세팅 대조 → **개선 제안서만** (🔴 한정 **자동 초안** 동반) (+ g0 세금 추세)",
       "output_path": "`notes/study/<date>.md`",
       "layer": "L4"
     }

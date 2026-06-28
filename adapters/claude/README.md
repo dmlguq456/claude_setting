@@ -29,6 +29,32 @@ This adapter maps the common agent harness onto Claude Code.
 | git safety gate | `hooks/git-state-guard.sh` |
 | memory write guard | `hooks/builtin-memory-guard.sh` |
 
+## Runtime Home Projection
+
+Target layout:
+
+```text
+$HOME/agent_setting/        # neutral repo
+$HOME/.claude/              # Claude Code runtime home
+```
+
+Claude Code should see the same files it expects today, but they should be symlinked or generated from the neutral repo where practical:
+
+```text
+$HOME/.claude/CLAUDE.md      -> $HOME/agent_setting/CLAUDE.md
+$HOME/.claude/skills         -> $HOME/agent_setting/skills
+$HOME/.claude/agents         -> $HOME/agent_setting/agents
+$HOME/.claude/agent-modes    -> $HOME/agent_setting/agent-modes
+$HOME/.claude/hooks          -> $HOME/agent_setting/hooks
+$HOME/.claude/utilities      -> $HOME/agent_setting/utilities
+$HOME/.claude/tools          -> $HOME/agent_setting/tools
+$HOME/.claude/commands       -> $HOME/agent_setting/commands
+$HOME/.claude/statusline.sh  -> $HOME/agent_setting/statusline.sh
+$HOME/.claude/track-toggle.sh -> $HOME/agent_setting/track-toggle.sh
+```
+
+Keep Claude-owned mutable state in `$HOME/.claude`: credentials, sessions, projects, history, shell snapshots, cache, daemon logs, and local DBs. Do not move those into the neutral repo.
+
 ## Model Role Mapping
 
 Claude Code adapter 는 기존 운용 품질을 보존하기 위해 `CONVENTIONS.md §2` 의 portable role 을 아래처럼 concrete model 로 매핑한다. 공통 문서에는 role name 을 쓰고, Claude Code 전용 frontmatter / Agent 호출에서만 concrete name 을 쓴다.
@@ -52,4 +78,4 @@ Claude Code projects created before the neutral artifact root use `.claude_repor
 
 For shell code, use `utilities/artifact-root.sh` or the equivalent rule: prefer `.agent_reports`; use `.claude_reports` only if it already exists and `.agent_reports` does not.
 
-For harness-home paths, use `utilities/agent-home.sh` or the equivalent rule: prefer `AGENT_HOME`, then `CLAUDE_HOME`, then `$HOME/.claude`.
+For harness-home paths, use `utilities/agent-home.sh` or the equivalent rule: prefer `AGENT_HOME`, then `CLAUDE_HOME`, then `$HOME/agent_setting` when present, then `$HOME/.claude` as legacy fallback.

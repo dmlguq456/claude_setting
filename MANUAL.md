@@ -1,4 +1,4 @@
-# MANUAL — `~/.claude` 세팅 전체 흐름
+# MANUAL — agent harness 전체 흐름
 
 > **앞층(사용자용 지도, 2026-06-23 신설).** 이 한 파일로 세팅 전체가 _어떻게 짜여 돌아가는가_ 를 4축으로 본다. 정밀 규칙·정의는 _뒤층_ 문서(끝 §5 reference)에 있고, 여기선 **진입점·요약·링크**만 — 흐름을 잃지 않게(정의 복사 X, 링크만).
 
@@ -36,7 +36,7 @@
 - **사후 수정**: spec-backed 프로젝트는 즉석 직접 편집이 아니라 _기존 산출물 파악 → spec-drift 체크 → autopilot-code_ 경로를 탄다.
 - **모드 신호**: 매 프롬프트 statusline 에 📌tracked(파이프 경유) / ⚡untracked(`/track`, 직접 편집 자유)가 뜬다.
 
-→ 라우팅 정밀 규칙·발화 매핑·spec mode·서브에이전트 분기: [`WORKFLOW.md`](WORKFLOW.md) · 호출 패턴·응답 규율: [`CLAUDE.md`](CLAUDE.md) §0
+→ 라우팅 정밀 규칙·발화 매핑·spec mode·서브에이전트 분기: [`WORKFLOW.md`](WORKFLOW.md) · 호출 패턴·응답 규율: runtime adapter bootstrap (현재 Claude Code: [`CLAUDE.md`](CLAUDE.md) §0)
 
 ---
 
@@ -47,7 +47,7 @@
    │  (메인 에이전트가 라우팅)
    ▼
 skills/ (28)  ──호출──►  agents/ (8)        ◄── 팀별 모드(agent-modes/)
-   │  파이프라인          기획·개발·품질·연구·자료·디자인·편집·codex
+   │  파이프라인          기획·개발·품질·연구·자료·디자인·편집·external adversary
    ▼
 .agent_reports/   ◄──강제── hooks/ (생성순서·git상태·spec게이트·메모리가드)
    산출물                         │
@@ -107,7 +107,9 @@ skills/ (28)  ──호출──►  agents/ (8)        ◄── 팀별 모드(
 
 | 문서 | 역할 |
 |---|---|
-| [`CLAUDE.md`](CLAUDE.md) | 부트스트랩 + 응답 규율 + 라우팅 §0 |
+| [`CORE.md`](CORE.md) · [`adapters/`](adapters/README.md) | 공통 하네스 계약 + 런타임별 adapter 경계 |
+| [`INSTALL_LAYOUT.md`](INSTALL_LAYOUT.md) | neutral repo + runtime home symlink projection 절차 |
+| [`CLAUDE.md`](CLAUDE.md) | 현재 Claude Code adapter 부트스트랩 + 응답 규율 + 라우팅 §0 |
 | [`WORKFLOW.md`](WORKFLOW.md) | 발화→skill 라우팅 코어 |
 | [`CONVENTIONS.md`](CONVENTIONS.md) | QA·산출물 3-tier 등 family 운영 규칙 |
 | [`OPERATIONS.md`](OPERATIONS.md) | git·worktree·dispatch·push 운영 (§5.8~5.11) |

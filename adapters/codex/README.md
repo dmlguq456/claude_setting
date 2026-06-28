@@ -34,6 +34,23 @@ Experimental. The portable contract is usable, but Codex does not consume Claude
 | git safety gate | `hooks/git-state-guard.sh` is the portable check; Codex must also honor sandbox and approval state |
 | memory store | `tools/memory/mem.py` is runtime-neutral; hook automation is adapter-specific |
 
+## Runtime Home Projection
+
+Target layout:
+
+```text
+$HOME/agent_setting/        # neutral repo
+$HOME/.codex/               # Codex runtime home
+```
+
+Codex runtime state such as `auth.json`, logs, SQLite state, sessions, model caches, and shell snapshots should stay in `$HOME/.codex`. The neutral harness should be referenced from Codex through explicit bootstrap instructions, symlinks, or wrapper configuration. At minimum, the Codex adapter should expose a stable pointer back to the neutral repo, for example:
+
+```text
+$HOME/.codex/agent-harness -> $HOME/agent_setting
+```
+
+Further Codex-specific files can be added under `adapters/codex/` and symlinked or generated into `$HOME/.codex` as the adapter matures.
+
 ## Model Role Mapping
 
 Codex adapter 는 `CONVENTIONS.md §2` 의 portable role 을 Codex 런타임에서 동등한 capability tier 로 매핑해야 한다. 현재 adapter 는 experimental 이므로 concrete default 를 고정하지 않는다.
@@ -51,7 +68,7 @@ Codex 쪽 wrapper 를 만들 때는 `AGENT_MODEL_FAST`, `AGENT_MODEL_DEEP`, `AGE
 
 Codex should create new project artifacts under `.agent_reports/`. Use `utilities/artifact-root.sh` or the equivalent rule: prefer `.agent_reports`; use `.claude_reports` only if it already exists and `.agent_reports` does not.
 
-Codex should resolve harness-home paths through `AGENT_HOME` or `utilities/agent-home.sh`. `CLAUDE_HOME` is accepted only as a Claude adapter compatibility alias.
+Codex should resolve harness-home paths through `AGENT_HOME` or `utilities/agent-home.sh`. `CLAUDE_HOME` is accepted only as a Claude adapter compatibility alias during migration.
 
 Claude Code-specific files remain valid as implementation references, not as Codex bootstrap files:
 
