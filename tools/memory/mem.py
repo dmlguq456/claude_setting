@@ -39,7 +39,10 @@ def artifact_root(cwd: Path) -> Path:
     agent = cwd / ".agent_reports"
     if agent.exists():
         return agent
-    return cwd / ".claude_reports"
+    legacy = cwd / ".claude_reports"
+    if legacy.exists():
+        return legacy
+    return agent
 
 # dump 자동 commit 메시지 prefix — 사용자 관행 `chore: dump —` 계열 / `auto-sync` 라벨로 수동과 구분
 AUTO_DUMP_MSG_PREFIX = "chore: dump — auto-sync"

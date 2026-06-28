@@ -10,7 +10,7 @@ metadata:
 ---
 
 > **산출물 폴더 컨벤션**: [CONVENTIONS.md §5](../../CONVENTIONS.md#5-skill-output-convention-3-tier-t1t2t3) (3-tier). 본 skill은 입력 artifact를 _수정하지 않음_ — 점검 보고서만 생성. 보고서는 `{artifact_dir}/_internal/audit/audit_{YYYY-MM-DDTHHMM}.md`에 기록.
-> `<artifact-root>` 해석: `.agent_reports` 우선, 없으면 legacy `.claude_reports`. 실제 쉘 명령에서는 `REPORTS_DIR=.agent_reports; [ -d "$REPORTS_DIR" ] || REPORTS_DIR=.claude_reports` 로 치환한다.
+> `<artifact-root>` 해석: `.agent_reports` 우선, legacy `.claude_reports` 는 이미 존재하고 `.agent_reports` 가 없을 때만 사용. 실제 쉘 명령에서는 `REPORTS_DIR=.agent_reports; [ -d .claude_reports ] && [ ! -d .agent_reports ] && REPORTS_DIR=.claude_reports` 로 치환한다.
 
 ## Position in autopilot family
 

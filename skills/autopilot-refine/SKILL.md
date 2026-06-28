@@ -178,7 +178,7 @@ Detect type by path prefix:
 
 All user-facing output (chat diffs, pipeline_summary entries, reports) in natural **Korean** (no translationese — write Korean natively, don't translate from an English draft).
 
-> `<artifact-root>` 해석: `.agent_reports` 우선, 없으면 legacy `.claude_reports`. 실제 쉘 명령에서는 `REPORTS_DIR=.agent_reports; [ -d "$REPORTS_DIR" ] || REPORTS_DIR=.claude_reports` 로 치환한다.
+> `<artifact-root>` 해석: `.agent_reports` 우선, legacy `.claude_reports` 는 이미 존재하고 `.agent_reports` 가 없을 때만 사용. 실제 쉘 명령에서는 `REPORTS_DIR=.agent_reports; [ -d .claude_reports ] && [ ! -d .agent_reports ] && REPORTS_DIR=.claude_reports` 로 치환한다.
 
 ---
 

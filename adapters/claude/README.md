@@ -21,7 +21,7 @@ This adapter maps the common agent harness onto Claude Code.
 | capability | Skill |
 | role profile | Agent |
 | adapter bootstrap | `CLAUDE.md` |
-| artifact root | `.agent_reports`, fallback `.claude_reports` |
+| artifact root | `.agent_reports`, legacy fallback `.claude_reports` only when already present |
 | tracked/untracked signal | `workflow-guard-hook.sh` + `statusline.sh` |
 | artifact-order gate | `hooks/artifact-guard.sh` |
 | spec read gate | `hooks/spec-skill-gate.sh` + `hooks/spec-read-marker.sh` |
@@ -32,3 +32,4 @@ This adapter maps the common agent harness onto Claude Code.
 
 Claude Code projects created before the neutral artifact root use `.claude_reports/`. This adapter recognizes both names. New projects should use `.agent_reports/`; existing projects can migrate later or keep the legacy directory indefinitely.
 
+For shell code, use `utilities/artifact-root.sh` or the equivalent rule: prefer `.agent_reports`; use `.claude_reports` only if it already exists and `.agent_reports` does not.

@@ -13,7 +13,7 @@
 **acquire** — 쓰기 진입 _직전_ (autopilot-spec 의 Step 3 / update mode, autopilot-code 의 pipeline_state·summary 쓰기 / spec-drift update):
 
 ```bash
-REPORTS_DIR=.agent_reports; [ -d "$REPORTS_DIR" ] || REPORTS_DIR=.claude_reports
+REPORTS_DIR=.agent_reports; [ -d .claude_reports ] && [ ! -d .agent_reports ] && REPORTS_DIR=.claude_reports
 LOCK="$REPORTS_DIR/.pipeline-lock"; NOW=$(date +%s); WT=$(pwd -P)
 if [ -f "$LOCK" ]; then
   LAT=$(sed -n 's/^at=//p' "$LOCK"); LWT=$(sed -n 's/^worktree=//p' "$LOCK"); LBR=$(sed -n 's/^branch=//p' "$LOCK")
@@ -30,14 +30,14 @@ printf 'worktree=%s\nbranch=%s\nskill=%s\nat=%s\nat_iso=%s\npid=%s\n' \
 **release** — 파이프 정상 종료 _및_ 중단·에러 시 모두:
 
 ```bash
-REPORTS_DIR=.agent_reports; [ -d "$REPORTS_DIR" ] || REPORTS_DIR=.claude_reports
+REPORTS_DIR=.agent_reports; [ -d .claude_reports ] && [ ! -d .agent_reports ] && REPORTS_DIR=.claude_reports
 rm -f "$REPORTS_DIR/.pipeline-lock"
 ```
 
 **detect-only** — "지금 spec 수정 중인가?" 단순 조회(메인 Claude 가 spec 손대기 전 확인):
 
 ```bash
-REPORTS_DIR=.agent_reports; [ -d "$REPORTS_DIR" ] || REPORTS_DIR=.claude_reports
+REPORTS_DIR=.agent_reports; [ -d .claude_reports ] && [ ! -d .agent_reports ] && REPORTS_DIR=.claude_reports
 [ -f "$REPORTS_DIR/.pipeline-lock" ] && cat "$REPORTS_DIR/.pipeline-lock" || echo "활성 편집 없음"
 ```
 

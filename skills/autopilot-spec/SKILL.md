@@ -10,7 +10,7 @@ metadata:
 ---
 
 > 산출물 폴더: `<artifact-root>/spec/` (CONVENTIONS.md §5.4.3 3-tier). 숫자 prefix 없는 평이한 이름 — `prd.md` (T1, 항상 최신) · `stack.md` · `design/` · `ship.md` · `pipeline_state.yaml` · `_internal/`.
-> `<artifact-root>` 해석: `.agent_reports` 우선, 없으면 legacy `.claude_reports`. 실제 쉘 명령에서는 `REPORTS_DIR=.agent_reports; [ -d "$REPORTS_DIR" ] || REPORTS_DIR=.claude_reports` 로 치환한다.
+> `<artifact-root>` 해석: `.agent_reports` 우선, legacy `.claude_reports` 는 이미 존재하고 `.agent_reports` 가 없을 때만 사용. 실제 쉘 명령에서는 `REPORTS_DIR=.agent_reports; [ -d .claude_reports ] && [ ! -d .agent_reports ] && REPORTS_DIR=.claude_reports` 로 치환한다.
 
 > **Intake 게이트**: 진입 직후 입력이 비가역 결정 커버리지(스택·인증·DB·배포타깃·핵심 entity 등)에 미달이면 [CONVENTIONS.md §6.6](../../CONVENTIONS.md#66-autopilot-intake-gate) 의 1라운드 구조화 질문 먼저 (AskUserQuestion, 항상 탈출구). slash 직접 args 충분·이미 명시·throwaway(/track)·재개(--from) 시 skip (별도 flag 불요).
 
