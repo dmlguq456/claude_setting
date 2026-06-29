@@ -267,16 +267,19 @@ if "$CODEX" capability-info autopilot-code >/tmp/cap.out 2>/tmp/cap.err \
   && grep -q '^adapter=codex$' /tmp/cap.out \
   && grep -q '^native_skill=1$' /tmp/cap.out \
   && grep -q '^native_skill_path=adapters/codex/skills/autopilot-code/SKILL.md$' /tmp/cap.out \
-  && grep -q '^realization=codex-native-skill$' /tmp/cap.out \
+  && grep -q '^native_plugin=1$' /tmp/cap.out \
+  && grep -q '^native_plugin_skill_path=adapters/codex/plugins/agent-harness-codex/skills/autopilot-code/SKILL.md$' /tmp/cap.out \
+  && grep -q '^realization=codex-native-skill-plugin$' /tmp/cap.out \
   && grep -q '^status=instruction-only$' /tmp/cap.out; then
-  ok "codex capability wrapper reports native skill realization"
+  ok "codex capability wrapper reports native skill and plugin realization"
 else
-  bad "codex capability wrapper should report native skill realization"
+  bad "codex capability wrapper should report native skill and plugin realization"
 fi
 if "$CODEX" capability-info design-review >/tmp/cap.out 2>/tmp/cap.err \
   && grep -q '^capability=design-review$' /tmp/cap.out \
   && grep -q '^native_skill=1$' /tmp/cap.out \
-  && grep -q '^realization=codex-native-skill$' /tmp/cap.out \
+  && grep -q '^native_plugin=1$' /tmp/cap.out \
+  && grep -q '^realization=codex-native-skill-plugin$' /tmp/cap.out \
   && grep -q '^status=tool-contract$' /tmp/cap.out \
   && grep -q '^tool_contract=visual-harness$' /tmp/cap.out \
   && grep -q '^tool_contract_check=adapters/codex/bin/preflight.sh visual-harness$' /tmp/cap.out; then
@@ -713,16 +716,19 @@ if "$OPENCODE" capability-info autopilot-code >/tmp/opencode_cap.out 2>/tmp/open
   && grep -q '^adapter=opencode$' /tmp/opencode_cap.out \
   && grep -q '^native_skill=1$' /tmp/opencode_cap.out \
   && grep -q '^native_skill_path=adapters/opencode/skills/autopilot-code/SKILL.md$' /tmp/opencode_cap.out \
-  && grep -q '^realization=opencode-native-skill$' /tmp/opencode_cap.out \
+  && grep -q '^native_command=1$' /tmp/opencode_cap.out \
+  && grep -q '^native_command_path=adapters/opencode/commands/autopilot-code.md$' /tmp/opencode_cap.out \
+  && grep -q '^realization=opencode-native-skill-command$' /tmp/opencode_cap.out \
   && grep -q '^status=instruction-only$' /tmp/opencode_cap.out; then
-  ok "opencode capability wrapper reports instruction-only realization"
+  ok "opencode capability wrapper reports native skill and command realization"
 else
-  bad "opencode capability wrapper should report instruction-only realization"
+  bad "opencode capability wrapper should report native skill and command realization"
 fi
 if "$OPENCODE" capability-info design-review >/tmp/opencode_cap.out 2>/tmp/opencode_cap.err \
   && grep -q '^capability=design-review$' /tmp/opencode_cap.out \
   && grep -q '^native_skill=1$' /tmp/opencode_cap.out \
-  && grep -q '^realization=opencode-native-skill$' /tmp/opencode_cap.out \
+  && grep -q '^native_command=1$' /tmp/opencode_cap.out \
+  && grep -q '^realization=opencode-native-skill-command$' /tmp/opencode_cap.out \
   && grep -q '^status=tool-contract$' /tmp/opencode_cap.out \
   && grep -q '^tool_contract=visual-harness$' /tmp/opencode_cap.out \
   && grep -q '^tool_contract_check=adapters/opencode/bin/preflight.sh visual-harness$' /tmp/opencode_cap.out; then

@@ -43,6 +43,7 @@ realization="portable-instructions"
 tool_contract=""
 note="Codex has no native skill/plugin realization for this capability yet; read the portable catalog and task-relevant docs, then use preflight guards. Legacy compatibility references are not native input."
 native_skill_path="adapters/codex/skills/$cap/SKILL.md"
+native_plugin_skill_path="adapters/codex/plugins/agent-harness-codex/skills/$cap/SKILL.md"
 if [ -f "$ROOT/$native_skill_path" ]; then
   native_skill=1
   realization="codex-native-skill"
@@ -51,12 +52,22 @@ else
   native_skill=0
   native_skill_path=""
 fi
+if [ -f "$ROOT/$native_plugin_skill_path" ]; then
+  native_plugin=1
+  [ "$native_skill" -eq 1 ] && realization="codex-native-skill-plugin"
+  note="Codex has adapter-owned native Skill and plugin projections generated from the portable capability spec. Use them with explicit preflight guards; legacy compatibility references are not native input."
+else
+  native_plugin=0
+  native_plugin_skill_path=""
+fi
 
 case "$cap" in
   autopilot-design|design-*)
     status="tool-contract"
     tool_contract="visual-harness"
-    if [ "$native_skill" -eq 1 ]; then
+    if [ "$native_plugin" -eq 1 ]; then
+      note="Codex has native Skill and plugin projections for guidance, but must provide an adapter visual harness equivalent before claiming full design capability support; legacy visual harness files are reference only."
+    elif [ "$native_skill" -eq 1 ]; then
       note="Codex has a native Skill projection for guidance, but must provide an adapter visual harness equivalent before claiming full design capability support; legacy visual harness files are reference only."
     else
       realization="portable-instructions"
@@ -70,6 +81,10 @@ printf 'adapter=codex\n'
 printf 'native_skill=%s\n' "$native_skill"
 if [ -n "$native_skill_path" ]; then
   printf 'native_skill_path=%s\n' "$native_skill_path"
+fi
+printf 'native_plugin=%s\n' "$native_plugin"
+if [ -n "$native_plugin_skill_path" ]; then
+  printf 'native_plugin_skill_path=%s\n' "$native_plugin_skill_path"
 fi
 printf 'realization=%s\n' "$realization"
 printf 'portable_source=%s\n' "$portable_source"

@@ -492,6 +492,10 @@ check_codex_native_plugin_projection() {
   if ! grep -Fq "Custom prompts are deprecated" adapters/codex/README.md; then
     fail_msg "adapters/codex/README.md must document why command-like entries use skills/plugins instead of custom prompts"
   fi
+  if ! grep -Fq 'native_plugin_skill_path=' adapters/codex/bin/capability-map.sh \
+    || ! grep -Fq 'codex-native-skill-plugin' adapters/codex/bin/capability-map.sh; then
+    fail_msg "adapters/codex/bin/capability-map.sh must report Codex native plugin skill realization"
+  fi
 }
 
 check_codex_native_agent_projection() {
@@ -945,6 +949,10 @@ check_opencode_native_command_projection() {
   if [ -n "$bad" ]; then
     fail_msg "OpenCode native command surfaces must not expose Claude adapter paths:"
     printf '%s\n' "$bad"
+  fi
+  if ! grep -Fq 'native_command_path=' adapters/opencode/bin/capability-map.sh \
+    || ! grep -Fq 'opencode-native-skill-command' adapters/opencode/bin/capability-map.sh; then
+    fail_msg "adapters/opencode/bin/capability-map.sh must report OpenCode native command realization"
   fi
 }
 
