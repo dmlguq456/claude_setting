@@ -39,3 +39,4 @@ Whole-directory symlinks (`$HOME/.claude -> $HOME/agent_setting`) are discourage
 |---|---|---|
 | Claude Code | primary | `adapters/claude/README.md` + `adapters/claude/CLAUDE.md` + `adapters/claude/ADAPTATION.md` |
 | Codex | experimental | `adapters/codex/README.md` + `adapters/codex/AGENTS.md` + `adapters/codex/ADAPTATION.md` |
+| OpenCode | experimental | `adapters/opencode/README.md` + `adapters/opencode/AGENTS.md` + `adapters/opencode/ADAPTATION.md` |

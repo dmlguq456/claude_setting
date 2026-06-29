@@ -23,8 +23,11 @@ into a portable agent setting plus runtime adapters.
 | Claude bootstrap | `adapters/claude/CLAUDE.md` | adapter-native | Keep Claude Code response, routing, hook, statusline, and command rules here. |
 | Claude runtime workers | `adapters/claude/bin/*.sh` | adapter-native | Own concrete Claude CLI worker invocations used by shared dispatchers. |
 | Codex bootstrap | `adapters/codex/AGENTS.md` | adapter-native | Expand only with behavior that Codex can actually perform. |
+| OpenCode bootstrap | `adapters/opencode/AGENTS.md` | adapter-native | Loaded through the `instructions` array in `opencode.json`/`opencode.jsonc`; expand only with behavior that OpenCode can actually perform. |
 | Codex preflight wrappers | `adapters/codex/bin/preflight.sh`, `role-map.sh`, `capability-map.sh`, `mode-map.sh`, `distill-worker.sh` | adapter-native | Executable Codex bridge for hook invariants, portable role mapping, capability realization, mode support classification, and distill proposals. |
+| OpenCode preflight wrappers | `adapters/opencode/bin/preflight.sh`, `role-map.sh`, `capability-map.sh`, `mode-map.sh`, `distill-worker.sh` | adapter-native | Executable OpenCode bridge for hook invariants, portable role mapping, capability realization, mode support classification, and distill tool-contract reporting. OpenCode has native JS/TS plugin hooks but this adapter does not materialize a guard plugin yet. |
 | Codex native skill/plugin surface | not yet materialized | needs-split | If Codex needs discoverable `$...` entrypoints, generate adapter-owned `adapters/codex/skills/*/SKILL.md` or a Codex plugin surface from `capabilities/` and `roles/`; do not reuse Claude Skill files as Codex-native output. |
+| OpenCode native skill/command/agent/plugin surface | not yet materialized | needs-split | OpenCode has native `.opencode/skill/`, `.opencode/command/`, `.opencode/agent/`, and JS/TS plugin hook surfaces. Generate adapter-owned output from `capabilities/` and `roles/`; do not reuse Claude Skill, command, agent, or hook files as OpenCode-native output. Do not rely on the `~/.claude/skills/` autoload compat path. |
 | Claude settings/hooks registration | `adapters/claude/settings.json` | adapter-native | Codex must get wrapper/preflight equivalents, not this JSON. |
 | Slash commands | `adapters/claude/commands/` | adapter-native | Future runtimes need native command wrappers or instruction entries. |
 | Portable capability catalog | `capabilities/README.md`, `capabilities/*.md` | portable | Per-capability specs define runtime-neutral contracts; Codex resolves entries through `adapters/codex/bin/capability-map.sh`. |
@@ -42,11 +45,13 @@ into a portable agent setting plus runtime adapters.
 | Design MCP | `tools/design-mcp/`, design skills | mixed | Keep render/check semantics portable; move Claude MCP registration paths to adapter docs. |
 | Utility scripts | `adapters/claude/utilities/*`, shared `utilities/*` | adapter-native projection, mixed content | Concrete Claude utility files preserve current behavior while runtime-neutral helper behavior remains available from the shared utility layer. |
 | Codex utilities | `adapters/codex/utilities/*` | adapter-native selective projection | Use Codex-owned wrappers where shared helpers have Claude fallback behavior; symlink only portable utility files Codex actually uses. Do not expose Claude session helpers such as `dispatch-liveness.sh` through `codex_setting/`. |
+| OpenCode utilities | `adapters/opencode/utilities/*` | adapter-native selective projection | Use OpenCode-owned wrappers where shared helpers have Claude fallback behavior; symlink only portable utility files OpenCode actually uses. Do not expose Claude session helpers such as `dispatch-liveness.sh` through `opencode_setting/`. |
 | Scaffold assets | `adapters/claude/scaffolds/*`, shared `scaffolds/*` | adapter-native projection, mixed content | Concrete Claude scaffold files preserve current behavior while portable template intent remains available from the shared scaffold layer. |
 | Loop helpers | `adapters/claude/loops/*`, shared `loops/*` | adapter-native projection, mixed content | Concrete Claude loop files preserve current drill/oncall/study behavior while runtime-coupled loop invocation remains classified for future adapters. |
 | Tool helpers | `adapters/claude/tools/*`, shared `tools/*` | adapter-native projection, mixed content | Concrete Claude tool files preserve current helper behavior while memory/session/runtime-specific assumptions are split behind adapter or tool plugin boundaries. |
 | Codex tools | `adapters/codex/tools/*` | adapter-native selective projection | Use Codex-owned launchers for memory tools that need Codex home resolution; symlink only portable leaf tools with no runtime-home fallback. Do not expose `build-manifest.py`, `design-mcp`, or `web-bundle` through `codex_setting/`. |
-| Projection directories | `claude_setting/`, `codex_setting/` | projection | Must contain only symlinks or generated adapter output. |
+| OpenCode tools | `adapters/opencode/tools/*` | adapter-native selective projection | Use OpenCode-owned launchers for memory tools that need OpenCode home resolution; symlink only portable leaf tools with no runtime-home fallback. Do not expose `build-manifest.py`, `design-mcp`, or `web-bundle` through `opencode_setting/`. |
+| Projection directories | `claude_setting/`, `codex_setting/`, `opencode_setting/` | projection | Must contain only symlinks or generated adapter output. |
 
 ## Migration Order
 
@@ -74,10 +79,13 @@ A surface is not considered adapted until all of the following are true:
 - The Claude adapter still exposes the old runtime path and behavior.
 - The Codex adapter either exposes an equivalent behavior or explicitly marks
   the behavior unsupported with fallback instructions.
+- The OpenCode adapter either exposes an equivalent behavior using OpenCode
+  native surfaces (commands, skills, agents, plugin hooks, permission config)
+  or explicitly marks the behavior unsupported with fallback instructions.
 - Runtime-facing surfaces are verified at the level the runtime actually
   discovers: a file being present is insufficient when the runtime expects a
   native skill, command, hook, plugin manifest, TOML entry, or built-in surface.
 - Concrete model/runtime names appear only in adapter-native files, tests, or
   legacy compatibility notes.
-- `claude_setting/` and `codex_setting/` remain projections, not independent
+- `claude_setting/`, `codex_setting/`, and `opencode_setting/` remain projections, not independent
   semantic sources.

@@ -8,6 +8,9 @@ MEM="$ROOT/hooks/builtin-memory-guard.sh"
 CODEX="$ROOT/adapters/codex/bin/preflight.sh"
 CODEX_PROJECTION="$ROOT/codex_setting/bin/preflight.sh"
 CODEX_DISTILL="$ROOT/adapters/codex/bin/distill-worker.sh"
+OPENCODE="$ROOT/adapters/opencode/bin/preflight.sh"
+OPENCODE_PROJECTION="$ROOT/opencode_setting/bin/preflight.sh"
+OPENCODE_DISTILL="$ROOT/adapters/opencode/bin/distill-worker.sh"
 DESIGN="$ROOT/hooks/design-postwrite.sh"
 MARK="$ROOT/hooks/spec-read-marker.sh"
 SPEC="$ROOT/hooks/spec-skill-gate.sh"
@@ -295,6 +298,160 @@ if CODEX_DISTILL_ENABLE=1 CODEX_DISTILL_APPLY=1 CODEX_SESSIONS="$TMP/codex_sessi
   ok "codex distill proposal can explicitly apply through shared applier"
 else
   bad "codex distill explicit apply should create one memory record"
+fi
+
+echo "== opencode preflight wrapper =="
+git -C "$TMP/repo" switch -q -c opencode-work
+if "$OPENCODE" write "$TMP/repo/f" opencodesid >/tmp/opencode.out 2>/tmp/opencode.err; then
+  ok "opencode preflight passes clean write"
+else
+  bad "opencode preflight should pass clean write"
+fi
+if "$OPENCODE" write "$TMP/runtime/projects/abc/memory/MEMORY.md" opencodesid >/tmp/opencode.out 2>/tmp/opencode.err; then
+  bad "opencode preflight should block memory file write"
+else
+  [ "$?" -eq 2 ] && ok "opencode preflight blocks memory file write" || bad "opencode preflight memory wrong exit"
+fi
+if AGENT_HOME="$ROOT" bash "$DESIGN" --file "$TMP/not-design.txt" >/tmp/design.out 2>/tmp/design.err \
+  && "$OPENCODE" design "$TMP/not-design.txt" >/tmp/design.out 2>/tmp/design.err; then
+  ok "opencode design postwrite wrappers no-op on non-html"
+else
+  bad "opencode design postwrite wrappers should no-op on non-html"
+fi
+if "$OPENCODE_PROJECTION" capability-info audit >/tmp/opencode_projection.out 2>/tmp/opencode_projection.err \
+  && grep -q '^capability=audit$' /tmp/opencode_projection.out \
+  && grep -q '^adapter=opencode$' /tmp/opencode_projection.out; then
+  ok "opencode projection preflight resolves harness root"
+else
+  bad "opencode projection preflight should resolve harness root"
+fi
+
+echo "== opencode spec read gate =="
+if "$OPENCODE" read "$TMP/specproj/.agent_reports/spec/prd.md" opencodesid >/tmp/opencode.out 2>/tmp/opencode.err \
+  && "$OPENCODE" capability autopilot-code "$TMP/specproj" opencodesid >/tmp/opencode.out 2>/tmp/opencode.err; then
+  ok "opencode read+capability wrapper passes spec gate"
+else
+  bad "opencode read+capability wrapper should pass spec gate"
+fi
+
+echo "== opencode workflow signal CLI =="
+if "$OPENCODE" mode "$TMP/flowproj" opencodesid >/tmp/opencode.out 2>/tmp/opencode.err \
+  && grep -q 'tracked' /tmp/opencode.out; then
+  ok "opencode mode wrapper emits tracked text"
+else
+  bad "opencode mode wrapper should emit tracked text"
+fi
+touch "$TMP/flowproj/.agent_reports/.untracked.opencodesid"
+if "$OPENCODE" mode "$TMP/flowproj" opencodesid >/tmp/opencode.out 2>/tmp/opencode.err \
+  && grep -q 'untracked' /tmp/opencode.out; then
+  ok "opencode mode wrapper emits untracked text"
+else
+  bad "opencode mode wrapper should emit untracked text"
+fi
+if "$OPENCODE" memory "$TMP/flowproj" >/tmp/opencode_mem.out 2>/tmp/opencode_mem.err; then
+  ok "opencode memory wrapper exits cleanly"
+else
+  bad "opencode memory wrapper should exit cleanly"
+fi
+if "$OPENCODE" recall "전에 결정한 내용 뭐였지" "$TMP/flowproj" >/tmp/opencode_recall.out 2>/tmp/opencode_recall.err; then
+  ok "opencode recall wrapper exits cleanly"
+else
+  bad "opencode recall wrapper should exit cleanly"
+fi
+if "$OPENCODE" briefing "$TMP/flowproj" >/tmp/opencode_brief.out 2>/tmp/opencode_brief.err; then
+  ok "opencode briefing wrapper exits cleanly"
+else
+  bad "opencode briefing wrapper should exit cleanly"
+fi
+if AGENT_NOTES_ROOT="$TMP/notes" WORKLOG_BOARD_APP="$TMP/board" WORKLOG_BOARD_WT="$TMP/board-wt" \
+  "$OPENCODE" worklog "$TMP/flowproj" >/tmp/opencode_worklog.out 2>/tmp/opencode_worklog.err \
+  && grep -q "^agent-notes-root=$TMP/notes$" /tmp/opencode_worklog.out \
+  && grep -q '^note=read-only inventory;' /tmp/opencode_worklog.out; then
+  ok "opencode worklog wrapper reports read-only state"
+else
+  bad "opencode worklog wrapper should report read-only state"
+fi
+if env -u AGENT_NOTES_ROOT -u WORKLOG_NOTES_ROOT -u WORKLOG_BOARD_APP -u WORKLOG_BOARD_WT \
+  "$OPENCODE" worklog "$TMP/flowproj" >/tmp/opencode_worklog_default.out 2>/tmp/opencode_worklog_default.err \
+  && grep -q '^agent-notes-root=unset$' /tmp/opencode_worklog_default.out \
+  && ! grep -q '/.claude/worklog-board' /tmp/opencode_worklog_default.out; then
+  ok "opencode worklog wrapper has no Claude runtime defaults"
+else
+  bad "opencode worklog wrapper should not default to Claude runtime paths"
+fi
+
+echo "== opencode role mapping =="
+if AGENT_MODEL_FAST=fast-model AGENT_VARIANT_FAST=low "$OPENCODE" role fast reviewer >/tmp/opencode_role.out 2>/tmp/opencode_role.err \
+  && grep -q '^family=fast$' /tmp/opencode_role.out \
+  && grep -q '^model=fast-model$' /tmp/opencode_role.out \
+  && grep -q '^variant=low$' /tmp/opencode_role.out; then
+  ok "opencode role wrapper maps fast portable role"
+else
+  bad "opencode role wrapper should map fast portable role"
+fi
+if "$OPENCODE" role external adversary >/tmp/opencode_role.out 2>/tmp/opencode_role.err \
+  && grep -q '^available=0$' /tmp/opencode_role.out \
+  && grep -q '^status=unavailable$' /tmp/opencode_role.out; then
+  ok "opencode role wrapper marks external adversary unavailable by default"
+else
+  bad "opencode role wrapper should mark external adversary unavailable by default"
+fi
+if "$OPENCODE" role fast reviewer >/tmp/opencode_role.out 2>/tmp/opencode_role.err \
+  && grep -q '^model=opencode-default$' /tmp/opencode_role.out \
+  && grep -q '^variant=runtime-default$' /tmp/opencode_role.out; then
+  ok "opencode role wrapper reports opencode-default when unconfigured"
+else
+  bad "opencode role wrapper should report opencode-default when unconfigured"
+fi
+
+echo "== opencode capability mapping =="
+if "$OPENCODE" capability-info autopilot-code >/tmp/opencode_cap.out 2>/tmp/opencode_cap.err \
+  && grep -q '^capability=autopilot-code$' /tmp/opencode_cap.out \
+  && grep -q '^adapter=opencode$' /tmp/opencode_cap.out \
+  && grep -q '^native_skill=0$' /tmp/opencode_cap.out \
+  && grep -q '^realization=portable-instructions$' /tmp/opencode_cap.out \
+  && grep -q '^status=instruction-only$' /tmp/opencode_cap.out; then
+  ok "opencode capability wrapper reports instruction-only realization"
+else
+  bad "opencode capability wrapper should report instruction-only realization"
+fi
+if "$OPENCODE" capability-info design-review >/tmp/opencode_cap.out 2>/tmp/opencode_cap.err \
+  && grep -q '^capability=design-review$' /tmp/opencode_cap.out \
+  && grep -q '^status=tool-contract$' /tmp/opencode_cap.out \
+  && grep -q '^tool_contract=visual-harness$' /tmp/opencode_cap.out; then
+  ok "opencode design capability reports visual harness contract"
+else
+  bad "opencode design capability should report visual harness contract"
+fi
+
+echo "== opencode mode mapping =="
+if "$OPENCODE" mode-info dev/backend >/tmp/opencode_mode.out 2>/tmp/opencode_mode.err \
+  && grep -q '^status=portable$' /tmp/opencode_mode.out \
+  && grep -q '^realization=portable-persona$' /tmp/opencode_mode.out; then
+  ok "opencode mode wrapper maps portable mode"
+else
+  bad "opencode mode wrapper should map portable mode"
+fi
+if "$OPENCODE" mode-info design/maker >/tmp/opencode_mode.out 2>/tmp/opencode_mode.err \
+  && grep -q '^status=unsupported$' /tmp/opencode_mode.out \
+  && grep -q '^realization=adapter-coupled$' /tmp/opencode_mode.out; then
+  ok "opencode mode wrapper marks adapter-coupled design mode unsupported"
+else
+  bad "opencode mode wrapper should mark adapter-coupled design mode unsupported"
+fi
+
+echo "== opencode distill tool-contract =="
+if "$OPENCODE_DISTILL" opencodesid "$TMP/flowproj" >/tmp/opencode_distill.out 2>/tmp/opencode_distill.err \
+  && [ ! -s /tmp/opencode_distill.out ]; then
+  bad "opencode distill worker should report tool-contract not succeed silently"
+else
+  [ "$?" -eq 69 ] && ok "opencode distill worker exits 69 for tool-contract" || bad "opencode distill worker wrong exit"
+fi
+if "$OPENCODE" distill-delta opencodesid >/tmp/opencode_delta.out 2>/tmp/opencode_delta.err \
+  && [ ! -s /tmp/opencode_delta.out ]; then
+  bad "opencode distill-delta should report tool-contract not succeed silently"
+else
+  [ "$?" -eq 69 ] && ok "opencode distill-delta exits 69 for tool-contract" || bad "opencode distill-delta wrong exit"
 fi
 
 printf 'PASS=%s FAIL=%s\n' "$PASS" "$FAIL"

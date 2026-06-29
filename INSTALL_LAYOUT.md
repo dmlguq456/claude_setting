@@ -8,9 +8,11 @@ This harness is runtime-neutral. The git repository should live outside vendor r
 $HOME/agent_setting/        # canonical git repo: common core + adapters + projections
 $HOME/.claude/              # Claude Code runtime home
 $HOME/.codex/               # Codex runtime home
+$HOME/.config/opencode/     # OpenCode global config home
+$HOME/.local/share/opencode/  # OpenCode data home (DB, logs, snapshots)
 ```
 
-Do not make `$HOME/.claude` or `$HOME/.codex` the canonical repo. Those directories contain runtime-owned state such as credentials, sessions, logs, SQLite databases, caches, and shell snapshots.
+Do not make `$HOME/.claude`, `$HOME/.codex`, or `$HOME/.config/opencode` the canonical repo. Those directories contain runtime-owned state such as credentials, sessions, logs, SQLite databases, caches, and shell snapshots.
 
 ## Claude Code Projection
 
@@ -54,6 +56,50 @@ Codex-specific bootstrap files should live under `adapters/codex/` and be
 symlinked or generated into `codex_setting/` without moving Codex credentials,
 logs, sessions, or SQLite state into the repo.
 
+## OpenCode Projection
+
+OpenCode loads config from `opencode.json` / `opencode.jsonc` (project or
+global `~/.config/opencode/`) and reads instruction files listed in the
+`instructions` array. Keep `$HOME/.config/opencode` and
+`$HOME/.local/share/opencode` runtime-owned and expose a stable pointer:
+
+```bash
+export AGENT_HOME="$HOME/agent_setting"
+ln -sfn "$AGENT_HOME" "$HOME/.config/opencode/agent-harness"
+```
+
+Add the adapter bootstrap to the `instructions` array in your
+`opencode.json` / `opencode.jsonc`:
+
+```jsonc
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": [
+    "$HOME/agent_setting/opencode_setting/AGENTS.md"
+  ]
+}
+```
+
+Project the adapter-owned surfaces:
+
+```bash
+ln -sfn "$AGENT_HOME/opencode_setting/AGENTS.md" "$HOME/.config/opencode/agent-agents.md"
+ln -sfn "$AGENT_HOME/opencode_setting/README.md" "$HOME/.config/opencode/agent-harness-readme.md"
+ln -sfn "$AGENT_HOME/opencode_setting/core" "$HOME/.config/opencode/agent-core"
+ln -sfn "$AGENT_HOME/opencode_setting/capabilities" "$HOME/.config/opencode/agent-capabilities"
+ln -sfn "$AGENT_HOME/opencode_setting/bin" "$HOME/.config/opencode/agent-bin"
+ln -sfn "$AGENT_HOME/opencode_setting/tools" "$HOME/.config/opencode/agent-tools"
+ln -sfn "$AGENT_HOME/opencode_setting/utilities" "$HOME/.config/opencode/agent-utilities"
+```
+
+Do not symlink Claude-native surfaces such as `settings.json`, `commands/`,
+`skills/`, `statusline.sh`, or `hooks/` into `$HOME/.config/opencode`.
+OpenCode has native `.opencode/skill/`, `.opencode/command/`, `.opencode/agent/`,
+and JS/TS plugin hook surfaces; future OpenCode-specific bootstrap files
+should live under `adapters/opencode/` and be symlinked or generated into
+`opencode_setting/` without moving OpenCode credentials, DB state, logs,
+sessions, or snapshots into the repo.
+
 ## Migration Order
 
 1. Commit and push the current repo.
@@ -70,6 +116,7 @@ python3 -m py_compile tools/build-manifest.py tools/memory/mem.py
 sh utilities/agent-home.sh
 tools/check-adaptation-boundary.sh
 codex_setting/bin/preflight.sh capability-info autopilot-code
+opencode_setting/bin/preflight.sh capability-info autopilot-code
 ```
 
 Do not run drill automatically during migration; it invokes headless runtime sessions and can spend tokens. Run a targeted drill only after the symlink projection is confirmed.
