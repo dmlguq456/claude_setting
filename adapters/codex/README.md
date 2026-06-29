@@ -6,6 +6,11 @@ This adapter maps the common agent harness onto Codex-style sessions.
 
 Experimental. The portable contract is usable, but Codex does not consume Claude Code's `adapters/claude/settings.json`, slash command registry, or hook event schema directly. `adapters/codex/AGENTS.md` is the current Codex-style bootstrap, and wrappers should still run guard scripts as deterministic checks where native hooks are unavailable.
 
+The target is harness parity on Codex, not Claude surface parity. Use Codex
+native features first, including built-in slash commands and `/statusline`; add
+adapter wrappers only for harness-specific signals that Codex does not already
+surface.
+
 ## Entry Points
 
 | Surface | File |

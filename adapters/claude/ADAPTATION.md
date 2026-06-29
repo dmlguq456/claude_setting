@@ -80,6 +80,26 @@ code, and `mem` CLI as the only DB mutation path. Other adapters must provide
 their own transcript source and worker invocation or explicitly keep automatic
 distillation unsupported.
 
+## Dispatch And Statusline Realization
+
+Claude Code realizes the portable dispatch contract through headless Claude Code
+main sessions and the adapter-owned statusline script:
+
+- Full ceremony dispatch runs a background headless main in the target worktree,
+  currently shaped as `claude -p "/autopilot-code --mode <mode> --qa <level> ..."`
+  with tools pre-approved through Claude Code flags/settings.
+- The headless main uses the Claude orchestrator tier, currently `--model opus`,
+  so it does not inherit an arbitrary interactive-session model.
+- Dispatch prompts must spell out capability, mode, and QA options because
+  `adapters/claude/statusline.sh` derives the `>_ running` display from process
+  command lines and sibling `-wt/<slug>` worktree paths.
+- `utilities/dispatch-liveness.sh` inspects Claude session transcript mtimes
+  under the Claude runtime project log layout to catch hung headless jobs.
+
+Codex and future adapters should preserve the dispatch invariant, but must map
+it onto their own thread/subagent/session/status surfaces instead of copying the
+Claude statusline or `claude -p` process model.
+
 ## Compatibility Realizations
 
 These surfaces are still consumed by Claude Code directly, but their runtime

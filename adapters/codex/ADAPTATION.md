@@ -4,6 +4,17 @@ This adapter is not yet behavior-equivalent to the Claude Code adapter.
 It defines the required mapping so Codex support can be built without copying
 Claude-specific assumptions into the common core.
 
+## Design Principle
+
+Codex adaptation targets harness parity on Codex, not Claude surface parity.
+Start from the portable invariant in `core/`, then map it onto Codex-native
+features where they exist. Claude files are implementation references, not files
+to port wholesale.
+
+Use Codex-native surfaces first for model/session/context/status, approvals,
+sandboxing, skills/plugins, and built-in slash commands. Add adapter wrappers
+only for harness-specific signals that Codex does not provide directly.
+
 ## Native Codex Surfaces
 
 | Codex runtime surface | Adapter source | Projection |
@@ -29,6 +40,25 @@ Codex must not consume these Claude-native files as native configuration:
 | `adapters/claude/CLAUDE.md` | Reference only; not bootstrap |
 | `adapters/claude/agents/*.md` | Reference only; Codex should start from `roles/README.md` |
 | `roles/modes/design/*` | Compatibility reference only until Codex has an equivalent visual/browser verification harness |
+
+## Status Surface Boundary
+
+Codex has its own `/statusline` configuration for the TUI footer. Do not replace
+it with `adapters/claude/statusline.sh`, and do not duplicate Codex-native footer
+items such as model, context, token/usage/limits, git baseline, session, or
+Codex fast-mode state.
+
+Harness-specific status signals still need Codex-native realization:
+
+| Harness signal | Codex direction |
+|---|---|
+| tracked/untracked workflow state | explicit `preflight.sh mode` until a native prompt/session surface exists |
+| artifact root detection | `preflight.sh write` and shared artifact-root helper |
+| headless/autopilot/background jobs | redesign against Codex thread/subagent/session model before adding UI |
+| sibling `-wt/<slug>` dispatch detection | preserve the worktree naming invariant; choose a Codex-native display surface later |
+| pipeline stage nudges | preflight/AGENTS instructions first; UI only when Codex exposes a suitable surface |
+| oncall/note/study/drill loop nudges | `preflight.sh briefing` / future loop-specific wrappers |
+| merge/rebase/merged-branch risk | `preflight.sh write` git safety checks plus any future Codex-native warning surface |
 
 ## Required Codex Mappings
 

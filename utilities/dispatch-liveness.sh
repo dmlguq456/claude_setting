@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# dispatch-liveness — 분사(headless claude -p) job 의 stealth-death 결정론 점검.
+# dispatch-liveness — adapter-specific headless job 의 stealth-death 결정론 점검.
 #   문제: hung/crashed headless 는 exit 안 함 → 완료 알림 안 옴 → 메인 무한 대기 (2026-06-16 5h 사고).
 #   §0.5 결정론-우선: "vigilant 하게 기억" 대신 이 스크립트가 jobs.log 의 open 분사를 판정.
 #   신호 = 세션 transcript(`projects/<enc-cwd>/*.jsonl`) mtime — hang/death 하면 transcript 가 멈춘다
