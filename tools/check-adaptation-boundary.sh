@@ -47,6 +47,22 @@ check_required_projection_entries() {
   done
 }
 
+check_install_layout_codex_projection() {
+  [ -f INSTALL_LAYOUT.md ] || { fail_msg "INSTALL_LAYOUT.md is missing"; return; }
+
+  for p in AGENTS.md README.md core capabilities bin tools utilities; do
+    if ! grep -Fq "\$AGENT_HOME/codex_setting/$p" INSTALL_LAYOUT.md; then
+      fail_msg "INSTALL_LAYOUT.md must include Codex projection install step for codex_setting/$p"
+    fi
+  done
+
+  for p in settings.json commands skills statusline.sh hooks; do
+    if ! grep -Fq "$p" INSTALL_LAYOUT.md; then
+      fail_msg "INSTALL_LAYOUT.md must explicitly keep Claude-native $p out of Codex runtime projection"
+    fi
+  done
+}
+
 check_codex_bin_wrappers() {
   if [ ! -L codex_setting/bin ]; then
     fail_msg "codex_setting/bin must project adapters/codex/bin"
@@ -473,6 +489,7 @@ check_projection_symlinks claude_setting
 check_projection_symlinks codex_setting
 check_codex_forbidden_entries
 check_required_projection_entries
+check_install_layout_codex_projection
 check_codex_bin_wrappers
 check_codex_tool_projection
 check_codex_utility_projection

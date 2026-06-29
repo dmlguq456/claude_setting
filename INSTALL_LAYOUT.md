@@ -41,11 +41,18 @@ export AGENT_HOME="$HOME/agent_setting"
 ln -sfn "$AGENT_HOME" "$HOME/.codex/agent-harness"
 ln -sfn "$AGENT_HOME/codex_setting/AGENTS.md" "$HOME/.codex/AGENTS.md"
 ln -sfn "$AGENT_HOME/codex_setting/README.md" "$HOME/.codex/agent-harness-readme.md"
+ln -sfn "$AGENT_HOME/codex_setting/core" "$HOME/.codex/agent-core"
 ln -sfn "$AGENT_HOME/codex_setting/capabilities" "$HOME/.codex/agent-capabilities"
 ln -sfn "$AGENT_HOME/codex_setting/bin" "$HOME/.codex/agent-bin"
+ln -sfn "$AGENT_HOME/codex_setting/tools" "$HOME/.codex/agent-tools"
+ln -sfn "$AGENT_HOME/codex_setting/utilities" "$HOME/.codex/agent-utilities"
 ```
 
-Future Codex-specific bootstrap files should live under `adapters/codex/` and be symlinked or generated into `codex_setting/` without moving Codex credentials, logs, sessions, or SQLite state into the repo.
+Do not symlink Claude-native surfaces such as `settings.json`, `commands/`,
+`skills/`, `statusline.sh`, or `hooks/` into `$HOME/.codex`. Future
+Codex-specific bootstrap files should live under `adapters/codex/` and be
+symlinked or generated into `codex_setting/` without moving Codex credentials,
+logs, sessions, or SQLite state into the repo.
 
 ## Migration Order
 
@@ -61,6 +68,8 @@ cd "$HOME/agent_setting"
 python3 tools/build-manifest.py --check
 python3 -m py_compile tools/build-manifest.py tools/memory/mem.py
 sh utilities/agent-home.sh
+tools/check-adaptation-boundary.sh
+codex_setting/bin/preflight.sh capability-info autopilot-code
 ```
 
 Do not run drill automatically during migration; it invokes headless runtime sessions and can spend tokens. Run a targeted drill only after the symlink projection is confirmed.
