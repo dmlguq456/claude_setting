@@ -679,6 +679,13 @@ check_opencode_native_agent_projection() {
       fail_msg "$agent must state that it is not a Claude Agent copy"
     fi
   done
+
+  if ! grep -Fq 'adapters/opencode/agents/<role>/<role>.md' adapters/opencode/README.md; then
+    fail_msg "adapters/opencode/README.md must map role profiles to OpenCode-native agent projections"
+  fi
+  if grep -Fq 'until OpenCode-native role prompts exist' adapters/opencode/README.md; then
+    fail_msg "adapters/opencode/README.md must not describe OpenCode-native role prompts as future-only"
+  fi
 }
 
 check_opencode_native_command_projection() {
