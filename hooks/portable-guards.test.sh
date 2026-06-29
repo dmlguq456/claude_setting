@@ -10,6 +10,7 @@ MARK="$ROOT/hooks/spec-read-marker.sh"
 SPEC="$ROOT/hooks/spec-skill-gate.sh"
 FLOW="$ROOT/utilities/workflow-guard-hook.sh"
 RECALL="$ROOT/hooks/mem-recall-inject.sh"
+BRIEF="$ROOT/hooks/mem-briefing-inject.sh"
 
 PASS=0
 FAIL=0
@@ -139,6 +140,17 @@ if "$CODEX" recall "전에 결정한 내용 뭐였지" "$TMP/flowproj" >/tmp/rec
   ok "codex recall wrapper exits cleanly"
 else
   bad "codex recall wrapper should exit cleanly"
+fi
+if bash "$BRIEF" --cwd "$TMP/flowproj" --format text >/tmp/brief.out 2>/tmp/brief.err \
+  && [ ! -s /tmp/brief.out ]; then
+  ok "briefing wrapper no-ops outside agent desk"
+else
+  bad "briefing wrapper should no-op outside agent desk"
+fi
+if "$CODEX" briefing "$TMP/flowproj" >/tmp/brief.out 2>/tmp/brief.err; then
+  ok "codex briefing wrapper exits cleanly"
+else
+  bad "codex briefing wrapper should exit cleanly"
 fi
 
 printf 'PASS=%s FAIL=%s\n' "$PASS" "$FAIL"

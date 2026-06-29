@@ -22,6 +22,7 @@ This file maps the shared agent harness onto Codex-style sessions. It is an adap
 - Use `adapters/codex/bin/preflight.sh mode [cwd] [session-id]` to surface tracked/untracked workflow state when Codex has no automatic prompt hook.
 - Use `adapters/codex/bin/preflight.sh memory [cwd]` for plain-text memory injection when Codex has no automatic session-start hook.
 - Use `adapters/codex/bin/preflight.sh recall "<prompt>" [cwd]` before answering prompts with recall signal words when Codex has no automatic prompt hook.
+- Use `adapters/codex/bin/preflight.sh briefing [cwd]` on the dedicated agent desk when Codex has no automatic prompt hook.
 - Keep Codex-owned credentials, sessions, logs, caches, and local databases outside the harness repo.
 
 ## Response Policy

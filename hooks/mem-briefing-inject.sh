@@ -12,22 +12,65 @@
 #     - 오늘 당직 보고 없음(cron 전·루프 고장) → exit 0
 #     - 이미 오늘 브리핑함 → exit 0 (하루 1회, .briefing-<date> 상태파일)
 #   Read-only: notes·graveyard 읽기만. additionalContext 만 emit (never-block 불변식).
+#   Portable CLI:
+#     mem-briefing-inject.sh --cwd <dir> [--format text|claude-json]
+#
 #   등록: settings.json hooks.UserPromptSubmit.
 set -euo pipefail
 AGENT_HOME="${AGENT_HOME:-${CLAUDE_HOME:-$HOME/.claude}}"
 
+usage() {
+  cat <<'EOF'
+usage: mem-briefing-inject.sh --cwd <dir> [--format text|claude-json]
+
+Without arguments, reads Claude hook JSON from stdin and emits Claude hook JSON.
+EOF
+}
+
 # 재귀가드: distiller 세션이면 trigger X, stdin drain 후 즉시 exit 0.
 [ "${MEM_DISTILL:-}" = "1" ] && { cat >/dev/null 2>&1; exit 0; }
 
-input=$(cat 2>/dev/null || true)
-eval "$(printf '%s' "$input" | python3 -c '
+EVENT="UserPromptSubmit"
+CWD=""
+FORMAT="claude-json"
+
+if [ "$#" -gt 0 ]; then
+  FORMAT="text"
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --cwd)
+        [ "$#" -ge 2 ] || { echo "mem-briefing-inject: --cwd requires a dir" >&2; exit 64; }
+        CWD=$2
+        shift 2
+        ;;
+      --format)
+        [ "$#" -ge 2 ] || { echo "mem-briefing-inject: --format requires a value" >&2; exit 64; }
+        case "$2" in text|claude-json) FORMAT=$2 ;; *) echo "mem-briefing-inject: unknown format: $2" >&2; exit 64 ;; esac
+        shift 2
+        ;;
+      -h|--help)
+        usage
+        exit 0
+        ;;
+      *)
+        echo "mem-briefing-inject: unknown argument: $1" >&2
+        usage >&2
+        exit 64
+        ;;
+    esac
+  done
+  [ -n "$CWD" ] || { echo "mem-briefing-inject: --cwd is required" >&2; exit 64; }
+else
+  input=$(cat 2>/dev/null || true)
+  eval "$(printf '%s' "$input" | python3 -c '
 import json, sys, shlex
 try: d = json.load(sys.stdin)
 except Exception: d = {}
 print("EVENT="+shlex.quote(d.get("hook_event_name","") or ""))
 print("CWD="+shlex.quote(d.get("cwd","") or ""))
 ' 2>/dev/null || true)"
-EVENT="${EVENT:-}"; CWD="${CWD:-}"
+  EVENT="${EVENT:-}"; CWD="${CWD:-}"
+fi
 
 [ "$EVENT" = "UserPromptSubmit" ] || exit 0
 # 전용 데스크 게이트 — agent home 메인 트리 세션만 (worktree 제외, 타 프로젝트 보호)
@@ -56,8 +99,8 @@ PRUNED=0
 # MEM_PY override = 테스트 격리 (dispatch.sh 동형, production default 불변).
 PROMO="$(cd "$AGENT_HOME" 2>/dev/null && python3 "${MEM_PY:-$AGENT_HOME/tools/memory/mem.py}" promote-candidates 2>/dev/null || true)"
 
-# additionalContext emit — json.dumps escaping (R4: shell interpolation 금지). never-block(|| true).
-ONCALL_FILE="$ONCALL" PRUNED="$PRUNED" PROMO="$PROMO" python3 -c '
+# additionalContext 또는 plain text emit — json.dumps escaping (R4: shell interpolation 금지). never-block(|| true).
+ONCALL_FILE="$ONCALL" PRUNED="$PRUNED" PROMO="$PROMO" FORMAT="$FORMAT" python3 -c '
 import os, json
 try:
     body = open(os.environ["ONCALL_FILE"], encoding="utf-8").read()
@@ -78,6 +121,9 @@ if promo:
             "아래는 메모리에 반복 누적된 규칙·교훈이다. 사용자와 논의해 종착지"
             "(CLAUDE.md/CONVENTIONS/DESIGN_PRINCIPLES 문서 · hook · drill 케이스)를 정하고, "
             "반영·drill 검증 후 메모리에서 prune 한다 (D-28).\n" + promo)
+if os.environ.get("FORMAT") == "text":
+    print(msg)
+    raise SystemExit
 out = {"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": msg}}
 print(json.dumps(out, ensure_ascii=False))
 ' || true

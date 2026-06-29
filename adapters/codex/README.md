@@ -38,6 +38,7 @@ Experimental. The portable contract is usable, but Codex does not consume Claude
 | memory write guard | `core/HOOKS.md` defines the invariant; included in `adapters/codex/bin/preflight.sh write <file> [session-id]` |
 | memory injection | `tools/memory/mem.py inject` is runtime-neutral; run `adapters/codex/bin/preflight.sh memory [cwd]` when no automatic session-start hook is attached |
 | memory recall injection | `hooks/mem-recall-inject.sh` is runtime-neutral for prompt text; run `adapters/codex/bin/preflight.sh recall <prompt> [cwd]` when no automatic prompt hook is attached |
+| oncall briefing injection | `hooks/mem-briefing-inject.sh` is runtime-neutral for cwd/text output; run `adapters/codex/bin/preflight.sh briefing [cwd]` when no automatic prompt hook is attached |
 | memory store | `tools/memory/mem.py` is runtime-neutral; session log ingestion/distillation remains adapter-specific |
 
 ## Runtime Home Projection
