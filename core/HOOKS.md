@@ -47,6 +47,8 @@ Codex must not consume that JSON as configuration. It can run
 `adapters/codex/bin/preflight.sh read <prd.md> [session-id]` after actual spec
 reads, and `adapters/codex/bin/preflight.sh capability <name> [cwd] [session-id]`
 before spec-changing capability work. It can also run
+`adapters/codex/bin/preflight.sh start [cwd] [session-id]` at session start for
+stale workflow bypass flag cleanup, and
 `adapters/codex/bin/preflight.sh mode [cwd] [session-id]` to surface tracked
 or untracked workflow state as plain text. Use `adapters/codex/bin/preflight.sh
 track [cwd] [session-id]` to toggle the same session-scoped workflow bypass flag

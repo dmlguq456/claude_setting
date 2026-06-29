@@ -140,6 +140,15 @@ if "$FLOW" --event prompt --cwd "$TMP/flowproj" --session testsid --format text 
 else
   bad "workflow signal should emit tracked text"
 fi
+oldflag="$TMP/flowproj/.agent_reports/.untracked.oldsid"
+: > "$oldflag"
+touch -d '2026-06-10 00:00:00' "$oldflag"
+if "$CODEX" start "$TMP/flowproj" testsid >/tmp/start.out 2>/tmp/start.err \
+  && [ ! -e "$oldflag" ]; then
+  ok "codex start wrapper cleans stale untracked flags"
+else
+  bad "codex start wrapper should clean stale untracked flags"
+fi
 if "$TOGGLE" --cwd "$TMP/flowproj" --session testsid --set untracked >/tmp/toggle.out 2>/tmp/toggle.err \
   && grep -q 'untracked mode' /tmp/toggle.out \
   && [ -f "$TMP/flowproj/.agent_reports/.untracked.testsid" ]; then

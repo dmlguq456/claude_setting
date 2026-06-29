@@ -14,6 +14,7 @@ usage: preflight.sh write <file> [session-id]
        preflight.sh read <file> [session-id]
        preflight.sh capability <name> [cwd] [session-id]
        preflight.sh skill <name> [cwd] [session-id]
+       preflight.sh start [cwd] [session-id]
        preflight.sh mode [cwd] [session-id]
        preflight.sh track [cwd] [session-id]
        preflight.sh memory [cwd]
@@ -54,6 +55,11 @@ case "$cmd" in
     cwd=${3:-$PWD}
     sid=${4:-codex}
     "$ROOT/hooks/spec-skill-gate.sh" --skill "$name" --cwd "$cwd" --session "$sid"
+    ;;
+  start)
+    cwd=${2:-$PWD}
+    sid=${3:-codex}
+    "$ROOT/utilities/workflow-guard-hook.sh" --event start --cwd "$cwd" --session "$sid" --format text
     ;;
   mode)
     cwd=${2:-$PWD}

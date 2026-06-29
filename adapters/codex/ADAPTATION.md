@@ -102,6 +102,7 @@ Harness-specific status signals still need Codex-native realization:
 
 | Harness signal | Codex direction |
 |---|---|
+| stale workflow bypass flag cleanup | explicit `preflight.sh start` until a native session-start surface exists |
 | tracked/untracked workflow state | explicit `preflight.sh mode` until a native prompt/session surface exists |
 | tracked/untracked toggle | explicit `preflight.sh track`; do not expose Claude `/track` command files |
 | artifact root detection | `preflight.sh write` and shared artifact-root helper |
@@ -120,6 +121,7 @@ Harness-specific status signals still need Codex-native realization:
 | memory write guard | Run `adapters/codex/bin/preflight.sh write <file> [session-id]` before writes |
 | design post-write verification | Run `adapters/codex/bin/preflight.sh design <file>` after design HTML writes |
 | spec read gate | Run `adapters/codex/bin/preflight.sh read <prd.md> [session-id]` after actual reads and `adapters/codex/bin/preflight.sh capability <name> [cwd] [session-id]` before spec/code capabilities |
+| workflow start cleanup | Run `adapters/codex/bin/preflight.sh start [cwd] [session-id]` at session start when no automatic hook is attached |
 | workflow signal | Run `adapters/codex/bin/preflight.sh mode [cwd] [session-id]` as explicit prompt/session reminder; no statusline assumption |
 | workflow toggle | Run `adapters/codex/bin/preflight.sh track [cwd] [session-id]` only when the user explicitly requests tracked/untracked mode switching |
 | memory inject | Run `adapters/codex/bin/preflight.sh memory [cwd]` for plain-text session-start memory injection |
