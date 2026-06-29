@@ -42,17 +42,18 @@ invariant.
 | Capability catalog | `capabilities/` | `codex_setting/capabilities` |
 | Role catalog | `roles/` | `codex_setting/roles` |
 | Preflight wrappers | `adapters/codex/bin/` | `codex_setting/bin` |
+| Skills | `adapters/codex/skills/<name>/SKILL.md` generated from `capabilities/` | `codex_setting/codex-skills` |
 | Shared helper tools | selected `tools/`, selected `utilities/` | `codex_setting/tools`, `codex_setting/utilities` |
 | Selected tools | `adapters/codex/tools/` adapter launchers plus selected portable tool projections | `codex_setting/tools` |
 | Selected utilities | `adapters/codex/utilities/` adapter wrappers plus selected portable utility projections | `codex_setting/utilities` |
 
-## Native Skill And Plugin Surface Debt
+## Native Skill And Plugin Surface
 
 Current Codex support is instruction-first: load `AGENTS.md`, read
-`capabilities/`, and run `preflight.sh capability-info`. That is not the same as
-a discoverable Codex-native skill/plugin surface.
+`capabilities/`, run `preflight.sh capability-info`, and use generated
+Codex-native Skill projections as guidance. Plugin surfaces remain future work.
 
-Before adding Codex-native skills or plugins:
+Before adding or changing Codex-native skills or plugins:
 
 1. Use `capabilities/<name>.md` and `roles/` as source, not
    `skills/<name>/SKILL.md` or `adapters/claude/skills/`.
@@ -65,16 +66,15 @@ Before adding Codex-native skills or plugins:
 5. Verify discoverability using the Codex runtime contract, not byte parity with
    Claude files.
 
-Until that exists, Codex capability support remains wrapper/instruction based.
-Design capabilities are a tool-contract exception: Codex must provide or map an
-adapter visual harness before claiming full support, and `capability-info`
-reports `status=tool-contract` for those entries.
+Design capabilities are a tool-contract exception: Codex has native Skill
+guidance for them, but must provide or map an adapter visual harness before
+claiming full support. `capability-info` reports `status=tool-contract` for
+those entries.
 
-The boundary guard intentionally fails if `adapters/codex/skills/`, a Codex
-plugin directory, or a Codex plugin manifest appears before this section is
-updated with a discoverability test. That keeps the current instruction-only
-adapter from silently turning Claude Skill files into a fake Codex-native
-surface.
+The boundary guard verifies generated Codex Skill projections with
+`adapters/codex/bin/sync-native-skills.py --check`. It still fails if a Codex
+plugin directory or plugin manifest appears before this section is updated with
+a discoverability test.
 
 ## Explicit Non-Support
 
@@ -151,10 +151,11 @@ unavailable role explicitly.
 
 ## Current Projection Boundary
 
-`codex_setting/` should remain minimal until adapted surfaces exist. It may expose
-`AGENTS.md`, `README.md`, `core/`, `capabilities/`, `bin/`, selected tools,
-and selected utilities, but must not expose Claude-native `settings.json`,
-`commands/`, `skills/`, or `statusline.sh` as if Codex could consume them.
+`codex_setting/` should remain minimal and explicit. It may expose `AGENTS.md`,
+`README.md`, `core/`, `capabilities/`, `roles/`, `bin/`, `codex-skills`,
+selected tools, and selected utilities, but must not expose Claude-native
+`settings.json`, `commands/`, root `skills/`, or `statusline.sh` as if Codex
+could consume them.
 
 `codex_setting/tools` points at `adapters/codex/tools/`, not the entire shared
 `tools/` directory. The current allowlist is:

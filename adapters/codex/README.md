@@ -11,11 +11,9 @@ native features first, including built-in slash commands and `/statusline`; add
 adapter wrappers only for harness-specific signals that Codex does not already
 surface.
 
-The GSD Core installer/plugin design is a useful comparison point: it converts
-canonical workflow files into runtime-native artifacts and tests whether the
-runtime discovers them. For this adapter, the same principle means a future
-Codex skill/plugin surface must be adapter-owned output derived from
-`capabilities/` and `roles/`, not a projection of Claude Skill files.
+Codex native Skill projection is materialized under `adapters/codex/skills/`
+from `capabilities/`. Plugin and command-like surfaces remain future work; do
+not project Claude Skill, command, hook, or statusline files into Codex.
 
 ## Entry Points
 
@@ -33,6 +31,7 @@ Codex skill/plugin surface must be adapter-owned output derived from
 | Role profiles | `roles/README.md` |
 | Role mode inventory | `roles/MODES.md` |
 | Hook and guard scripts | `hooks/`, `utilities/` |
+| Native skills | `adapters/codex/skills/` |
 | Selected tool projection | `adapters/codex/tools/` |
 | Selected utility projection | `adapters/codex/utilities/` |
 
@@ -40,8 +39,8 @@ Codex skill/plugin surface must be adapter-owned output derived from
 
 | Core Concept | Codex Implementation |
 |---|---|
-| capability | Read `capabilities/README.md` for meaning; run `adapters/codex/bin/preflight.sh capability-info <capability>` to confirm Codex realization; use `skills/*/SKILL.md` only as Claude compatibility detail until Codex-native capability instructions exist |
-| native skill/plugin surface | Not materialized yet; if added, generate or maintain `adapters/codex/skills/*/SKILL.md` or plugin metadata from portable capability/role sources and verify Codex discoverability |
+| capability | Read `capabilities/README.md` for meaning; run `adapters/codex/bin/preflight.sh capability-info <capability>` to confirm Codex realization; use `adapters/codex/skills/<capability>/SKILL.md` as Codex-native guidance |
+| native skill/plugin surface | Skills are materialized under `adapters/codex/skills/`; plugin and command-like surfaces are not materialized yet. Future output must be generated from portable capability/role sources and verified with Codex discoverability (`codex debug prompt-input`) |
 | role profile | Use `roles/README.md` for meaning; use `roles/modes/` or Claude agent files only as compatibility references until Codex-native role prompts exist |
 | role mode | Run `adapters/codex/bin/preflight.sh mode-info <family/mode>` before using a `roles/modes/` fragment; portable modes can be used directly, tool-contract modes require equivalent tools, unsupported modes are reference-only |
 | adapter bootstrap | Load `adapters/codex/AGENTS.md`, then `core/CORE.md` plus task-relevant shared docs; do not treat `CLAUDE.md` as portable bootstrap |
@@ -93,6 +92,20 @@ adapter currently exposes only utility files that Codex wrappers or docs use:
 
 Claude-specific helpers such as `dispatch-liveness.sh` stay out of the Codex
 projection until Codex has an equivalent transcript/liveness contract.
+
+## Native Skill Projection
+
+`adapters/codex/skills/` contains Codex-native Skill projections generated from
+portable `capabilities/*.md` specs:
+
+```bash
+adapters/codex/bin/sync-native-skills.py --check
+```
+
+Expose them to Codex by symlinking each generated skill directory into
+`$CODEX_HOME/skills/`, using `codex_setting/codex-skills` as the projection
+source. Do not expose root `skills/` or `adapters/claude/skills/` as Codex
+native skills.
 
 ## Runtime Home Projection
 

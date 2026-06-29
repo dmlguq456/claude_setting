@@ -40,9 +40,9 @@ check_codex_forbidden_entries() {
 }
 
 check_codex_native_surface_debt() {
-  for p in adapters/codex/skills adapters/codex/plugins adapters/codex/.codex-plugin codex_setting/plugins codex_setting/.codex-plugin; do
+  for p in adapters/codex/plugins adapters/codex/.codex-plugin codex_setting/plugins codex_setting/.codex-plugin; do
     if [ -e "$p" ] || [ -L "$p" ]; then
-      fail_msg "$p exists; Codex native skill/plugin surface is not materialized yet and must be added with discoverability guards"
+      fail_msg "$p exists; Codex native plugin surface is not materialized yet and must be added with discoverability guards"
     fi
   done
 }
@@ -56,7 +56,7 @@ check_opencode_forbidden_entries() {
 }
 
 check_required_projection_entries() {
-  for p in AGENTS.md README.md core capabilities roles bin tools utilities; do
+  for p in AGENTS.md README.md core capabilities roles bin tools utilities codex-skills; do
     if [ ! -L "codex_setting/$p" ]; then
       fail_msg "codex_setting/$p must be a symlink projection entry"
     fi
@@ -72,6 +72,7 @@ check_codex_projection_targets() {
   check_link_target codex_setting/bin ../adapters/codex/bin
   check_link_target codex_setting/tools ../adapters/codex/tools
   check_link_target codex_setting/utilities ../adapters/codex/utilities
+  check_link_target codex_setting/codex-skills ../adapters/codex/skills
 }
 
 check_opencode_required_projection_entries() {
@@ -139,7 +140,7 @@ check_link_target() {
 check_install_layout_codex_projection() {
   [ -f INSTALL_LAYOUT.md ] || { fail_msg "INSTALL_LAYOUT.md is missing"; return; }
 
-  for p in AGENTS.md README.md core capabilities roles bin tools utilities; do
+  for p in AGENTS.md README.md core capabilities roles bin tools utilities codex-skills; do
     if ! grep -Fq "\$AGENT_HOME/codex_setting/$p" INSTALL_LAYOUT.md; then
       fail_msg "INSTALL_LAYOUT.md must include Codex projection install step for codex_setting/$p"
     fi
@@ -288,6 +289,41 @@ check_codex_tool_projection() {
   for p in build-manifest.py check-adaptation-boundary.sh design-mcp web-bundle; do
     if [ -e "adapters/codex/tools/$p" ] || [ -L "adapters/codex/tools/$p" ]; then
       fail_msg "adapters/codex/tools/$p must not be projected until Codex support is documented"
+    fi
+  done
+}
+
+check_codex_native_skill_projection() {
+  if [ ! -x adapters/codex/bin/sync-native-skills.py ]; then
+    fail_msg "adapters/codex/bin/sync-native-skills.py must be executable"
+    return
+  fi
+
+  if ! adapters/codex/bin/sync-native-skills.py --check >/tmp/codex-sync-skills.out 2>/tmp/codex-sync-skills.err; then
+    fail_msg "Codex native skill projections are stale; run adapters/codex/bin/sync-native-skills.py"
+    cat /tmp/codex-sync-skills.err
+  fi
+
+  for f in capabilities/*.md; do
+    [ -f "$f" ] || continue
+    [ "$(basename "$f")" = "README.md" ] && continue
+    slug=$(basename "$f" .md)
+    skill="adapters/codex/skills/$slug/SKILL.md"
+    if [ ! -f "$skill" ]; then
+      fail_msg "$skill is missing"
+      continue
+    fi
+    if ! grep -Fq "capabilities/$slug.md" "$skill"; then
+      fail_msg "$skill must reference capabilities/$slug.md as portable source"
+    fi
+    if ! grep -Fq "adapters/codex/bin/preflight.sh capability-info $slug" "$skill"; then
+      fail_msg "$skill must reference the Codex capability-info wrapper"
+    fi
+    if ! grep -Fq "not a Claude Skill copy" "$skill"; then
+      fail_msg "$skill must state that it is not a Claude Skill copy"
+    fi
+    if grep -Fq "metadata:" "$skill"; then
+      fail_msg "$skill must use Codex Skill frontmatter only, without adapter metadata"
     fi
   done
 }
@@ -845,6 +881,7 @@ check_install_layout_opencode_projection
 check_codex_bin_wrappers
 check_opencode_bin_wrappers
 check_codex_tool_projection
+check_codex_native_skill_projection
 check_portable_agent_home_resolution
 check_opencode_tool_projection
 check_opencode_native_skill_projection

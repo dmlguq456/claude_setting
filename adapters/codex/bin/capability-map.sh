@@ -43,19 +43,35 @@ status="instruction-only"
 realization="portable-instructions"
 tool_contract=""
 note="Codex has no native skill/plugin realization for this capability yet; read the portable catalog and task-relevant docs, then use preflight guards. Claude Skill frontmatter is reference only."
+native_skill_path="adapters/codex/skills/$cap/SKILL.md"
+if [ -f "$ROOT/$native_skill_path" ]; then
+  native_skill=1
+  realization="codex-native-skill"
+  note="Codex has an adapter-owned native Skill projection generated from the portable capability spec. Use it with explicit preflight guards; Claude Skill frontmatter is reference only."
+else
+  native_skill=0
+  native_skill_path=""
+fi
 
 case "$cap" in
   autopilot-design|design-*)
     status="tool-contract"
-    realization="portable-instructions"
     tool_contract="visual-harness"
-    note="Codex must provide an adapter visual harness equivalent before claiming full design capability support; Claude Design MCP files are reference only."
+    if [ "$native_skill" -eq 1 ]; then
+      note="Codex has a native Skill projection for guidance, but must provide an adapter visual harness equivalent before claiming full design capability support; Claude Design MCP files are reference only."
+    else
+      realization="portable-instructions"
+      note="Codex must provide an adapter visual harness equivalent before claiming full design capability support; Claude Design MCP files are reference only."
+    fi
     ;;
 esac
 
 printf 'capability=%s\n' "$cap"
 printf 'adapter=codex\n'
-printf 'native_skill=0\n'
+printf 'native_skill=%s\n' "$native_skill"
+if [ -n "$native_skill_path" ]; then
+  printf 'native_skill_path=%s\n' "$native_skill_path"
+fi
 printf 'realization=%s\n' "$realization"
 printf 'portable_source=%s\n' "$portable_source"
 
