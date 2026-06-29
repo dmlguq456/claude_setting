@@ -18,8 +18,8 @@ checks to their own event model.
 
 | Invariant | Current script | Status | Portable meaning | Non-Claude adapter requirement |
 |---|---|---|---|---|
-| artifact order | `hooks/artifact-guard.sh` | `adapter-payload-wrapper` | New tracked artifacts must be created in dependency order: spec after research/analysis, plans after spec, documents after research/analysis. | Provide file path and session id to the check before writes, or run an equivalent pre-write wrapper. |
-| git state safety | `hooks/git-state-guard.sh` | `adapter-payload-wrapper` | Do not edit files in merge/rebase/cherry-pick/detached unsafe git states unless explicitly unlocked. | Run before file edits with target path. |
+| artifact order | `hooks/artifact-guard.sh` | `portable-check` | New tracked artifacts must be created in dependency order: spec after research/analysis, plans after spec, documents after research/analysis. | Run `hooks/artifact-guard.sh --file <path> [--session <id>]` before writes, or use an adapter wrapper. |
+| git state safety | `hooks/git-state-guard.sh` | `portable-check` | Do not edit files in merge/rebase/cherry-pick/detached unsafe git states unless explicitly unlocked. | Run `hooks/git-state-guard.sh --file <path>` before file edits, or use an adapter wrapper. |
 | spec read gate | `hooks/spec-skill-gate.sh`, `hooks/spec-read-marker.sh` | `adapter-payload-wrapper` | Spec-changing capability calls in spec-backed projects require a current `prd.md` read marker. | Record actual reads and check markers before spec/code capabilities. |
 | memory write guard | `hooks/builtin-memory-guard.sh` | `adapter-payload-wrapper` | Runtime-native file memory must not bypass the unified DB memory store. | Block writes to runtime memory-file paths or remove the native memory feature. |
 | design post-write verification | `hooks/design-postwrite.sh` | `adapter-coupled-automation` | Saved design HTML should get deterministic console verification. | Provide an equivalent browser/console checker or report unsupported. |
@@ -37,6 +37,7 @@ payload and consume the expected output decision. Otherwise, the invariant must
 be wrapped or reimplemented behind an adapter-native event bridge.
 
 Current Claude Code registration lives in `adapters/claude/settings.json`.
-Codex must not consume that JSON as configuration; it should run explicit
-preflight wrappers for `artifact order`, `git state safety`, and `spec read gate`
-until a native hook/event bridge exists.
+Codex must not consume that JSON as configuration. It can run
+`adapters/codex/bin/preflight.sh write <file> [session-id]` for the checks that
+already have portable CLI entry points, and should add equivalent wrappers for
+`spec read gate` when a Codex read/capability-call bridge exists.

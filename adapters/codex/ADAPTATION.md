@@ -12,6 +12,7 @@ Claude-specific assumptions into the common core.
 | Adapter guide | `adapters/codex/README.md` | `codex_setting/README.md` |
 | Common contract | `core/` | `codex_setting/core` |
 | Capability catalog | `capabilities/` | `codex_setting/capabilities` |
+| Preflight wrappers | `adapters/codex/bin/` | `codex_setting/bin` |
 | Shared helper tools | `tools/`, `utilities/` | projected selectively |
 
 ## Explicit Non-Support
@@ -33,8 +34,8 @@ Codex must not consume these Claude-native files as native configuration:
 
 | Portable invariant | Codex adaptation requirement |
 |---|---|
-| artifact order | Run `hooks/artifact-guard.sh` through wrapper/pre-write checks where possible |
-| git state safety | Run `hooks/git-state-guard.sh` before edits |
+| artifact order | Run `adapters/codex/bin/preflight.sh write <file> [session-id]` before writes |
+| git state safety | Run `adapters/codex/bin/preflight.sh write <file> [session-id]` before edits |
 | spec read gate | Enforce through AGENTS instructions and wrapper checks; no native hook assumed |
 | workflow signal | Provide explicit session reminder or wrapper output; no statusline assumption |
 | memory inject/recall | Use `tools/memory/mem.py` directly; session log ingestion needs a Codex session adapter |
@@ -62,6 +63,6 @@ unavailable role explicitly.
 ## Current Projection Boundary
 
 `codex_setting/` should remain minimal until adapted surfaces exist. It may expose
-`AGENTS.md`, `README.md`, `core/`, `capabilities/`, `tools/`, and `utilities/`,
-but must not expose Claude-native `settings.json`, `commands/`, `skills/`, or
-`statusline.sh` as if Codex could consume them.
+`AGENTS.md`, `README.md`, `core/`, `capabilities/`, `bin/`, `tools/`, and
+`utilities/`, but must not expose Claude-native `settings.json`, `commands/`,
+`skills/`, or `statusline.sh` as if Codex could consume them.

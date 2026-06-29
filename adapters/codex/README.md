@@ -17,6 +17,7 @@ Experimental. The portable contract is usable, but Codex does not consume Claude
 | Git and dispatch operations | `core/OPERATIONS.md` |
 | Memory contract | `core/MEMORY.md` |
 | Hook invariants | `core/HOOKS.md` |
+| Preflight wrappers | `adapters/codex/bin/` |
 | Capabilities | `capabilities/README.md` |
 | Role profiles | `roles/README.md` |
 | Hook and guard scripts | `hooks/`, `utilities/` |
@@ -31,9 +32,9 @@ Experimental. The portable contract is usable, but Codex does not consume Claude
 | agent home | Set `AGENT_HOME` to the installed harness directory |
 | artifact root | `.agent_reports`, legacy fallback `.claude_reports` only when already present |
 | tracked/untracked signal | `/track` semantics and `utilities/workflow-guard-hook.sh`; no automatic prompt hook unless wrapped |
-| artifact-order gate | `core/HOOKS.md` defines the invariant; current `hooks/artifact-guard.sh` can be run through a wrapper that supplies file path/session id |
+| artifact-order gate | `core/HOOKS.md` defines the invariant; run `adapters/codex/bin/preflight.sh write <file> [session-id]` before writes |
 | spec read gate | `core/HOOKS.md` defines marker/check semantics; current scripts require event bridging |
-| git safety gate | `core/HOOKS.md` defines the invariant; current `hooks/git-state-guard.sh` can be run before edits with target path |
+| git safety gate | `core/HOOKS.md` defines the invariant; included in `adapters/codex/bin/preflight.sh write <file> [session-id]` |
 | memory store | `tools/memory/mem.py` is runtime-neutral; hook automation is adapter-specific |
 
 ## Runtime Home Projection

@@ -35,7 +35,7 @@ check_codex_forbidden_entries() {
 }
 
 check_required_projection_entries() {
-  for p in AGENTS.md README.md core capabilities tools utilities; do
+  for p in AGENTS.md README.md core capabilities bin tools utilities; do
     if [ ! -L "codex_setting/$p" ]; then
       fail_msg "codex_setting/$p must be a symlink projection entry"
     fi

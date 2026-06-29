@@ -13,8 +13,29 @@
 # 단일 출처: WORKFLOW.md §0 (tracked 계약).
 set -euo pipefail
 
-input=$(cat)
-eval "$(printf '%s' "$input" | python3 -c '
+fp=""
+sid=""
+
+if [ "$#" -gt 0 ]; then
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --file)
+        [ "$#" -ge 2 ] || { echo "artifact-guard: --file requires a path" >&2; exit 64; }
+        fp="$2"; shift 2 ;;
+      --session)
+        [ "$#" -ge 2 ] || { echo "artifact-guard: --session requires an id" >&2; exit 64; }
+        sid="$2"; shift 2 ;;
+      --help|-h)
+        echo "usage: artifact-guard.sh --file <path> [--session <id>]"
+        exit 0 ;;
+      *)
+        echo "artifact-guard: unknown argument: $1" >&2
+        exit 64 ;;
+    esac
+  done
+else
+  input=$(cat)
+  eval "$(printf '%s' "$input" | python3 -c '
 import sys, json, shlex
 try: d = json.load(sys.stdin)
 except Exception: d = {}
@@ -22,7 +43,9 @@ ti = d.get("tool_input") or {}
 print("FP="+shlex.quote(ti.get("file_path","") or ""))
 print("SID="+shlex.quote(d.get("session_id","") or ""))
 ' 2>/dev/null)"
-fp="${FP:-}"; sid="${SID:-}"
+  fp="${FP:-}"; sid="${SID:-}"
+fi
+
 [ -z "$fp" ] && exit 0
 case "$fp" in */_internal/*) exit 0 ;; esac   # 기계관리 스냅샷 → 통과
 
