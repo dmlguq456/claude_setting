@@ -24,7 +24,7 @@ The neutral repo should live outside vendor runtime homes:
 $HOME/agent_setting/
 ```
 
-Runtime homes such as `$HOME/.claude` and `$HOME/.codex` are owned by their tools and may contain credentials, session databases, logs, caches, and other mutable state. Do not make those runtime homes the canonical git repo. Instead, project the harness into them:
+Runtime homes such as `$HOME/.claude`, `$HOME/.codex`, `$HOME/.config/opencode`, and `$HOME/.local/share/opencode` are owned by their tools and may contain credentials, session databases, logs, caches, and other mutable state. Do not make those runtime homes the canonical git repo. Instead, project the harness into them:
 
 - symlink shared directories only when the adapter declares them as portable or compatibility passthrough;
 - treat compatibility passthrough as migration debt, not proof that a shared file is portable;

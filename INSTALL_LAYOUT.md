@@ -105,7 +105,7 @@ sessions, or snapshots into the repo.
 ## Migration Order
 
 1. Commit and push the current repo.
-2. Stop long-running runtime processes that may write into `$HOME/.claude` or `$HOME/.codex`.
+2. Stop long-running runtime processes that may write into `$HOME/.claude`, `$HOME/.codex`, `$HOME/.config/opencode`, or `$HOME/.local/share/opencode`.
 3. Move or clone the repo to `$HOME/agent_setting`.
 4. In each runtime home, replace harness-owned files/directories with symlinks to `$HOME/agent_setting`.
 5. Set `AGENT_HOME=$HOME/agent_setting` in shell/profile or runtime wrapper.

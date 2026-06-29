@@ -24,13 +24,13 @@
 |---|---|---|
 | **생성 순서** | 신규 산출물 ← 앞 단계 (hook 차단) | 전부 우회 |
 | **모드 신호** | Adapter status/reminder surface 가 📌 WORKFLOW 따름을 표시 | Adapter status/reminder surface 가 ⚡ 면제를 표시 |
-| **전환** | (기본값) | Adapter toggle surface (Claude: `/track`, Codex: `preflight.sh track`) |
+| **전환** | (기본값) | Adapter toggle surface (Claude: `/track`, Codex/OpenCode: `preflight.sh track`) |
 
 **hook 이 hard 차단하는 건 셋** — _신규 산출물 생성 순서_ · _git 위험 상태의 편집_ · _spec 라우팅 계약 게이트_:
 
 - 생성 순서 (자동 scope — `.agent_reports` 보유 프로젝트, legacy `.claude_reports` 호환): 신규 `spec` ← research · 신규 `plan` ← spec · 신규 `documents` ← research. 위반 시 차단 + 권고.
 - git 상태 (`git-state-guard`): merge/rebase/cherry-pick 진행 중 repo 의 파일 편집 차단 — 반쯤 머지된 트리를 임의로 굳히는 사고 방지 ([CONVENTIONS](core/CONVENTIONS.md) §5.9).
-- spec-skill-gate (`spec-skill-gate.sh` + `spec-read-marker.sh`): spec-backed cwd 에서 spec 변경 capability 가 `prd.md` 등 청사진을 실제 read 하지 않고 작업 진입하는 것을 차단 (라우팅 계약 게이트; Claude 는 hook 등록, Codex 는 preflight wrapper).
+- spec-skill-gate (`spec-skill-gate.sh` + `spec-read-marker.sh`): spec-backed cwd 에서 spec 변경 capability 가 `prd.md` 등 청사진을 실제 read 하지 않고 작업 진입하는 것을 차단 (라우팅 계약 게이트; Claude 는 hook 등록, Codex/OpenCode 는 preflight wrapper).
 
 기존 산출물 _편집_ · 소스 코드 · `user_profile` · post-it 메모 (DB working 레코드) 는 convention (소유 스킬·autopilot-code 권장, 비차단). 작업 유도는 라우팅 리마인더 몫. Adapter status/reminder surface 가 📌/⚡ 신호를 표시한다.
 
@@ -38,13 +38,13 @@
 
 ## 🧭 Mental model
 
-자연어 한 줄로 부르면 메인 에이전트가 컨텍스트 (cwd / `.agent_reports/` 산출물 / 발화) 를 읽어 **capability + 옵션을 조립하고, 자연어 요약으로 컨펌받은 뒤 실행**한다. Claude Code 에서는 capability 가 `skills/`와 slash command 로 노출된다. 사용자는 _운전자_ — 다음 의도만 말하면 된다.
+자연어 한 줄로 부르면 메인 에이전트가 컨텍스트 (cwd / `.agent_reports/` 산출물 / 발화) 를 읽어 **capability + 옵션을 조립하고, 자연어 요약으로 컨펌받은 뒤 실행**한다. 각 runtime adapter 는 이 capability 를 자기 native surface(Claude Skill/slash command, Codex/OpenCode preflight wrapper 등)로 노출한다. 사용자는 _운전자_ — 다음 의도만 말하면 된다.
 
 - **autopilot-\*** = 추적형 파이프라인. plan·log 가 `.agent_reports/` 에 누적돼 흐름이 남는다. 기존 프로젝트의 `.claude_reports/`도 같은 artifact root 로 취급한다. 큰 작업·반복 작업용.
-- **직접 처리** = plan/log 안 남는 가벼운 일 (throwaway). 단, `spec/` 잡힌 프로젝트의 사후 수정은 거의 다 `--qa quick` 파이프로 _산출물 남기며_ 진행한다 — 신규 산출물 생성 순서만 [📌 tracked](#-작동-방식--tracked--untracked) hook 강제, 편집·코드는 convention ([WORKFLOW](core/WORKFLOW.md) §7 · Claude adapter [CLAUDE](adapters/claude/CLAUDE.md) §0).
+- **직접 처리** = plan/log 안 남는 가벼운 일 (throwaway). 단, `spec/` 잡힌 프로젝트의 사후 수정은 거의 다 `--qa quick` 파이프로 _산출물 남기며_ 진행한다 — 신규 산출물 생성 순서만 [📌 tracked](#-작동-방식--tracked--untracked) hook 강제, 편집·코드는 convention ([WORKFLOW](core/WORKFLOW.md) §7 · runtime adapter).
 - 입력은 외부 flag 없이 **artifact root (`.agent_reports/`, legacy `.claude_reports/`)의 영속 산출물에서 자동 발견**. cross-project 는 `cd <other>` 후 별도 세션. 코드 본작업은 작업 브랜치(worktree 격리), 기억 추가는 외부에서 자동·정리와 삭제는 세션끝 deep curator 가 처리한다 ([`core/MEMORY.md §7`](core/MEMORY.md) · [`core/DESIGN_PRINCIPLES.md §7`](core/DESIGN_PRINCIPLES.md)).
 
-> 본 문서는 _의미 지도_ 다. 옵션 spec·trigger 룰·QA 정의 같은 운영 디테일은 portable capability spec, [`core/CONVENTIONS.md`](core/CONVENTIONS.md), 런타임별 adapter 문서, 그리고 adapter-native Skill 파일이 각각 단일 출처 — 여기서 중복하지 않고 링크한다.
+> 본 문서는 _의미 지도_ 다. 옵션 spec·trigger 룰·QA 정의 같은 운영 디테일은 portable capability spec, [`core/CONVENTIONS.md`](core/CONVENTIONS.md), 런타임별 adapter 문서, 그리고 adapter-native surface 가 각각 단일 출처 — 여기서 중복하지 않고 링크한다.
 
 ---
 
@@ -98,7 +98,7 @@ analyze-project  →  autopilot-spec ↻  →  autopilot-code ↻
 
 ## 📋 Skill 카탈로그 — 의의·핵심
 
-무엇을 부르면 무엇이 되나(자연어 발화→동작) — 여기가 사용자 API 표면이다. 부르는 법은 [§7](#-부르는-법), 옵션 세부는 adapter-native Skill 파일(Claude: `adapters/claude/skills/*/SKILL.md`).
+무엇을 부르면 무엇이 되나(자연어 발화→동작) — 여기가 사용자 API 표면이다. 부르는 법은 [§7](#-부르는-법), 옵션 세부는 adapter-native surface(Claude: `adapters/claude/skills/*/SKILL.md`, Codex/OpenCode: capability/mode map wrapper).
 
 | Skill | 의의 — 왜 있나 / 핵심 |
 |---|---|
@@ -107,7 +107,7 @@ analyze-project  →  autopilot-spec ↻  →  autopilot-code ↻
 | [`autopilot-spec`](capabilities/autopilot-spec.md) | 코드 _청사진 + skeleton_ 일반화 entry (app/library/api/cli/research) + **update 모드** (기존 `prd.md` 갱신 — 모든 spec 변경의 canonical 경로, 버전 snapshot 자동). 만들 _것 자체_ 결정 자리라 사용자 비중 큼 — 중간 컨펌 default |
 | [`autopilot-code`](capabilities/autopilot-code.md) | 코드 _작업_ 일반 (라이브러리·연구·앱 모두). dev/debug. `spec/` 발견 시 spec mode 별 분기 자동. `--qa quick` = 소규모 잡일 경량 tier (로그 남김) |
 | [`autopilot-lab`](capabilities/autopilot-lab.md) | _빠른 실험 prototype_. 무거운 학습은 사용자가 실행, lab 은 `setup`(학습 세팅) / `eval`(평가·분석·`--report` 시 정식 보고서[prose→draft / 음성·미디어는 재생 HTML]) 로 앞뒤를 도움. `--parent` 계보로 fine-tune·재평가, `_RUNLOG`(⏳→✅) 누적. 졸업은 autopilot-code |
-| [`autopilot-design`](capabilities/autopilot-design.md) | _시각_ 산출물 (UI·슬라이드·다이어그램·아이콘). Adapter-provided visual harness 로 렌더→image inspection→수정 루프 + verifier 게이트(콘솔·레이아웃)를 재현한다. Claude adapter 는 Design MCP(`<agent-home>/tools/design-mcp`)로 구현하고, Codex 는 `capability-info`가 `tool-contract=visual-harness`로 보고한다. scaffold(deck_stage 등)·converters(PDF/PPTX/번들)·standalone `preview.html` |
+| [`autopilot-design`](capabilities/autopilot-design.md) | _시각_ 산출물 (UI·슬라이드·다이어그램·아이콘). Adapter-provided visual harness 로 렌더→image inspection→수정 루프 + verifier 게이트(콘솔·레이아웃)를 재현한다. Claude adapter 는 Design MCP(`<agent-home>/tools/design-mcp`)로 구현하고, Codex/OpenCode 는 `capability-info`가 `tool-contract=visual-harness`로 보고한다. scaffold(deck_stage 등)·converters(PDF/PPTX/번들)·standalone `preview.html` |
 | [`autopilot-ship`](capabilities/autopilot-ship.md) | 앱 _배포 셋업_ 안내 (호스팅·CI/CD·env·domain). 실제 배포 명령은 사용자 직접. 첫 setup·재호출 자리 |
 | [`autopilot-draft`](capabilities/autopilot-draft.md) | 문서 _초안_ (paper/presentation/doc, markdown). 산출물은 최종 문서가 아니라 _적용용 cheatsheet(plan)_ |
 | [`autopilot-apply`](capabilities/autopilot-apply.md) | cheatsheet 를 artifact root _밖_ 실제 소스 (`main.tex`) 에 git 위로 적용 + 컴파일 검증. draft 의 apply 팔 (현재 LaTeX 한정) |
@@ -120,7 +120,7 @@ analyze-project  →  autopilot-spec ↻  →  autopilot-code ↻
 
 > sub-skill 은 autopilot 내부 자동 호출 (사용자가 직접 안 부름): code 가족 (`code-plan`/`-refine`/`-execute`/`-test`/`-report`) · draft 가족 (`draft-strategy`/`-refine`) · design 가족 (`design-init`/`-refs`/`-tokens`/`-components`/`-review`/`-handoff`). (spec 은 `autopilot-spec` 본문이 mode 무관 직접 처리 — 별도 sub-skill 없음.)
 
-세부 옵션 (`--mode`·`--qa`·`--from`·`--user-refine`) 은 adapter-native Skill 파일(Claude: `adapters/claude/skills/*/SKILL.md`)의 `argument-hint`. QA 5단계 (quick/light/standard/thorough/adversarial) 정의는 [`core/CONVENTIONS.md`](core/CONVENTIONS.md) §1.
+세부 옵션 (`--mode`·`--qa`·`--from`·`--user-refine`) 은 adapter-native surface(Claude Skill `argument-hint`, Codex/OpenCode capability/mode map wrapper)를 따른다. QA 5단계 (quick/light/standard/thorough/adversarial) 정의는 [`core/CONVENTIONS.md`](core/CONVENTIONS.md) §1.
 
 ---
 
@@ -177,10 +177,10 @@ analyze-project  →  autopilot-spec ↻  →  autopilot-code ↻
 /autopilot-draft  --mode paper|presentation|doc "<task>" [--qa ...]
 /autopilot-refine "<prompt>" [--qa ...] [--memo <file>]
 /audit            <artifact> [--scope ...]
-/track            현재 프로젝트 📌tracked ↔ ⚡untracked 토글 (Claude adapter; Codex 는 `preflight.sh track`)
+/track            현재 프로젝트 📌tracked ↔ ⚡untracked 토글 (Claude adapter; Codex/OpenCode 는 `preflight.sh track`)
 ```
 
-전체 옵션 조합·default·QA 의미는 adapter-native Skill 파일(Claude: `adapters/claude/skills/*/SKILL.md`)의 `argument-hint` / `## Usage`.
+전체 옵션 조합·default·QA 의미는 adapter-native surface(Claude Skill 파일, Codex/OpenCode capability/mode map wrapper)에서 확인한다.
 
 ---
 
@@ -210,6 +210,7 @@ autopilot-\* 가 내부에서 자동 라우팅하는 전문 팀. Portable 의미
 | [`MANUAL.md`](MANUAL.md) | **앞층 사용자 지도** — 세팅 전체를 4축(워크플로우·구조·운영·원칙↔구현)으로 조망. 정의는 뒤층 링크로, 여기선 진입점·요약만 |
 | [`adapters/claude/CLAUDE.md`](adapters/claude/CLAUDE.md) | Claude Code adapter bootstrap — 응답 원칙 §1~§8 · §6 autopilot 호출 룰 · 도메인 트리거 · Drift-Free Essentials |
 | [`adapters/codex/AGENTS.md`](adapters/codex/AGENTS.md) | Codex adapter bootstrap — core 문서 로드 순서 · Codex runtime mapping · compatibility boundary |
+| [`adapters/opencode/AGENTS.md`](adapters/opencode/AGENTS.md) | OpenCode adapter bootstrap — instructions-array bootstrap · OpenCode runtime mapping · compatibility boundary |
 | [`core/WORKFLOW.md`](core/WORKFLOW.md) | 4 트랙 체이닝 청사진 · 호출 예시 · 서브에이전트 분기 · 폴더 구조 |
 | [`core/CONVENTIONS.md`](core/CONVENTIONS.md) | QA 5단계 정의 · model role · 산출물 3-tier 컨벤션 · cross-doc invariants §1~§6 (family-wide 단일 출처) |
 | [`core/OPERATIONS.md`](core/OPERATIONS.md) | git 운영 단일 출처 — Pipeline Lock(§5.8) · git preflight(§5.9) · worktree dispatch(§5.10) · `<agent-home>` repo push(§5.11) |
@@ -219,9 +220,9 @@ autopilot-\* 가 내부에서 자동 라우팅하는 전문 팀. Portable 의미
 | [`core/ADAPTATION_INVENTORY.md`](core/ADAPTATION_INVENTORY.md) | 현재 표면별 portable / adapter-native / compat-reference / compat-passthrough 상태와 migration 순서 |
 | [`capabilities/`](capabilities/README.md) · [`roles/`](roles/README.md) | runtime-neutral capability / role 의미 계층 (`roles/MODES.md` = mode portability inventory) |
 | [`core/DESIGN_PRINCIPLES.md`](core/DESIGN_PRINCIPLES.md) | autopilot 아키텍처 설계 원칙 |
-| [`core/CORE.md`](core/CORE.md) · [`adapters/`](adapters/README.md) | 모델·도구 중립 코어 계약과 런타임별 어댑터 경계 (Claude Code primary, Codex experimental) |
-| [`INSTALL_LAYOUT.md`](INSTALL_LAYOUT.md) | neutral repo(`~/agent_setting`) + runtime home(`~/.claude`, `~/.codex`) symlink projection 절차 |
-| `hooks` · `utilities` · `tools` · `scaffolds` · adapter status/toggle surfaces | **harness** — `artifact-guard.sh`(산출물·순서 강제) · `git-state-guard.sh`(merge/rebase 중 편집 차단) · `workflow-guard-hook.sh`(adapter status/reminder 에 📌따름/⚡면제 신호 제공 + flag GC; WORKFLOW·post-it 읽기는 지침) · `design-postwrite.sh`(design HTML 저장 시 콘솔 자동 체크) · `spec-skill-gate`/`spec-read-marker`(spec 라우팅 게이트) · `tools/check-adaptation-boundary.sh`(adapter/projection 경계 검증) · adapter visual harness(Claude 구현: `tools/design-mcp`) · `tools/memory/mem.py`(통합 기억 store·CLI, [MEMORY §7](core/MEMORY.md)) + SessionStart `mem inject`/SessionEnd `mem sync` + **메모리 hook 4종**(`builtin-memory-guard`·`mem-recall-inject`·`mem-turn-nudge`·`mem-distill-dispatch` — 내장메모리 차단·회상 자동주입·distiller 트리거·dispatch, [MEMORY §7](core/MEMORY.md)) · `scaffolds/`(deck_stage 등 디자인 scaffold) · Claude statusline/`/track`, Codex preflight wrappers 같은 adapter realization. [📌/⚡ 모드](#-작동-방식--tracked--untracked) |
+| [`core/CORE.md`](core/CORE.md) · [`adapters/`](adapters/README.md) | 모델·도구 중립 코어 계약과 런타임별 어댑터 경계 (Claude Code primary, Codex/OpenCode experimental) |
+| [`INSTALL_LAYOUT.md`](INSTALL_LAYOUT.md) | neutral repo(`~/agent_setting`) + runtime home(`~/.claude`, `~/.codex`, `~/.config/opencode`) symlink projection 절차 |
+| `hooks` · `utilities` · `tools` · `scaffolds` · adapter status/toggle surfaces | **harness** — `artifact-guard.sh`(산출물·순서 강제) · `git-state-guard.sh`(merge/rebase 중 편집 차단) · `workflow-guard-hook.sh`(adapter status/reminder 에 📌따름/⚡면제 신호 제공 + flag GC; WORKFLOW·post-it 읽기는 지침) · `design-postwrite.sh`(design HTML 저장 시 콘솔 자동 체크) · `spec-skill-gate`/`spec-read-marker`(spec 라우팅 게이트) · `tools/check-adaptation-boundary.sh`(adapter/projection 경계 검증) · adapter visual harness(Claude 구현: `tools/design-mcp`) · `tools/memory/mem.py`(통합 기억 store·CLI, [MEMORY §7](core/MEMORY.md)) + SessionStart `mem inject`/SessionEnd `mem sync` + **메모리 hook 4종**(`builtin-memory-guard`·`mem-recall-inject`·`mem-turn-nudge`·`mem-distill-dispatch` — 내장메모리 차단·회상 자동주입·distiller 트리거·dispatch, [MEMORY §7](core/MEMORY.md)) · `scaffolds/`(deck_stage 등 디자인 scaffold) · Claude statusline/`/track`, Codex/OpenCode preflight wrappers 같은 adapter realization. [📌/⚡ 모드](#-작동-방식--tracked--untracked) |
 | [`loops/README.md`](loops/README.md) | **상시 루프** (세션 밖 cron·headless) — **당직**(`oncall`, 시간형 05:37 순찰·보고) · **일지**(`note`, 시간형 05:03 산출물→worklog-board L2 노트화 — cron runner 는 worklog-board) · **연수**(`study`, 시간형 일요일 06:17 외부 동향→제안) · **모의훈련**(`drill/`, 사건형 — 지침 수정 후 행동 회귀 시험) · 후보 backlog. 모두 보고·제안에서 멈춘다 (merge 만 메인 에이전트 선별 책임 — OPERATIONS §5.10) |
 
 ---
@@ -246,11 +247,13 @@ autopilot-\* 가 내부에서 자동 라우팅하는 전문 팀. Portable 의미
 │
 ├── adapters/
 │   ├── claude/             Claude Code adapter — CLAUDE.md · agents · settings/keybindings · commands · statusline · runtime mapping
-│   └── codex/              Codex adapter — AGENTS.md + experimental mapping
+│   ├── codex/              Codex adapter — AGENTS.md + experimental mapping
+│   └── opencode/           OpenCode adapter — AGENTS.md + instructions-array mapping
 ├── capabilities/           portable capability catalog — runtime-neutral 작업 의미
 ├── roles/                  portable role profiles — runtime-neutral delegation semantics
 ├── claude_setting/          GitHub-tracked Claude Code projection — ~/.claude harness-owned entrypoints
 ├── codex_setting/           GitHub-tracked Codex projection — minimal adapted bootstrap + shared core/capabilities/roles/tools
+├── opencode_setting/        GitHub-tracked OpenCode projection — minimal adapted bootstrap + shared core/capabilities/roles/tools
 │
 ├── skills/                 historical Claude Skill compatibility refs — adapters/claude/skills 와 byte parity 유지, portable source 아님
 │   ├── [entry 파이프]      autopilot-research(분야조사) · -spec(청사진·skeleton) · -code(코드 작업)
@@ -295,7 +298,7 @@ autopilot-\* 가 내부에서 자동 라우팅하는 전문 팀. Portable 의미
 └── (backups · cache · debug · downloads · file-history · paste-cache · plugins · tasks 등 — harness 로컬 캐시/보조 산출물)
 ```
 
-Runtime homes such as `~/.claude/` and `~/.codex/` keep credentials, sessions, logs, SQLite state, and other runtime-owned files. They should project this repo through symlinks or adapter bootstrap files rather than becoming the canonical repo themselves.
+Runtime homes such as `~/.claude/`, `~/.codex/`, `~/.config/opencode/`, and `~/.local/share/opencode/` keep credentials, sessions, logs, SQLite state, and other runtime-owned files. They should project this repo through symlinks or adapter bootstrap files rather than becoming the canonical repo themselves.
 
 > 작업 산출물은 여기가 아니라 각 프로젝트의 `.agent_reports/` (legacy `.claude_reports/` 호환) 와 위 `user_profile/` (cross-project) 에 쌓인다 — [§산출물](#-산출물의-구조적-의미).
 

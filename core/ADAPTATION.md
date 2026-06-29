@@ -1,8 +1,8 @@
 # Adaptation Contract
 
 This document defines how the neutral harness becomes a runtime-specific setting.
-It is the boundary contract for `claude_setting/`, `codex_setting/`, and future
-runtime projections.
+It is the boundary contract for `claude_setting/`, `codex_setting/`,
+`opencode_setting/`, and future runtime projections.
 
 ## 1. Source Categories
 
@@ -12,7 +12,7 @@ Every file in this repo must fall into one category.
 |---|---|---|---|
 | Portable source | Runtime-neutral semantics. Describes what must happen, not how a vendor runtime invokes it. | `core/`, portable parts of `tools/`, portable guard algorithms | May be symlinked into adapters if the runtime can read plain files |
 | Adapter source | Runtime-specific representation of portable semantics. | `adapters/claude/CLAUDE.md`, `adapters/claude/settings.json`, `adapters/claude/commands/` | Projected into that runtime home |
-| Adapter projection | Versioned mirror that exposes adapter source under runtime-expected names. | `claude_setting/`, `codex_setting/` | Symlink or generated output only; no independent semantics |
+| Adapter projection | Versioned mirror that exposes adapter source under runtime-expected names. | `claude_setting/`, `codex_setting/`, `opencode_setting/` | Symlink or generated output only; no independent semantics |
 | Compatibility reference | Historical source kept for parity/drift checks after an adapter-owned realization exists. | `skills/` byte-equivalent to `adapters/claude/skills/` except sync state | Not projected as portable source; guarded against drift |
 | Compatibility passthrough | Legacy file still consumed directly by a runtime before a true portable/adapted split exists. | Mixed shared hooks or utilities not yet split into invariant + adapter wrapper | Allowed only with an explicit debt note in the adapter |
 | Runtime state | Tool-owned mutable local state. | `<runtime-home>/projects`, credentials, session logs, caches, DB files | Never committed to this repo |
@@ -129,6 +129,6 @@ adapter docs own the concrete runtime-home paths and bootstrap filenames:
 ```
 
 Those paths may symlink into versioned projection directories such as
-`claude_setting/` or `codex_setting/`. The projection directory must make it
-clear whether each entry is native adapter output, portable passthrough, or
-compatibility debt.
+`claude_setting/`, `codex_setting/`, or `opencode_setting/`. The projection
+directory must make it clear whether each entry is native adapter output,
+portable passthrough, or compatibility debt.
