@@ -12,6 +12,7 @@ runtime-specific files out of the common root.
 | Keybindings | `adapters/claude/keybindings.json` | `claude_setting/keybindings.json` |
 | Slash commands | `adapters/claude/commands/` | `claude_setting/commands` |
 | Agents | `adapters/claude/agents/` | `claude_setting/agents` |
+| Skills | `adapters/claude/skills/` | `claude_setting/skills` |
 | Statusline | `adapters/claude/statusline.sh` | `claude_setting/statusline.sh` |
 | `/track` implementation | `adapters/claude/track-toggle.sh` | `claude_setting/track-toggle.sh` |
 
@@ -24,7 +25,7 @@ portable sources:
 
 | Surface | Current projection | Why passthrough is allowed for now | Required split |
 |---|---|---|---|
-| Skills | `claude_setting/skills -> ../skills` | Existing files are Claude Skill format and preserve old behavior | Grow `capabilities/` into per-capability specs, then generate or maintain `adapters/claude/skills` |
+| Skills | `claude_setting/skills -> ../adapters/claude/skills` | Existing files are Claude Skill format and preserve old behavior through adapter-owned symlinks | Grow `capabilities/` into per-capability specs, then replace symlink passthroughs with generated or maintained `adapters/claude/skills/<name>/SKILL.md` |
 | Agent modes | `claude_setting/agent-modes -> ../agent-modes` | Mode docs are prompt fragments used by current agents; `roles/MODES.md` classifies portability | Split adapter-coupled design/verification/tool notes when non-Claude adapters implement them |
 | Hooks | `claude_setting/hooks -> ../hooks` | Shell scripts are wired by Claude settings and preserve old behavior; `core/HOOKS.md` names the invariant layer | Split portable invariant scripts from Claude hook-payload wrappers |
 | Utilities | `claude_setting/utilities -> ../utilities` | Mostly runtime-neutral helper scripts | Move Claude-only helpers to adapter if found |
@@ -39,7 +40,10 @@ model mapping live in `adapters/claude/agents/`.
 
 Capability files have started the same split: portable capability meaning is
 summarized in `capabilities/README.md`, while current Claude Skill mechanics
-remain in `skills/*/SKILL.md` as compatibility passthrough.
+remain in `skills/*/SKILL.md` as compatibility passthrough. The runtime
+projection now passes through `adapters/claude/skills/` first, so future adapted
+or generated Claude Skill files can replace individual symlink entries without
+changing `claude_setting/skills`.
 
 ## Model Mapping
 

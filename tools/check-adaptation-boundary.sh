@@ -60,6 +60,32 @@ check_codex_bin_wrappers() {
   done
 }
 
+check_claude_skill_projection() {
+  if [ ! -L claude_setting/skills ]; then
+    fail_msg "claude_setting/skills must project adapters/claude/skills"
+    return
+  fi
+
+  target=$(readlink claude_setting/skills)
+  if [ "$target" != "../adapters/claude/skills" ]; then
+    fail_msg "claude_setting/skills points to $target; expected ../adapters/claude/skills"
+  fi
+
+  for d in skills/*; do
+    [ -d "$d" ] || continue
+    [ -f "$d/SKILL.md" ] || continue
+    slug=${d#skills/}
+    if [ ! -L "adapters/claude/skills/$slug" ]; then
+      fail_msg "adapters/claude/skills/$slug must be a symlink passthrough"
+      continue
+    fi
+    skill_target=$(readlink "adapters/claude/skills/$slug")
+    if [ "$skill_target" != "../../../skills/$slug" ]; then
+      fail_msg "adapters/claude/skills/$slug points to $skill_target; expected ../../../skills/$slug"
+    fi
+  done
+}
+
 check_removed_root_surfaces() {
   if [ -e agents ] || [ -L agents ]; then
     fail_msg "root agents/ exists; Claude-native agents must live under adapters/claude/agents and portable meaning under roles/"
@@ -169,6 +195,7 @@ check_projection_symlinks codex_setting
 check_codex_forbidden_entries
 check_required_projection_entries
 check_codex_bin_wrappers
+check_claude_skill_projection
 check_removed_root_surfaces
 check_capability_catalog
 check_codex_capability_map
