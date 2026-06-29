@@ -20,7 +20,7 @@ contract. It is adapter-owned output, not a Claude Skill copy.
 2. Run `adapters/codex/bin/preflight.sh capability-info design-init`.
 3. Obey the reported status:
    - `instruction-only`: use this Skill as Codex guidance plus explicit preflight guards.
-   - `tool-contract`: report the missing tool contract before claiming full support.
+   - `tool-contract`: report the named `tool_contract` and run any `tool_contract_check` before claiming full support.
    - `unsupported`: stop or use the documented fallback.
 
 ## Shape

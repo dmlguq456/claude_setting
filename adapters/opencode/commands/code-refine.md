@@ -7,7 +7,9 @@ This is adapter-owned output generated from `capabilities/code-refine.md`, not a
 
 1. Read `capabilities/code-refine.md` for the runtime-neutral contract.
 2. Run `adapters/opencode/bin/preflight.sh capability-info code-refine` and
-   obey `instruction-only`, `tool-contract`, or `unsupported` status.
+   obey `instruction-only`, `tool-contract`, or `unsupported` status. For
+   `tool-contract`, report the named `tool_contract` and run any
+   `tool_contract_check` before claiming full support.
 3. Before edits, run `adapters/opencode/bin/preflight.sh write <file> [session-id]`.
 4. Before spec-changing work, run
    `adapters/opencode/bin/preflight.sh capability code-refine [cwd] [session-id]`.

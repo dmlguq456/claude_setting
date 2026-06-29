@@ -339,6 +339,9 @@ check_codex_native_skill_projection() {
     if ! grep -Fq "not a Claude Skill copy" "$skill"; then
       fail_msg "$skill must state that it is not a Claude Skill copy"
     fi
+    if ! grep -Fq 'named `tool_contract`' "$skill"; then
+      fail_msg "$skill must instruct Codex to report named tool contracts"
+    fi
     if grep -Fq "metadata:" "$skill"; then
       fail_msg "$skill must use Codex Skill frontmatter only, without adapter metadata"
     fi
@@ -617,6 +620,9 @@ check_opencode_native_skill_projection() {
     if ! grep -Fq "not a Claude Skill copy" "$skill"; then
       fail_msg "$skill must state that it is not a Claude Skill copy"
     fi
+    if ! grep -Fq 'named `tool_contract`' "$skill"; then
+      fail_msg "$skill must instruct OpenCode to report named tool contracts"
+    fi
   done
 }
 
@@ -677,6 +683,9 @@ check_opencode_native_command_projection() {
     fi
     if ! grep -Fq "not a Claude command copy" "$command"; then
       fail_msg "$command must state that it is not a Claude command copy"
+    fi
+    if ! grep -Fq 'named `tool_contract`' "$command"; then
+      fail_msg "$command must instruct OpenCode to report named tool contracts"
     fi
   done
 }
