@@ -33,10 +33,11 @@ Codex does not currently consume the full harness natively. Keep `$HOME/.codex` 
 ```bash
 export AGENT_HOME="$HOME/agent_setting"
 ln -sfn "$AGENT_HOME" "$HOME/.codex/agent-harness"
-ln -sfn "$AGENT_HOME/adapters/codex/AGENTS.md" "$HOME/.codex/AGENTS.md"
+ln -sfn "$AGENT_HOME/codex_setting/AGENTS.md" "$HOME/.codex/AGENTS.md"
+ln -sfn "$AGENT_HOME/codex_setting/README.md" "$HOME/.codex/agent-harness-readme.md"
 ```
 
-Future Codex-specific bootstrap files should live under `adapters/codex/` and be symlinked or generated into `$HOME/.codex` without moving Codex credentials, logs, sessions, or SQLite state into the repo.
+Future Codex-specific bootstrap files should live under `adapters/codex/` and be symlinked or generated into `codex_setting/` without moving Codex credentials, logs, sessions, or SQLite state into the repo.
 
 ## Migration Order
 

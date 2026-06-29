@@ -1,0 +1,78 @@
+#!/usr/bin/env sh
+set -eu
+
+ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+cd "$ROOT"
+
+fail=0
+
+say() {
+  printf '%s\n' "$*"
+}
+
+fail_msg() {
+  say "FAIL: $*"
+  fail=1
+}
+
+check_projection_symlinks() {
+  dir=$1
+  [ -d "$dir" ] || { fail_msg "$dir is missing"; return; }
+
+  non_links=$(find "$dir" -mindepth 1 -maxdepth 1 ! -type l -print)
+  if [ -n "$non_links" ]; then
+    fail_msg "$dir contains non-symlink projection entries:"
+    printf '%s\n' "$non_links"
+  fi
+}
+
+check_codex_forbidden_entries() {
+  for p in CLAUDE.md settings.json keybindings.json commands statusline.sh track-toggle.sh skills agents agent-modes hooks; do
+    if [ -e "codex_setting/$p" ] || [ -L "codex_setting/$p" ]; then
+      fail_msg "codex_setting/$p exists; Codex projection must not expose Claude-native surfaces"
+    fi
+  done
+}
+
+check_legacy_root_links() {
+  command -v rg >/dev/null 2>&1 || return 0
+
+  legacy_skill_links=$(rg -n '\]\(\.\./\.\./(CLAUDE|MEMORY|CORE|WORKFLOW|CONVENTIONS|OPERATIONS|DESIGN_PRINCIPLES|VISION)\.md\)' \
+    skills agents adapters README.md MANUAL.md INSTALL_LAYOUT.md 2>/dev/null || true)
+  if [ -n "$legacy_skill_links" ]; then
+    fail_msg "legacy ../../ tier1 markdown links remain:"
+    printf '%s\n' "$legacy_skill_links"
+  fi
+
+  legacy_root_links=$(rg -n '\]\((CLAUDE|MEMORY|CORE|WORKFLOW|CONVENTIONS|OPERATIONS|DESIGN_PRINCIPLES|VISION)\.md\)' \
+    README.md MANUAL.md INSTALL_LAYOUT.md adapters skills agents 2>/dev/null || true)
+  if [ -n "$legacy_root_links" ]; then
+    fail_msg "legacy root tier1 markdown links remain outside core/:"
+    printf '%s\n' "$legacy_root_links"
+  fi
+}
+
+warn_concrete_runtime_terms() {
+  command -v rg >/dev/null 2>&1 || return 0
+
+  count=$(rg -n 'sonnet|opus|haiku|claude -p|~/.claude|Claude adapter:' \
+    core skills tools utilities hooks \
+    --glob '!hooks/*.test.sh' 2>/dev/null | wc -l | tr -d ' ')
+
+  if [ "$count" != "0" ]; then
+    say "WARN: $count concrete Claude/model references remain in portable or compatibility areas."
+    say "      This is allowed only where documented as adapter mapping or compat-passthrough."
+  fi
+}
+
+check_projection_symlinks claude_setting
+check_projection_symlinks codex_setting
+check_codex_forbidden_entries
+check_legacy_root_links
+warn_concrete_runtime_terms
+
+if [ "$fail" -eq 0 ]; then
+  say "OK: adaptation boundary checks passed"
+fi
+
+exit "$fail"

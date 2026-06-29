@@ -96,7 +96,7 @@ metadata:
 
 ## Default Invocation Rule (메인 에이전트 자동 라우팅)
 
-본 skill 은 runtime adapter bootstrap 의 "autopilot-* 호출 패턴" 컨펌 의무 적용 대상(Claude Code: [`CLAUDE.md`](../../CLAUDE.md) §0).
+본 skill 은 runtime adapter bootstrap 의 "autopilot-* 호출 패턴" 컨펌 의무 적용 대상(Claude Code: [`CLAUDE.md`](../../adapters/claude/CLAUDE.md) §0).
 
 ### Trigger 신호 (자연어 발화 예시)
 

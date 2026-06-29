@@ -13,7 +13,7 @@ metadata:
 
 ## Default Invocation Rule (메인 에이전트 자동 라우팅)
 
-본 skill 은 runtime adapter bootstrap 의 "autopilot-* 호출 패턴" 컨펌 의무 적용 대상(Claude Code: [`CLAUDE.md`](../../CLAUDE.md) §0). 메인 에이전트가 사용자 발화에서 아래 trigger 신호를 인지하면, 옵션 자동 구성 + 자연어 요약 컨펌 거쳐 invoke.
+본 skill 은 runtime adapter bootstrap 의 "autopilot-* 호출 패턴" 컨펌 의무 적용 대상(Claude Code: [`CLAUDE.md`](../../adapters/claude/CLAUDE.md) §0). 메인 에이전트가 사용자 발화에서 아래 trigger 신호를 인지하면, 옵션 자동 구성 + 자연어 요약 컨펌 거쳐 invoke.
 
 ### Trigger 신호 (자연어 발화 예시)
 
@@ -209,7 +209,7 @@ artifact_dir: <abs path>
 
 **Output**: 사용자 답변을 통합한 refined query를 Step 2로 전달 + `pipeline_state.yaml`의 `clarified_intent` 필드에 한 줄 요약 기록.
 
-**§5 자율 진행**: 질문 던질 때 adapter pause/autonomy rule 적용(Claude Code: [CLAUDE.md](../../CLAUDE.md) §2) — ScheduleWakeup 15-20분 동시 호출, 답 없으면 mode 추론 결과 + depth medium + 가장 좁은 범위 default 로 자율 진행.
+**§5 자율 진행**: 질문 던질 때 adapter pause/autonomy rule 적용(Claude Code: [CLAUDE.md](../../adapters/claude/CLAUDE.md) §2) — ScheduleWakeup 15-20분 동시 호출, 답 없으면 mode 추론 결과 + depth medium + 가장 좁은 범위 default 로 자율 진행.
 
 ### Step 2: Source Search (direct Agent call) — mode-aware
 

@@ -58,7 +58,7 @@ spec 의 `mode` 배열 (단일 또는 복수) 에 따라 자동 활성화:
 > **DONE-BRANCH → 새 브랜치 (이 cycle 이 새 작업일 때)**: §5.9 게이트가 `DONE-BRANCH`(현재 브랜치가 base 에 ahead 0 = 머지 완료된 끝난 브랜치) 를 내면, 이 plan 의 slug(`plans/<date>_<slug>/` 와 동일)로 **base 최신에서 새 브랜치를 판 뒤** 코드 작업 진행 — `git fetch origin && git switch -c <slug> origin/<base>` (worktree 안전: base 를 체크아웃 안 해 main worktree 와 비충돌). 현재 브랜치가 이미 이번 작업용 빈 브랜치면 그대로 사용. 죽은(머지된) 브랜치 위에 새 작업을 쌓지 않게 하는 자리 — worktree+merge 워크플로우의 핵심 누락. 한 줄 보고 후 진행.
 
 > **규모 분기 ([OPERATIONS.md §5.10](../../core/OPERATIONS.md#510-작업-격리병렬-디스패치-worktree-정책-canonical))**: 두 축으로 게이트 — 어느 하나라도 본작업이면 worktree.
-> - **변경 종류 (qa 레벨 무관, adapter worktree policy (Claude Code: [CLAUDE.md §0(C)](../../CLAUDE.md))·drill g3)**: 기능 추가·모듈 신설·다파일 변경은 **규모·qa 판단 없이 무조건 worktree+작업 브랜치**. main 트리 직접은 typo·1줄급 자잘한 단발만 (qa quick 이어도 다파일이면 worktree — "quick 이니 main" 우회 금지).
+> - **변경 종류 (qa 레벨 무관, adapter worktree policy (Claude Code: [CLAUDE.md §0(C)](../../adapters/claude/CLAUDE.md))·drill g3)**: 기능 추가·모듈 신설·다파일 변경은 **규모·qa 판단 없이 무조건 worktree+작업 브랜치**. main 트리 직접은 typo·1줄급 자잘한 단발만 (qa quick 이어도 다파일이면 worktree — "quick 이니 main" 우회 금지).
 > - **실행 메커니즘 (반쪽 적용 금지 — drill 신설 자리)**: worktree 를 _파 두기만_ 하고 main 에서 autopilot-code 를 in-process(Skill)로 돌리지 않는다. worktree 확보 _즉시_ 그 안으로 **`claude -p` 헤드리스 분사 (§5.10 풀 ceremony) — plan 호출부터 report 까지 통째로 한 세션**. main 은 _정찰(분사 대상 결정)·분사·수확_ 만 (§5.10:389 "조정만 main"). 파이프 스테이지(code-plan·refine·execute)를 main 과 헤드리스로 **쪼개면 헤드리스가 상태 재발굴 + 연속성 상실 = worst of both** — 금지. 단 가벼운 정찰(파일 나열·diff 범위)로 _무엇을 분사할지 결정_ 하는 건 main 정상.
 >
 > quick 급 _단발_(typo·1줄)만 현재 트리 직접. 작업 진행 중 새 독립 요청이 오면 §5.10 디스패치 규칙 (파일 겹침 triage → 병렬 worktree 분사 / 겹치면 큐잉, merge 는 사용자).
@@ -174,7 +174,7 @@ autopilot-lab "X 실험" — Step 0 에서 readiness ✓ 확인 후 진행
 
 ## Default Invocation Rule (메인 에이전트 자동 라우팅)
 
-본 skill 은 runtime adapter bootstrap 의 "autopilot-* 호출 패턴" 컨펌 의무 적용 대상(Claude Code: [`CLAUDE.md`](../../CLAUDE.md) §0). 메인 에이전트가 사용자 발화에서 아래 trigger 신호를 인지하면, 옵션 자동 구성 + 자연어 요약 컨펌 거쳐 invoke.
+본 skill 은 runtime adapter bootstrap 의 "autopilot-* 호출 패턴" 컨펌 의무 적용 대상(Claude Code: [`CLAUDE.md`](../../adapters/claude/CLAUDE.md) §0). 메인 에이전트가 사용자 발화에서 아래 trigger 신호를 인지하면, 옵션 자동 구성 + 자연어 요약 컨펌 거쳐 invoke.
 
 ### Trigger 신호 (자연어 발화 예시)
 

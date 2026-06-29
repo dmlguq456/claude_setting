@@ -26,7 +26,7 @@ family 를 _계획·생성_ vs _실제 대상에 적용+검증_ 으로 나누면
 
 ## Default Invocation Rule (메인 에이전트 자동 라우팅)
 
-본 skill 은 runtime adapter bootstrap 의 "autopilot-* 호출 패턴" 컨펌 의무 적용 대상(Claude Code: [`CLAUDE.md`](../../CLAUDE.md) §0) (ceremony 큰 갈래 — 실제 사용자 source 파일을 건드리므로). 메인 에이전트가 아래 trigger 를 인지하면 옵션 자동 구성 + 자연어 요약 컨펌 거쳐 invoke.
+본 skill 은 runtime adapter bootstrap 의 "autopilot-* 호출 패턴" 컨펌 의무 적용 대상(Claude Code: [`CLAUDE.md`](../../adapters/claude/CLAUDE.md) §0) (ceremony 큰 갈래 — 실제 사용자 source 파일을 건드리므로). 메인 에이전트가 아래 trigger 를 인지하면 옵션 자동 구성 + 자연어 요약 컨펌 거쳐 invoke.
 
 ### Trigger 신호 (자연어 발화 예시)
 - "cheatsheet 를 main.tex 에 적용해줘" / "mutation 직접 붙여줘" / "paste 대신 클로드가 적용해"
