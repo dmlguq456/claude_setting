@@ -6,10 +6,10 @@
 #   memory.db write 감지(mtime 증가) 시 카운터 리셋 — Hermes turns_since_memory=0 등가 (write 하면 회고 불필요).
 #   "언제 회고할지" 를 에이전트 판단이 아니라 결정론 카운터로 (§0.5). 등록: settings.json hooks.UserPromptSubmit.
 set -euo pipefail
-AGENT_HOME="${AGENT_HOME:-${CLAUDE_HOME:-$HOME/.claude}}"
+AGENT_HOME="${AGENT_HOME:-${CLAUDE_HOME:-$HOME/agent_setting}}"
 
 # 재귀가드 (불변식, spec v7 §5.5): distiller 세션이면 turn-counter 도 분사하지 않음.
-# distiller 의 `claude -p` UserPromptSubmit 가 재-dispatch 하는 것을 차단. stdin parse 전에 둔다.
+# distiller worker 의 UserPromptSubmit equivalent 가 재-dispatch 하는 것을 차단. stdin parse 전에 둔다.
 # drain: 가드 발동 시 미소비 stdin 으로 인한 pipefail-유발 SIGPIPE/비0 exit 회피 (정상 경로는
 # 아래 input=$(cat ...) 가 stdin 을 소비하므로 drain 불필요).
 [ "${MEM_DISTILL:-}" = "1" ] && { cat >/dev/null 2>&1; exit 0; }

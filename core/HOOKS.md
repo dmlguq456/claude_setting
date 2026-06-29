@@ -10,7 +10,7 @@ checks to their own event model.
 |---|---|
 | `portable-check` | Core decision logic is runtime-neutral and has a CLI entry point. It may also accept Claude hook JSON for compatibility. |
 | `adapter-payload-wrapper` | Primarily translates a runtime event payload into a portable decision. Needs adapter-specific wrapper for non-Claude runtimes. |
-| `adapter-coupled-automation` | Depends on Claude session lifecycle, status, MCP, or headless `claude -p`. Other runtimes must implement their own equivalent or mark unsupported. |
+| `adapter-coupled-automation` | Depends on a concrete runtime session lifecycle, status UI, MCP, or headless worker process. Other runtimes must implement their own equivalent or mark unsupported. |
 | `external-integration` | Owned by an external integration and not part of the portable contract. |
 | `test` | Local regression test for a hook implementation. |
 

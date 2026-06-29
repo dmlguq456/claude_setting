@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # mem-briefing-inject — 아침 논의 데스크 (Cluster F D-26).
-#   UserPromptSubmit 마다: cwd==~/.claude(전용 데스크) AND 오늘 당직 보고 존재 AND 아직 브리핑 안 함
+#   UserPromptSubmit 마다: cwd==<agent-home>(전용 데스크) AND 오늘 당직 보고 존재 AND 아직 브리핑 안 함
 #   → 오늘 당직 보고 + 간밤 처리 요약(전수 보고 D-25)을 additionalContext 로 주입 (하루 1회).
 #   기존 '당직 처리해줘' 발화 트리거를 자동화. 세션을 장시간 유지하는 환경이라 SessionStart 가
 #   아침에 안 뜸 → 'cron 후 그날 첫 상호작용'(=오늘 보고 존재 + 미브리핑)을 견고한 기준으로.
@@ -8,7 +8,7 @@
 #   Guards (mem-recall-inject 동형):
 #     - MEM_DISTILL=1 → exit 0 (distiller 세션 재귀 차단)
 #     - hook_event_name ≠ UserPromptSubmit → exit 0
-#     - cwd ≠ ~/.claude → exit 0 (전용 데스크 외 세션은 방해 안 함 — 다른 프로젝트 작업 보호)
+#     - cwd ≠ <agent-home> → exit 0 (전용 데스크 외 세션은 방해 안 함 — 다른 프로젝트 작업 보호)
 #     - 오늘 당직 보고 없음(cron 전·루프 고장) → exit 0
 #     - 이미 오늘 브리핑함 → exit 0 (하루 1회, .briefing-<date> 상태파일)
 #   Read-only: notes·graveyard 읽기만. additionalContext 만 emit (never-block 불변식).
@@ -17,7 +17,7 @@
 #
 #   등록: settings.json hooks.UserPromptSubmit.
 set -euo pipefail
-AGENT_HOME="${AGENT_HOME:-${CLAUDE_HOME:-$HOME/.claude}}"
+AGENT_HOME="${AGENT_HOME:-${CLAUDE_HOME:-$HOME/agent_setting}}"
 
 usage() {
   cat <<'EOF'
@@ -95,7 +95,7 @@ GY="$STORE/deleted-records.jsonl"
 PRUNED=0
 [ -f "$GY" ] && PRUNED="$(grep -c "$TODAY" "$GY" 2>/dev/null || echo 0)"
 
-# 제도화 승격 안건 (D-28): durable 반복 규칙·교훈 — 데스크 cwd(~/.claude) 기준.
+# 제도화 승격 안건 (D-28): durable 반복 규칙·교훈 — 데스크 cwd(<agent-home>) 기준.
 # MEM_PY override = 테스트 격리 (dispatch.sh 동형, production default 불변).
 PROMO="$(cd "$AGENT_HOME" 2>/dev/null && python3 "${MEM_PY:-$AGENT_HOME/tools/memory/mem.py}" promote-candidates 2>/dev/null || true)"
 
