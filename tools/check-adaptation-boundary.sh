@@ -99,6 +99,12 @@ check_claude_skill_projection() {
       fail_msg "adapters/claude/skills/$slug/SKILL.md is missing"
     fi
   done
+
+  diff_out=$(diff -qr --exclude=.sync_state.json skills adapters/claude/skills 2>/dev/null || true)
+  if [ -n "$diff_out" ]; then
+    fail_msg "skills/ compatibility refs must stay byte-equivalent to adapters/claude/skills/ except .sync_state.json:"
+    printf '%s\n' "$diff_out"
+  fi
 }
 
 check_claude_mode_projection() {
@@ -360,11 +366,12 @@ warn_concrete_runtime_terms() {
   command -v rg >/dev/null 2>&1 || return 0
 
   count=$(rg -n 'sonnet|opus|haiku|claude -p|~/.claude|Claude adapter:' \
-    core skills tools utilities hooks \
+    core tools utilities hooks \
+    --glob '!tools/check-adaptation-boundary.sh' \
     --glob '!hooks/*.test.sh' 2>/dev/null | wc -l | tr -d ' ')
 
   if [ "$count" != "0" ]; then
-    say "WARN: $count concrete Claude/model references remain in portable or compatibility areas."
+    say "WARN: $count concrete Claude/model references remain in portable areas."
     say "      This is allowed only where documented as adapter mapping or compat-passthrough."
   fi
 }

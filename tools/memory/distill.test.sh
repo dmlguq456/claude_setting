@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Isolated test for `mem distill` + session distill adapter/ingest/marker (Cluster C, D-11~13).
-# Fully isolated via MEM_STORE + MEM_PROJECTS temp dirs — never touches real ~/.claude/memory.
+# Fully isolated via MEM_STORE + MEM_PROJECTS temp dirs — never touches real runtime memory.
 # All mem calls go through `python3 tools/memory/mem.py` subprocess (env evaluated at module load).
 # Verification ①~⑤ from plan: 2026-06-16_memory-cluster-c-distill/plan/plan.md
 set -u
