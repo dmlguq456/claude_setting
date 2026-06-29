@@ -86,7 +86,7 @@ Codex must not consume these Claude-native files as native configuration:
 | `adapters/claude/commands/` | Not consumable; Codex commands must be expressed as AGENTS instructions or wrapper commands |
 | `skills/*/SKILL.md` | Compatibility reference only; Codex should start from `capabilities/README.md` |
 | `adapters/claude/statusline.sh` | Not consumable; input schema is Claude statusline JSON |
-| `adapters/claude/track-toggle.sh` | Semantics reusable, implementation depends on Claude session id fallback |
+| `adapters/claude/track-toggle.sh` | Do not consume; portable semantics live in `utilities/workflow-toggle.sh`, and Codex exposes them through `preflight.sh track` |
 | `adapters/claude/CLAUDE.md` | Reference only; not bootstrap |
 | `adapters/claude/agents/*.md` | Reference only; Codex should start from `roles/README.md` |
 | `roles/modes/design/*` | Compatibility reference only until Codex has an equivalent visual/browser verification harness |

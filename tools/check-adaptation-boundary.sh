@@ -141,6 +141,10 @@ check_codex_bin_wrappers() {
     fi
   done
 
+  if ! grep -Fq 'utilities/workflow-toggle.sh' adapters/codex/bin/preflight.sh; then
+    fail_msg "adapters/codex/bin/preflight.sh must realize workflow toggle through utilities/workflow-toggle.sh"
+  fi
+
   if ! grep -Fq 'preflight.sh track' adapters/codex/AGENTS.md; then
     fail_msg "adapters/codex/AGENTS.md must document the Codex workflow toggle wrapper"
   fi

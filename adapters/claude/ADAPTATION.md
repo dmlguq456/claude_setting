@@ -22,6 +22,7 @@ runtime-specific files out of the common root.
 | Scaffolds | `adapters/claude/scaffolds/` | `claude_setting/scaffolds` |
 | Statusline | `adapters/claude/statusline.sh` | `claude_setting/statusline.sh` |
 | `/track` implementation | `adapters/claude/track-toggle.sh` | `claude_setting/track-toggle.sh` |
+| Workflow toggle helper | `adapters/claude/utilities/workflow-toggle.sh` | `claude_setting/utilities/workflow-toggle.sh` |
 
 `~/.claude/*` should point at `claude_setting/*`, not directly at common files.
 
@@ -150,6 +151,10 @@ Utility scripts now follow the same concrete projection pattern:
 are adapter-owned copies of the current shared `utilities/` scripts. This keeps
 existing Claude hook/helper paths stable while future edits can split
 runtime-neutral helper behavior from Claude-specific shell integration.
+`adapters/claude/track-toggle.sh` is now only the Claude `/track` wrapper; the
+portable tracked/untracked flag semantics live in
+`adapters/claude/utilities/workflow-toggle.sh`, matching the common
+`utilities/workflow-toggle.sh` helper.
 
 Scaffold assets now follow the same concrete projection pattern:
 `claude_setting/scaffolds` points at `adapters/claude/scaffolds/`, whose files
