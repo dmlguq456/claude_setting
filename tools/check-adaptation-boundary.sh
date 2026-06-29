@@ -141,8 +141,32 @@ check_claude_hook_projection() {
   done
 }
 
+check_claude_utility_projection() {
+  if [ ! -L claude_setting/utilities ]; then
+    fail_msg "claude_setting/utilities must project adapters/claude/utilities"
+    return
+  fi
+
+  target=$(readlink claude_setting/utilities)
+  if [ "$target" != "../adapters/claude/utilities" ]; then
+    fail_msg "claude_setting/utilities points to $target; expected ../adapters/claude/utilities"
+  fi
+
+  for f in utilities/*; do
+    [ -f "$f" ] || continue
+    name=${f#utilities/}
+    if [ ! -f "adapters/claude/utilities/$name" ]; then
+      fail_msg "adapters/claude/utilities/$name is missing"
+      continue
+    fi
+    if [ -L "adapters/claude/utilities/$name" ]; then
+      fail_msg "adapters/claude/utilities/$name must be a concrete adapter-owned utility projection"
+    fi
+  done
+}
+
 check_claude_passthrough_projection() {
-  for surface in tools utilities loops scaffolds; do
+  for surface in tools loops scaffolds; do
     if [ ! -L "claude_setting/$surface" ]; then
       fail_msg "claude_setting/$surface must project adapters/claude/$surface"
       continue
@@ -285,6 +309,7 @@ check_codex_bin_wrappers
 check_claude_skill_projection
 check_claude_mode_projection
 check_claude_hook_projection
+check_claude_utility_projection
 check_claude_passthrough_projection
 check_removed_root_surfaces
 check_capability_catalog

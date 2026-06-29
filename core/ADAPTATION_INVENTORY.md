@@ -34,7 +34,8 @@ into a portable agent setting plus runtime adapters.
 | Hook scripts | `adapters/claude/hooks/*.sh`, shared `hooks/*.sh` | adapter-native projection, mixed content | Concrete Claude hook files preserve current behavior while splitting invariant checks from runtime hook payload wrappers. |
 | Memory distiller | `hooks/mem-distill-dispatch.sh`, `tools/memory/` | mixed | Keep DB/CLI portable; move session log reader and model invocation to adapters. |
 | Design MCP | `tools/design-mcp/`, design skills | mixed | Keep render/check semantics portable; move Claude MCP registration paths to adapter docs. |
-| Shared tools/utilities/loops/scaffolds | `adapters/claude/{tools,utilities,loops,scaffolds}/* -> ../../../{tools,utilities,loops,scaffolds}/*` | compat-passthrough | Preserve Claude runtime paths through adapter-owned passthroughs while individual files are classified. |
+| Utility scripts | `adapters/claude/utilities/*`, shared `utilities/*` | adapter-native projection, mixed content | Concrete Claude utility files preserve current behavior while runtime-neutral helper behavior remains available from the shared utility layer. |
+| Shared tools/loops/scaffolds | `adapters/claude/{tools,loops,scaffolds}/* -> ../../../{tools,loops,scaffolds}/*` | compat-passthrough | Preserve Claude runtime paths through adapter-owned passthroughs while individual files are classified. |
 | Projection directories | `claude_setting/`, `codex_setting/` | projection | Must contain only symlinks or generated adapter output. |
 
 ## Migration Order
