@@ -1299,8 +1299,35 @@ check_codex_mode_map() {
     [ -f "$f" ] || continue
     rel=${f#roles/modes/}
     rel=${rel%.md}
-    if ! "$mapper" "$rel" >/dev/null 2>&1; then
+    out=/tmp/codex-mode-map.out
+    err=/tmp/codex-mode-map.err
+    if ! "$mapper" "$rel" >"$out" 2>"$err"; then
       fail_msg "Codex mode map cannot resolve agent mode: $rel"
+      cat "$err"
+      continue
+    fi
+    case "$rel" in
+      design/*)
+        if ! grep -Fq 'status=unsupported' "$out" || ! grep -Fq 'realization=adapter-coupled' "$out"; then
+          fail_msg "Codex mode map must mark $rel as unsupported adapter-coupled"
+        fi
+        ;;
+      material/*|qa/security-review|qa/test|research/claim-verify)
+        if ! grep -Fq 'status=tool-contract' "$out" || ! grep -Fq 'realization=portable-with-tool-contract' "$out"; then
+          fail_msg "Codex mode map must mark $rel as portable-with-tool-contract"
+        fi
+        if ! grep -Eq '^tool_contract=[^[:space:]]+' "$out"; then
+          fail_msg "Codex mode map must report a named tool_contract for $rel"
+        fi
+        ;;
+      *)
+        if ! grep -Fq 'status=portable' "$out" || ! grep -Fq 'realization=portable-persona' "$out"; then
+          fail_msg "Codex mode map must mark $rel as portable-persona"
+        fi
+        ;;
+    esac
+    if ! grep -Fq "source=roles/modes/$rel.md" "$out"; then
+      fail_msg "Codex mode map must report the portable source for $rel"
     fi
   done
 }
@@ -1333,8 +1360,35 @@ check_opencode_mode_map() {
     [ -f "$f" ] || continue
     rel=${f#roles/modes/}
     rel=${rel%.md}
-    if ! "$mapper" "$rel" >/dev/null 2>&1; then
+    out=/tmp/opencode-mode-map.out
+    err=/tmp/opencode-mode-map.err
+    if ! "$mapper" "$rel" >"$out" 2>"$err"; then
       fail_msg "OpenCode mode map cannot resolve agent mode: $rel"
+      cat "$err"
+      continue
+    fi
+    case "$rel" in
+      design/*)
+        if ! grep -Fq 'status=unsupported' "$out" || ! grep -Fq 'realization=adapter-coupled' "$out"; then
+          fail_msg "OpenCode mode map must mark $rel as unsupported adapter-coupled"
+        fi
+        ;;
+      material/*|qa/security-review|qa/test|research/claim-verify)
+        if ! grep -Fq 'status=tool-contract' "$out" || ! grep -Fq 'realization=portable-with-tool-contract' "$out"; then
+          fail_msg "OpenCode mode map must mark $rel as portable-with-tool-contract"
+        fi
+        if ! grep -Eq '^tool_contract=[^[:space:]]+' "$out"; then
+          fail_msg "OpenCode mode map must report a named tool_contract for $rel"
+        fi
+        ;;
+      *)
+        if ! grep -Fq 'status=portable' "$out" || ! grep -Fq 'realization=portable-persona' "$out"; then
+          fail_msg "OpenCode mode map must mark $rel as portable-persona"
+        fi
+        ;;
+    esac
+    if ! grep -Fq "source=roles/modes/$rel.md" "$out"; then
+      fail_msg "OpenCode mode map must report the portable source for $rel"
     fi
   done
 }
