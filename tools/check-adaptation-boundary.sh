@@ -47,6 +47,14 @@ check_codex_native_surface_debt() {
   done
 }
 
+check_opencode_forbidden_entries() {
+  for p in CLAUDE.md settings.json keybindings.json commands statusline.sh track-toggle.sh skills agents agent-modes hooks; do
+    if [ -e "opencode_setting/$p" ] || [ -L "opencode_setting/$p" ]; then
+      fail_msg "opencode_setting/$p exists; OpenCode projection must not expose Claude-native surfaces"
+    fi
+  done
+}
+
 check_required_projection_entries() {
   for p in AGENTS.md README.md core capabilities roles bin tools utilities; do
     if [ ! -L "codex_setting/$p" ]; then
@@ -64,6 +72,25 @@ check_codex_projection_targets() {
   check_link_target codex_setting/bin ../adapters/codex/bin
   check_link_target codex_setting/tools ../adapters/codex/tools
   check_link_target codex_setting/utilities ../adapters/codex/utilities
+}
+
+check_opencode_required_projection_entries() {
+  for p in AGENTS.md README.md core capabilities roles bin tools utilities; do
+    if [ ! -L "opencode_setting/$p" ]; then
+      fail_msg "opencode_setting/$p must be a symlink projection entry"
+    fi
+  done
+}
+
+check_opencode_projection_targets() {
+  check_link_target opencode_setting/AGENTS.md ../adapters/opencode/AGENTS.md
+  check_link_target opencode_setting/README.md ../adapters/opencode/README.md
+  check_link_target opencode_setting/core ../core
+  check_link_target opencode_setting/capabilities ../capabilities
+  check_link_target opencode_setting/roles ../roles
+  check_link_target opencode_setting/bin ../adapters/opencode/bin
+  check_link_target opencode_setting/tools ../adapters/opencode/tools
+  check_link_target opencode_setting/utilities ../adapters/opencode/utilities
 }
 
 check_claude_projection_targets() {
@@ -120,6 +147,16 @@ check_install_layout_codex_projection() {
   for p in settings.json commands skills statusline.sh hooks; do
     if ! grep -Fq "$p" INSTALL_LAYOUT.md; then
       fail_msg "INSTALL_LAYOUT.md must explicitly keep Claude-native $p out of Codex runtime projection"
+    fi
+  done
+}
+
+check_install_layout_opencode_projection() {
+  [ -f INSTALL_LAYOUT.md ] || { fail_msg "INSTALL_LAYOUT.md is missing"; return; }
+
+  for p in AGENTS.md README.md core capabilities roles bin tools utilities; do
+    if ! grep -Fq "\$AGENT_HOME/opencode_setting/$p" INSTALL_LAYOUT.md; then
+      fail_msg "INSTALL_LAYOUT.md must include OpenCode projection install step for opencode_setting/$p"
     fi
   done
 }
@@ -286,6 +323,136 @@ check_claude_bin_wrappers() {
   if [ ! -x adapters/claude/bin/mem-distill-worker.sh ]; then
     fail_msg "adapters/claude/bin/mem-distill-worker.sh is missing or not executable"
   fi
+}
+
+check_opencode_bin_wrappers() {
+  if [ ! -L opencode_setting/bin ]; then
+    fail_msg "opencode_setting/bin must project adapters/opencode/bin"
+    return
+  fi
+
+  target=$(readlink opencode_setting/bin)
+  if [ "$target" != "../adapters/opencode/bin" ]; then
+    fail_msg "opencode_setting/bin points to $target; expected ../adapters/opencode/bin"
+  fi
+
+  for p in preflight.sh role-map.sh capability-map.sh mode-map.sh distill-worker.sh; do
+    if [ ! -x "adapters/opencode/bin/$p" ]; then
+      fail_msg "adapters/opencode/bin/$p is missing or not executable"
+    fi
+  done
+
+  if ! grep -Fq 'utilities/workflow-toggle.sh' adapters/opencode/bin/preflight.sh; then
+    fail_msg "adapters/opencode/bin/preflight.sh must realize workflow toggle through utilities/workflow-toggle.sh"
+  fi
+
+  if ! grep -Fq -- '--event start' adapters/opencode/bin/preflight.sh; then
+    fail_msg "adapters/opencode/bin/preflight.sh must expose workflow start cleanup"
+  fi
+
+  if ! grep -Fq -- '--toggle-label "preflight.sh track"' adapters/opencode/bin/preflight.sh; then
+    fail_msg "adapters/opencode/bin/preflight.sh must adapt workflow signal toggle text"
+  fi
+
+  if ! grep -Fq 'ARTIFACT_GUARD_TOGGLE_LABEL="preflight.sh track"' adapters/opencode/bin/preflight.sh; then
+    fail_msg "adapters/opencode/bin/preflight.sh must adapt artifact guard toggle text"
+  fi
+
+  if ! grep -Fq 'preflight.sh start' adapters/opencode/AGENTS.md; then
+    fail_msg "adapters/opencode/AGENTS.md must document the OpenCode workflow start cleanup wrapper"
+  fi
+
+  if ! grep -Fq 'preflight.sh track' adapters/opencode/AGENTS.md; then
+    fail_msg "adapters/opencode/AGENTS.md must document the OpenCode workflow toggle wrapper"
+  fi
+}
+
+check_opencode_utility_projection() {
+  if [ ! -L opencode_setting/utilities ]; then
+    fail_msg "opencode_setting/utilities must project adapters/opencode/utilities"
+    return
+  fi
+
+  target=$(readlink opencode_setting/utilities)
+  if [ "$target" != "../adapters/opencode/utilities" ]; then
+    fail_msg "opencode_setting/utilities points to $target; expected ../adapters/opencode/utilities"
+  fi
+
+  if [ ! -x "adapters/opencode/utilities/agent-home.sh" ]; then
+    fail_msg "adapters/opencode/utilities/agent-home.sh must be an executable OpenCode-owned utility"
+  elif [ -L "adapters/opencode/utilities/agent-home.sh" ]; then
+    fail_msg "adapters/opencode/utilities/agent-home.sh must be concrete, not a symlink to the shared Claude-compatible fallback"
+  elif grep -q '\.claude' "adapters/opencode/utilities/agent-home.sh"; then
+    fail_msg "adapters/opencode/utilities/agent-home.sh must not fall back to Claude runtime home"
+  fi
+
+  for p in artifact-root.sh agent-worklog-state.sh workflow-guard-hook.sh workflow-toggle.sh; do
+    if [ ! -L "adapters/opencode/utilities/$p" ]; then
+      fail_msg "adapters/opencode/utilities/$p must be a selective portable utility projection"
+      continue
+    fi
+    link=$(readlink "adapters/opencode/utilities/$p")
+    if [ "$link" != "../../../utilities/$p" ]; then
+      fail_msg "adapters/opencode/utilities/$p points to $link; expected ../../../utilities/$p"
+    fi
+  done
+
+  extra=$(find adapters/opencode/utilities -mindepth 1 -maxdepth 1 ! \( -name agent-home.sh -o -name artifact-root.sh -o -name agent-worklog-state.sh -o -name workflow-guard-hook.sh -o -name workflow-toggle.sh \) -print 2>/dev/null || true)
+  if [ -n "$extra" ]; then
+    fail_msg "adapters/opencode/utilities contains unapproved entries:"
+    printf '%s\n' "$extra"
+  fi
+
+  for p in dispatch-liveness.sh extract_web_figures.py; do
+    if [ -e "adapters/opencode/utilities/$p" ] || [ -L "adapters/opencode/utilities/$p" ]; then
+      fail_msg "adapters/opencode/utilities/$p must not be projected until OpenCode support is documented"
+    fi
+  done
+}
+
+check_opencode_tool_projection() {
+  if [ ! -L opencode_setting/tools ]; then
+    fail_msg "opencode_setting/tools must project adapters/opencode/tools"
+    return
+  fi
+
+  target=$(readlink opencode_setting/tools)
+  if [ "$target" != "../adapters/opencode/tools" ]; then
+    fail_msg "opencode_setting/tools points to $target; expected ../adapters/opencode/tools"
+  fi
+
+  for p in mem.py recall.sh; do
+    if [ ! -x "adapters/opencode/tools/memory/$p" ]; then
+      fail_msg "adapters/opencode/tools/memory/$p must be an executable OpenCode-owned memory launcher"
+    elif [ -L "adapters/opencode/tools/memory/$p" ]; then
+      fail_msg "adapters/opencode/tools/memory/$p must be concrete, not a symlink to the shared Claude-compatible fallback"
+    elif grep -q '\.claude\|CLAUDE_HOME' "adapters/opencode/tools/memory/$p"; then
+      fail_msg "adapters/opencode/tools/memory/$p must not fall back to Claude runtime home"
+    fi
+  done
+
+  for p in apply-distill-actions.py; do
+    if [ ! -L "adapters/opencode/tools/memory/$p" ]; then
+      fail_msg "adapters/opencode/tools/memory/$p must be a selective portable memory tool projection"
+      continue
+    fi
+    link=$(readlink "adapters/opencode/tools/memory/$p")
+    if [ "$link" != "../../../../tools/memory/$p" ]; then
+      fail_msg "adapters/opencode/tools/memory/$p points to $link; expected ../../../../tools/memory/$p"
+    fi
+  done
+
+  extra=$(find adapters/opencode/tools -mindepth 1 ! \( -path adapters/opencode/tools/memory -o -path adapters/opencode/tools/memory/mem.py -o -path adapters/opencode/tools/memory/apply-distill-actions.py -o -path adapters/opencode/tools/memory/recall.sh \) -print 2>/dev/null || true)
+  if [ -n "$extra" ]; then
+    fail_msg "adapters/opencode/tools contains unapproved entries:"
+    printf '%s\n' "$extra"
+  fi
+
+  for p in build-manifest.py check-adaptation-boundary.sh design-mcp web-bundle; do
+    if [ -e "adapters/opencode/tools/$p" ] || [ -L "adapters/opencode/tools/$p" ]; then
+      fail_msg "adapters/opencode/tools/$p must not be projected until OpenCode support is documented"
+    fi
+  done
 }
 
 check_claude_skill_projection() {
@@ -545,6 +712,40 @@ check_codex_mode_map() {
   done
 }
 
+check_opencode_capability_map() {
+  mapper=adapters/opencode/bin/capability-map.sh
+  if [ ! -x "$mapper" ]; then
+    fail_msg "$mapper is missing or not executable"
+    return
+  fi
+
+  for d in skills/*; do
+    [ -d "$d" ] || continue
+    [ -f "$d/SKILL.md" ] || continue
+    slug=${d#skills/}
+    if ! "$mapper" "$slug" >/dev/null 2>&1; then
+      fail_msg "OpenCode capability map cannot resolve skill capability: $slug"
+    fi
+  done
+}
+
+check_opencode_mode_map() {
+  mapper=adapters/opencode/bin/mode-map.sh
+  if [ ! -x "$mapper" ]; then
+    fail_msg "$mapper is missing or not executable"
+    return
+  fi
+
+  for f in roles/modes/*/*.md; do
+    [ -f "$f" ] || continue
+    rel=${f#roles/modes/}
+    rel=${rel%.md}
+    if ! "$mapper" "$rel" >/dev/null 2>&1; then
+      fail_msg "OpenCode mode map cannot resolve agent mode: $rel"
+    fi
+  done
+}
+
 check_hook_catalog() {
   if [ ! -f core/HOOKS.md ]; then
     fail_msg "core/HOOKS.md is missing"
@@ -596,17 +797,25 @@ warn_concrete_runtime_terms() {
 
 check_projection_symlinks claude_setting
 check_projection_symlinks codex_setting
+check_projection_symlinks opencode_setting
 check_codex_forbidden_entries
 check_codex_native_surface_debt
 check_required_projection_entries
 check_codex_projection_targets
+check_opencode_forbidden_entries
+check_opencode_required_projection_entries
+check_opencode_projection_targets
 check_claude_projection_targets
 check_claude_adapter_concrete_surfaces
 check_install_layout_codex_projection
+check_install_layout_opencode_projection
 check_codex_bin_wrappers
+check_opencode_bin_wrappers
 check_codex_tool_projection
 check_portable_agent_home_resolution
+check_opencode_tool_projection
 check_codex_utility_projection
+check_opencode_utility_projection
 check_claude_bin_wrappers
 check_claude_skill_projection
 check_claude_mode_projection
@@ -618,7 +827,9 @@ check_claude_tool_projection
 check_removed_root_surfaces
 check_capability_catalog
 check_codex_capability_map
+check_opencode_capability_map
 check_codex_mode_map
+check_opencode_mode_map
 check_hook_catalog
 check_legacy_root_links
 warn_concrete_runtime_terms
