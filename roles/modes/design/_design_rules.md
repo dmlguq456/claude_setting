@@ -69,7 +69,7 @@ inspiration 참조 전략: 막연하면 _IDE 테마 / 문화적 미감 / 특정 
 - 1920×1080 슬라이드: 본문 ≥ 24px (가능하면 더 큼).
 - 인쇄 문서: 최소 12pt.
 - 모바일 목업 히트 타깃: ≥ 44px.
-- 고정 크기 콘텐츠(덱·영상)는 fixed 캔버스를 full-viewport stage 로 감싸 `transform: scale()` 레터박싱. 컨트롤은 scale 밖에 둔다. (→ `~/.claude/scaffolds/deck_stage` 사용)
+- 고정 크기 콘텐츠(덱·영상)는 fixed 캔버스를 full-viewport stage 로 감싸 `transform: scale()` 레터박싱. 컨트롤은 scale 밖에 둔다. (→ `<agent-home>/scaffolds/deck_stage` 사용)
 
 ## HTML 작성 규약 (직접 편집 친화 + SPA 안전)
 
@@ -80,4 +80,4 @@ inspiration 참조 전략: 막연하면 _IDE 테마 / 문화적 미감 / 특정 
 
 ## 변형(variant) 처리
 
-사용자가 새 버전·변경을 요청하면 **파일을 늘리지 말고** 원본에 **트윅**으로 추가한다 (단일 메인 파일 버전 토글, → `~/.claude/scaffolds/tweaks_panel`). 색 트윅은 자유 피커 대신 3–4 개 큐레이션 스와치.
+사용자가 새 버전·변경을 요청하면 **파일을 늘리지 말고** 원본에 **트윅**으로 추가한다 (단일 메인 파일 버전 토글, → `<agent-home>/scaffolds/tweaks_panel`). 색 트윅은 자유 피커 대신 3–4 개 큐레이션 스와치.

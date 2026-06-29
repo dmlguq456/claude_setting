@@ -35,7 +35,7 @@ ANY single failure → 즉시 `verdict: needs_work` + `breakage: has_errors`. La
 
 | id | 설명 | MCP-free 경로 |
 |---|---|---|
-| `console.errors_zero` | 콘솔 에러·pageerror·네트워크 실패 0건 | `node ~/.claude/tools/design-mcp/console-check.mjs <file.html>` (Bash, headless Chromium via playwright — postwrite hook 동일 스크립트; exit 2 = 에러 있음). MCP 있으면 `getConsoleLogs` 동등 |
+| `console.errors_zero` | 콘솔 에러·pageerror·네트워크 실패 0건 | `node <agent-home>/tools/design-mcp/console-check.mjs <file.html>` 또는 adapter equivalent (Bash, headless Chromium via playwright — postwrite hook 동일 스크립트; exit 2 = 에러 있음). MCP 있으면 `getConsoleLogs` 동등 |
 | `layout.no_overflow` | 요소가 컨테이너 밖으로 넘침 없음 | MCP 있으면 `eval_js` getBoundingClientRect; MCP-free = (a) 번들 `measure.mjs` (playwright getBoundingClientRect 직접 실행) 또는 (b) 정적 HTML 검사 (obvious inline `overflow:hidden` 깨짐·unclosed tag 등) |
 | `layout.no_overlap` | 의도치 않은 요소 겹침 없음 | 동상 — eval_js 또는 bundled measure.mjs / 정적 검사 |
 | `layout.no_zero_box` | 0px 높이·빈 컨테이너 없음 | 동상 — `height:0`·`display:none` 의심 정적 grep 또는 eval_js |
@@ -155,7 +155,7 @@ vision/screenshot 불가 (텍스트 전용 환경·렌더 크래시·malformed v
 
 - **throw 금지.** `[vis]` 항목은 `passed: false` 대신 `status: unavailable` 로 강등. `vision_passrate` 및 Layer-2 bounded-enum status = `unavailable`.
 - **Layer-1 결정론 플로어는 그대로 실행** — MCP-free 경로를 이용해 headless 에서도 돌아간다:
-  - `console.errors_zero`: `node ~/.claude/tools/design-mcp/console-check.mjs <file>` (Bash, playwright headless, MCP 불필요)
+  - `console.errors_zero`: `node <agent-home>/tools/design-mcp/console-check.mjs <file>` 또는 adapter equivalent (Bash, playwright headless, MCP 불필요)
   - `layout.no_overflow` / `no_overlap` / `no_zero_box`: 번들 `measure.mjs` (playwright getBoundingClientRect 직접 실행) 또는 정적 HTML 검사
   - `components.token_contract`: 파일 grep
 - **링키지 (작업③ drill)**: `[det]` 항목의 MCP-free 경로가 drill (headless, `cases_growing/g8_design_verifier_breakage/`) 이 실제로 검증하는 플로어와 동일 코드다 — 드릴이 검증하는 결정론 플로어 = 프로덕션 폴백 플로어.
