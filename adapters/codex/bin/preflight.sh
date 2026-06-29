@@ -10,6 +10,7 @@ usage: preflight.sh write <file> [session-id]
        preflight.sh capability <name> [cwd] [session-id]
        preflight.sh skill <name> [cwd] [session-id]
        preflight.sh mode [cwd] [session-id]
+       preflight.sh memory [cwd]
 
 Runs portable checks that Codex can call without consuming Claude hook JSON or
 settings.json.
@@ -43,6 +44,10 @@ case "$cmd" in
     cwd=${2:-$PWD}
     sid=${3:-codex}
     "$ROOT/utilities/workflow-guard-hook.sh" --event prompt --cwd "$cwd" --session "$sid" --format text
+    ;;
+  memory)
+    cwd=${2:-$PWD}
+    (cd "$cwd" && AGENT_HOME="${AGENT_HOME:-$ROOT}" python3 "$ROOT/tools/memory/mem.py" inject)
     ;;
   -h|--help|"")
     usage

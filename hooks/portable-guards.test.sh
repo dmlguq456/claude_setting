@@ -123,6 +123,11 @@ if "$CODEX" mode "$TMP/flowproj" testsid >/tmp/flow.out 2>/tmp/flow.err \
 else
   bad "codex mode wrapper should emit untracked text"
 fi
+if "$CODEX" memory "$TMP/flowproj" >/tmp/mem_inject.out 2>/tmp/mem_inject.err; then
+  ok "codex memory wrapper exits cleanly"
+else
+  bad "codex memory wrapper should exit cleanly"
+fi
 
 printf 'PASS=%s FAIL=%s\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]

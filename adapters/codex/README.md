@@ -36,7 +36,8 @@ Experimental. The portable contract is usable, but Codex does not consume Claude
 | spec read gate | `core/HOOKS.md` defines marker/check semantics; run `adapters/codex/bin/preflight.sh read <prd.md> [session-id]` after actual reads and `adapters/codex/bin/preflight.sh capability <name> [cwd] [session-id]` before spec/code capabilities |
 | git safety gate | `core/HOOKS.md` defines the invariant; included in `adapters/codex/bin/preflight.sh write <file> [session-id]` |
 | memory write guard | `core/HOOKS.md` defines the invariant; included in `adapters/codex/bin/preflight.sh write <file> [session-id]` |
-| memory store | `tools/memory/mem.py` is runtime-neutral; hook automation is adapter-specific |
+| memory injection | `tools/memory/mem.py inject` is runtime-neutral; run `adapters/codex/bin/preflight.sh memory [cwd]` when no automatic session-start hook is attached |
+| memory store | `tools/memory/mem.py` is runtime-neutral; session log ingestion/distillation remains adapter-specific |
 
 ## Runtime Home Projection
 

@@ -24,7 +24,7 @@ checks to their own event model.
 | memory write guard | `hooks/builtin-memory-guard.sh` | `portable-check` | Runtime-native file memory must not bypass the unified DB memory store. | Run `hooks/builtin-memory-guard.sh --file <path>` before writes, or remove the native memory feature. |
 | design post-write verification | `hooks/design-postwrite.sh` | `adapter-coupled-automation` | Saved design HTML should get deterministic console verification. | Provide an equivalent browser/console checker or report unsupported. |
 | workflow tracked signal | `utilities/workflow-guard-hook.sh` | `portable-check` | Surface tracked/untracked mode and clean stale flags. | Run `utilities/workflow-guard-hook.sh --event prompt [--cwd <dir>] [--session <id>] [--format text]` before prompt handling, and `--event start` for stale flag GC. |
-| memory injection | `tools/memory/mem.py inject --hook` | `adapter-payload-wrapper` | Inject relevant DB memory at session start. | Map the injection output to the runtime's context mechanism. |
+| memory injection | `tools/memory/mem.py inject` | `portable-check` | Inject relevant DB memory at session start. | Run `tools/memory/mem.py inject` for text output, or `tools/memory/mem.py inject --hook` when the runtime accepts Claude-style `additionalContext`. |
 | memory recall injection | `hooks/mem-recall-inject.sh` | `adapter-coupled-automation` | Recall signal words trigger DB recall and context injection. | Provide prompt-submit event payload and context injection support. |
 | memory distillation trigger | `hooks/mem-turn-nudge.sh`, `hooks/mem-distill-dispatch.sh` | `adapter-coupled-automation` | Periodically distill session deltas into DB memory through a no-tools worker. | Provide session transcript source, detached worker invocation, and no-tools/action contract. |
 | oncall briefing injection | `hooks/mem-briefing-inject.sh` | `adapter-coupled-automation` | On the dedicated agent desk, inject daily oncall report once per day. | Provide cwd/session prompt event and context injection, or mark unsupported. |
@@ -44,4 +44,5 @@ Codex must not consume that JSON as configuration. It can run
 reads, and `adapters/codex/bin/preflight.sh capability <name> [cwd] [session-id]`
 before spec-changing capability work. It can also run
 `adapters/codex/bin/preflight.sh mode [cwd] [session-id]` to surface tracked
-or untracked workflow state as plain text.
+or untracked workflow state as plain text, and
+`adapters/codex/bin/preflight.sh memory [cwd]` for plain-text memory injection.
