@@ -43,7 +43,7 @@ invariant.
 | Preflight wrappers | `adapters/codex/bin/` | `codex_setting/bin` |
 | Shared helper tools | selected `tools/`, selected `utilities/` | `codex_setting/tools`, `codex_setting/utilities` |
 | Selected tools | `adapters/codex/tools/` symlinks to portable tool files | `codex_setting/tools` |
-| Selected utilities | `adapters/codex/utilities/` symlinks to portable utility files | `codex_setting/utilities` |
+| Selected utilities | `adapters/codex/utilities/` adapter wrappers plus selected portable utility projections | `codex_setting/utilities` |
 
 ## Native Skill And Plugin Surface Debt
 
@@ -160,7 +160,7 @@ them directly.
 `codex_setting/utilities` points at `adapters/codex/utilities/`, not the entire
 shared `utilities/` directory. The current allowlist is:
 
-- `agent-home.sh`
+- `agent-home.sh` (Codex-owned wrapper; no Claude runtime-home fallback)
 - `artifact-root.sh`
 - `agent-worklog-state.sh`
 - `workflow-guard-hook.sh`

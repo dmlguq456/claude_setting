@@ -76,7 +76,15 @@ check_codex_utility_projection() {
     fail_msg "codex_setting/utilities points to $target; expected ../adapters/codex/utilities"
   fi
 
-  for p in agent-home.sh artifact-root.sh agent-worklog-state.sh workflow-guard-hook.sh; do
+  if [ ! -x "adapters/codex/utilities/agent-home.sh" ]; then
+    fail_msg "adapters/codex/utilities/agent-home.sh must be an executable Codex-owned utility"
+  elif [ -L "adapters/codex/utilities/agent-home.sh" ]; then
+    fail_msg "adapters/codex/utilities/agent-home.sh must be concrete, not a symlink to the shared Claude-compatible fallback"
+  elif grep -q '\.claude' "adapters/codex/utilities/agent-home.sh"; then
+    fail_msg "adapters/codex/utilities/agent-home.sh must not fall back to Claude runtime home"
+  fi
+
+  for p in artifact-root.sh agent-worklog-state.sh workflow-guard-hook.sh; do
     if [ ! -L "adapters/codex/utilities/$p" ]; then
       fail_msg "adapters/codex/utilities/$p must be a selective portable utility projection"
       continue

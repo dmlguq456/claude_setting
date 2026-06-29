@@ -82,7 +82,7 @@ projection until Codex has a documented runtime realization for them.
 `adapters/codex/utilities/`, not the full shared `utilities/` directory. The
 adapter currently exposes only utility files that Codex wrappers or docs use:
 
-- `agent-home.sh`
+- `agent-home.sh` (Codex-owned wrapper; no Claude runtime-home fallback)
 - `artifact-root.sh`
 - `agent-worklog-state.sh`
 - `workflow-guard-hook.sh`
@@ -129,7 +129,7 @@ surface. When no concrete model is configured it reports `codex-default` and
 
 Codex should create new project artifacts under `.agent_reports/`. Use `utilities/artifact-root.sh` or the equivalent rule: prefer `.agent_reports`; use `.claude_reports` only if it already exists and `.agent_reports` does not.
 
-Codex should resolve harness-home paths through `AGENT_HOME` or `utilities/agent-home.sh`. `CLAUDE_HOME` is accepted only as a Claude adapter compatibility alias during migration.
+Codex should resolve harness-home paths through `AGENT_HOME` or the Codex-owned `utilities/agent-home.sh`. Some shared legacy tools still accept `CLAUDE_HOME` as a migration alias, but Codex-owned wrappers should not use it as their runtime-home fallback.
 
 Claude Code-specific files remain valid as implementation references, not as Codex bootstrap files:
 
