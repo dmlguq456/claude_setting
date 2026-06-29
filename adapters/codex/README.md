@@ -40,6 +40,7 @@ Experimental. The portable contract is usable, but Codex does not consume Claude
 | memory injection | `tools/memory/mem.py inject` is runtime-neutral; run `adapters/codex/bin/preflight.sh memory [cwd]` when no automatic session-start hook is attached |
 | memory recall injection | `hooks/mem-recall-inject.sh` is runtime-neutral for prompt text; run `adapters/codex/bin/preflight.sh recall <prompt> [cwd]` when no automatic prompt hook is attached |
 | oncall briefing injection | `hooks/mem-briefing-inject.sh` is runtime-neutral for cwd/text output; run `adapters/codex/bin/preflight.sh briefing [cwd]` when no automatic prompt hook is attached |
+| model role mapping | `adapters/codex/bin/preflight.sh role <portable-role>` resolves portable model roles through Codex adapter environment variables |
 | memory distill delta | Codex session transcript extraction is available through `adapters/codex/bin/preflight.sh distill-delta <session-id>` |
 | memory distill proposal | `CODEX_DISTILL_ENABLE=1 adapters/codex/bin/preflight.sh distill-propose <session-id> [cwd]` runs a constrained Codex exec proposal worker; it mutates memory only with explicit `CODEX_DISTILL_APPLY=1` |
 | memory store | `tools/memory/mem.py` is runtime-neutral; detached distillation worker execution remains adapter-specific |
@@ -73,6 +74,11 @@ Codex adapter 는 `core/CONVENTIONS.md §2` 의 portable role 을 Codex 런타�
 | `orchestrator` | 도구 호출·artifact merge·한국어 정리 담당. 실제 판단 role 과 분리 가능 |
 
 Codex 쪽 wrapper 를 만들 때는 `AGENT_MODEL_FAST`, `AGENT_MODEL_DEEP`, `AGENT_MODEL_EXTERNAL` 같은 환경변수나 설정 파일로 이 mapping 을 드러내야 한다. `CODEX_DISTILL_MODEL` 은 distillation proposal worker 에만 적용되는 optional override 다. 공통 skill 은 concrete model name 을 요구하지 않고 role 의미만 요구한다.
+
+`adapters/codex/bin/preflight.sh role <portable-role>` is the executable mapping
+surface. When no concrete model is configured it reports `codex-default` and
+`runtime-default`; for `external adversary`, it reports unavailable unless
+`AGENT_MODEL_EXTERNAL` or `AGENT_EXTERNAL_CMD` is configured.
 
 ## Compatibility
 

@@ -160,6 +160,21 @@ if "$CODEX" briefing "$TMP/flowproj" >/tmp/brief.out 2>/tmp/brief.err; then
 else
   bad "codex briefing wrapper should exit cleanly"
 fi
+if AGENT_MODEL_FAST=fast-model AGENT_REASONING_FAST=low "$CODEX" role fast reviewer >/tmp/role.out 2>/tmp/role.err \
+  && grep -q '^family=fast$' /tmp/role.out \
+  && grep -q '^model=fast-model$' /tmp/role.out \
+  && grep -q '^reasoning=low$' /tmp/role.out; then
+  ok "codex role wrapper maps fast portable role"
+else
+  bad "codex role wrapper should map fast portable role"
+fi
+if "$CODEX" role external adversary >/tmp/role.out 2>/tmp/role.err \
+  && grep -q '^available=0$' /tmp/role.out \
+  && grep -q '^status=unavailable$' /tmp/role.out; then
+  ok "codex role wrapper marks external adversary unavailable by default"
+else
+  bad "codex role wrapper should mark external adversary unavailable by default"
+fi
 mkdir -p "$TMP/codex_sessions/2026/06/29"
 cat > "$TMP/codex_sessions/2026/06/29/rollout-2026-06-29T00-00-00-codexsid.jsonl" <<'EOF'
 {"timestamp":"2026-06-29T00:00:00.000Z","type":"event_msg","payload":{"type":"user_message","message":"hello"}}

@@ -16,6 +16,7 @@ usage: preflight.sh write <file> [session-id]
        preflight.sh design <file>
        preflight.sh distill-delta <session-id>
        preflight.sh distill-propose <session-id> [cwd]
+       preflight.sh role <portable-role>
 
 Runs portable checks that Codex can call without consuming Claude hook JSON or
 settings.json.
@@ -79,6 +80,11 @@ case "$cmd" in
     sid=$2
     cwd=${3:-$PWD}
     "$ROOT/adapters/codex/bin/distill-worker.sh" "$sid" "$cwd"
+    ;;
+  role)
+    [ "$#" -ge 2 ] || { echo "codex preflight: role requires a portable role" >&2; exit 64; }
+    shift
+    "$ROOT/adapters/codex/bin/role-map.sh" "$@"
     ;;
   -h|--help|"")
     usage
