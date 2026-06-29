@@ -258,8 +258,8 @@ autopilot-\* 가 내부에서 자동 라우팅하는 전문 팀. Portable 의미
 ├── capabilities/           portable capability catalog — runtime-neutral 작업 의미 + adapter projection index
 ├── roles/                  portable role profiles — runtime-neutral delegation semantics + native agent projection index
 ├── claude_setting/          GitHub-tracked Claude Code projection — ~/.claude harness-owned entrypoints
-├── codex_setting/           GitHub-tracked Codex projection — minimal adapted bootstrap + shared core/capabilities/roles/tools
-├── opencode_setting/        GitHub-tracked OpenCode projection — minimal adapted bootstrap + shared core/capabilities/roles/tools
+├── codex_setting/           GitHub-tracked Codex projection — AGENTS + shared core/capabilities/roles + native skills/plugin/agents/hooks
+├── opencode_setting/        GitHub-tracked OpenCode projection — AGENTS + shared core/capabilities/roles + native skills/commands/agents/plugin
 │
 ├── skills/                 historical Claude Skill compatibility refs — adapters/claude/skills 와 byte parity 유지, portable source 아님
 │   ├── [entry 파이프]      autopilot-research(분야조사) · -spec(청사진·skeleton) · -code(코드 작업)

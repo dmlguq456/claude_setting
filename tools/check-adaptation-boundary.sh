@@ -1253,6 +1253,23 @@ check_adaptation_inventory_native_surfaces() {
   fi
 }
 
+check_projection_summary_docs() {
+  if grep -Fq 'minimal adapted bootstrap + shared core/capabilities/roles/tools' README.md INSTALL_LAYOUT.md 2>/dev/null; then
+    fail_msg "projection summary docs must describe current native adapter projections, not minimal bootstrap only"
+  fi
+  if grep -Fq 'Codex does not currently consume the full harness natively' README.md INSTALL_LAYOUT.md 2>/dev/null; then
+    fail_msg "Codex install docs must describe selected native projections instead of implying instruction-only support"
+  fi
+  if ! grep -Fq 'native skills/plugin/agents/hooks' README.md \
+    || ! grep -Fq 'native skills/commands/agents/plugin' README.md; then
+    fail_msg "README.md must summarize Codex and OpenCode native projection surfaces"
+  fi
+  if ! grep -Fq 'Codex-native Skills, custom Agents, plugin' INSTALL_LAYOUT.md \
+    || ! grep -Fq 'hook bridges' INSTALL_LAYOUT.md; then
+    fail_msg "INSTALL_LAYOUT.md must summarize Codex native projection install surfaces"
+  fi
+}
+
 check_capability_catalog() {
   if [ ! -f capabilities/README.md ]; then
     fail_msg "capabilities/README.md is missing"
@@ -1511,6 +1528,7 @@ check_claude_tool_projection
 check_removed_root_surfaces
 check_role_catalog
 check_adaptation_inventory_native_surfaces
+check_projection_summary_docs
 check_capability_catalog
 check_codex_capability_map
 check_opencode_capability_map

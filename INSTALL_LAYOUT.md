@@ -36,7 +36,9 @@ be committed to this repo. Adapter docs own concrete local path realizations.
 
 ## Codex Projection
 
-Codex does not currently consume the full harness natively. Keep `$HOME/.codex` runtime-owned and expose a stable pointer:
+Keep `$HOME/.codex` runtime-owned. Project the portable harness through a
+stable pointer plus adapter-owned Codex-native Skills, custom Agents, plugin
+marketplace, and hook bridges:
 
 ```bash
 export AGENT_HOME="$HOME/agent_setting"
