@@ -17,6 +17,7 @@ DESIGN="$ROOT/hooks/design-postwrite.sh"
 MARK="$ROOT/hooks/spec-read-marker.sh"
 SPEC="$ROOT/hooks/spec-skill-gate.sh"
 FLOW="$ROOT/utilities/workflow-guard-hook.sh"
+TOGGLE="$ROOT/utilities/workflow-toggle.sh"
 RECALL="$ROOT/hooks/mem-recall-inject.sh"
 BRIEF="$ROOT/hooks/mem-briefing-inject.sh"
 
@@ -138,6 +139,20 @@ if "$FLOW" --event prompt --cwd "$TMP/flowproj" --session testsid --format text 
   ok "workflow signal emits tracked text"
 else
   bad "workflow signal should emit tracked text"
+fi
+if "$TOGGLE" --cwd "$TMP/flowproj" --session testsid --set untracked >/tmp/toggle.out 2>/tmp/toggle.err \
+  && grep -q 'untracked mode' /tmp/toggle.out \
+  && [ -f "$TMP/flowproj/.agent_reports/.untracked.testsid" ]; then
+  ok "workflow toggle CLI enables untracked mode"
+else
+  bad "workflow toggle CLI should enable untracked mode"
+fi
+if "$TOGGLE" --cwd "$TMP/flowproj" --session testsid --set tracked >/tmp/toggle.out 2>/tmp/toggle.err \
+  && grep -q 'tracked mode' /tmp/toggle.out \
+  && [ ! -f "$TMP/flowproj/.agent_reports/.untracked.testsid" ]; then
+  ok "workflow toggle CLI restores tracked mode"
+else
+  bad "workflow toggle CLI should restore tracked mode"
 fi
 if "$CODEX" track "$TMP/flowproj" testsid >/tmp/track.out 2>/tmp/track.err \
   && grep -q 'untracked mode' /tmp/track.out \
