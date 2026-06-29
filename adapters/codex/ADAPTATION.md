@@ -40,6 +40,7 @@ invariant.
 | Adapter guide | `adapters/codex/README.md` | `codex_setting/README.md` |
 | Common contract | `core/` | `codex_setting/core` |
 | Capability catalog | `capabilities/` | `codex_setting/capabilities` |
+| Role catalog | `roles/` | `codex_setting/roles` |
 | Preflight wrappers | `adapters/codex/bin/` | `codex_setting/bin` |
 | Shared helper tools | selected `tools/`, selected `utilities/` | `codex_setting/tools`, `codex_setting/utilities` |
 | Selected tools | `adapters/codex/tools/` adapter launchers plus selected portable tool projections | `codex_setting/tools` |

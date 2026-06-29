@@ -250,7 +250,7 @@ autopilot-\* 가 내부에서 자동 라우팅하는 전문 팀. Portable 의미
 ├── capabilities/           portable capability catalog — runtime-neutral 작업 의미
 ├── roles/                  portable role profiles — runtime-neutral delegation semantics
 ├── claude_setting/          GitHub-tracked Claude Code projection — ~/.claude harness-owned entrypoints
-├── codex_setting/           GitHub-tracked Codex projection — minimal adapted bootstrap + shared core/capabilities/tools
+├── codex_setting/           GitHub-tracked Codex projection — minimal adapted bootstrap + shared core/capabilities/roles/tools
 │
 ├── skills/                 historical Claude Skill compatibility refs — adapters/claude/skills 와 byte parity 유지, portable source 아님
 │   ├── [entry 파이프]      autopilot-research(분야조사) · -spec(청사진·skeleton) · -code(코드 작업)

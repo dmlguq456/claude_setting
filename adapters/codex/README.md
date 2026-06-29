@@ -31,6 +31,7 @@ Codex skill/plugin surface must be adapter-owned output derived from
 | Preflight wrappers | `adapters/codex/bin/` |
 | Capabilities | `capabilities/README.md` |
 | Role profiles | `roles/README.md` |
+| Role mode inventory | `roles/MODES.md` |
 | Hook and guard scripts | `hooks/`, `utilities/` |
 | Selected tool projection | `adapters/codex/tools/` |
 | Selected utility projection | `adapters/codex/utilities/` |

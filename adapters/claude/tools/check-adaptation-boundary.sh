@@ -48,7 +48,7 @@ check_codex_native_surface_debt() {
 }
 
 check_required_projection_entries() {
-  for p in AGENTS.md README.md core capabilities bin tools utilities; do
+  for p in AGENTS.md README.md core capabilities roles bin tools utilities; do
     if [ ! -L "codex_setting/$p" ]; then
       fail_msg "codex_setting/$p must be a symlink projection entry"
     fi
@@ -58,7 +58,7 @@ check_required_projection_entries() {
 check_install_layout_codex_projection() {
   [ -f INSTALL_LAYOUT.md ] || { fail_msg "INSTALL_LAYOUT.md is missing"; return; }
 
-  for p in AGENTS.md README.md core capabilities bin tools utilities; do
+  for p in AGENTS.md README.md core capabilities roles bin tools utilities; do
     if ! grep -Fq "\$AGENT_HOME/codex_setting/$p" INSTALL_LAYOUT.md; then
       fail_msg "INSTALL_LAYOUT.md must include Codex projection install step for codex_setting/$p"
     fi
