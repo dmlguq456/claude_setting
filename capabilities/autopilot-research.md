@@ -102,7 +102,7 @@ Field intelligence ends with recommendations for downstream work:
 | Adapter | Realization |
 |---|---|
 | Claude Code | `adapters/claude/skills/autopilot-research/SKILL.md` is the Claude-native realization; `skills/autopilot-research/SKILL.md` is the compatibility reference. |
-| Codex | Read this spec and run `adapters/codex/bin/preflight.sh capability-info autopilot-research`. Do not consume `skills/autopilot-research/SKILL.md` as native Codex configuration. |
+| Codex | Read this spec and run `adapters/codex/bin/preflight.sh capability-info autopilot-research`. Use `adapters/codex/skills/autopilot-research/SKILL.md` and `adapters/codex/plugins/agent-harness-codex/skills/autopilot-research/SKILL.md` as native Codex Skill/plugin projections; do not consume `skills/autopilot-research/SKILL.md` or Claude command files as native Codex configuration. |
 | OpenCode | Read this spec and run `adapters/opencode/bin/preflight.sh capability-info autopilot-research`. Use `adapters/opencode/skills/autopilot-research/SKILL.md` and `adapters/opencode/commands/autopilot-research.md` as native OpenCode projections; do not consume `skills/autopilot-research/SKILL.md` or Claude command files as native OpenCode configuration. |
 
 ## Compatibility Reference

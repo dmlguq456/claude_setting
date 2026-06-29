@@ -41,7 +41,7 @@ Adapters must preserve the portable invariants relevant to this capability:
 | Adapter | Realization |
 |---|---|
 | Claude Code | `adapters/claude/skills/post-it/SKILL.md` is the Claude-native realization; `skills/post-it/SKILL.md` is the compatibility reference. |
-| Codex | Read this spec and run `adapters/codex/bin/preflight.sh capability-info post-it`. Do not consume `skills/post-it/SKILL.md` as native Codex configuration. |
+| Codex | Read this spec and run `adapters/codex/bin/preflight.sh capability-info post-it`. Use `adapters/codex/skills/post-it/SKILL.md` and `adapters/codex/plugins/agent-harness-codex/skills/post-it/SKILL.md` as native Codex Skill/plugin projections; do not consume `skills/post-it/SKILL.md` or Claude command files as native Codex configuration. |
 | OpenCode | Read this spec and run `adapters/opencode/bin/preflight.sh capability-info post-it`. Use `adapters/opencode/skills/post-it/SKILL.md` and `adapters/opencode/commands/post-it.md` as native OpenCode projections; do not consume `skills/post-it/SKILL.md` or Claude command files as native OpenCode configuration. |
 
 ## Compatibility Reference

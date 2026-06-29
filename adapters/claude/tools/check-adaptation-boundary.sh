@@ -1238,6 +1238,10 @@ check_capability_catalog() {
     if ! grep -Fq "| Codex | Read this spec and run \`adapters/codex/bin/preflight.sh capability-info $slug\`" "capabilities/$slug.md"; then
       fail_msg "capabilities/$slug.md must document Codex capability-info realization"
     fi
+    if ! grep -Fq "adapters/codex/skills/$slug/SKILL.md" "capabilities/$slug.md" \
+      || ! grep -Fq "adapters/codex/plugins/agent-harness-codex/skills/$slug/SKILL.md" "capabilities/$slug.md"; then
+      fail_msg "capabilities/$slug.md must document Codex native Skill and plugin projections"
+    fi
     if ! grep -Fq "| OpenCode | Read this spec and run \`adapters/opencode/bin/preflight.sh capability-info $slug\`" "capabilities/$slug.md"; then
       fail_msg "capabilities/$slug.md must document OpenCode capability-info realization"
     fi

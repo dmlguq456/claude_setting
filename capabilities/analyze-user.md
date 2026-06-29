@@ -41,7 +41,7 @@ Adapters must preserve the portable invariants relevant to this capability:
 | Adapter | Realization |
 |---|---|
 | Claude Code | `adapters/claude/skills/analyze-user/SKILL.md` is the Claude-native realization; `skills/analyze-user/SKILL.md` is the compatibility reference. |
-| Codex | Read this spec and run `adapters/codex/bin/preflight.sh capability-info analyze-user`. Do not consume `skills/analyze-user/SKILL.md` as native Codex configuration. |
+| Codex | Read this spec and run `adapters/codex/bin/preflight.sh capability-info analyze-user`. Use `adapters/codex/skills/analyze-user/SKILL.md` and `adapters/codex/plugins/agent-harness-codex/skills/analyze-user/SKILL.md` as native Codex Skill/plugin projections; do not consume `skills/analyze-user/SKILL.md` or Claude command files as native Codex configuration. |
 | OpenCode | Read this spec and run `adapters/opencode/bin/preflight.sh capability-info analyze-user`. Use `adapters/opencode/skills/analyze-user/SKILL.md` and `adapters/opencode/commands/analyze-user.md` as native OpenCode projections; do not consume `skills/analyze-user/SKILL.md` or Claude command files as native OpenCode configuration. |
 
 ## Compatibility Reference

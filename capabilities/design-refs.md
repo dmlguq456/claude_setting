@@ -41,7 +41,7 @@ Adapters must preserve the portable invariants relevant to this capability:
 | Adapter | Realization |
 |---|---|
 | Claude Code | `adapters/claude/skills/design-refs/SKILL.md` is the Claude-native realization; `skills/design-refs/SKILL.md` is the compatibility reference. |
-| Codex | Read this spec and run `adapters/codex/bin/preflight.sh capability-info design-refs`. Do not consume `skills/design-refs/SKILL.md` as native Codex configuration. |
+| Codex | Read this spec and run `adapters/codex/bin/preflight.sh capability-info design-refs`. Use `adapters/codex/skills/design-refs/SKILL.md` and `adapters/codex/plugins/agent-harness-codex/skills/design-refs/SKILL.md` as native Codex Skill/plugin projections; do not consume `skills/design-refs/SKILL.md` or Claude command files as native Codex configuration. |
 | OpenCode | Read this spec and run `adapters/opencode/bin/preflight.sh capability-info design-refs`. Use `adapters/opencode/skills/design-refs/SKILL.md` and `adapters/opencode/commands/design-refs.md` as native OpenCode projections; do not consume `skills/design-refs/SKILL.md` or Claude command files as native OpenCode configuration. |
 
 ## Compatibility Reference
