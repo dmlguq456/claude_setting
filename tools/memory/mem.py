@@ -1028,7 +1028,7 @@ def _assistant_text(content):
 
 
 class ClaudeCodeJsonlSource:
-    """Claude Code 하네스 adapter: projects/<enc_cwd>/<sid>.jsonl → 정규화 Msg 스트림.
+    """Claude adapter session source: projects/<enc_cwd>/<sid>.jsonl → 정규화 Msg 스트림.
     .messages() 가 role 메시지를 파일 순서로 yield (전체 — marker 필터는 ingest_session)."""
 
     def __init__(self, sid, projects=None):
@@ -2004,8 +2004,8 @@ def curate_artifacts():
 
 def promote_candidates():
     """D-28(Cluster F): durable 의 반복 규칙·교훈(convention/lesson)을 제도화 승격 후보로 출력.
-    아침 데스크(briefing)가 안건으로 제시 → 메인+사용자 논의로 종착지(CLAUDE.md/CONVENTIONS/
-    DESIGN_PRINCIPLES 문서 / hook / drill 케이스) 결정 → 반영·drill 검증 후 메모리에서 prune.
+    아침 데스크(briefing)가 안건으로 제시 → 메인+사용자 논의로 종착지(runtime bootstrap /
+    CONVENTIONS / DESIGN_PRINCIPLES 문서 / hook / drill 케이스) 결정 → 반영·drill 검증 후 메모리에서 prune.
     사실·결정·이력(fact/decision/project)은 메모리 본령이라 제외 — 반복 규칙·원칙만. read-only."""
     if not DB.exists():
         return

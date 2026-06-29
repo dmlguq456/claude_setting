@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
-"""Build manifest.json from the agent harness definitions (mechanical transcription).
+"""Build manifest.json from the Claude adapter projection definitions.
 
-SoT = the definitions themselves:
+This is an adapter-derived compatibility manifest, not the portable source of
+truth. Portable meaning lives in core/, capabilities/, and roles/.
+
+SoT = the adapter definitions themselves:
   - adapters/claude/skills/*/SKILL.md   frontmatter  (name, argument-hint, metadata:{group,fam,modes,blurb})
   - adapters/claude/agents/*.md  frontmatter  (name, model, metadata:{modes,blurb})
   - loops/README.md     "현역" table  + LOOP_LAYER constant
-  - adapters/claude/settings.json  Claude Code adapter hook registration (read-only)
+  - adapters/claude/settings.json  Claude adapter hook registration (read-only)
   - TRACKS              documented constant (below), validated against discovered skills
 
 manifest.json is a PURE derivation — never hand-edit it. Edit the definitions, then
@@ -45,10 +48,10 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # tools
 MANIFEST_PATH = os.path.join(REPO_ROOT, "manifest.json")
 
 # Fixed provenance string — NO date/timestamp (idempotency invariant).
-GENERATED_FROM = ("agent harness definitions "
-                  "(adapters/claude/skills/*/SKILL.md, adapters/claude/agents/*.md, loops/README.md, Claude adapter settings.json)")
+GENERATED_FROM = ("Claude adapter projection definitions "
+                  "(adapters/claude/skills/*/SKILL.md, adapters/claude/agents/*.md, loops/README.md, adapters/claude/settings.json)")
 
-# hard_block allowlist = PreToolUse guards only (consumer attempt1 §2.4 / Claude adapter settings.json
+# hard_block allowlist = PreToolUse guards only (consumer attempt1 §2.4 / Claude adapter hook settings
 # PreToolUse). herdr-agent-state is also registered on PreToolUse but is a state-marker,
 # NOT a guard -> hard_block stays false for it.
 GUARDS = {"artifact-guard", "git-state-guard", "spec-skill-gate", "builtin-memory-guard"}
