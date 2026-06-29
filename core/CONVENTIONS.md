@@ -28,8 +28,8 @@
 
 ### §1.2. External adversary availability 정책 (adversarial 전용)
 
-- 현재 구현: `codex-review-team` → Codex CLI (GPT-5) external review
-- Adversarial 선택 전 adapter 가 external adversary availability 를 확인한다. Claude Code adapter 는 `codex --version 2>/dev/null` 를 사용한다.
+- 현재 adapter 구현은 `external adversary` role 을 별도 wrapper/engine 조합으로 실현할 수 있다.
+- Adversarial 선택 전 adapter 가 external adversary availability 를 확인한다.
 - 실패 시: `--qa adversarial` _명시_ 호출 → fail loudly / auto-detect로 adversarial 선택 → Thorough로 silent fallback
 - external adversary 는 `adversarial-review --wait --scope auto` 실행 → `_internal/{stage}_reviews/round_{N}_external.md` 또는 adapter-specific legacy path (`round_{N}_codex.md`) 작성
 
@@ -68,7 +68,7 @@
 
 ## §2. Model Role 표기 (canonical)
 
-공통 계약은 concrete model name 이 아니라 _model role_ 을 쓴다. `opus` / `sonnet` / `gpt-*` 같은 이름은 adapter 구현값이다. 새 cross-tool 문서·skill·README 는 아래 role 을 먼저 쓰고, Claude Code 재현값은 `adapters/claude/README.md` 에서 mapping 한다.
+공통 계약은 concrete model name 이 아니라 _model role_ 을 쓴다. Vendor-specific model names 는 adapter 구현값이다. 새 cross-tool 문서·skill·README 는 아래 role 을 먼저 쓰고, concrete 재현값은 adapter 문서에서 mapping 한다.
 
 ### §2.1. Portable model roles
 
@@ -84,22 +84,22 @@
 
 ### §2.2. Adapter mapping requirement
 
-각 adapter 는 위 role 을 자기 런타임의 concrete model / tool / prompt profile 로 매핑해야 한다. 매핑은 “기존 품질 재현”의 계약이다. Claude Code adapter 는 기존 운용을 그대로 보존하기 위해 `fast reviewer/fact-checker/writer = sonnet`, `deep reviewer/maker = opus`, `external adversary = Codex CLI (GPT-5)`, `external adversary orchestrator = sonnet` 으로 둔다.
+각 adapter 는 위 role 을 자기 런타임의 concrete model / tool / prompt profile 로 매핑해야 한다. 매핑은 “기존 품질 재현”의 계약이다. Concrete model name, frontmatter value, external engine choice 는 adapter 문서와 adapter-native 파일이 소유한다.
 
 ### §2.3. Role profile operation matrix
 
-각 agent의 frontmatter `model:` 필드는 _adapter-specific sub-agent runtime hint_ 이다. 공통 의미는 아래 `Portable role` 열이 canonical 이며, frontmatter 값은 Claude Code adapter 의 현재 재현값이다.
+각 adapter-native agent/subagent/profile 의 concrete runtime hint 는 adapter-specific 이다. 공통 의미는 아래 `Portable role` 열이 canonical 이며, adapter 는 이 표를 자기 런타임의 profile/frontmatter/tool 계약으로 재현한다.
 
-| Agent | Portable role | Claude adapter frontmatter | 실제 작동 |
-|---|---|---|---|
-| `기획팀` (plan-team) | deep maker | opus | deep maker 단일 |
-| `품질관리팀` (qa-team) | variable reviewer | opus | **가변** — review 모드: Light=1× fast reviewer / Standard=1× deep reviewer / Thorough=doc·research·refine 갈래 2× deep reviewers parallel · code 갈래 (init-plan/refine-plan/execute-plan) 1× deep reviewer + 1× fast reviewer parallel (completeness reviewer 는 mechanical 매칭 비중이 커 fast role 이 cost-efficient). test 모드 (run-test): Agent A=fast coverage + Agent B=deep accuracy (2026-05-22 테스트팀 흡수) · security-review 모드: deep reviewer |
-| `연구팀` (research-team) | variable research reviewer | opus | **가변** — default deep maker/reviewer (Plan Review·domain reviewer); fact-checker subrole·light QA는 fast fact-checker/reviewer |
-| `자료팀` (material-team) | deep maker default, fast tool worker subroles | opus | 자료 수집·시각·분석. browser-fetch/pdf-extract/web-image-search 는 fast tool worker, figure-gen/data-script 는 deep maker |
-| `개발팀` (dev-team) | fast implementer default | sonnet | fast implementer 단일. 복잡한 API·라이브러리 설계는 deep maker 로 상향 가능 |
-| `디자인팀` (design-team) | deep maker with fast verifier | opus | maker=deep maker, critic=fast/deep reviewer by nuance, verifier=fast reviewer |
-| `편집팀` (editorial-team) | deep maker/editor with fast reviewer subrole | opus | translate/polish 는 deep editor, review 는 fast reviewer |
-| `codex-review-team` | external adversary orchestrator | sonnet | **Codex CLI (GPT-5)** — actual review·analysis는 external adversary engine 이 수행; sub-agent 본체는 호출·결과 한국어 재정리만 담당 |
+| Role family | Portable role | 실제 작동 |
+|---|---|---|
+| `기획팀` (plan-team) | deep maker | deep maker 단일 |
+| `품질관리팀` (qa-team) | variable reviewer | **가변** — review 모드: Light=1× fast reviewer / Standard=1× deep reviewer / Thorough=doc·research·refine 갈래 2× deep reviewers parallel · code 갈래 (init-plan/refine-plan/execute-plan) 1× deep reviewer + 1× fast reviewer parallel (completeness reviewer 는 mechanical 매칭 비중이 커 fast role 이 cost-efficient). test 모드 (run-test): Agent A=fast coverage + Agent B=deep accuracy (2026-05-22 테스트팀 흡수) · security-review 모드: deep reviewer |
+| `연구팀` (research-team) | variable research reviewer | **가변** — default deep maker/reviewer (Plan Review·domain reviewer); fact-checker subrole·light QA는 fast fact-checker/reviewer |
+| `자료팀` (material-team) | deep maker default, fast tool worker subroles | 자료 수집·시각·분석. browser-fetch/pdf-extract/web-image-search 는 fast tool worker, figure-gen/data-script 는 deep maker |
+| `개발팀` (dev-team) | fast implementer default | fast implementer 단일. 복잡한 API·라이브러리 설계는 deep maker 로 상향 가능 |
+| `디자인팀` (design-team) | deep maker with fast verifier | maker=deep maker, critic=fast/deep reviewer by nuance, verifier=fast reviewer |
+| `편집팀` (editorial-team) | deep maker/editor with fast reviewer subrole | translate/polish 는 deep editor, review 는 fast reviewer |
+| external review wrapper | external adversary orchestrator | actual review·analysis 는 external adversary engine 이 수행할 수 있고, wrapper 는 호출·결과 정리만 담당 |
 
 ---
 
@@ -109,7 +109,7 @@
 2. **adversarial** 정의는 반드시 `thorough + 1× external adversary` (+ research/doc 트랙은 `1× 연구팀 claim-verify`). 현재 Claude Code adapter 구현명은 `codex-review-team`. 자주 잘못 적힌 패턴: `standard + external/Codex` — _틀림_ (base 는 thorough).
 3. autopilot-code의 QA 표에 fact-checker가 적힌 곳이 있으면 drift (code는 fact-checker 없음).
 4. `--no-fact-check` / `--no-style-audit`는 autopilot-refine / audit 외 다른 skill에 노출되면 안 됨.
-5. `codex-review-team`의 model 표기가 `opus` 단독이면 drift — 실제 review는 external adversary engine(Codex CLI GPT-5), wrapper 는 orchestrator role. §2 매트릭스에 따라 "external adversary + fast orchestrator" 같이 분리 표기.
+5. external adversary wrapper 를 실제 reviewer role 단독으로 표기하면 drift — 실제 review 는 external adversary engine, wrapper 는 orchestrator role. §2 매트릭스에 따라 "external adversary + fast orchestrator" 같이 분리 표기.
 6. **의도 동반 (2026-06-11)**: 지침·규칙·hook 의 신설/강화에는 _왜(계기 사건 + 날짜)_ 를 인라인 주석 또는 commit message 에 남긴다 — 예: "(drill g2 가 잡은 구멍, 2026-06-11)". 의도 없는 규칙은 시간이 지나면 정리도 못 하고 의심도 못 하는 짐 — 연수 루프가 _의도 불명 지침_ 을 정리 후보로 보고한다. 의도의 최상위 보존 형태는 drill 케이스 (실행 가능한 의도 — 오답노트 승격 채널).
 7. **의미↔규칙 경계 (2026-06-22, worklog-board 참사)**: 의미 판단을 규칙·토큰 매칭 스크립트로 내리지 말 것 — spec 이 "의미 판단"을 명시하면 구현이 그 의미를 capture 했는지 검증한다 (상세·검증 절차·3선택 = DESIGN_PRINCIPLES §0.7).
 
@@ -576,7 +576,7 @@ AskUserQuestion(questions=[{
 
 #### §2 자율 진행 (응답 없을 때)
 
-질문 발동 시 runtime adapter bootstrap 의 pause/autonomy rule 동일(Claude adapter: [`adapters/claude/CLAUDE.md`](../adapters/claude/CLAUDE.md) §2) — ScheduleWakeup 15-20분 동시 호출, 응답 없으면 추천 기본값으로 자율 진행(한 줄 보고).
+질문 발동 시 runtime adapter bootstrap 의 pause/autonomy rule 동일(Claude Code realization: [`adapters/claude/CLAUDE.md`](../adapters/claude/CLAUDE.md) §2) — ScheduleWakeup 15-20분 동시 호출, 응답 없으면 추천 기본값으로 자율 진행(한 줄 보고).
 
 #### 기존 track 인스턴스와의 관계
 
