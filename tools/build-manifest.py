@@ -5,7 +5,7 @@ SoT = the definitions themselves:
   - skills/*/SKILL.md   frontmatter  (name, argument-hint, metadata:{group,fam,modes,blurb})
   - agents/*.md         frontmatter  (name, model, metadata:{modes,blurb})
   - loops/README.md     "현역" table  + LOOP_LAYER constant
-  - settings.json       Claude Code adapter hook registration (read-only)
+  - adapters/claude/settings.json  Claude Code adapter hook registration (read-only)
   - TRACKS              documented constant (below), validated against discovered skills
 
 manifest.json is a PURE derivation — never hand-edit it. Edit the definitions, then
@@ -48,7 +48,7 @@ MANIFEST_PATH = os.path.join(REPO_ROOT, "manifest.json")
 GENERATED_FROM = ("agent harness definitions "
                   "(skills/*/SKILL.md, agents/*.md, loops/README.md, Claude adapter settings.json)")
 
-# hard_block allowlist = PreToolUse guards only (consumer attempt1 §2.4 / settings.json
+# hard_block allowlist = PreToolUse guards only (consumer attempt1 §2.4 / Claude adapter settings.json
 # PreToolUse). herdr-agent-state is also registered on PreToolUse but is a state-marker,
 # NOT a guard -> hard_block stays false for it.
 GUARDS = {"artifact-guard", "git-state-guard", "spec-skill-gate", "builtin-memory-guard"}
@@ -217,7 +217,7 @@ def _parse_hook_command(cmd):
 
 
 def build_hooks():
-    cfg = json.load(open(os.path.join(REPO_ROOT, "settings.json"), encoding="utf-8"))
+    cfg = json.load(open(os.path.join(REPO_ROOT, "adapters", "claude", "settings.json"), encoding="utf-8"))
     rows = []
     seen = {}     # slug -> name; detects (mono,event) collisions that differ only by arg
     for event, entries in cfg.get("hooks", {}).items():

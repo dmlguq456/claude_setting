@@ -43,7 +43,7 @@ Hermes 메모리 벤치마킹의 store/write 층. spec: `<artifact-root>/spec/pr
 env override (테스트용): `MEM_STORE` · `MEM_PROJECTS` · `MEM_PROFILE` · `MEM_DISTILL` · `MEM_DISTILL_ENABLE` · `MEM_DISTILL_MODEL`.
 - `MEM_STORE` → `memory.db` 경로와 `dump.jsonl` 경로 모두 이 디렉터리 하위로 파생됨.
 - `MEM_PROFILE` → `export --target profile` 의 출력 디렉터리. 테스트 시 `/tmp/...` 로 지정해 실 `user_profile/` 보호.
-- `MEM_DISTILL_ENABLE` → **distiller opt-in 게이트**. `1` 일 때만 `mem-distill-dispatch.sh` 가 실제 분사. 미설정이면 hook 은 no-op. 이유: 매 세션 종료·N턴마다 background LLM 자동 실행(비용·동작 인지) + distiller 가 대화 본문(외부 입력일 수 있음)을 LLM 으로 읽는 신뢰경계 면 → 사용자가 검토 후 활성화. **현재 활성(`settings.json env`, 2026-06-16)** — v8 no-tools 재설계(`--disallowedTools` 전도구 차단)로 acceptance(임의명령 차단 실측)·env-상속 재귀가드·ghost-marker·e2e 검증 통과 후 ENABLE. (`--permission-mode` 는 default 유지 — dontAsk/bypass 는 allow-all 이라 금지.)
+- `MEM_DISTILL_ENABLE` → **distiller opt-in 게이트**. `1` 일 때만 `mem-distill-dispatch.sh` 가 실제 분사. 미설정이면 hook 은 no-op. 이유: 매 세션 종료·N턴마다 background LLM 자동 실행(비용·동작 인지) + distiller 가 대화 본문(외부 입력일 수 있음)을 LLM 으로 읽는 신뢰경계 면 → 사용자가 검토 후 활성화. **현재 활성(Claude adapter settings env, 2026-06-16)** — v8 no-tools 재설계(`--disallowedTools` 전도구 차단)로 acceptance(임의명령 차단 실측)·env-상속 재귀가드·ghost-marker·e2e 검증 통과 후 ENABLE. (`--permission-mode` 는 default 유지 — dontAsk/bypass 는 allow-all 이라 금지.)
 - `MEM_DISTILL` → `1` 이면 `mem-distill-dispatch.sh`·`mem-turn-nudge.sh`·`mem-recall-inject.sh` 세 hook 의 재귀가드가 즉시 exit(distiller 세션의 SessionEnd·UserPromptSubmit 가 다시 분사를 트리거하지 않도록 차단 — v8 세 트리거 가드).
 - `MEM_DISTILL_MODEL` → distiller 분사 모델 지정 (default: `claude-sonnet-4-6`).
 
@@ -53,7 +53,7 @@ env override (테스트용): `MEM_STORE` · `MEM_PROJECTS` · `MEM_PROFILE` · `
 ## 운영 현황 (2026-06-15)
 - **저장 구조**: `memory.db` (SQLite WAL) — `records` 테이블 12컬럼(id, tier, scope, type, cwd_origin, created, updated, expires, source, tags, links, body) + FTS5 unicode61 가상테이블(`records_fts`) + trigram CJK 보조 테이블(`records_trig`). `.index.db` 파생 파일 폐기(DB 내장으로 통합).
 - **git mirror**: `dump.jsonl` — id 정렬, `sort_keys=True`, 레코드당 1줄, NULL은 JSON `null`로 표기(키 누락·빈문자열 금지). 복원: `mem import dump.jsonl`.
-- **하네스 wired**: SessionStart `mem inject --hook` (settings.json, timeout 20) + SessionEnd `mem sync` (timeout 120) + SessionEnd `mem-distill-dispatch.sh` (detached distiller 분사 — 세션 자동 distillation, D-12, timeout 30) 연결 완료. `sync`는 흡수 + FTS 재구축 + `dump.jsonl` 재export 3단계 수행. `mem-distill-dispatch.sh` 는 빈-delta 조기 exit + detached spawn(`setsid`)으로 SessionEnd 블로킹 없음. **단 distiller 는 `MEM_DISTILL_ENABLE=1` opt-in 전엔 no-op**(기본 비활성 — 비용·신뢰경계 검토 후 사용자가 켬).
+- **하네스 wired**: SessionStart `mem inject --hook` (Claude adapter settings, timeout 20) + SessionEnd `mem sync` (timeout 120) + SessionEnd `mem-distill-dispatch.sh` (detached distiller 분사 — 세션 자동 distillation, D-12, timeout 30) 연결 완료. `sync`는 흡수 + FTS 재구축 + `dump.jsonl` 재export 3단계 수행. `mem-distill-dispatch.sh` 는 빈-delta 조기 exit + detached spawn(`setsid`)으로 SessionEnd 블로킹 없음. **단 distiller 는 `MEM_DISTILL_ENABLE=1` opt-in 전엔 no-op**(기본 비활성 — 비용·신뢰경계 검토 후 사용자가 켬).
 - **recall.sh**: `mem recall` thin wrapper (store FTS5 bm25 + trigram CJK + LIKE fallback). 파일 불변.
 - **register-postit deprecated**: legacy-migration-only. 현 post-it 경로는 DB working 레코드 직접 write (`mem note`/`mem add`) — `.postit-roots` 레지스트리·`migrate` post-it 소스는 구 markdown 이관 전용.
 - ✅ **live 적용 완료**: `migrate --apply` 로 기존 markdown SoT + auto-memory + post-it → DB 이관 완료. DB-as-SoT 전환 끝 (구 `projects/*/memory/` 는 보존, 추가형).

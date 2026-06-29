@@ -1,1 +1,1 @@
-../statusline.sh
+../adapters/claude/statusline.sh

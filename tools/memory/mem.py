@@ -2128,7 +2128,7 @@ def _first_line(body):
 
 def inject(max_working=40, max_durable=40, hook=False):
     """SessionStart 주입용 — DB 에서 working(cwd) + durable/project(cwd) + profile(global) 블록.
-    hook=True 면 settings.json SessionStart additionalContext JSON 으로 감싼다.
+    hook=True 면 runtime settings SessionStart additionalContext JSON 으로 감싼다.
     """
     def emit(block):
         if hook:

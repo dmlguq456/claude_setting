@@ -1,6 +1,6 @@
 # CLAUDE.md — Claude Code Adapter Bootstrap
 
-> 세션 시작 자동 로드. 본 문서는 공통 에이전트 하네스의 **Claude Code 어댑터**다. 모델·도구 중립 계약은 [`core/CORE.md`](../../core/CORE.md), Claude Code 런타임 매핑은 본 문서와 `settings.json` 이 맡는다. skill 카탈로그·description 은 매 세션 자동 주입, 운영 라우팅은 본 문서 §0 가 단일 출처.
+> 세션 시작 자동 로드. 본 문서는 공통 에이전트 하네스의 **Claude Code 어댑터**다. 모델·도구 중립 계약은 [`core/CORE.md`](../../core/CORE.md), Claude Code 런타임 매핑은 본 문서와 `adapters/claude/settings.json` 이 맡는다. skill 카탈로그·description 은 매 세션 자동 주입, 운영 라우팅은 본 문서 §0 가 단일 출처.
 >
 > **워크플로우 맵 (4 트랙 skeleton — 라우팅 기본. 옵션·디테일 금지, 트랙 지도만)**:
 > - 📄 문서: `analyze-project`/`autopilot-research` → `autopilot-draft` → `autopilot-refine`↻ → `autopilot-apply`

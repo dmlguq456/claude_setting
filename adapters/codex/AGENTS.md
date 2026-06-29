@@ -31,8 +31,8 @@ This file maps the shared agent harness onto Codex-style sessions. It is an adap
 Claude Code files are implementation references, not Codex bootstrap files:
 
 - `adapters/claude/CLAUDE.md`
-- `settings.json`
+- `adapters/claude/settings.json`
 - `adapters/claude/commands/`
-- `statusline.sh`
+- `adapters/claude/statusline.sh`
 
 When porting behavior, copy the invariant from `core/` first, then map it to Codex tools, approval behavior, and session lifecycle.

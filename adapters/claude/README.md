@@ -7,12 +7,12 @@ This adapter maps the common agent harness onto Claude Code.
 | Surface | File |
 |---|---|
 | Session bootstrap | `adapters/claude/CLAUDE.md` |
-| Runtime settings | `settings.json` |
+| Runtime settings | `adapters/claude/settings.json` |
 | Slash commands | `adapters/claude/commands/` |
 | Capabilities | `skills/*/SKILL.md` |
 | Role profiles | `agents/*.md` |
 | Hook scripts | `hooks/`, `utilities/` |
-| Status line | `statusline.sh` |
+| Status line | `adapters/claude/statusline.sh` |
 
 ## Runtime Mapping
 
@@ -23,7 +23,7 @@ This adapter maps the common agent harness onto Claude Code.
 | adapter bootstrap | `adapters/claude/CLAUDE.md` |
 | agent home | `$HOME/.claude` by default; overridable with `AGENT_HOME` or `CLAUDE_HOME` |
 | artifact root | `.agent_reports`, legacy fallback `.claude_reports` only when already present |
-| tracked/untracked signal | `workflow-guard-hook.sh` + `statusline.sh` |
+| tracked/untracked signal | `workflow-guard-hook.sh` + `adapters/claude/statusline.sh` |
 | artifact-order gate | `hooks/artifact-guard.sh` |
 | spec read gate | `hooks/spec-skill-gate.sh` + `hooks/spec-read-marker.sh` |
 | git safety gate | `hooks/git-state-guard.sh` |

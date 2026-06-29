@@ -4,7 +4,7 @@ This adapter maps the common agent harness onto Codex-style sessions.
 
 ## Status
 
-Experimental. The portable contract is usable, but Codex does not consume Claude Code's `settings.json`, slash command registry, or hook event schema directly. `adapters/codex/AGENTS.md` is the current Codex-style bootstrap, and wrappers should still run guard scripts as deterministic checks where native hooks are unavailable.
+Experimental. The portable contract is usable, but Codex does not consume Claude Code's `adapters/claude/settings.json`, slash command registry, or hook event schema directly. `adapters/codex/AGENTS.md` is the current Codex-style bootstrap, and wrappers should still run guard scripts as deterministic checks where native hooks are unavailable.
 
 ## Entry Points
 
@@ -29,7 +29,7 @@ Experimental. The portable contract is usable, but Codex does not consume Claude
 | adapter bootstrap | Load `adapters/codex/AGENTS.md`, then `core/CORE.md` plus task-relevant shared docs; do not treat `CLAUDE.md` as portable bootstrap |
 | agent home | Set `AGENT_HOME` to the installed harness directory |
 | artifact root | `.agent_reports`, legacy fallback `.claude_reports` only when already present |
-| tracked/untracked signal | `track-toggle.sh` and `utilities/workflow-guard-hook.sh` semantics; no automatic prompt hook unless wrapped |
+| tracked/untracked signal | `/track` semantics and `utilities/workflow-guard-hook.sh`; no automatic prompt hook unless wrapped |
 | artifact-order gate | `hooks/artifact-guard.sh` can be run as a pre-write check by wrappers or manually |
 | spec read gate | `hooks/spec-skill-gate.sh` / `hooks/spec-read-marker.sh` semantics apply when the runtime can emit equivalent events |
 | git safety gate | `hooks/git-state-guard.sh` is the portable check; Codex must also honor sandbox and approval state |
@@ -74,8 +74,8 @@ Codex should resolve harness-home paths through `AGENT_HOME` or `utilities/agent
 Claude Code-specific files remain valid as implementation references, not as Codex bootstrap files:
 
 - `CLAUDE.md` contains Claude Code routing and response rules.
-- `settings.json` registers Claude Code hooks and permissions.
+- `adapters/claude/settings.json` registers Claude Code hooks and permissions.
 - `adapters/claude/commands/` defines Claude Code slash commands.
-- `statusline.sh` targets Claude Code's statusline contract.
+- `adapters/claude/statusline.sh` targets Claude Code's statusline contract.
 
 When porting a behavior, copy the underlying invariant from `CORE.md`, `WORKFLOW.md`, `CONVENTIONS.md`, or `OPERATIONS.md`; then map it to Codex's tool, approval, and session model.
