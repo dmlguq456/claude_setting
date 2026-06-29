@@ -254,6 +254,14 @@ check_codex_bin_wrappers() {
     fail_msg "adapters/codex/AGENTS.md must document the Codex workflow toggle wrapper"
   fi
 
+  if ! grep -Fq 'codex_setting/codex-plugin-marketplace' adapters/codex/AGENTS.md; then
+    fail_msg "adapters/codex/AGENTS.md must document the Codex native plugin projection"
+  fi
+
+  if ! grep -Fq 'codex_setting/codex-hooks' adapters/codex/AGENTS.md; then
+    fail_msg "adapters/codex/AGENTS.md must document the Codex native hook projection"
+  fi
+
   if ! grep -Fq 'named `tool_contract`' adapters/codex/AGENTS.md; then
     fail_msg "adapters/codex/AGENTS.md must document named mode tool contracts"
   fi
@@ -598,6 +606,16 @@ check_opencode_bin_wrappers() {
 
   if ! grep -Fq 'preflight.sh track' adapters/opencode/AGENTS.md; then
     fail_msg "adapters/opencode/AGENTS.md must document the OpenCode workflow toggle wrapper"
+  fi
+
+  if ! grep -Fq 'opencode_setting/opencode-plugins' adapters/opencode/AGENTS.md; then
+    fail_msg "adapters/opencode/AGENTS.md must document the OpenCode native plugin projection"
+  fi
+
+  if ! grep -Fq 'opencode_setting/opencode-agents' adapters/opencode/AGENTS.md \
+    || ! grep -Fq 'opencode_setting/opencode-commands' adapters/opencode/AGENTS.md \
+    || ! grep -Fq 'opencode_setting/opencode-skills' adapters/opencode/AGENTS.md; then
+    fail_msg "adapters/opencode/AGENTS.md must document OpenCode native surface projections"
   fi
 
   if ! grep -Fq 'named `tool_contract`' adapters/opencode/AGENTS.md; then

@@ -18,9 +18,11 @@ This file maps the shared agent harness onto Codex-style sessions. It is an adap
 - Use portable model roles from `core/CONVENTIONS.md`; do not treat Claude model names such as `sonnet` or `opus` as portable semantics.
 - Before treating a capability as supported, run `adapters/codex/bin/preflight.sh capability-info <capability>` and follow the reported Codex realization.
 - Treat Codex-native skills under `adapters/codex/skills/` and the installable plugin under `adapters/codex/plugins/agent-harness-codex/` as generated adapter output from `capabilities/`; do not load Claude Skill files as native Codex skills.
+- Expose the installable Codex plugin through `codex_setting/codex-plugin-marketplace`, not by copying Claude Skill or command files.
 - Treat command-like capability entrypoints as Codex-native Skills/plugin output, not deprecated custom prompt files or Claude slash commands.
 - Before using a `roles/modes/` fragment, run `adapters/codex/bin/preflight.sh mode-info <family/mode>` and obey portable/tool-contract/unsupported status plus any named `tool_contract`.
 - Run deterministic guard scripts directly when the Codex runtime cannot attach equivalent hooks.
+- Expose Codex hook bridges through `codex_setting/codex-hooks`; do not project Claude `settings.json` or hook payloads.
 - Before edits, run `adapters/codex/bin/preflight.sh write <file> [session-id]`.
 - After design HTML writes, run `adapters/codex/bin/preflight.sh design <file>`.
 - Before claiming full design/autopilot-design support, run `adapters/codex/bin/preflight.sh visual-harness`; exit 69 means the required Codex-native render/screenshot/image-inspection harness is still a tool-contract.

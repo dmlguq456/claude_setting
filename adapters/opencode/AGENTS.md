@@ -21,6 +21,7 @@ adapter bootstrap, not the portable source of truth. Load it through the
 - Before treating a capability as supported, run `adapters/opencode/bin/preflight.sh capability-info <capability>` and follow the reported OpenCode realization.
 - Treat OpenCode-native skills under `adapters/opencode/skills/` as generated adapter output from `capabilities/`; do not load Claude Skill, command, or agent files as native OpenCode surfaces.
 - Treat OpenCode-native commands, agents, skills, and plugins as adapter-owned output from `capabilities/`, `roles/`, and portable hook invariants.
+- Expose OpenCode skills, agents, commands, and plugin guards through `opencode_setting/opencode-skills`, `opencode_setting/opencode-agents`, `opencode_setting/opencode-commands`, and `opencode_setting/opencode-plugins`; do not copy Claude-native surfaces.
 - When validating OpenCode-native discoverability, run with `OPENCODE_DISABLE_CLAUDE_CODE_SKILLS=1` so OpenCode's `~/.claude/skills/` compatibility autoload cannot mask missing adapter-owned output.
 - Before using a `roles/modes/` fragment, run `adapters/opencode/bin/preflight.sh mode-info <family/mode>` and obey portable/tool-contract/unsupported status plus any named `tool_contract`.
 - Run deterministic guard scripts directly when the OpenCode runtime cannot attach equivalent hooks. The adapter provides a JS plugin guard for write/edit/patch tools; use explicit preflight wrappers when that plugin is not installed or trusted.
