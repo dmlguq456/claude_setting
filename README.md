@@ -180,13 +180,19 @@ analyze-project  →  autopilot-spec ↻  →  autopilot-code ↻
 /track            현재 프로젝트 📌tracked ↔ ⚡untracked 토글 (Claude adapter; Codex/OpenCode 는 `preflight.sh track`)
 ```
 
-전체 옵션 조합·default·QA 의미는 adapter-native surface(Claude Skill 파일, Codex/OpenCode capability/mode map wrapper)에서 확인한다.
+전체 옵션 조합·default·QA 의미는 adapter-native surface(Claude Skill 파일,
+Codex native Skills/plugin + capability/mode map wrapper, OpenCode native
+Skills/commands + capability/mode map wrapper)에서 확인한다.
 
 ---
 
 ## 🤝 Agents
 
-autopilot-\* 가 내부에서 자동 라우팅하는 전문 팀. Portable 의미는 [`roles/`](roles/README.md), Claude Code 구현은 `adapters/claude/agents/`가 맡는다. 사용자는 보통 이름을 명시하지 않는다.
+autopilot-\* 가 내부에서 자동 라우팅하는 전문 팀. Portable 의미는
+[`roles/`](roles/README.md)가 맡고, adapter-native 구현은
+`adapters/claude/agents/`, `adapters/codex/agents/`,
+`adapters/opencode/agents/`가 각 런타임에 맞게 투영한다. 사용자는 보통
+이름을 명시하지 않는다.
 
 | Agent | Model role | 의의 |
 |---|---|---|
@@ -247,10 +253,10 @@ autopilot-\* 가 내부에서 자동 라우팅하는 전문 팀. Portable 의미
 │
 ├── adapters/
 │   ├── claude/             Claude Code adapter — CLAUDE.md · agents · settings/keybindings · commands · statusline · runtime mapping
-│   ├── codex/              Codex adapter — AGENTS.md + experimental mapping
-│   └── opencode/           OpenCode adapter — AGENTS.md + instructions-array mapping
-├── capabilities/           portable capability catalog — runtime-neutral 작업 의미
-├── roles/                  portable role profiles — runtime-neutral delegation semantics
+│   ├── codex/              Codex adapter — AGENTS.md + native Skills/plugin/agents/hooks + preflight mapping
+│   └── opencode/           OpenCode adapter — AGENTS.md + native skills/commands/agents/plugin + preflight mapping
+├── capabilities/           portable capability catalog — runtime-neutral 작업 의미 + adapter projection index
+├── roles/                  portable role profiles — runtime-neutral delegation semantics + native agent projection index
 ├── claude_setting/          GitHub-tracked Claude Code projection — ~/.claude harness-owned entrypoints
 ├── codex_setting/           GitHub-tracked Codex projection — minimal adapted bootstrap + shared core/capabilities/roles/tools
 ├── opencode_setting/        GitHub-tracked OpenCode projection — minimal adapted bootstrap + shared core/capabilities/roles/tools
@@ -268,6 +274,8 @@ autopilot-\* 가 내부에서 자동 라우팅하는 전문 팀. Portable 의미
 │   └── [운영]              audit(읽기 전용 점검) · post-it(세션 간 메모) · sync-skills(본 README 동기화)
 │
 ├── adapters/claude/agents/ Claude-native Agent files — model frontmatter + Claude tool schema
+├── adapters/codex/agents/  Codex-native custom agent TOML projections generated from roles/
+├── adapters/opencode/agents/ OpenCode-native subagent projections generated from roles/
 │
 ├── roles/modes/            팀별 모드 페르소나 .md (dev / qa / research / editorial / design / material)
 ├── hooks/                  툴 호출 순간 강제되는 가드

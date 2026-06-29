@@ -1237,6 +1237,22 @@ check_role_catalog() {
   done
 }
 
+check_adaptation_inventory_native_surfaces() {
+  if [ ! -f core/ADAPTATION_INVENTORY.md ]; then
+    fail_msg "core/ADAPTATION_INVENTORY.md is missing"
+    return
+  fi
+
+  if grep -Fq 'Future runtimes need native command wrappers or instruction entries' core/ADAPTATION_INVENTORY.md; then
+    fail_msg "core/ADAPTATION_INVENTORY.md must not describe non-Claude command surfaces as future-only"
+  fi
+  if ! grep -Fq 'Codex command-like surface' core/ADAPTATION_INVENTORY.md \
+    || ! grep -Fq 'OpenCode native command surface' core/ADAPTATION_INVENTORY.md \
+    || ! grep -Fq 'Claude slash commands' core/ADAPTATION_INVENTORY.md; then
+    fail_msg "core/ADAPTATION_INVENTORY.md must distinguish Claude slash commands, Codex command-like Skills/plugins, and OpenCode commands"
+  fi
+}
+
 check_capability_catalog() {
   if [ ! -f capabilities/README.md ]; then
     fail_msg "capabilities/README.md is missing"
@@ -1494,6 +1510,7 @@ check_claude_loop_projection
 check_claude_tool_projection
 check_removed_root_surfaces
 check_role_catalog
+check_adaptation_inventory_native_surfaces
 check_capability_catalog
 check_codex_capability_map
 check_opencode_capability_map
