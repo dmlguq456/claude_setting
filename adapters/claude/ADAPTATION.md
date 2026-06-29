@@ -60,6 +60,26 @@ Portable capability specs refer to this as the runtime design harness. The
 Claude adapter owns the concrete MCP command, `~/.claude/tools/design-mcp`
 runtime path, and any Claude-specific preview/screenshot/console wiring.
 
+## Memory Distiller Realization
+
+Claude Code realizes the portable memory distillation hooks through
+`adapters/claude/settings.json` hook registration and concrete hook scripts under
+`adapters/claude/hooks/`.
+
+The current Claude distiller mapping is:
+
+| Portable worker role | Claude realization |
+|---|---|
+| `fast distiller` / turn-counter add-only worker | detached `claude -p` with `MEM_DISTILL_MODEL` default `claude-sonnet-4-6` |
+| `deep curator` / SessionEnd action worker | detached `claude -p` with `MEM_DISTILL_MODEL_SESSIONEND` default `claude-opus-4-8` |
+
+`hooks/mem-distill-dispatch.sh` keeps the existing Claude behavior: opt-in via
+`MEM_DISTILL_ENABLE=1`, recursion guard through `MEM_DISTILL=1`, no-tools output
+contract through `--disallowedTools`, JSON/action validation in shell/Python
+code, and `mem` CLI as the only DB mutation path. Other adapters must provide
+their own transcript source and worker invocation or explicitly keep automatic
+distillation unsupported.
+
 ## Compatibility Realizations
 
 These surfaces are still consumed by Claude Code directly, but their runtime
