@@ -39,11 +39,24 @@ else
 fi
 claude_realization="adapters/claude/skills/$cap/SKILL.md"
 compat_reference="skills/$cap/SKILL.md"
+status="available-manual"
+realization="portable-instructions"
+tool_contract=""
+note="Codex must read the portable catalog and task-relevant docs; Claude Skill frontmatter is reference only."
+
+case "$cap" in
+  autopilot-design|design-*)
+    status="tool-contract"
+    realization="portable-instructions"
+    tool_contract="visual-harness"
+    note="Codex must provide an adapter visual harness equivalent before claiming full design capability support; Claude Design MCP files are reference only."
+    ;;
+esac
 
 printf 'capability=%s\n' "$cap"
 printf 'adapter=codex\n'
 printf 'native_skill=0\n'
-printf 'realization=portable-instructions\n'
+printf 'realization=%s\n' "$realization"
 printf 'portable_source=%s\n' "$portable_source"
 
 if [ -f "$ROOT/$claude_realization" ]; then
@@ -60,5 +73,8 @@ fi
 
 printf 'bootstrap=adapters/codex/AGENTS.md\n'
 printf 'guards=adapters/codex/bin/preflight.sh\n'
-printf 'status=available-manual\n'
-printf 'note=Codex must read the portable catalog and task-relevant docs; Claude Skill frontmatter is reference only.\n'
+printf 'status=%s\n' "$status"
+if [ -n "$tool_contract" ]; then
+  printf 'tool_contract=%s\n' "$tool_contract"
+fi
+printf 'note=%s\n' "$note"

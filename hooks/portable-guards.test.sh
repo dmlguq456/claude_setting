@@ -206,6 +206,14 @@ if "$CODEX" capability-info autopilot-code >/tmp/cap.out 2>/tmp/cap.err \
 else
   bad "codex capability wrapper should report instruction-only realization"
 fi
+if "$CODEX" capability-info design-review >/tmp/cap.out 2>/tmp/cap.err \
+  && grep -q '^capability=design-review$' /tmp/cap.out \
+  && grep -q '^status=tool-contract$' /tmp/cap.out \
+  && grep -q '^tool_contract=visual-harness$' /tmp/cap.out; then
+  ok "codex design capability reports visual harness contract"
+else
+  bad "codex design capability should report visual harness contract"
+fi
 if "$CODEX" mode-info dev/backend >/tmp/mode.out 2>/tmp/mode.err \
   && grep -q '^status=portable$' /tmp/mode.out \
   && grep -q '^realization=portable-persona$' /tmp/mode.out; then

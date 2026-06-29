@@ -65,6 +65,9 @@ Before adding Codex-native skills or plugins:
    Claude files.
 
 Until that exists, Codex capability support remains wrapper/instruction based.
+Design capabilities are a tool-contract exception: Codex must provide or map an
+adapter visual harness before claiming full support, and `capability-info`
+reports `status=tool-contract` for those entries.
 
 ## Explicit Non-Support
 

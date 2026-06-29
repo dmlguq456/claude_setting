@@ -14,7 +14,7 @@ This is the portable capability contract for `design-review`. It defines runtime
 
 ## Invocation Semantics
 
-Visual review — two gates. (1) verifier (디자인팀 verifier mode, separate context, Design MCP) screens for breakage — console errors, layout collapse, intent mismatch — and must pass before critique. (2) critic (디자인팀 critic mode) gives a 6-axis quality critique (hierarchy, alignment, accessibility, responsiveness, UX flow, tone). Both render via the Design MCP and view the image. Read-only — no auto-fix.
+Visual review — two gates. (1) verifier (디자인팀 verifier mode, separate context, adapter visual harness) screens for breakage — console errors, layout collapse, intent mismatch — and must pass before critique. (2) critic (디자인팀 critic mode) gives a 6-axis quality critique (hierarchy, alignment, accessibility, responsiveness, UX flow, tone). Both render through the adapter-provided visual harness and inspect the image. Read-only — no auto-fix.
 
 Adapters may expose this capability through native commands, skill files, prompt instructions, or explicit wrappers. The adapter must report unsupported runtime mechanics instead of silently treating another runtime's native file format as portable.
 
@@ -40,7 +40,7 @@ Adapters must preserve the portable invariants relevant to this capability:
 
 | Adapter | Realization |
 |---|---|
-| Claude Code | `adapters/claude/skills/design-review/SKILL.md` is the Claude-native realization; `skills/design-review/SKILL.md` is the compatibility reference. |
+| Claude Code | `adapters/claude/skills/design-review/SKILL.md` is the Claude-native realization; `tools/design-mcp/` provides the visual harness; `skills/design-review/SKILL.md` is the compatibility reference. |
 | Codex | Read this spec and run `adapters/codex/bin/preflight.sh capability-info design-review`. Do not consume `skills/design-review/SKILL.md` as native Codex configuration. |
 
 ## Compatibility Reference
