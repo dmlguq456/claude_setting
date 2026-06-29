@@ -8,7 +8,7 @@
 
 ## 0. 불변식 — 단일 라우터 + 하드 순서 게이트 (우회 불가)
 
-> **본 문서 = 📌tracked 모드 계약.** tracked 프로젝트(`.agent_reports`/`spec` 보유, legacy `.claude_reports` 호환)에서 _반드시 지킬 것_ 의 단일 출처. untracked(`/track`)면 면제. **읽는 방식 = 지침 기반 on-demand**: 매 프롬프트 `workflow-guard-hook` 모드 신호(📌 따름 / ⚡ 면제)가 anchor 이고, tracked 라우팅이 필요한 자리에서 본 문서를 Read 한다 (hook 주입·eager 로드 아님 — user_profile 과 같은 lazy·이식 가능 패턴). hook 은 instruction 이 못 보는 _런타임 모드_ 만 전달.
+> **본 문서 = 📌tracked 모드 계약.** tracked 프로젝트(`.agent_reports`/`spec` 보유, legacy `.claude_reports` 호환)에서 _반드시 지킬 것_ 의 단일 출처. untracked(adapter toggle surface)면 면제. **읽는 방식 = 지침 기반 on-demand**: adapter status/reminder surface 가 제공하는 `workflow-guard-hook` 모드 신호(📌 따름 / ⚡ 면제)가 anchor 이고, tracked 라우팅이 필요한 자리에서 본 문서를 Read 한다 (hook 주입·eager 로드 아님 — user_profile 과 같은 lazy·이식 가능 패턴). hook 은 instruction 이 못 보는 _런타임 모드_ 만 전달.
 
 본 문서가 **모든 작업 흐름의 단일 라우터**. 모든 발화는 §2 작업-본질 매핑을 먼저 거치고, 직접 처리·플러그인(codex)·빌트인 스킬도 WORKFLOW 가 배치하는 자리에서만 쓴다.
 
@@ -21,9 +21,9 @@
 
 - **spec 없이 코드 X**: 코드 요청인데 `spec/` 없으면 autopilot-spec 먼저 (throwaway 1 회성만 예외, 반복 시 spec 승격).
 - **사전 산출물 없이 spec X**: spec 근거(`research/` 또는 `analysis_project/`) 없으면 autopilot-research/analyze-project 먼저. 낯선 영역·신규 의도일수록 강제.
-- **harness 강제**: `artifact-guard.sh` 는 _신규 산출물 생성 순서_ 만 기계 차단 — 신규 spec ← research/analyze, 신규 plan ← spec, 신규 문서 ← research/analyze. 기존 편집·소스 코드는 비차단 (convention + workflow-guard-hook 라우팅 reminder). `/track` 우회.
+- **harness 강제**: `artifact-guard.sh` 는 _신규 산출물 생성 순서_ 만 기계 차단 — 신규 spec ← research/analyze, 신규 plan ← spec, 신규 문서 ← research/analyze. 기존 편집·소스 코드는 비차단 (convention + workflow-guard-hook 라우팅 reminder). Adapter untracked toggle 로 우회.
 
-**(b) 동일 스킬 수정 = 버전 트래킹** (convention — `hooks/artifact-guard.sh` 는 _신규 산출물 생성 순서_ 만 기계 강제하고 기존 산출물 _편집_ 은 막지 않는다; 소유 스킬 경유는 `workflow-guard-hook` 라우팅 reminder + 관행. `/track` ⚡untracked 면제). 각 산출물은 _그것을 만든 스킬로만_ 수정:
+**(b) 동일 스킬 수정 = 버전 트래킹** (convention — `hooks/artifact-guard.sh` 는 _신규 산출물 생성 순서_ 만 기계 강제하고 기존 산출물 _편집_ 은 막지 않는다; 소유 스킬 경유는 `workflow-guard-hook` 라우팅 reminder + 관행. Adapter untracked toggle 면제). 각 산출물은 _그것을 만든 스킬로만_ 수정:
 
 | 산출물 | 유일 수정 경로 | 버전 자리 |
 |---|---|---|

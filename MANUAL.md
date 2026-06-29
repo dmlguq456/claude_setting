@@ -34,7 +34,7 @@
 
 - **산출물**: 각 파이프는 artifact root(`.agent_reports/`, legacy `.claude_reports/`)의 `<영역>/` 에 쌓인다 — `research/`·`analysis_project/`·`documents/`·`spec/`·`plans/`·`experiments/`. 코드는 `spec/`(청사진, 항상 최신) + `plans/<date>_<slug>/`(작업 사이클) 두 갈래.
 - **사후 수정**: spec-backed 프로젝트는 즉석 직접 편집이 아니라 _기존 산출물 파악 → spec-drift 체크 → autopilot-code_ 경로를 탄다.
-- **모드 신호**: 매 프롬프트 statusline 에 📌tracked(파이프 경유) / ⚡untracked(`/track`, 직접 편집 자유)가 뜬다.
+- **모드 신호**: adapter status/reminder surface 가 📌tracked(파이프 경유) / ⚡untracked(직접 편집 자유) 신호를 띄운다. Claude 는 statusline + `/track`, Codex 는 explicit preflight/wrapper 계약으로 재현한다.
 
 → 라우팅 정밀 규칙·발화 매핑·spec mode·서브에이전트 분기: [`core/WORKFLOW.md`](core/WORKFLOW.md) · 호출 패턴·응답 규율: runtime adapter bootstrap (현재 Claude Code: [`adapters/claude/CLAUDE.md`](adapters/claude/CLAUDE.md) §0)
 

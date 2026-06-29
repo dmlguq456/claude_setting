@@ -567,9 +567,9 @@ AskUserQuestion(questions=[{
 **발동**: 진입 직후, 입력이 비가역 결정 커버리지에 미달이면 1라운드 구조화 질문.
 
 **Skip (4가지 — 별도 flag 없이 자동)**:
-1. slash 직접 args로 충분히 명시됨
+1. adapter-native 직접 args로 충분히 명시됨
 2. 사용자가 이미 해당 결정을 발화에서 명시
-3. throwaway / untracked (`/track` 설정 시)
+3. throwaway / untracked (adapter toggle surface 설정 시)
 4. 재개 (`--from <stage>` — `pipeline_state.yaml`에 이미 캡처됨)
 
 > **`--no-clarify` flag는 draft/research 전용**: spec/code/design 트랙에는 `--no-clarify` flag가 없다(확인됨). 위 4가지 skip 조건으로 flag 없이 자동 처리 — 존재하지 않는 flag를 찾지 않도록 주의.

@@ -23,8 +23,8 @@
 | | 📌 tracked (기본) | ⚡ untracked (예외) |
 |---|---|---|
 | **생성 순서** | 신규 산출물 ← 앞 단계 (hook 차단) | 전부 우회 |
-| **모드 신호** | 매 프롬프트 📌 WORKFLOW 따름 (skill 경유) | 매 프롬프트 ⚡ 면제 (직접 자유) |
-| **전환** | (기본값) | `/track` 토글 |
+| **모드 신호** | Adapter status/reminder surface 가 📌 WORKFLOW 따름을 표시 | Adapter status/reminder surface 가 ⚡ 면제를 표시 |
+| **전환** | (기본값) | Adapter toggle surface (Claude: `/track`, Codex: preflight/wrapper 계약) |
 
 **hook 이 hard 차단하는 건 셋** — _신규 산출물 생성 순서_ · _git 위험 상태의 편집_ · _spec 라우팅 계약 게이트_:
 
@@ -32,7 +32,7 @@
 - git 상태 (`git-state-guard`): merge/rebase/cherry-pick 진행 중 repo 의 파일 편집 차단 — 반쯤 머지된 트리를 임의로 굳히는 사고 방지 ([CONVENTIONS](core/CONVENTIONS.md) §5.9).
 - spec-skill-gate (`spec-skill-gate.sh` + `spec-read-marker.sh`): spec-backed cwd 에서 spec 변경 capability 가 `prd.md` 등 청사진을 실제 read 하지 않고 작업 진입하는 것을 차단 (라우팅 계약 게이트; Claude 는 hook 등록, Codex 는 preflight wrapper).
 
-기존 산출물 _편집_ · 소스 코드 · `user_profile` · post-it 메모 (DB working 레코드) 는 convention (소유 스킬·autopilot-code 권장, 비차단). 작업 유도는 라우팅 리마인더 몫. statusline 에 📌/⚡ 표시.
+기존 산출물 _편집_ · 소스 코드 · `user_profile` · post-it 메모 (DB working 레코드) 는 convention (소유 스킬·autopilot-code 권장, 비차단). 작업 유도는 라우팅 리마인더 몫. Adapter status/reminder surface 가 📌/⚡ 신호를 표시한다.
 
 ---
 
@@ -168,16 +168,16 @@ analyze-project  →  autopilot-spec ↻  →  autopilot-code ↻
 | "이번 발표 자료 만들어줘" | autopilot-draft presentation 모드로 슬라이드 markdown (qa thorough) |
 | "내 figure 스타일 분석해줘" | analyze-user figure — incremental update (qa adversarial 고정) |
 
-### (2) slash 직접 입력
+### (2) adapter-native 직접 입력
 
-옵션을 명시하거나 컨펌을 건너뛸 때는 slash 를 그대로 친다 — _의도 명시_ 라 곧장 invoke.
+옵션을 명시하거나 컨펌을 건너뛸 때는 adapter-native command/wrapper 를 직접 호출한다 — _의도 명시_ 라 곧장 invoke. 아래는 Claude adapter slash-command 표면이다.
 
 ```
 /autopilot-code   --mode dev|debug "<task>" [--qa ...] [--from <step>]
 /autopilot-draft  --mode paper|presentation|doc "<task>" [--qa ...]
 /autopilot-refine "<prompt>" [--qa ...] [--memo <file>]
 /audit            <artifact> [--scope ...]
-/track            현재 프로젝트 📌tracked ↔ ⚡untracked 토글 (harness 차단 on/off)
+/track            현재 프로젝트 📌tracked ↔ ⚡untracked 토글 (Claude adapter; 다른 adapter 는 동등한 wrapper/config 사용)
 ```
 
 전체 옵션 조합·default·QA 의미는 adapter-native Skill 파일(Claude: `adapters/claude/skills/*/SKILL.md`)의 `argument-hint` / `## Usage`.
@@ -221,7 +221,7 @@ autopilot-\* 가 내부에서 자동 라우팅하는 전문 팀. Portable 의미
 | [`core/DESIGN_PRINCIPLES.md`](core/DESIGN_PRINCIPLES.md) | autopilot 아키텍처 설계 원칙 |
 | [`core/CORE.md`](core/CORE.md) · [`adapters/`](adapters/README.md) | 모델·도구 중립 코어 계약과 런타임별 어댑터 경계 (Claude Code primary, Codex experimental) |
 | [`INSTALL_LAYOUT.md`](INSTALL_LAYOUT.md) | neutral repo(`~/agent_setting`) + runtime home(`~/.claude`, `~/.codex`) symlink projection 절차 |
-| `hooks/` · `utilities/` · `tools/` · `scaffolds/` · `adapters/claude/statusline.sh` | **harness** — `artifact-guard.sh`(산출물·순서 강제) · `git-state-guard.sh`(merge/rebase 중 편집 차단) · `workflow-guard-hook.sh`(매 프롬프트 모드 신호 📌따름/⚡면제 + flag GC; WORKFLOW·post-it 읽기는 지침) · `design-postwrite.sh`(design HTML 저장 시 콘솔 자동 체크) · `spec-skill-gate`/`spec-read-marker`(spec 라우팅 게이트) · `tools/check-adaptation-boundary.sh`(adapter/projection 경계 검증) · adapter visual harness(Claude 구현: `tools/design-mcp`) · `tools/memory/mem.py`(통합 기억 store·CLI, [MEMORY §7](core/MEMORY.md)) + SessionStart `mem inject`/SessionEnd `mem sync` + **메모리 hook 4종**(`builtin-memory-guard`·`mem-recall-inject`·`mem-turn-nudge`·`mem-distill-dispatch` — 내장메모리 차단·회상 자동주입·distiller 트리거·dispatch, [MEMORY §7](core/MEMORY.md)) · `scaffolds/`(deck_stage 등 디자인 scaffold) · Claude statusline(📌/⚡·context 막대) · `/track` 토글. [📌/⚡ 모드](#-작동-방식--tracked--untracked) |
+| `hooks` · `utilities` · `tools` · `scaffolds` · adapter status/toggle surfaces | **harness** — `artifact-guard.sh`(산출물·순서 강제) · `git-state-guard.sh`(merge/rebase 중 편집 차단) · `workflow-guard-hook.sh`(adapter status/reminder 에 📌따름/⚡면제 신호 제공 + flag GC; WORKFLOW·post-it 읽기는 지침) · `design-postwrite.sh`(design HTML 저장 시 콘솔 자동 체크) · `spec-skill-gate`/`spec-read-marker`(spec 라우팅 게이트) · `tools/check-adaptation-boundary.sh`(adapter/projection 경계 검증) · adapter visual harness(Claude 구현: `tools/design-mcp`) · `tools/memory/mem.py`(통합 기억 store·CLI, [MEMORY §7](core/MEMORY.md)) + SessionStart `mem inject`/SessionEnd `mem sync` + **메모리 hook 4종**(`builtin-memory-guard`·`mem-recall-inject`·`mem-turn-nudge`·`mem-distill-dispatch` — 내장메모리 차단·회상 자동주입·distiller 트리거·dispatch, [MEMORY §7](core/MEMORY.md)) · `scaffolds/`(deck_stage 등 디자인 scaffold) · Claude statusline/`/track`, Codex preflight wrappers 같은 adapter realization. [📌/⚡ 모드](#-작동-방식--tracked--untracked) |
 | [`loops/README.md`](loops/README.md) | **상시 루프** (세션 밖 cron·headless) — **당직**(`oncall`, 시간형 05:37 순찰·보고) · **일지**(`note`, 시간형 05:03 산출물→worklog-board L2 노트화 — cron runner 는 worklog-board) · **연수**(`study`, 시간형 일요일 06:17 외부 동향→제안) · **모의훈련**(`drill/`, 사건형 — 지침 수정 후 행동 회귀 시험) · 후보 backlog. 모두 보고·제안에서 멈춘다 (merge 만 메인 에이전트 선별 책임 — OPERATIONS §5.10) |
 
 ---
