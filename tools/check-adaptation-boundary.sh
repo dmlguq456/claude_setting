@@ -87,6 +87,14 @@ check_claude_projection_targets() {
   check_link_target claude_setting/bin ../adapters/claude/bin
 }
 
+check_claude_adapter_concrete_surfaces() {
+  links=$(find adapters/claude -type l -print 2>/dev/null || true)
+  if [ -n "$links" ]; then
+    fail_msg "adapters/claude must contain adapter-owned concrete files, not symlink passthrough entries:"
+    printf '%s\n' "$links"
+  fi
+}
+
 check_link_target() {
   path=$1
   expected=$2
@@ -545,6 +553,7 @@ check_codex_native_surface_debt
 check_required_projection_entries
 check_codex_projection_targets
 check_claude_projection_targets
+check_claude_adapter_concrete_surfaces
 check_install_layout_codex_projection
 check_codex_bin_wrappers
 check_codex_tool_projection
