@@ -64,7 +64,7 @@ case "$cmd" in
   mode)
     cwd=${2:-$PWD}
     sid=${3:-codex}
-    "$ROOT/utilities/workflow-guard-hook.sh" --event prompt --cwd "$cwd" --session "$sid" --format text
+    "$ROOT/utilities/workflow-guard-hook.sh" --event prompt --cwd "$cwd" --session "$sid" --format text --toggle-label "preflight.sh track"
     ;;
   track)
     cwd=${2:-$PWD}

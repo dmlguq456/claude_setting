@@ -171,7 +171,9 @@ else
   bad "codex track wrapper should enable untracked mode"
 fi
 if "$CODEX" mode "$TMP/flowproj" testsid >/tmp/flow.out 2>/tmp/flow.err \
-  && grep -q 'untracked' /tmp/flow.out; then
+  && grep -q 'untracked' /tmp/flow.out \
+  && grep -q 'preflight.sh track' /tmp/flow.out \
+  && ! grep -q '/track' /tmp/flow.out; then
   ok "codex mode wrapper emits untracked text"
 else
   bad "codex mode wrapper should emit untracked text"

@@ -5,14 +5,14 @@
 #   SessionStart    : 잔여 ⚡untracked flag GC 만.
 # WORKFLOW.md(라우팅 계약)·post-it(세션 연속성) 은 runtime adapter bootstrap+도메인 트리거 _지침_ 으로 Read.
 # Portable CLI:
-#   workflow-guard-hook.sh --event prompt [--cwd <dir>] [--session <id>] [--format text|claude-json]
+#   workflow-guard-hook.sh --event prompt [--cwd <dir>] [--session <id>] [--format text|claude-json] [--toggle-label <text>]
 #   workflow-guard-hook.sh --event start  [--cwd <dir>] [--session <id>] [--format text|claude-json]
 # 등록: ~/.claude/settings.json 의 hooks.SessionStart + hooks.UserPromptSubmit.
 set -euo pipefail
 
 usage() {
   cat <<'EOF'
-usage: workflow-guard-hook.sh --event prompt|start [--cwd <dir>] [--session <id>] [--format text|claude-json]
+usage: workflow-guard-hook.sh --event prompt|start [--cwd <dir>] [--session <id>] [--format text|claude-json] [--toggle-label <text>]
 
 Without arguments, reads Claude hook JSON from stdin and emits Claude hook JSON.
 EOF
@@ -23,6 +23,7 @@ SID=""
 MODE="hook"
 FORMAT="claude-json"
 CWD="$PWD"
+TOGGLE_LABEL="/track"
 
 if [ "$#" -gt 0 ]; then
   MODE="cli"
@@ -51,6 +52,11 @@ if [ "$#" -gt 0 ]; then
       --format)
         [ "$#" -ge 2 ] || { echo "workflow-guard-hook: --format requires a value" >&2; exit 64; }
         case "$2" in text|claude-json) FORMAT=$2 ;; *) echo "workflow-guard-hook: unknown format: $2" >&2; exit 64 ;; esac
+        shift 2
+        ;;
+      --toggle-label)
+        [ "$#" -ge 2 ] || { echo "workflow-guard-hook: --toggle-label requires a value" >&2; exit 64; }
+        TOGGLE_LABEL=$2
         shift 2
         ;;
       -h|--help)
@@ -120,8 +126,8 @@ if [ "$EVENT" = "UserPromptSubmit" ]; then
   # 모드를 _양쪽 다 명시_ — Claude 가 "WORKFLOW 를 지킬지" 를 매 프롬프트 positive 하게 결정.
   if [ "$untracked" = "1" ]; then
     touch "$flag" 2>/dev/null || true   # heartbeat — 활성 세션이면 mtime 갱신 → GC 가 _비활성_ 만 지움 (장기 세션 안전)
-    emit UserPromptSubmit <<'EOF'
-🧭 ⚡untracked — WORKFLOW 면제, 직접 편집 자유 · 파이프 복귀 /track
+    emit UserPromptSubmit <<EOF
+🧭 ⚡untracked — WORKFLOW 면제, 직접 편집 자유 · 파이프 복귀 ${TOGGLE_LABEL}
 EOF
   else
     emit UserPromptSubmit <<'EOF'
