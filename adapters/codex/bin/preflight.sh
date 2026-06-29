@@ -76,9 +76,9 @@ case "$cmd" in
   worklog)
     cwd=${2:-$PWD}
     AGENT_HOME="${AGENT_HOME:-$ROOT}" \
-      AGENT_NOTES_ROOT="${AGENT_NOTES_ROOT:-${WORKLOG_NOTES_ROOT:-/home/nas/user/Uihyeop/notes}}" \
-      WORKLOG_BOARD_APP="${WORKLOG_BOARD_APP:-/home/Uihyeop/.claude/worklog-board}" \
-      WORKLOG_BOARD_WT="${WORKLOG_BOARD_WT:-/home/Uihyeop/.claude/worklog-board-wt}" \
+      AGENT_NOTES_ROOT="${AGENT_NOTES_ROOT:-${WORKLOG_NOTES_ROOT:-}}" \
+      WORKLOG_BOARD_APP="${WORKLOG_BOARD_APP:-}" \
+      WORKLOG_BOARD_WT="${WORKLOG_BOARD_WT:-}" \
       "$ROOT/utilities/agent-worklog-state.sh" "$cwd"
     ;;
   design)

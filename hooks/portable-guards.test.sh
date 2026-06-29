@@ -182,6 +182,16 @@ if AGENT_NOTES_ROOT="$TMP/notes" WORKLOG_BOARD_APP="$TMP/board" WORKLOG_BOARD_WT
 else
   bad "codex worklog wrapper should report read-only state"
 fi
+if env -u AGENT_NOTES_ROOT -u WORKLOG_NOTES_ROOT -u WORKLOG_BOARD_APP -u WORKLOG_BOARD_WT \
+  "$CODEX" worklog "$TMP/flowproj" >/tmp/worklog-default.out 2>/tmp/worklog-default.err \
+  && grep -q '^agent-notes-root=unset$' /tmp/worklog-default.out \
+  && grep -q '^worklog-board-app=unset$' /tmp/worklog-default.out \
+  && grep -q '^worklog-board-wt=unset$' /tmp/worklog-default.out \
+  && ! grep -q '/.claude/worklog-board' /tmp/worklog-default.out; then
+  ok "codex worklog wrapper has no Claude runtime defaults"
+else
+  bad "codex worklog wrapper should not default to Claude runtime paths"
+fi
 if AGENT_MODEL_FAST=fast-model AGENT_REASONING_FAST=low "$CODEX" role fast reviewer >/tmp/role.out 2>/tmp/role.err \
   && grep -q '^family=fast$' /tmp/role.out \
   && grep -q '^model=fast-model$' /tmp/role.out \
