@@ -5,6 +5,8 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 ART="$ROOT/hooks/artifact-guard.sh"
 GIT="$ROOT/hooks/git-state-guard.sh"
 CODEX="$ROOT/adapters/codex/bin/preflight.sh"
+MARK="$ROOT/hooks/spec-read-marker.sh"
+SPEC="$ROOT/hooks/spec-skill-gate.sh"
 
 PASS=0
 FAIL=0
@@ -13,6 +15,7 @@ bad() { FAIL=$((FAIL+1)); printf '  BAD %s\n' "$1"; }
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
+export AGENT_HOME="$TMP/agent_home"
 
 echo "== artifact guard CLI =="
 mkdir -p "$TMP/proj/.agent_reports/spec"
@@ -57,6 +60,39 @@ if "$CODEX" write "$TMP/repo/f" testsid >/tmp/codex.out 2>/tmp/codex.err; then
   ok "codex preflight passes clean write"
 else
   bad "codex preflight should pass clean write"
+fi
+
+echo "== spec read gate CLI =="
+mkdir -p "$TMP/specproj/.agent_reports/spec"
+printf 'prd\n' > "$TMP/specproj/.agent_reports/spec/prd.md"
+if "$SPEC" --skill autopilot-code --cwd "$TMP/specproj" --session testsid >/tmp/spec.out 2>/tmp/spec.err; then
+  bad "spec-backed capability without read marker should fail"
+else
+  [ "$?" -eq 2 ] && ok "spec-backed capability without read marker exits 2" || bad "spec-backed capability wrong exit"
+fi
+if "$SPEC" --skill audit --cwd "$TMP/specproj" --session testsid >/tmp/spec.out 2>/tmp/spec.err; then
+  ok "non spec-changing capability passes"
+else
+  bad "non spec-changing capability should pass"
+fi
+if "$MARK" --file "$TMP/specproj/.agent_reports/spec/prd.md" --session testsid >/tmp/spec.out 2>/tmp/spec.err \
+  && "$SPEC" --skill autopilot-code --cwd "$TMP/specproj" --session testsid >/tmp/spec.out 2>/tmp/spec.err; then
+  ok "read marker allows spec-changing capability"
+else
+  bad "read marker should allow spec-changing capability"
+fi
+sleep 1
+printf 'prd updated\n' > "$TMP/specproj/.agent_reports/spec/prd.md"
+if "$SPEC" --skill autopilot-code --cwd "$TMP/specproj" --session testsid >/tmp/spec.out 2>/tmp/spec.err; then
+  bad "updated prd after marker should fail"
+else
+  [ "$?" -eq 2 ] && ok "updated prd after marker exits 2" || bad "updated prd wrong exit"
+fi
+if "$CODEX" read "$TMP/specproj/.agent_reports/spec/prd.md" testsid >/tmp/codex.out 2>/tmp/codex.err \
+  && "$CODEX" capability autopilot-code "$TMP/specproj" testsid >/tmp/codex.out 2>/tmp/codex.err; then
+  ok "codex read+capability wrapper passes spec gate"
+else
+  bad "codex read+capability wrapper should pass spec gate"
 fi
 
 printf 'PASS=%s FAIL=%s\n' "$PASS" "$FAIL"

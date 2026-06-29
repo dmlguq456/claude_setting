@@ -33,7 +33,7 @@ Experimental. The portable contract is usable, but Codex does not consume Claude
 | artifact root | `.agent_reports`, legacy fallback `.claude_reports` only when already present |
 | tracked/untracked signal | `/track` semantics and `utilities/workflow-guard-hook.sh`; no automatic prompt hook unless wrapped |
 | artifact-order gate | `core/HOOKS.md` defines the invariant; run `adapters/codex/bin/preflight.sh write <file> [session-id]` before writes |
-| spec read gate | `core/HOOKS.md` defines marker/check semantics; current scripts require event bridging |
+| spec read gate | `core/HOOKS.md` defines marker/check semantics; run `adapters/codex/bin/preflight.sh read <prd.md> [session-id]` after actual reads and `adapters/codex/bin/preflight.sh capability <name> [cwd] [session-id]` before spec/code capabilities |
 | git safety gate | `core/HOOKS.md` defines the invariant; included in `adapters/codex/bin/preflight.sh write <file> [session-id]` |
 | memory store | `tools/memory/mem.py` is runtime-neutral; hook automation is adapter-specific |
 

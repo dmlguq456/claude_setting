@@ -8,7 +8,7 @@ checks to their own event model.
 
 | Status | Meaning |
 |---|---|
-| `portable-check` | Core decision logic is runtime-neutral, but the current script may still parse Claude hook JSON. |
+| `portable-check` | Core decision logic is runtime-neutral and has a CLI entry point. It may also accept Claude hook JSON for compatibility. |
 | `adapter-payload-wrapper` | Primarily translates a runtime event payload into a portable decision. Needs adapter-specific wrapper for non-Claude runtimes. |
 | `adapter-coupled-automation` | Depends on Claude session lifecycle, status, MCP, or headless `claude -p`. Other runtimes must implement their own equivalent or mark unsupported. |
 | `external-integration` | Owned by an external integration and not part of the portable contract. |
@@ -20,7 +20,7 @@ checks to their own event model.
 |---|---|---|---|---|
 | artifact order | `hooks/artifact-guard.sh` | `portable-check` | New tracked artifacts must be created in dependency order: spec after research/analysis, plans after spec, documents after research/analysis. | Run `hooks/artifact-guard.sh --file <path> [--session <id>]` before writes, or use an adapter wrapper. |
 | git state safety | `hooks/git-state-guard.sh` | `portable-check` | Do not edit files in merge/rebase/cherry-pick/detached unsafe git states unless explicitly unlocked. | Run `hooks/git-state-guard.sh --file <path>` before file edits, or use an adapter wrapper. |
-| spec read gate | `hooks/spec-skill-gate.sh`, `hooks/spec-read-marker.sh` | `adapter-payload-wrapper` | Spec-changing capability calls in spec-backed projects require a current `prd.md` read marker. | Record actual reads and check markers before spec/code capabilities. |
+| spec read gate | `hooks/spec-skill-gate.sh`, `hooks/spec-read-marker.sh` | `portable-check` | Spec-changing capability calls in spec-backed projects require a current `prd.md` read marker. | Run `hooks/spec-read-marker.sh --file <prd.md> [--session <id>]` after actual reads, then `hooks/spec-skill-gate.sh --skill <capability> [--cwd <dir>] [--session <id>]` before spec/code capabilities. |
 | memory write guard | `hooks/builtin-memory-guard.sh` | `adapter-payload-wrapper` | Runtime-native file memory must not bypass the unified DB memory store. | Block writes to runtime memory-file paths or remove the native memory feature. |
 | design post-write verification | `hooks/design-postwrite.sh` | `adapter-coupled-automation` | Saved design HTML should get deterministic console verification. | Provide an equivalent browser/console checker or report unsupported. |
 | workflow tracked signal | `utilities/workflow-guard-hook.sh` | `adapter-payload-wrapper` | Surface tracked/untracked mode and clean stale flags. | Attach to session/prompt start or expose an explicit wrapper reminder. |
@@ -38,6 +38,7 @@ be wrapped or reimplemented behind an adapter-native event bridge.
 
 Current Claude Code registration lives in `adapters/claude/settings.json`.
 Codex must not consume that JSON as configuration. It can run
-`adapters/codex/bin/preflight.sh write <file> [session-id]` for the checks that
-already have portable CLI entry points, and should add equivalent wrappers for
-`spec read gate` when a Codex read/capability-call bridge exists.
+`adapters/codex/bin/preflight.sh write <file> [session-id]` before edits,
+`adapters/codex/bin/preflight.sh read <prd.md> [session-id]` after actual spec
+reads, and `adapters/codex/bin/preflight.sh capability <name> [cwd] [session-id]`
+before spec-changing capability work.

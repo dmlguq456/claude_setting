@@ -30,7 +30,7 @@
 
 - 생성 순서 (자동 scope — `.agent_reports` 보유 프로젝트, legacy `.claude_reports` 호환): 신규 `spec` ← research · 신규 `plan` ← spec · 신규 `documents` ← research. 위반 시 차단 + 권고.
 - git 상태 (`git-state-guard`): merge/rebase/cherry-pick 진행 중 repo 의 파일 편집 차단 — 반쯤 머지된 트리를 임의로 굳히는 사고 방지 ([CONVENTIONS](core/CONVENTIONS.md) §5.9).
-- spec-skill-gate (`spec-skill-gate.sh`): spec-backed cwd 에서 spec 변경 스킬이 `prd.md` 등 청사진을 거치지 않고 작업 진입하는 것을 차단 (라우팅 계약 게이트, Claude adapter settings 등록).
+- spec-skill-gate (`spec-skill-gate.sh` + `spec-read-marker.sh`): spec-backed cwd 에서 spec 변경 capability 가 `prd.md` 등 청사진을 실제 read 하지 않고 작업 진입하는 것을 차단 (라우팅 계약 게이트; Claude 는 hook 등록, Codex 는 preflight wrapper).
 
 기존 산출물 _편집_ · 소스 코드 · `user_profile` · post-it 메모 (DB working 레코드) 는 convention (소유 스킬·autopilot-code 권장, 비차단). 작업 유도는 라우팅 리마인더 몫. statusline 에 📌/⚡ 표시.
 
