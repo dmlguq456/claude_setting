@@ -1,0 +1,129 @@
+#!/usr/bin/env python3
+"""Codex PreToolUse bridge for portable write guards."""
+
+from __future__ import annotations
+
+import json
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+from typing import Any
+
+
+ROOT = Path(__file__).resolve().parents[3]
+PREFLIGHT = ROOT / "adapters" / "codex" / "bin" / "preflight.sh"
+
+
+def hook_block(reason: str) -> int:
+    print(json.dumps({"decision": "block", "reason": reason}))
+    return 0
+
+
+def first_string(mapping: dict[str, Any], *keys: str) -> str:
+    for key in keys:
+        value = mapping.get(key)
+        if isinstance(value, str) and value:
+            return value
+    return ""
+
+
+def nested_mapping(payload: dict[str, Any], *keys: str) -> dict[str, Any]:
+    for key in keys:
+        value = payload.get(key)
+        if isinstance(value, dict):
+            return value
+    return {}
+
+
+def tool_name(payload: dict[str, Any]) -> str:
+    tool = nested_mapping(payload, "tool")
+    return first_string(payload, "tool_name", "toolName", "matcher") or first_string(tool, "name")
+
+
+def tool_input(payload: dict[str, Any]) -> dict[str, Any]:
+    return nested_mapping(payload, "tool_input", "toolInput", "input", "arguments", "args", "params")
+
+
+def cwd(payload: dict[str, Any]) -> Path:
+    raw = first_string(payload, "cwd", "working_directory", "workingDirectory")
+    if raw:
+        return Path(raw)
+    return Path.cwd()
+
+
+def normalize(base: Path, raw: str) -> str:
+    if not raw or raw == "/dev/null":
+        return ""
+    path = Path(raw)
+    if not path.is_absolute():
+        path = base / path
+    return str(path)
+
+
+def patch_files(base: Path, text: str) -> list[str]:
+    if not text:
+        return []
+    files: list[str] = []
+    pattern = re.compile(r"^\*\*\* (?:Add|Update|Delete) File: (.+)$|^\*\*\* Move to: (.+)$", re.MULTILINE)
+    for match in pattern.finditer(text):
+        raw = match.group(1) or match.group(2) or ""
+        file = normalize(base, raw.strip())
+        if file:
+            files.append(file)
+    return files
+
+
+def target_files(payload: dict[str, Any]) -> list[str]:
+    name = tool_name(payload)
+    args = tool_input(payload)
+    base = cwd(payload)
+
+    if name in {"Write", "write", "Edit", "edit"}:
+        file = normalize(base, first_string(args, "file_path", "filePath", "path", "file"))
+        return [file] if file else []
+
+    if name in {"apply_patch", "ApplyPatch", "patch"}:
+        patch = first_string(args, "patch", "patchText", "patch_text", "input")
+        return patch_files(base, patch)
+
+    return []
+
+
+def main() -> int:
+    try:
+        payload = json.load(sys.stdin)
+    except json.JSONDecodeError:
+        return 0
+    if not isinstance(payload, dict):
+        return 0
+
+    name = tool_name(payload)
+    files = target_files(payload)
+    if name in {"Write", "write", "Edit", "edit", "apply_patch", "ApplyPatch", "patch"} and not files:
+        return hook_block(f"agent harness preflight could not determine target file for Codex tool {name}")
+
+    session_id = first_string(payload, "session_id", "sessionID", "thread_id", "threadID") or "codex-hook"
+    env = os.environ.copy()
+    env.setdefault("AGENT_HOME", str(ROOT))
+
+    for file in files:
+        result = subprocess.run(
+            [str(PREFLIGHT), "write", file, session_id],
+            cwd=str(ROOT),
+            env=env,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+        if result.returncode != 0:
+            detail = "\n".join(part for part in (result.stdout, result.stderr) if part).strip()
+            return hook_block(detail or f"agent harness preflight failed for {file}")
+
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

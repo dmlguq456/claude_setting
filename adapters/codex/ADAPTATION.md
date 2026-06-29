@@ -44,6 +44,7 @@ invariant.
 | Preflight wrappers | `adapters/codex/bin/` | `codex_setting/bin` |
 | Skills | `adapters/codex/skills/<name>/SKILL.md` generated from `capabilities/` | `codex_setting/codex-skills` |
 | Plugin marketplace | `adapters/codex/.agents/plugins/marketplace.json` plus `adapters/codex/plugins/agent-harness-codex` | `codex_setting/codex-plugin-marketplace` |
+| Hook bridge | `adapters/codex/hooks/hooks.json`, `adapters/codex/hooks/pretooluse-write-guard.py` | `codex_setting/codex-hooks` |
 | Shared helper tools | selected `tools/`, selected `utilities/` | `codex_setting/tools`, `codex_setting/utilities` |
 | Selected tools | `adapters/codex/tools/` adapter launchers plus selected portable tool projections | `codex_setting/tools` |
 | Selected utilities | `adapters/codex/utilities/` adapter wrappers plus selected portable utility projections | `codex_setting/utilities` |
@@ -86,6 +87,18 @@ those entries.
 The boundary guard checks that generated Codex skills and the generated Codex
 plugin remain in sync, and that neither surface is built from Claude Skill
 files.
+
+## Native Hook Surface
+
+Codex supports lifecycle hooks through `hooks.json` and inline config. This
+adapter materializes a Codex-native hook projection under `adapters/codex/hooks/`.
+The first bridge registers `PreToolUse` for write/edit/patch tools and calls
+`adapters/codex/bin/preflight.sh write <file> <session-id>`, which runs the
+portable artifact-order, git-state, and memory-write guards.
+
+Do not project Claude `hooks/` or `settings.json` into Codex. Use
+`codex_setting/codex-hooks` as the install source, and keep explicit
+`preflight.sh` calls as fallback where Codex hooks are disabled or untrusted.
 
 ## Explicit Non-Support
 
@@ -142,7 +155,7 @@ Harness-specific status signals still need Codex-native realization:
 | worklog state signal | Run `adapters/codex/bin/preflight.sh worklog [cwd]` to inspect configured `<agent-notes-root>` / `<worklog-board-app>` paths read-only before Codex updates notes or diagnoses board state |
 | role profiles | Read `roles/README.md`, then run `adapters/codex/bin/preflight.sh role <portable-role>` to resolve Codex model/reasoning-effort settings |
 | role modes | Read `roles/MODES.md`, then run `adapters/codex/bin/preflight.sh mode-info <family/mode>`; treat adapter-coupled modes as unsupported unless wrappers exist |
-| hook invariants | Read `core/HOOKS.md`; run explicit preflight wrappers until Codex-native hook events exist |
+| hook invariants | `adapters/codex/hooks/pretooluse-write-guard.py` realizes write guards through Codex `PreToolUse`; run explicit preflight wrappers for events not yet covered by native hooks |
 | capabilities | Read `capabilities/README.md`, then run `adapters/codex/bin/preflight.sh capability-info <capability>`; do not assume Claude Skill invocation |
 
 ## Model Mapping
@@ -165,7 +178,7 @@ unavailable role explicitly.
 `codex_setting/` should remain minimal and explicit. It may expose `AGENTS.md`,
 `README.md`, `core/`, `capabilities/`, `roles/`, `bin/`, `codex-skills`,
 `codex-plugin-marketplace`, selected tools, and selected utilities, but must not expose Claude-native
-`settings.json`, `commands/`, root `skills/`, or `statusline.sh` as if Codex
+`settings.json`, `commands/`, root `skills/`, `hooks/`, or `statusline.sh` as if Codex
 could consume them.
 
 `codex_setting/tools` points at `adapters/codex/tools/`, not the entire shared

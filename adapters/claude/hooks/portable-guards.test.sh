@@ -297,6 +297,26 @@ if command -v codex >/dev/null 2>&1; then
 else
   ok "codex native plugin runtime discovery skipped (codex not installed)"
 fi
+mkdir -p "$TMP/codex_hook_home/.codex"
+ln -s "$ROOT" "$TMP/codex_hook_home/.codex/agent-harness"
+ln -s "$ROOT/codex_setting/codex-hooks/hooks.json" "$TMP/codex_hook_home/.codex/hooks.json"
+if python3 -m json.tool "$TMP/codex_hook_home/.codex/hooks.json" >/tmp/codex_hook_json.out 2>/tmp/codex_hook_json.err \
+  && grep -q 'pretooluse-write-guard.py' /tmp/codex_hook_json.out \
+  && printf '{"tool_name":"Write","tool_input":{"file_path":"%s"},"session_id":"testsid","cwd":"%s"}\n' "$TMP/repo/f" "$TMP/repo" \
+    | HOME="$TMP/codex_hook_home" python3 "$TMP/codex_hook_home/.codex/agent-harness/adapters/codex/hooks/pretooluse-write-guard.py" >/tmp/codex_hook.out 2>/tmp/codex_hook.err \
+  && [ ! -s /tmp/codex_hook.out ]; then
+  ok "codex native hook projection bridges clean writes to preflight"
+else
+  bad "codex native hook projection should bridge clean writes to preflight"
+fi
+if printf '{"tool_name":"Write","tool_input":{"file_path":"%s"},"session_id":"testsid","cwd":"%s"}\n' "$TMP/runtime/projects/abc/memory/MEMORY.md" "$TMP/runtime" \
+  | HOME="$TMP/codex_hook_home" python3 "$TMP/codex_hook_home/.codex/agent-harness/adapters/codex/hooks/pretooluse-write-guard.py" >/tmp/codex_hook_block.out 2>/tmp/codex_hook_block.err \
+  && grep -q '"decision": "block"' /tmp/codex_hook_block.out \
+  && grep -q 'memory' /tmp/codex_hook_block.out; then
+  ok "codex native hook projection blocks guarded writes"
+else
+  bad "codex native hook projection should block guarded writes"
+fi
 if "$CODEX" mode-info dev/backend >/tmp/mode.out 2>/tmp/mode.err \
   && grep -q '^status=portable$' /tmp/mode.out \
   && grep -q '^realization=portable-persona$' /tmp/mode.out; then

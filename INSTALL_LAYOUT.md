@@ -51,6 +51,8 @@ ln -sfn "$AGENT_HOME/codex_setting/tools" "$HOME/.codex/agent-tools"
 ln -sfn "$AGENT_HOME/codex_setting/utilities" "$HOME/.codex/agent-utilities"
 ln -sfn "$AGENT_HOME/codex_setting/codex-skills" "$HOME/.codex/agent-skills"
 ln -sfn "$AGENT_HOME/codex_setting/codex-plugin-marketplace" "$HOME/.codex/agent-plugin-marketplace"
+ln -sfn "$AGENT_HOME/codex_setting/codex-hooks" "$HOME/.codex/agent-hooks"
+ln -sfn "$AGENT_HOME/codex_setting/codex-hooks/hooks.json" "$HOME/.codex/hooks.json"
 mkdir -p "$HOME/.codex/skills"
 for d in "$AGENT_HOME/codex_setting/codex-skills"/*; do
   [ -d "$d" ] || continue
@@ -63,7 +65,9 @@ root `skills/`, `statusline.sh`, or `hooks/` into `$HOME/.codex`. Codex-native
 Skill projections must come from `codex_setting/codex-skills`, which is
 generated from `capabilities/`. Codex-native plugin installation must use
 `codex_setting/codex-plugin-marketplace`, which points at the adapter-owned
-repo-local marketplace. Future Codex-specific bootstrap files should live under
+repo-local marketplace. Codex-native hook configuration must come from
+`codex_setting/codex-hooks`, which points at adapter-owned hook bridges.
+Future Codex-specific bootstrap files should live under
 `adapters/codex/` and be symlinked or generated into `codex_setting/` without
 moving Codex credentials, logs, sessions, or SQLite state into the repo.
 

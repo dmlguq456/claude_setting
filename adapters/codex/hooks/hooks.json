@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|apply_patch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$HOME/.codex/agent-harness/adapters/codex/hooks/pretooluse-write-guard.py\"",
+            "timeout": 30,
+            "statusMessage": "Checking agent harness write guards"
+          }
+        ]
+      }
+    ]
+  }
+}

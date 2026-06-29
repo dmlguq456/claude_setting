@@ -56,7 +56,7 @@ check_opencode_forbidden_entries() {
 }
 
 check_required_projection_entries() {
-  for p in AGENTS.md README.md core capabilities roles bin tools utilities codex-skills codex-plugin-marketplace; do
+  for p in AGENTS.md README.md core capabilities roles bin tools utilities codex-skills codex-plugin-marketplace codex-hooks; do
     if [ ! -L "codex_setting/$p" ]; then
       fail_msg "codex_setting/$p must be a symlink projection entry"
     fi
@@ -74,6 +74,7 @@ check_codex_projection_targets() {
   check_link_target codex_setting/utilities ../adapters/codex/utilities
   check_link_target codex_setting/codex-skills ../adapters/codex/skills
   check_link_target codex_setting/codex-plugin-marketplace ../adapters/codex
+  check_link_target codex_setting/codex-hooks ../adapters/codex/hooks
 }
 
 check_opencode_required_projection_entries() {
@@ -144,7 +145,7 @@ check_link_target() {
 check_install_layout_codex_projection() {
   [ -f INSTALL_LAYOUT.md ] || { fail_msg "INSTALL_LAYOUT.md is missing"; return; }
 
-  for p in AGENTS.md README.md core capabilities roles bin tools utilities codex-skills codex-plugin-marketplace; do
+  for p in AGENTS.md README.md core capabilities roles bin tools utilities codex-skills codex-plugin-marketplace codex-hooks; do
     if ! grep -Fq "\$AGENT_HOME/codex_setting/$p" INSTALL_LAYOUT.md; then
       fail_msg "INSTALL_LAYOUT.md must include Codex projection install step for codex_setting/$p"
     fi
@@ -355,6 +356,36 @@ check_codex_native_plugin_projection() {
 
   if ! grep -Fq "Custom prompts are deprecated" adapters/codex/README.md; then
     fail_msg "adapters/codex/README.md must document why command-like entries use skills/plugins instead of custom prompts"
+  fi
+}
+
+check_codex_native_hook_projection() {
+  hook_dir="adapters/codex/hooks"
+  hook_json="$hook_dir/hooks.json"
+  bridge="$hook_dir/pretooluse-write-guard.py"
+
+  if [ ! -f "$hook_json" ]; then
+    fail_msg "$hook_json is missing"
+    return
+  fi
+  if [ ! -x "$bridge" ]; then
+    fail_msg "$bridge must be executable"
+  fi
+  if [ -L "$bridge" ]; then
+    fail_msg "$bridge must be a concrete adapter-owned Codex hook bridge"
+  fi
+  if ! python3 -m json.tool "$hook_json" >/tmp/codex-hooks-json.out 2>/tmp/codex-hooks-json.err; then
+    fail_msg "$hook_json must be valid JSON"
+    cat /tmp/codex-hooks-json.err
+  fi
+  if ! grep -Fq '"PreToolUse"' "$hook_json" || ! grep -Fq 'pretooluse-write-guard.py' "$hook_json"; then
+    fail_msg "$hook_json must register the Codex PreToolUse write guard"
+  fi
+  if ! grep -Fq 'adapters" / "codex" / "bin" / "preflight.sh' "$bridge"; then
+    fail_msg "$bridge must call the Codex preflight wrapper"
+  fi
+  if grep -Eq 'adapters/claude|claude_setting|settings\.json|statusline\.sh' "$hook_json" "$bridge"; then
+    fail_msg "Codex hook projection must not reference Claude-native surfaces"
   fi
 }
 
@@ -998,6 +1029,7 @@ check_opencode_bin_wrappers
 check_codex_tool_projection
 check_codex_native_skill_projection
 check_codex_native_plugin_projection
+check_codex_native_hook_projection
 check_portable_agent_home_resolution
 check_opencode_tool_projection
 check_opencode_native_skill_projection
