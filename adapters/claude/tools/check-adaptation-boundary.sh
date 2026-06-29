@@ -366,6 +366,8 @@ check_claude_utility_projection() {
 
   if [ ! -x adapters/claude/utilities/workflow-toggle.sh ]; then
     fail_msg "adapters/claude/utilities/workflow-toggle.sh must be an executable concrete workflow toggle helper"
+  elif ! cmp -s utilities/workflow-toggle.sh adapters/claude/utilities/workflow-toggle.sh; then
+    fail_msg "adapters/claude/utilities/workflow-toggle.sh must stay byte-equivalent to utilities/workflow-toggle.sh"
   fi
 }
 
