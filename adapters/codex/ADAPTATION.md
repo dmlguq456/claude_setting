@@ -36,6 +36,7 @@ Codex must not consume these Claude-native files as native configuration:
 |---|---|
 | artifact order | Run `adapters/codex/bin/preflight.sh write <file> [session-id]` before writes |
 | git state safety | Run `adapters/codex/bin/preflight.sh write <file> [session-id]` before edits |
+| memory write guard | Run `adapters/codex/bin/preflight.sh write <file> [session-id]` before writes |
 | spec read gate | Run `adapters/codex/bin/preflight.sh read <prd.md> [session-id]` after actual reads and `adapters/codex/bin/preflight.sh capability <name> [cwd] [session-id]` before spec/code capabilities |
 | workflow signal | Provide explicit session reminder or wrapper output; no statusline assumption |
 | memory inject/recall | Use `tools/memory/mem.py` directly; session log ingestion needs a Codex session adapter |

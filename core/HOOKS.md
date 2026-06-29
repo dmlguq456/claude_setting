@@ -21,7 +21,7 @@ checks to their own event model.
 | artifact order | `hooks/artifact-guard.sh` | `portable-check` | New tracked artifacts must be created in dependency order: spec after research/analysis, plans after spec, documents after research/analysis. | Run `hooks/artifact-guard.sh --file <path> [--session <id>]` before writes, or use an adapter wrapper. |
 | git state safety | `hooks/git-state-guard.sh` | `portable-check` | Do not edit files in merge/rebase/cherry-pick/detached unsafe git states unless explicitly unlocked. | Run `hooks/git-state-guard.sh --file <path>` before file edits, or use an adapter wrapper. |
 | spec read gate | `hooks/spec-skill-gate.sh`, `hooks/spec-read-marker.sh` | `portable-check` | Spec-changing capability calls in spec-backed projects require a current `prd.md` read marker. | Run `hooks/spec-read-marker.sh --file <prd.md> [--session <id>]` after actual reads, then `hooks/spec-skill-gate.sh --skill <capability> [--cwd <dir>] [--session <id>]` before spec/code capabilities. |
-| memory write guard | `hooks/builtin-memory-guard.sh` | `adapter-payload-wrapper` | Runtime-native file memory must not bypass the unified DB memory store. | Block writes to runtime memory-file paths or remove the native memory feature. |
+| memory write guard | `hooks/builtin-memory-guard.sh` | `portable-check` | Runtime-native file memory must not bypass the unified DB memory store. | Run `hooks/builtin-memory-guard.sh --file <path>` before writes, or remove the native memory feature. |
 | design post-write verification | `hooks/design-postwrite.sh` | `adapter-coupled-automation` | Saved design HTML should get deterministic console verification. | Provide an equivalent browser/console checker or report unsupported. |
 | workflow tracked signal | `utilities/workflow-guard-hook.sh` | `adapter-payload-wrapper` | Surface tracked/untracked mode and clean stale flags. | Attach to session/prompt start or expose an explicit wrapper reminder. |
 | memory injection | `tools/memory/mem.py inject --hook` | `adapter-payload-wrapper` | Inject relevant DB memory at session start. | Map the injection output to the runtime's context mechanism. |
@@ -38,7 +38,8 @@ be wrapped or reimplemented behind an adapter-native event bridge.
 
 Current Claude Code registration lives in `adapters/claude/settings.json`.
 Codex must not consume that JSON as configuration. It can run
-`adapters/codex/bin/preflight.sh write <file> [session-id]` before edits,
+`adapters/codex/bin/preflight.sh write <file> [session-id]` before edits
+(git state, artifact order, and native memory-file write checks),
 `adapters/codex/bin/preflight.sh read <prd.md> [session-id]` after actual spec
 reads, and `adapters/codex/bin/preflight.sh capability <name> [cwd] [session-id]`
 before spec-changing capability work.

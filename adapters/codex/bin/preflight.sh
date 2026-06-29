@@ -23,6 +23,7 @@ case "$cmd" in
     sid=${3:-codex}
     "$ROOT/hooks/git-state-guard.sh" --file "$file"
     "$ROOT/hooks/artifact-guard.sh" --file "$file" --session "$sid"
+    "$ROOT/hooks/builtin-memory-guard.sh" --file "$file"
     ;;
   read)
     [ "$#" -ge 2 ] || { echo "codex preflight: read requires a file path" >&2; exit 64; }

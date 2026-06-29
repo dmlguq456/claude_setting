@@ -4,6 +4,7 @@ set -u
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 ART="$ROOT/hooks/artifact-guard.sh"
 GIT="$ROOT/hooks/git-state-guard.sh"
+MEM="$ROOT/hooks/builtin-memory-guard.sh"
 CODEX="$ROOT/adapters/codex/bin/preflight.sh"
 MARK="$ROOT/hooks/spec-read-marker.sh"
 SPEC="$ROOT/hooks/spec-skill-gate.sh"
@@ -60,6 +61,17 @@ if "$CODEX" write "$TMP/repo/f" testsid >/tmp/codex.out 2>/tmp/codex.err; then
   ok "codex preflight passes clean write"
 else
   bad "codex preflight should pass clean write"
+fi
+mkdir -p "$TMP/runtime/projects/abc/memory"
+if "$MEM" --file "$TMP/runtime/projects/abc/memory/MEMORY.md" >/tmp/mem.out 2>/tmp/mem.err; then
+  bad "builtin memory guard should fail memory file write"
+else
+  [ "$?" -eq 2 ] && ok "builtin memory guard exits 2" || bad "builtin memory guard wrong exit"
+fi
+if "$CODEX" write "$TMP/runtime/projects/abc/memory/MEMORY.md" testsid >/tmp/codex.out 2>/tmp/codex.err; then
+  bad "codex preflight should block memory file write"
+else
+  [ "$?" -eq 2 ] && ok "codex preflight blocks memory file write" || bad "codex preflight memory wrong exit"
 fi
 
 echo "== spec read gate CLI =="
