@@ -69,6 +69,12 @@ Design capabilities are a tool-contract exception: Codex must provide or map an
 adapter visual harness before claiming full support, and `capability-info`
 reports `status=tool-contract` for those entries.
 
+The boundary guard intentionally fails if `adapters/codex/skills/`, a Codex
+plugin directory, or a Codex plugin manifest appears before this section is
+updated with a discoverability test. That keeps the current instruction-only
+adapter from silently turning Claude Skill files into a fake Codex-native
+surface.
+
 ## Explicit Non-Support
 
 Codex must not consume these Claude-native files as native configuration:

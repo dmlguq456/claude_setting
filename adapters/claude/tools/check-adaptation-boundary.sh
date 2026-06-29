@@ -39,6 +39,14 @@ check_codex_forbidden_entries() {
   done
 }
 
+check_codex_native_surface_debt() {
+  for p in adapters/codex/skills adapters/codex/plugins adapters/codex/.codex-plugin codex_setting/plugins codex_setting/.codex-plugin; do
+    if [ -e "$p" ] || [ -L "$p" ]; then
+      fail_msg "$p exists; Codex native skill/plugin surface is not materialized yet and must be added with discoverability guards"
+    fi
+  done
+}
+
 check_required_projection_entries() {
   for p in AGENTS.md README.md core capabilities bin tools utilities; do
     if [ ! -L "codex_setting/$p" ]; then
@@ -488,6 +496,7 @@ warn_concrete_runtime_terms() {
 check_projection_symlinks claude_setting
 check_projection_symlinks codex_setting
 check_codex_forbidden_entries
+check_codex_native_surface_debt
 check_required_projection_entries
 check_install_layout_codex_projection
 check_codex_bin_wrappers
