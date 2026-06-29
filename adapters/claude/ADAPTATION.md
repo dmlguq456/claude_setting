@@ -11,6 +11,7 @@ runtime-specific files out of the common root.
 | Hook and permission config | `adapters/claude/settings.json` | `claude_setting/settings.json` |
 | Keybindings | `adapters/claude/keybindings.json` | `claude_setting/keybindings.json` |
 | Slash commands | `adapters/claude/commands/` | `claude_setting/commands` |
+| Runtime worker wrappers | `adapters/claude/bin/` | `claude_setting/bin` |
 | Agents | `adapters/claude/agents/` | `claude_setting/agents` |
 | Skills | `adapters/claude/skills/` | `claude_setting/skills` |
 | Agent modes | `adapters/claude/agent-modes/` | `claude_setting/agent-modes` |
@@ -70,13 +71,16 @@ The current Claude distiller mapping is:
 
 | Portable worker role | Claude realization |
 |---|---|
-| `fast distiller` / turn-counter add-only worker | detached `claude -p` with `MEM_DISTILL_MODEL` default `claude-sonnet-4-6` |
-| `deep curator` / SessionEnd action worker | detached `claude -p` with `MEM_DISTILL_MODEL_SESSIONEND` default `claude-opus-4-8` |
+| `fast distiller` / turn-counter add-only worker | `adapters/claude/bin/mem-distill-worker.sh` maps `fast-distiller` to detached `claude -p` default `claude-sonnet-4-6` |
+| `deep curator` / SessionEnd action worker | `adapters/claude/bin/mem-distill-worker.sh` maps `deep-curator` to detached `claude -p` default `claude-opus-4-8` |
 
 `hooks/mem-distill-dispatch.sh` keeps the existing Claude behavior: opt-in via
 `MEM_DISTILL_ENABLE=1`, recursion guard through `MEM_DISTILL=1`, no-tools output
-contract through `--disallowedTools`, JSON/action validation in shell/Python
-code, and `mem` CLI as the only DB mutation path. Other adapters must provide
+contract through the Claude worker's `--disallowedTools`, JSON/action validation
+in shell/Python code, and `mem` CLI as the only DB mutation path. The shared
+dispatcher contract is `MEM_DISTILL_WORKER=<executable>` with
+`<mode> <model> <prompt-file>` arguments; this adapter sets that executable to
+the Claude worker when using the shared dispatcher. Other adapters must provide
 their own transcript source and worker invocation or explicitly keep automatic
 distillation unsupported.
 

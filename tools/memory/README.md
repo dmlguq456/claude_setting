@@ -40,11 +40,12 @@ Hermes 메모리 벤치마킹의 store/write 층. spec: `<artifact-root>/spec/pr
 
 > **γ 큐레이터 보안 불변(D-18)**: 위 5개 변이 서브커맨드(reinforce/merge/prune/graduate/reattribute)는 distiller LLM 이 **직접 실행하지 않는다**. distiller(no-tools)는 action JSON(`{"action":…}`)만 출력하고, `tools/memory/apply-distill-actions.py` 가 파싱·shape 검증·멤버십 게이트 후 이 서브커맨드를 **argv 로** 호출한다. 각 서브커맨드는 자체 화이트리스트 게이트로 현 프로젝트 외(profile·global·타 프로젝트·존재안함) 대상을 거부(비0 exit, 삭제 0). prune/merge 는 삭제 전 graveyard 백업.
 
-env override (테스트용): `MEM_STORE` · `MEM_PROJECTS` · `MEM_PROFILE` · `MEM_DISTILL` · `MEM_DISTILL_ENABLE` · `MEM_DISTILL_MODEL`.
+env override (테스트용): `MEM_STORE` · `MEM_PROJECTS` · `MEM_PROFILE` · `MEM_DISTILL` · `MEM_DISTILL_ENABLE` · `MEM_DISTILL_WORKER` · `MEM_DISTILL_MODEL`.
 - `MEM_STORE` → `memory.db` 경로와 `dump.jsonl` 경로 모두 이 디렉터리 하위로 파생됨.
 - `MEM_PROFILE` → `export --target profile` 의 출력 디렉터리. 테스트 시 `/tmp/...` 로 지정해 실 `user_profile/` 보호.
 - `MEM_DISTILL_ENABLE` → **distiller opt-in 게이트**. `1` 일 때만 `mem-distill-dispatch.sh` 가 실제 분사. 미설정이면 hook 은 no-op. 이유: 매 세션 종료·N턴마다 background LLM 자동 실행(비용·동작 인지) + distiller 가 대화 본문(외부 입력일 수 있음)을 LLM 으로 읽는 신뢰경계 면 → 사용자가 검토 후 활성화. Adapter-native settings own whether this is enabled in a runtime. v8 no-tools 재설계로 acceptance(임의명령 차단 실측)·env-상속 재귀가드·ghost-marker·e2e 검증 통과 후 ENABLE 가능. (`--permission-mode` 는 default 유지 — dontAsk/bypass 는 allow-all 이라 금지.)
 - `MEM_DISTILL` → `1` 이면 `mem-distill-dispatch.sh`·`mem-turn-nudge.sh`·`mem-recall-inject.sh` 세 hook 의 재귀가드가 즉시 exit(distiller 세션의 SessionEnd·UserPromptSubmit 가 다시 분사를 트리거하지 않도록 차단 — v8 세 트리거 가드).
+- `MEM_DISTILL_WORKER` → shared dispatcher 가 호출할 adapter-owned executable. Contract: `<worker> <mode> <model> <prompt-file>`; stdout 은 JSON-lines proposal 이고 no-tools/permission contract 는 adapter worker 가 보장한다.
 - `MEM_DISTILL_MODEL` → distiller 분사 모델 지정. Concrete defaults belong to adapter-native realization docs.
 
 ## 자동 write 불변식

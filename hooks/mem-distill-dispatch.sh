@@ -4,6 +4,10 @@
 #   미해결·컨벤션)를 working/durable tier 로 mem add + marker 전진. fire-and-forget — 트리거를
 #   블록하지 않음. 기존 SessionEnd `mem sync` 와 별도.
 #
+#   Worker contract: MEM_DISTILL_WORKER executable receives
+#   `<mode> <model> <prompt-file>` and writes JSON-lines to stdout. Runtime
+#   adapters own the actual no-tools worker invocation.
+#
 #   두 호출 모드 (둘 다 같은 SID/CWD 변수로 수렴 → 이후 marker·lock·prompt·spawn 동일):
 #     1) stdin-JSON  : 인자 없이 호출. stdin 의 {session_id,cwd} 파싱 (SessionEnd 경로).
 #     2) argument    : `mem-distill-dispatch.sh distill <sid> [cwd]`. turn-counter(N턴) 경로 —
@@ -22,25 +26,21 @@
 #   workflow-guard .untracked GC 와 동형.) D1: lock/state 파일은 루트 /memory/ gitignore 가
 #   커버 — 별도 ignore 파일 불필요.
 #
-#   ⚠️ 기본 비활성(opt-in): MEM_DISTILL_ENABLE=1 일 때만 실제 분사. settings.json 배선은 돼
+#   ⚠️ 기본 비활성(opt-in): MEM_DISTILL_ENABLE=1 일 때만 실제 분사. adapter wiring 은 돼
 #   있으나, 활성화는 사용자가 명시적으로 켜야 한다 — 이유: (1) "매 세션 종료·N턴마다 background
 #   LLM 자동 실행"은 비용·동작 인지가 필요한 변경, (2) distiller 가 대화 본문(=외부 입력일 수
 #   있음)을 읽으므로 prompt-injection 신뢰경계가 넓어진다(R1). 끄면 hook 은 즉시 no-op (머지 안전).
 #
 #   ─ v8 보안 재설계 (D-14 fix, 2026-06-16):
 #     v7 의 --allowedTools 'Bash(python3 *mem.py*:*)' allowlist 는 실측에서 무력 확인:
-#       settings.json 의 blanket "Bash" allow + CLI additive 어드레스 의미론 → date>>file 실행됨.
-#     v8 대응: --disallowedTools(disallow > allow 우선)로 전 도구 제거. distiller 는 도구 없이
-#       JSON-lines 만 stdout 출력. 스크립트가 검증·mem add 실행(LLM 이 직접 실행 X).
-#     ⑤ pre-enable 라이브검증 (MEM_DISTILL_ENABLE=1 켜기 전):
-#       실 운영 settings.json 환경(blanket Bash allow + skipAutoPermissionPrompt:true +
-#       skipDangerousModePermissionPrompt:true + defaultMode:auto 모두 live)에서 --disallowedTools
-#       로 date>>file 이 차단되고 hang 없음 실측. allowlist probe 아님 — disallow>allow 우선순위를
-#       실 환경에서 검증해야 한다(빈-allow 환경에서의 PASS 는 "allow 없으면 no Bash"로 false PASS).
-#       --permission-mode 는 default(미지정) 유지 — dontAsk/bypassPermissions 는 allow-all 이라 금지.
+#       Claude Code settings 의 blanket "Bash" allow + CLI additive 어드레스 의미론 → date>>file 실행됨.
+#     v8 대응: adapter worker 가 no-tools contract 를 보장하고 JSON-lines 만 stdout 출력.
+#       스크립트가 검증·mem add 실행(LLM 이 직접 실행 X).
+#     ⑤ pre-enable 라이브검증 (MEM_DISTILL_ENABLE=1 켜기 전): adapter-native worker 가
+#       자기 런타임의 no-tools / permission contract 를 실 환경에서 검증해야 한다.
 #     검증 완료(2026-06-16): ⑤ acceptance(임의명령 차단 실측, control/test counterfactual)·
 #     R1 env-상속(detached SessionEnd worker + MEM_DISTILL=1 상속 probe)·ghost-marker·e2e(84줄→6레코드).
-#     → MEM_DISTILL_ENABLE=1 활성(settings.json env). R7(mem sync 이중흡수)는 distiller=mem add(DB),
+#     → MEM_DISTILL_ENABLE=1 활성(adapter env). R7(mem sync 이중흡수)는 distiller=mem add(DB),
 #     sync=stray 흡수라 비충돌 — 잔여 관찰 항목.
 #
 #   $OUT 캡처파일 ($STORE/.distill-out-<sid>): 일시적(transient) — trap rm -f + 진입부 stale GC.
@@ -75,7 +75,7 @@ if [ "${1:-}" = "distill" ]; then
   SID="${2:-}"
   CWD="${3:-$PWD}"
   MODE=increment
-  DISTILL_MODEL="${MEM_DISTILL_MODEL:-claude-sonnet-4-6}"
+  DISTILL_MODEL="${MEM_DISTILL_MODEL:-fast-distiller}"
 else
   input=$(cat 2>/dev/null || true)
   eval "$(printf '%s' "$input" | python3 -c '
@@ -87,13 +87,16 @@ print("CWD="+shlex.quote(d.get("cwd","") or ""))
 ' 2>/dev/null || true)"
   SID="${SID:-}"; CWD="${CWD:-}"
   MODE=curate
-  DISTILL_MODEL="${MEM_DISTILL_MODEL_SESSIONEND:-claude-opus-4-8}"
+  DISTILL_MODEL="${MEM_DISTILL_MODEL_SESSIONEND:-deep-curator}"
 fi
 [ -n "$SID" ] || exit 0
 
-command -v claude >/dev/null 2>&1 || exit 0
+WORKER="${MEM_DISTILL_WORKER:-}"
+[ -n "$WORKER" ] || exit 0
+WORKER_PATH="$(command -v "$WORKER" 2>/dev/null || true)"
+[ -n "$WORKER_PATH" ] || exit 0
 
-# 빈 delta(처리할 신규 구간 없음) 면 분사 안 함 — 불필요한 claude spawn·트리거 지연 회피.
+# 빈 delta(처리할 신규 구간 없음) 면 분사 안 함 — 불필요한 worker spawn·트리거 지연 회피.
 # 계약: `mem distill` 출력이 whitespace-only 면 여기서 exit 0 (분사 skip, lock 안 잡음). distill()
 # 은 처리할 구간이 없으면 완전 빈 문자열을 내므로(trailing \n 도 없음) 이 판정이 정확하다.
 delta=$(python3 "$MEM" distill "$SID" --source "${MEM_SESSION_SOURCE:-claude}" 2>/dev/null || true)
@@ -186,33 +189,24 @@ $delta
 - 간결하게, 과잉 기록 금지."
 fi
 
-# detached spawn: v8 보안 재설계.
-# --disallowedTools: disallow > allow 우선순위로 전 도구 제거. settings.json blanket Bash allow 보다 우선.
-# Sec-🟡-6: 단일 call-site — 모드별로 분기하는 건 $DISTILL_MODEL 뿐, --disallowedTools·--dangerously-skip
-#   -permissions 부재는 두 모드 공유(한 invocation). 절대 worker invocation 을 두 개로 쪼개지 말 것.
-# --permission-mode 는 default(미지정) 유지 — dontAsk/bypassPermissions = allow-all, 금지.
-# claude 비0 rc (timeout=124 / 거부) 는 || true 로 흡수 → parse·advance 항상 도달(M1 필수).
+# detached spawn: adapter worker contract.
+# Worker 비0 rc (timeout/거부) 는 || true 로 흡수 → parse·advance 항상 도달(M1 필수).
 # cwd: 원 세션 cwd 로 cd 후 분사 — working tier 레코드 cwd-scoped 귀속 (write_record Path.cwd()).
 (
   # $OUT: PID 없음 — per-sid lock 이 동시 1개 보장.
   OUT="$STORE/.distill-out-$SID"
-  # S2: trap 을 claude redirect 줄 앞에 설치 — $OUT 열리기 전 trap 등록(killed 돼도 orphan 방지).
-  #   SNAPIDS_FILE 도 같이 정리(curate 모드 멤버십 파일).
-  trap 'rmdir "$LOCK" 2>/dev/null || true; rm -f "$OUT" "$SNAPIDS_FILE"' EXIT
+  PROMPT_FILE="$STORE/.distill-prompt-$SID"
+  # S2: trap 을 worker 호출 앞에 설치 — $OUT 열리기 전 trap 등록(killed 돼도 orphan 방지).
+  #   PROMPT_FILE/SNAPIDS_FILE 도 같이 정리(curate 모드 멤버십 파일).
+  trap 'rmdir "$LOCK" 2>/dev/null || true; rm -f "$OUT" "$PROMPT_FILE" "$SNAPIDS_FILE"' EXIT
 
   [ -n "$CWD" ] && cd "$CWD" 2>/dev/null || true
 
-  # timeout 가드: 60min stale-GC 백스톱보다 훨씬 빠른 lock-hold 상한 (120s).
-  if command -v timeout >/dev/null 2>&1; then TIMEOUT='timeout 120'; else TIMEOUT=''; fi
-
-  # 전 도구 차단 목록 (space-joined 단일 인자).
-  DISALLOW='Bash Read Write Edit Glob Grep Agent NotebookEdit WebFetch WebSearch Task'
+  printf '%s' "$PROMPT" > "$PROMPT_FILE"
 
   # M1: || true 로 비0 rc 흡수 → set -e 가 subshell 안 죽임 → parse·advance 항상 도달.
   # 모델만 $DISTILL_MODEL 로 분기 (increment=fast distiller / curate=deep curator). 단일 call-site.
-  MEM_DISTILL=1 setsid $TIMEOUT claude -p "$PROMPT" \
-    --model "$DISTILL_MODEL" \
-    --disallowedTools "$DISALLOW" \
+  MEM_DISTILL=1 "$WORKER_PATH" "$MODE" "$DISTILL_MODEL" "$PROMPT_FILE" \
     > "$OUT" 2>/dev/null </dev/null || true
 
   # action JSON 파싱·검증·실행 루프 (shell=False, argv-only).

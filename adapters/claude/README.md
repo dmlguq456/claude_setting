@@ -9,6 +9,7 @@ This adapter maps the common agent harness onto Claude Code.
 | Session bootstrap | `adapters/claude/CLAUDE.md` |
 | Runtime settings | `adapters/claude/settings.json` |
 | Slash commands | `adapters/claude/commands/` |
+| Runtime worker wrappers | `adapters/claude/bin/` |
 | Capabilities | `adapters/claude/skills/*/SKILL.md` |
 | Role profiles | `adapters/claude/agents/*.md` |
 | Hook scripts | `hooks/`, `utilities/` |
@@ -52,6 +53,7 @@ $HOME/.claude/hooks          -> $HOME/agent_setting/claude_setting/hooks
 $HOME/.claude/utilities      -> $HOME/agent_setting/claude_setting/utilities
 $HOME/.claude/tools          -> $HOME/agent_setting/claude_setting/tools
 $HOME/.claude/commands       -> $HOME/agent_setting/claude_setting/commands
+$HOME/.claude/bin            -> $HOME/agent_setting/claude_setting/bin
 $HOME/.claude/statusline.sh  -> $HOME/agent_setting/claude_setting/statusline.sh
 $HOME/.claude/track-toggle.sh -> $HOME/agent_setting/claude_setting/track-toggle.sh
 ```

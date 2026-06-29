@@ -108,6 +108,7 @@ TMPSTUB="$(mktemp -d)"  # trap 은 파일 상단에 등록돼 있음; 여기서 
 mkdir -p "$TMPSTUB/bin"
 printf '#!/bin/sh\ntouch "%s/CLAUDE_CALLED"\n' "$TMPSTUB" > "$TMPSTUB/bin/claude"
 chmod +x "$TMPSTUB/bin/claude"
+export MEM_DISTILL_WORKER=claude
 
 # ---- A. 재귀가드 positive control + negative (③ 보완) ----
 echo "== A. 재귀가드 — positive control + negative =="

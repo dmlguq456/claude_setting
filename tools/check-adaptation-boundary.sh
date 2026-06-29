@@ -60,6 +60,22 @@ check_codex_bin_wrappers() {
   done
 }
 
+check_claude_bin_wrappers() {
+  if [ ! -L claude_setting/bin ]; then
+    fail_msg "claude_setting/bin must project adapters/claude/bin"
+    return
+  fi
+
+  target=$(readlink claude_setting/bin)
+  if [ "$target" != "../adapters/claude/bin" ]; then
+    fail_msg "claude_setting/bin points to $target; expected ../adapters/claude/bin"
+  fi
+
+  if [ ! -x adapters/claude/bin/mem-distill-worker.sh ]; then
+    fail_msg "adapters/claude/bin/mem-distill-worker.sh is missing or not executable"
+  fi
+}
+
 check_claude_skill_projection() {
   if [ ! -L claude_setting/skills ]; then
     fail_msg "claude_setting/skills must project adapters/claude/skills"
@@ -358,6 +374,7 @@ check_projection_symlinks codex_setting
 check_codex_forbidden_entries
 check_required_projection_entries
 check_codex_bin_wrappers
+check_claude_bin_wrappers
 check_claude_skill_projection
 check_claude_mode_projection
 check_claude_hook_projection

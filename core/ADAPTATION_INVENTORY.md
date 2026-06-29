@@ -20,6 +20,7 @@ into a portable agent setting plus runtime adapters.
 | Core operating contract | `core/CORE.md`, `core/WORKFLOW.md`, `core/CONVENTIONS.md`, `core/OPERATIONS.md`, `core/MEMORY.md`, `core/DESIGN_PRINCIPLES.md` | portable | Keep concrete runtime names out unless documenting adapter mapping. |
 | Adapter boundary | `core/ADAPTATION.md`, `adapters/*/ADAPTATION.md` | portable / adapter-native | Single source for what symlink means and what still needs adaptation. |
 | Claude bootstrap | `adapters/claude/CLAUDE.md` | adapter-native | Keep Claude Code response, routing, hook, statusline, and command rules here. |
+| Claude runtime workers | `adapters/claude/bin/*.sh` | adapter-native | Own concrete Claude CLI worker invocations used by shared dispatchers. |
 | Codex bootstrap | `adapters/codex/AGENTS.md` | adapter-native | Expand only with behavior that Codex can actually perform. |
 | Codex preflight wrappers | `adapters/codex/bin/preflight.sh`, `role-map.sh`, `capability-map.sh`, `mode-map.sh`, `distill-worker.sh` | adapter-native | Executable Codex bridge for hook invariants, portable role mapping, capability realization, mode support classification, and distill proposals. |
 | Claude settings/hooks registration | `adapters/claude/settings.json` | adapter-native | Codex must get wrapper/preflight equivalents, not this JSON. |
@@ -32,7 +33,7 @@ into a portable agent setting plus runtime adapters.
 | Agent modes | `adapters/claude/agent-modes/*/*.md`, shared `roles/modes/*.md` | adapter-native projection, mixed content | Concrete Claude mode files preserve current behavior while `roles/MODES.md` classifies portability; split adapter-coupled design/verification/tool notes when Codex-native modes exist. |
 | Hook invariant catalog | `core/HOOKS.md` | portable | Names hook-level invariants and classifies current scripts. |
 | Hook scripts | `adapters/claude/hooks/*.sh`, shared `hooks/*.sh` | adapter-native projection, mixed content | Concrete Claude hook files preserve current behavior while splitting invariant checks from runtime hook payload wrappers. |
-| Memory distiller | `hooks/mem-distill-dispatch.sh`, `tools/memory/` | mixed | Keep DB/CLI portable; move session log reader and model invocation to adapters. |
+| Memory distiller | `hooks/mem-distill-dispatch.sh`, `tools/memory/`, `adapters/*/bin/*distill*` | mixed | Keep DB/CLI and dispatcher contract portable; adapter bins own session source and model invocation. |
 | Agent notes root | `<agent-notes-root>` | runtime/continuity state | Portable docs define the layer and required queues; data is not harness source and must not be committed here. Adapter docs own concrete local path realizations. |
 | Worklog board app | `<worklog-board-app>` plus `<worklog-board-app>-wt/` worktrees | local app workspace / needs-split if promoted | Treat current code, DB/cache, build output, dispatch logs, env files, and worktrees as external to this harness. If promoted later, split source into a separate app repo or portable tool first. Adapter docs own concrete local path realizations. |
 | Worklog status helper | `utilities/agent-worklog-state.sh`, Codex `preflight.sh worklog` | portable helper + adapter wrapper | Read-only inventory of configured notes root and board app; no data migration or mutation. |
