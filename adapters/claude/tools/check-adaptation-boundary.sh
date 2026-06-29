@@ -40,11 +40,15 @@ check_codex_forbidden_entries() {
 }
 
 check_codex_native_surface_debt() {
-  for p in adapters/codex/.codex-plugin codex_setting/plugins codex_setting/.codex-plugin adapters/codex/prompts codex_setting/prompts; do
+  for p in adapters/codex/.codex-plugin codex_setting/plugins codex_setting/.codex-plugin adapters/codex/prompts codex_setting/prompts adapters/codex/agents codex_setting/codex-agents; do
     if [ -e "$p" ] || [ -L "$p" ]; then
-      fail_msg "$p exists; Codex must not expose deprecated prompt/plugin passthrough surfaces outside adapter-owned projections"
+      fail_msg "$p exists; Codex must not expose unsupported native surfaces outside documented adapter-owned projections"
     fi
   done
+
+  if ! grep -Fq 'Codex has no adapter-owned native agent projection yet' adapters/codex/README.md; then
+    fail_msg "adapters/codex/README.md must document that role profiles are role-map only until a Codex-native agent surface exists"
+  fi
 }
 
 check_opencode_forbidden_entries() {

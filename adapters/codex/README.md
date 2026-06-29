@@ -46,7 +46,7 @@ project Claude Skill, command, hook, or statusline files into Codex.
 | capability | Read `capabilities/README.md` for meaning; run `adapters/codex/bin/preflight.sh capability-info <capability>` to confirm Codex realization; use `adapters/codex/skills/<capability>/SKILL.md` as Codex-native guidance |
 | native skill/plugin surface | Skills are materialized under `adapters/codex/skills/`; the installable plugin projection is materialized under `adapters/codex/plugins/agent-harness-codex`. Command-like capability entrypoints use these native Skills/plugin surfaces and are verified with Codex discoverability (`codex debug prompt-input`) |
 | native hook surface | `adapters/codex/hooks/hooks.json` registers Codex `PreToolUse` write guards and `PostToolUse` design HTML checks; explicit preflight remains fallback |
-| role profile | Use `roles/README.md` for meaning; use `roles/modes/` or Claude agent files only as compatibility references until Codex-native role prompts exist |
+| role profile | Use `roles/README.md` for meaning and `adapters/codex/bin/preflight.sh role <portable-role>` for concrete model/reasoning mapping; Codex has no adapter-owned native agent projection yet, so Claude agent files remain compatibility references only |
 | role mode | Run `adapters/codex/bin/preflight.sh mode-info <family/mode>` before using a `roles/modes/` fragment; portable modes can be used directly, tool-contract modes require equivalent tools, unsupported modes are reference-only |
 | adapter bootstrap | Load `adapters/codex/AGENTS.md`, then `core/CORE.md` plus task-relevant shared docs; do not treat `CLAUDE.md` as portable bootstrap |
 | agent home | Set `AGENT_HOME` to the installed harness directory |
