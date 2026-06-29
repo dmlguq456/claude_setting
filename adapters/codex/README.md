@@ -88,6 +88,7 @@ adapter currently exposes only utility files that Codex wrappers or docs use:
 - `artifact-root.sh`
 - `agent-worklog-state.sh`
 - `workflow-guard-hook.sh`
+- `workflow-toggle.sh`
 
 Claude-specific helpers such as `dispatch-liveness.sh` stay out of the Codex
 projection until Codex has an equivalent transcript/liveness contract.

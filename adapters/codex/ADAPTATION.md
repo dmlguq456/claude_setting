@@ -173,6 +173,7 @@ shared `utilities/` directory. The current allowlist is:
 - `artifact-root.sh`
 - `agent-worklog-state.sh`
 - `workflow-guard-hook.sh`
+- `workflow-toggle.sh`
 
 Do not project `dispatch-liveness.sh` until Codex has a documented transcript
 liveness surface equivalent to Claude session transcript mtimes. Do not project
