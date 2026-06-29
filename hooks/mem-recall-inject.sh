@@ -2,7 +2,7 @@
 # mem-recall-inject — D-15 B1 완성: 회상 신호어 자동 사전주입 (DESIGN_PRINCIPLES §0.5, spec v9 Cluster D).
 #   UserPromptSubmit 마다 한국어 신호어(지난번|예전에|전에 등)를 regex 감지, 매칭 시
 #   mem recall 을 실행해 결과를 additionalContext 로 메인에 사전주입. 메인의 "recall 할까"
-#   판단을 결정론 hook 이 대체 (B1 완성 — CLAUDE.md §2 회상 신호어 자율 트리거).
+#   판단을 결정론 hook 이 대체 (B1 완성 — runtime bootstrap 의 회상 신호어 자율 트리거).
 #
 #   Guards:
 #     - MEM_DISTILL=1 → 즉시 exit 0 (distiller 세션 재귀 차단 — 세 hook 다 동일)
@@ -19,10 +19,11 @@
 #   Portable CLI:
 #     mem-recall-inject.sh --prompt <text> [--cwd <dir>] [--format text|claude-json]
 #
-#   등록: settings.json hooks.UserPromptSubmit 4번째 항목 (no-matcher, timeout 10).
+#   등록은 adapter hook 설정이 담당한다 (no-matcher, timeout 10).
 #         mem-recall-inject.sh 가 세 번째 MEM_DISTILL=1 재귀가드 honor 훅.
 set -euo pipefail
-AGENT_HOME="${AGENT_HOME:-${CLAUDE_HOME:-$HOME/.claude}}"
+HOOK_DIR="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")" && pwd)"
+AGENT_HOME="${AGENT_HOME:-$("$HOOK_DIR/../utilities/agent-home.sh")}"
 
 usage() {
   cat <<'EOF'

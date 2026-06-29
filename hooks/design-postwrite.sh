@@ -4,7 +4,8 @@
 # Fast no-op for non-design / non-HTML edits (the node checker self-filters from the hook JSON).
 # Portable CLI: design-postwrite.sh --file <path>
 # Opt out per shell with DESIGN_POSTWRITE_HOOK=0.
-AGENT_HOME="${AGENT_HOME:-${CLAUDE_HOME:-$HOME/.claude}}"
+HOOK_DIR="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")" && pwd)"
+AGENT_HOME="${AGENT_HOME:-$("$HOOK_DIR/../utilities/agent-home.sh")}"
 [ "${DESIGN_POSTWRITE_HOOK:-1}" = "0" ] && exit 0
 
 if [ "${1:-}" = "--file" ]; then

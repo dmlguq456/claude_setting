@@ -15,9 +15,10 @@
 #   Portable CLI:
 #     mem-briefing-inject.sh --cwd <dir> [--format text|claude-json]
 #
-#   등록: settings.json hooks.UserPromptSubmit.
+#   등록은 adapter hook 설정이 담당한다.
 set -euo pipefail
-AGENT_HOME="${AGENT_HOME:-${CLAUDE_HOME:-$HOME/agent_setting}}"
+HOOK_DIR="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")" && pwd)"
+AGENT_HOME="${AGENT_HOME:-$("$HOOK_DIR/../utilities/agent-home.sh")}"
 
 usage() {
   cat <<'EOF'
@@ -119,7 +120,7 @@ msg += "## 오늘 당직 보고\n" + body
 if promo:
     msg += ("\n\n## 제도화 승격 안건 (논의 — 어디에 박을지·정말 본질인지)\n"
             "아래는 메모리에 반복 누적된 규칙·교훈이다. 사용자와 논의해 종착지"
-            "(CLAUDE.md/CONVENTIONS/DESIGN_PRINCIPLES 문서 · hook · drill 케이스)를 정하고, "
+            "(runtime bootstrap/CONVENTIONS/DESIGN_PRINCIPLES 문서 · hook · drill 케이스)를 정하고, "
             "반영·drill 검증 후 메모리에서 prune 한다 (D-28).\n" + promo)
 if os.environ.get("FORMAT") == "text":
     print(msg)

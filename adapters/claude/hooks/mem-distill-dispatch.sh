@@ -49,8 +49,8 @@
 #   등록: settings.json hooks.SessionEnd (stdin-JSON 모드). turn-counter 는 mem-turn-nudge.sh 가
 #   argument 모드로 내부 호출 — 배선 불변.
 set -euo pipefail
-AGENT_HOME="${AGENT_HOME:-${CLAUDE_HOME:-$HOME/.claude}}"
 HOOK_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+AGENT_HOME="${AGENT_HOME:-$("$HOOK_DIR/../utilities/agent-home.sh")}"
 APPLIER="${MEM_APPLIER:-$HOOK_DIR/../tools/memory/apply-distill-actions.py}"
 
 # 재귀가드 (불변식): distiller 세션이면 또 분사하지 않음

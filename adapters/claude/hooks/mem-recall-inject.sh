@@ -22,7 +22,8 @@
 #   등록: settings.json hooks.UserPromptSubmit 4번째 항목 (no-matcher, timeout 10).
 #         mem-recall-inject.sh 가 세 번째 MEM_DISTILL=1 재귀가드 honor 훅.
 set -euo pipefail
-AGENT_HOME="${AGENT_HOME:-${CLAUDE_HOME:-$HOME/.claude}}"
+HOOK_DIR="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")" && pwd)"
+AGENT_HOME="${AGENT_HOME:-$("$HOOK_DIR/../utilities/agent-home.sh")}"
 
 usage() {
   cat <<'EOF'

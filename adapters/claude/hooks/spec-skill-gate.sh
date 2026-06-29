@@ -6,7 +6,8 @@
 # self-report가 아니라 검증 가능한 하드 게이트. POSIX sh, no jq.
 # (autopilot-note 제외 — digest skill 이라 spec 청사진을 안 바꿈. 2026-06-16 audit #16.)
 
-AGENT_HOME="${AGENT_HOME:-${CLAUDE_HOME:-$HOME/.claude}}"
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+AGENT_HOME="${AGENT_HOME:-$("$SCRIPT_DIR/../utilities/agent-home.sh")}"
 
 usage() {
   cat <<'EOF'

@@ -4,7 +4,8 @@
 # 이 마커가 spec-skill-gate.sh의 통과 증거(= '인용'이 아닌 '실제 Read').
 # 마커 내용 = prd.md mtime(Read 시점) → 이후 drift 비교용. POSIX sh, no jq.
 
-AGENT_HOME="${AGENT_HOME:-${CLAUDE_HOME:-$HOME/.claude}}"
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+AGENT_HOME="${AGENT_HOME:-$("$SCRIPT_DIR/../utilities/agent-home.sh")}"
 
 usage() {
   cat <<'EOF'

@@ -44,7 +44,7 @@ op=""
 [ -f "$gd/MERGE_HEAD" ] && op="merge"
 [ -d "$gd/rebase-merge" ] || [ -d "$gd/rebase-apply" ] && op="rebase"
 [ -f "$gd/CHERRY_PICK_HEAD" ] && op="cherry-pick"
-# detached HEAD — 브랜치 없이 커밋에 직접 올라탄 상태. CLAUDE.md §0(C)·§5.9 가 STOP+hook
+# detached HEAD — 브랜치 없이 커밋에 직접 올라탄 상태. runtime bootstrap/OPERATIONS 가 STOP+hook
 # 강제로 약속한 자리인데 종전 hook 은 안 막았다 (codex #6, 2026-06-22).
 [ -z "$op" ] && ! git -C "$dir" symbolic-ref --quiet HEAD >/dev/null 2>&1 && op="detached-HEAD"
 [ -z "$op" ] && exit 0

@@ -16,7 +16,7 @@
 #   재귀가드 (불변식): distiller 세션은 MEM_DISTILL=1 로 돌고, 이 hook 은 그 플래그면 즉시 exit
 #   (재분사 차단). 주의(env 상속): 재귀가드는 detached worker 가 MEM_DISTILL=1 을 상속하고,
 #   그 distiller 세션의 SessionEnd/UserPromptSubmit hook 이 같은 env 로 실행될 때만 성립 — 이
-#   상속은 하네스(Claude Code)가 hook 을 부모 env 로 spawn 하는지에 의존(라이브 검증 대상 R1).
+#   상속은 runtime adapter 가 hook 을 부모 env 로 spawn 하는지에 의존(라이브 검증 대상 R1).
 #
 #   세션당 lock (D3): `$STORE/.distill-lock-<sid>` mkdir-atomic 으로 동시 1개만 분사. delta 계산
 #   후(빈 delta 면 lock 안 잡고 exit) acquire-or-skip, detached child 가 trap EXIT 로 rmdir
@@ -33,7 +33,7 @@
 #
 #   ─ v8 보안 재설계 (D-14 fix, 2026-06-16):
 #     v7 의 --allowedTools 'Bash(python3 *mem.py*:*)' allowlist 는 실측에서 무력 확인:
-#       Claude Code settings 의 blanket "Bash" allow + CLI additive 어드레스 의미론 → date>>file 실행됨.
+#       adapter permission settings 의 blanket shell allow + CLI additive 어드레스 의미론 → date>>file 실행 가능.
 #     v8 대응: adapter worker 가 no-tools contract 를 보장하고 JSON-lines 만 stdout 출력.
 #       스크립트가 검증·mem add 실행(LLM 이 직접 실행 X).
 #     ⑤ pre-enable 라이브검증 (MEM_DISTILL_ENABLE=1 켜기 전): adapter-native worker 가
@@ -46,11 +46,11 @@
 #   $OUT 캡처파일 ($STORE/.distill-out-<sid>): 일시적(transient) — trap rm -f + 진입부 stale GC.
 #     verbatim 대화 delta 를 보유하므로, SIGKILL-orphan 시 /memory/ gitignore 커버 하에 60분 후 GC.
 #
-#   등록: settings.json hooks.SessionEnd (stdin-JSON 모드). turn-counter 는 mem-turn-nudge.sh 가
+#   등록은 adapter hook 설정이 담당한다 (SessionEnd stdin-JSON 모드). turn-counter 는 mem-turn-nudge.sh 가
 #   argument 모드로 내부 호출 — 배선 불변.
 set -euo pipefail
-AGENT_HOME="${AGENT_HOME:-${CLAUDE_HOME:-$HOME/.claude}}"
 HOOK_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+AGENT_HOME="${AGENT_HOME:-$("$HOOK_DIR/../utilities/agent-home.sh")}"
 APPLIER="${MEM_APPLIER:-$HOOK_DIR/../tools/memory/apply-distill-actions.py}"
 
 # 재귀가드 (불변식): distiller 세션이면 또 분사하지 않음

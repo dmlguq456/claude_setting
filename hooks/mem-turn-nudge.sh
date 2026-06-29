@@ -4,9 +4,10 @@
 #   UserPromptSubmit 마다 세션별 카운터++; N턴 도달 시 메인 주입 0 — 대신 sibling dispatch(argument 모드)로
 #   외부 detached distiller 분사(MEM_DISTILL_ENABLE 시; off=완전 no-op). 카운터는 리셋 (v7 외부화, spec §5.5.3 D-13).
 #   memory.db write 감지(mtime 증가) 시 카운터 리셋 — Hermes turns_since_memory=0 등가 (write 하면 회고 불필요).
-#   "언제 회고할지" 를 에이전트 판단이 아니라 결정론 카운터로 (§0.5). 등록: settings.json hooks.UserPromptSubmit.
+#   "언제 회고할지" 를 에이전트 판단이 아니라 결정론 카운터로 (§0.5). 등록은 adapter hook 설정이 담당.
 set -euo pipefail
-AGENT_HOME="${AGENT_HOME:-${CLAUDE_HOME:-$HOME/agent_setting}}"
+HOOK_DIR="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")" && pwd)"
+AGENT_HOME="${AGENT_HOME:-$("$HOOK_DIR/../utilities/agent-home.sh")}"
 
 # 재귀가드 (불변식, spec v7 §5.5): distiller 세션이면 turn-counter 도 분사하지 않음.
 # distiller worker 의 UserPromptSubmit equivalent 가 재-dispatch 하는 것을 차단. stdin parse 전에 둔다.
@@ -51,7 +52,7 @@ find "$STORE" -maxdepth 1 -name '.turn-state-*' -mmin +4320 -delete 2>/dev/null 
 
 # fire 액션 (D6 self-location): N턴 도달 시 메인 컨텍스트 주입 0 — 대신 sibling dispatch 를
 # argument 모드로 호출해 외부 detached distiller 분사. self-location 으로 sibling 을 찾으므로
-# worktree turn-nudge→worktree dispatch / live→live 가 자연 해소 (하드코딩 $HOME/.claude/hooks/ X).
+# worktree turn-nudge→worktree dispatch / live→live 가 자연 해소 (runtime-home hook 경로 하드코딩 X).
 # dispatch 자체 opt-in 게이트가 ENABLE off 시 no-op 으로 만듦 (게이트 단일 자리). |출력 redirect +
 # || true 로 fail-safe exit 0 보장 — 메인 컨텍스트 주입 0.
 # default-SID skip (QA-②): SID 비었거나 "default"(broken-stdin) 면 dispatch 호출 skip — 여러
