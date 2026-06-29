@@ -40,7 +40,7 @@ case "$cmd" in
     file=$2
     sid=${3:-codex}
     "$ROOT/hooks/git-state-guard.sh" --file "$file"
-    "$ROOT/hooks/artifact-guard.sh" --file "$file" --session "$sid"
+    ARTIFACT_GUARD_TOGGLE_LABEL="preflight.sh track" "$ROOT/hooks/artifact-guard.sh" --file "$file" --session "$sid"
     "$ROOT/hooks/builtin-memory-guard.sh" --file "$file"
     ;;
   read)

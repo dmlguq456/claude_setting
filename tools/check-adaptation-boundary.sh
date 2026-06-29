@@ -153,6 +153,10 @@ check_codex_bin_wrappers() {
     fail_msg "adapters/codex/bin/preflight.sh must adapt workflow signal toggle text"
   fi
 
+  if ! grep -Fq 'ARTIFACT_GUARD_TOGGLE_LABEL="preflight.sh track"' adapters/codex/bin/preflight.sh; then
+    fail_msg "adapters/codex/bin/preflight.sh must adapt artifact guard toggle text"
+  fi
+
   if ! grep -Fq 'preflight.sh start' adapters/codex/AGENTS.md; then
     fail_msg "adapters/codex/AGENTS.md must document the Codex workflow start cleanup wrapper"
   fi

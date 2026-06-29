@@ -149,6 +149,19 @@ if "$CODEX" start "$TMP/flowproj" testsid >/tmp/start.out 2>/tmp/start.err \
 else
   bad "codex start wrapper should clean stale untracked flags"
 fi
+mkdir -p "$TMP/codex-artifact/.agent_reports/spec"
+if "$CODEX" write "$TMP/codex-artifact/.agent_reports/spec/prd.md" testsid >/tmp/codex-artifact.out 2>/tmp/codex-artifact.err; then
+  bad "codex write wrapper should fail missing research"
+else
+  rc=$?
+  if [ "$rc" -eq 2 ] \
+    && grep -q 'preflight.sh track' /tmp/codex-artifact.err \
+    && ! grep -q '/track' /tmp/codex-artifact.err; then
+    ok "codex write wrapper adapts artifact toggle hint"
+  else
+    bad "codex write wrapper should adapt artifact toggle hint"
+  fi
+fi
 if "$TOGGLE" --cwd "$TMP/flowproj" --session testsid --set untracked >/tmp/toggle.out 2>/tmp/toggle.err \
   && grep -q 'untracked mode' /tmp/toggle.out \
   && [ -f "$TMP/flowproj/.agent_reports/.untracked.testsid" ]; then
