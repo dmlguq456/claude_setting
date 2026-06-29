@@ -86,6 +86,31 @@ check_claude_skill_projection() {
   done
 }
 
+check_claude_mode_projection() {
+  if [ ! -L claude_setting/agent-modes ]; then
+    fail_msg "claude_setting/agent-modes must project adapters/claude/agent-modes"
+    return
+  fi
+
+  target=$(readlink claude_setting/agent-modes)
+  if [ "$target" != "../adapters/claude/agent-modes" ]; then
+    fail_msg "claude_setting/agent-modes points to $target; expected ../adapters/claude/agent-modes"
+  fi
+
+  for d in agent-modes/*; do
+    [ -d "$d" ] || continue
+    family=${d#agent-modes/}
+    if [ ! -L "adapters/claude/agent-modes/$family" ]; then
+      fail_msg "adapters/claude/agent-modes/$family must be a symlink passthrough"
+      continue
+    fi
+    mode_target=$(readlink "adapters/claude/agent-modes/$family")
+    if [ "$mode_target" != "../../../agent-modes/$family" ]; then
+      fail_msg "adapters/claude/agent-modes/$family points to $mode_target; expected ../../../agent-modes/$family"
+    fi
+  done
+}
+
 check_removed_root_surfaces() {
   if [ -e agents ] || [ -L agents ]; then
     fail_msg "root agents/ exists; Claude-native agents must live under adapters/claude/agents and portable meaning under roles/"
@@ -196,6 +221,7 @@ check_codex_forbidden_entries
 check_required_projection_entries
 check_codex_bin_wrappers
 check_claude_skill_projection
+check_claude_mode_projection
 check_removed_root_surfaces
 check_capability_catalog
 check_codex_capability_map
