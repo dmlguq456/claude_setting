@@ -143,7 +143,7 @@
 - autopilot-code는 현재 dir에서 코드 변경
 - autopilot-{draft,research,refine}는 artifact root 하위 영속 산출물을 input으로 implicit 인지 (cross-project 작업은 `cd <other>` 후 별도 세션)
 
-> **gitignore 전제 (불변식)**: skill 산출물 폴더 `.agent_reports/`는 _프로젝트 repo 에 커밋하지 않는다_ — 에이전트 작업 산출물(plan·log·snapshot·reviews·lock)이지 소스가 아니다. 새 프로젝트에서 처음 산출물을 만들 때(또는 `git`-tracked repo 에서 처음 호출될 때) `.agent_reports/`가 `.gitignore`에 없으면 한 줄(`.agent_reports/`) 추가한다 (이미 있거나 git repo 가 아니면 skip). legacy 프로젝트는 `.claude_reports/`를 같은 규칙으로 취급한다. OPERATIONS §5.8 의 worktree symlink 가드·`.pipeline-lock` transient 처리도 이 gitignore 전제 위에서 성립. **예외 — `<agent-home>` (하네스 repo 자신, 2026-06-11 사용자 결정)**: 이 repo 는 기존 `.claude_reports` 를 _커밋한다_ — 세팅 개선의 research·audit·plan 이력이 곧 repo 의 자산 (transient `.pipeline-lock`·`.untracked*` 만 ignore). 스킬셋 본작업도 파이프 경유로 `plans/` 사이클을 남기는 정식 프로젝트로 다룬다.
+> **gitignore 전제 (불변식)**: skill 산출물 폴더 `.agent_reports/`는 _프로젝트 repo 에 커밋하지 않는다_ — 에이전트 작업 산출물(plan·log·snapshot·reviews·lock)이지 소스가 아니다. 새 프로젝트에서 처음 산출물을 만들 때(또는 `git`-tracked repo 에서 처음 호출될 때) `.agent_reports/`가 `.gitignore`에 없으면 한 줄(`.agent_reports/`) 추가한다 (이미 있거나 git repo 가 아니면 skip). legacy 프로젝트는 `.claude_reports/`를 같은 규칙으로 취급한다. OPERATIONS §5.8 의 worktree symlink 가드·`.pipeline-lock` transient 처리도 이 gitignore 전제 위에서 성립. **예외 — `<agent-home>` (하네스 repo 자신, 2026-06-11 사용자 결정)**: 이 repo 는 `.agent_reports` 를 _커밋한다_ — 세팅 개선의 research·audit·plan 이력이 곧 repo 의 자산 (transient `.pipeline-lock`·`.untracked*` 만 ignore). 스킬셋 본작업도 파이프 경유로 `plans/` 사이클을 남기는 정식 프로젝트로 다룬다.
 
 모든 입력은 _프로젝트 컨텍스트 내부의 영속 산출물_ (`<artifact-root>/analysis_project/*`, `<artifact-root>/research/{topic}/`)에서 옴. 외부 폴더를 직접 가리키는 flag는 family 에 없음. 외부 raw 자료가 있으면 먼저 `analyze-project --mode {paper|doc}`로 영속 산출물화.
 

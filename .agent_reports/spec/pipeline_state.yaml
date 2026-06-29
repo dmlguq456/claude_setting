@@ -1,0 +1,34 @@
+project_name: unified-memory-system
+created: 2026-06-15
+mode: [library, cli]
+scope_note: "통합 기억 시스템 — post-it(단기)·auto-memory(장기)·user_profile(전역) 1 store + tier 모델. Hermes 적극 결합 + 중복 cut."
+phases:
+  spec: done               # v3 PRD 확정 (D-1~7 lock — DB화·저장소분리·통합강화)
+  scaffolding: pending
+  dev: in_progress         # v3 완료(DB화·분리). v4 신규 = Cluster A(profile 완전통합)+B(Hermes port) 구현 대기
+last_updated: 2026-06-22  # v11: Cluster F — 루프↔메모리 환류(루프 자율성 재정의·아침 논의 데스크·curator 산출물 대조 적극 prune·제도화 승격 채널)+선결 버그 복원력. snapshot v10
+inputs:
+  - .agent_reports/research/hermes-agent/
+  - VISION.md
+  - CONVENTIONS.md#7
+  - skills/post-it/ + tools/memory/ + user_profile/
+decisions_locked:
+  - D-1: 삭제 정책 — working 자동만료/졸업, durable gc 플래깅
+  - D-2: post-it 스킬 — mem alias 유지 (deprecate 아님)
+  - D-3: user_profile — raw=레코드, aspect=DB→generated view
+  - D-4: 주입·회수 — SessionStart inject + SessionEnd sync
+  - D-5: SoT = 로컬 SQLite memory.db (git=dump.jsonl 텍스트 mirror, .db 비추적)
+  - D-6: 저장소 분리 — claude-memory private repo, config repo memory/ 이력 filter-repo 제거
+  - D-7: 통합 깊이 — user_profile+post-it+auto-memory 한 DB (tier/scope/type 컬럼 구분 유지)
+  - D-8: 결정론 우선 (deterministic-first) — SW 가능 요소는 코드(hook/script/gate/DB)로, agent 판단 최소화 (cross-cutting, DESIGN_PRINCIPLES 격상)
+  - D-9: 파일 메커니즘 제거(Option 2) — user_profile/·post-it.md 파일 제거, DB 유일 SoT, sub-agent는 mem profile/recall로 DB 직접 읽기 (Cluster A)
+  - D-10: Hermes 잔여 port — session_search 자율호출 + turn-counter 자기회고, 둘 다 결정론-우선 (Cluster B)
+  - D-11: harness-agnostic 세션 source 추상화 — ingest_session(source), 현재 Claude Code jsonl adapter 1개, 미래 하네스는 adapter 추가 (Cluster C)
+  - D-12: SessionEnd distiller — detached claude -p로 세션 jsonl → working/durable distill, 재귀가드 MEM_DISTILL=1, 증분 marker (Cluster C)
+  - D-13: in-session 증분 consolidation — turn-nudge 확장, delta만 정리(요약 추가/해결분 prune). v7: 메인 아니라 외부 detached distiller 분사(메인 load 0), D-12와 같은 worker·marker (Cluster C)
+  - D-14: distiller 신뢰경계 차단 — v7 권한 allowlist(mem.py-only) 무력 실측(settings.json blanket Bash allow) → v8 재설계: distiller no-tools(--disallowedTools) + JSON-lines 출력 → 스크립트가 검증 후 mem add 직접 실행(LLM 판단·코드 실행, §0.5). distiller 모델 sonnet (Cluster C v8)
+  - D-15: recall 자동주입 hook — B1 instruction → UserPromptSubmit hook(신호어 regex → mem recall → additionalContext). 메인 "recall 할까" 판단 제거 (Cluster D v9)
+  - D-16: 정리 후보 메인 노출 — lifecycle durable near-dup(+옵션 capacity·만료임박 working)를 mem inject 에 노출 → 메인이 consolidate/prune/graduate (Cluster D v9)
+  - D-17: add=외부 offload·삭제=메인 원칙 — distiller add-only 확정, working prune/graduate·consolidation=메인, TTL=deterministic backstop(2차) (Cluster D v9) [v10에서 삭제=세션끝 opus로 정정]
+  - D-18~D-24: Cluster E(v10) — 세션끝 opus 풀 큐레이터(단순화)·strength reinforcement·폭증방지 4겹·project_key robust(worktree/이동)·recall 엔진(OR+bm25)·내구성(dump commit·user_version·INJECTION persist)·E-7 프록시 폐기(model-agnostic=D-11 adapter)
+  - D-25~D-29: Cluster F(v11) — 루프 자율성 재정의(되돌림가능+명백=무인처리+전수보고)·아침 논의 데스크(cwd==~/.claude 당직후 첫 발화 inject)·curator 산출물 대조 적극 prune(ARTIFACTS 블록+안전 3겹)·제도화 승격 채널(durable 규칙·교훈→문서/hook/drill, 반영후 prune)·루프 복원력(✅ b95b9a9). post-it 재검토 열림(§5.8.6)

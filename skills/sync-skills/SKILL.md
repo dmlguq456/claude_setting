@@ -308,7 +308,7 @@ README 는 mermaid 를 안 쓰고 _4 트랙 텍스트 화살표 체인_ (```text
 
 ### Step 5d: 에이전트 엔지니어링 매뉴얼 동기 검토 (autopilot-refine 경유)
 
-**왜 신설** (2026-06-11): 이 설정 repo 의 artifact root(`<agent-home>/.agent_reports/`, legacy `<agent-home>/.claude_reports/`) 아래 `documents/{date}_agent-engineering-manual/draft/draft.md` 는 업계 원칙 ↔ 우리 세팅을 _라이브 파일 anchor_ 로 매핑한 참조서 (autopilot-draft 산출물). skills/agents/지침이 바뀌면 매뉴얼 2부(세팅 매핑)·anchor 가 조용히 stale 해지는데 이를 잡는 자리가 없었다. sync 가 drift 를 보는 자리에서 매뉴얼 검토를 **항상** 같이 본다.
+**왜 신설** (2026-06-11): 이 설정 repo 의 artifact root(`<agent-home>/.agent_reports/`) 아래 `documents/{date}_agent-engineering-manual/draft/draft.md` 는 업계 원칙 ↔ 우리 세팅을 _라이브 파일 anchor_ 로 매핑한 참조서 (autopilot-draft 산출물). skills/agents/지침이 바뀌면 매뉴얼 2부(세팅 매핑)·anchor 가 조용히 stale 해지는데 이를 잡는 자리가 없었다. sync 가 drift 를 보는 자리에서 매뉴얼 검토를 **항상** 같이 본다.
 
 - Step 3 의 변경(신규·변경·삭제) ≥ 1 이면 final report 에 매뉴얼 검토 항목을 항상 포함 — 변경된 skill/agent 명단을 들어 `/autopilot-refine` (대상: agent-engineering-manual draft) 검토 제안. 변경 0 이어도 매뉴얼이 last sync 이후 갱신 안 됐고 지침 파일(runtime adapter bootstrap / core/WORKFLOW / core/CONVENTIONS)이 바뀌었으면 동일 제안.
 - 매뉴얼은 autopilot-draft 산출물 — **직접 Edit 금지**, 수정은 소유 스킬 `autopilot-refine` 경유 (버전 snapshot·changelog 보존).
