@@ -42,6 +42,7 @@ Adapters must preserve the portable invariants relevant to this capability:
 |---|---|
 | Claude Code | `adapters/claude/skills/design-handoff/SKILL.md` is the Claude-native realization; `skills/design-handoff/SKILL.md` is the compatibility reference. |
 | Codex | Read this spec and run `adapters/codex/bin/preflight.sh capability-info design-handoff`. Do not consume `skills/design-handoff/SKILL.md` as native Codex configuration. |
+| OpenCode | Read this spec and run `adapters/opencode/bin/preflight.sh capability-info design-handoff`. Use `adapters/opencode/skills/design-handoff/SKILL.md` and `adapters/opencode/commands/design-handoff.md` as native OpenCode projections; do not consume `skills/design-handoff/SKILL.md` or Claude command files as native OpenCode configuration. |
 
 ## Compatibility Reference
 

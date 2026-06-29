@@ -9,8 +9,10 @@ Claude Code realizes these capabilities through adapter-owned concrete Skill
 files under `adapters/claude/skills/*/SKILL.md`. Historical
 `skills/*/SKILL.md` files remain compatibility references while portable
 contracts move into this directory.
-Codex and OpenCode adapters should start from this catalog, then consult
-adapter-native instructions only for runtime mechanics.
+Codex and OpenCode adapters start from this catalog, then consult
+adapter-native instructions only for runtime mechanics. Codex realizes
+capabilities through generated native Skill/plugin projections; OpenCode
+realizes them through generated native Skill and command projections.
 
 ## Capability Contract
 

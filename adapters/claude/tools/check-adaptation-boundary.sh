@@ -1233,6 +1233,17 @@ check_capability_catalog() {
     fi
     if [ ! -f "capabilities/$slug.md" ]; then
       fail_msg "capabilities/$slug.md is missing portable capability spec"
+      continue
+    fi
+    if ! grep -Fq "| Codex | Read this spec and run \`adapters/codex/bin/preflight.sh capability-info $slug\`" "capabilities/$slug.md"; then
+      fail_msg "capabilities/$slug.md must document Codex capability-info realization"
+    fi
+    if ! grep -Fq "| OpenCode | Read this spec and run \`adapters/opencode/bin/preflight.sh capability-info $slug\`" "capabilities/$slug.md"; then
+      fail_msg "capabilities/$slug.md must document OpenCode capability-info realization"
+    fi
+    if ! grep -Fq "adapters/opencode/skills/$slug/SKILL.md" "capabilities/$slug.md" \
+      || ! grep -Fq "adapters/opencode/commands/$slug.md" "capabilities/$slug.md"; then
+      fail_msg "capabilities/$slug.md must document OpenCode native Skill and command projections"
     fi
   done
 }

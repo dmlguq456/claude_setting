@@ -42,6 +42,7 @@ Adapters must preserve the portable invariants relevant to this capability:
 |---|---|
 | Claude Code | `adapters/claude/skills/sync-skills/SKILL.md` is the Claude-native realization; `skills/sync-skills/SKILL.md` is the compatibility reference. |
 | Codex | Read this spec and run `adapters/codex/bin/preflight.sh capability-info sync-skills`. Do not consume `skills/sync-skills/SKILL.md` as native Codex configuration. |
+| OpenCode | Read this spec and run `adapters/opencode/bin/preflight.sh capability-info sync-skills`. Use `adapters/opencode/skills/sync-skills/SKILL.md` and `adapters/opencode/commands/sync-skills.md` as native OpenCode projections; do not consume `skills/sync-skills/SKILL.md` or Claude command files as native OpenCode configuration. |
 
 ## Compatibility Reference
 

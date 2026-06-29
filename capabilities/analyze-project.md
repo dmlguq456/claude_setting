@@ -42,6 +42,7 @@ Adapters must preserve the portable invariants relevant to this capability:
 |---|---|
 | Claude Code | `adapters/claude/skills/analyze-project/SKILL.md` is the Claude-native realization; `skills/analyze-project/SKILL.md` is the compatibility reference. |
 | Codex | Read this spec and run `adapters/codex/bin/preflight.sh capability-info analyze-project`. Do not consume `skills/analyze-project/SKILL.md` as native Codex configuration. |
+| OpenCode | Read this spec and run `adapters/opencode/bin/preflight.sh capability-info analyze-project`. Use `adapters/opencode/skills/analyze-project/SKILL.md` and `adapters/opencode/commands/analyze-project.md` as native OpenCode projections; do not consume `skills/analyze-project/SKILL.md` or Claude command files as native OpenCode configuration. |
 
 ## Compatibility Reference
 

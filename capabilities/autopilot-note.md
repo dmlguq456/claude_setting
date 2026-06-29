@@ -47,6 +47,7 @@ Adapters must preserve the portable invariants relevant to this capability:
 |---|---|
 | Claude Code | `adapters/claude/skills/autopilot-note/SKILL.md` is the Claude-native realization; `skills/autopilot-note/SKILL.md` is the compatibility reference. |
 | Codex | Read this spec and run `adapters/codex/bin/preflight.sh capability-info autopilot-note`. Do not consume `skills/autopilot-note/SKILL.md` as native Codex configuration. |
+| OpenCode | Read this spec and run `adapters/opencode/bin/preflight.sh capability-info autopilot-note`. Use `adapters/opencode/skills/autopilot-note/SKILL.md` and `adapters/opencode/commands/autopilot-note.md` as native OpenCode projections; do not consume `skills/autopilot-note/SKILL.md` or Claude command files as native OpenCode configuration. |
 
 ## Compatibility Reference
 
