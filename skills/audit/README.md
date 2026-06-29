@@ -1,6 +1,6 @@
 # audit
 
-> 본 README 는 `SKILL.md` 의 GitHub 표시용 mirror. 권위 있는 동작 명세는 `SKILL.md`.
+> 본 README 는 Claude adapter skill 요약. 권위 있는 Claude runtime 동작 명세는 같은 폴더의 `SKILL.md`; portable capability 의미는 `<agent-home>/capabilities/`.
 
 ## 개요
 Read-only multi-aspect audit / lint for `<artifact-root>/{plans,research,documents}/*` artifacts. Single global entry — auto-detects artifact type from path prefix (plans=code; research=field-survey; documents=doc deliverable).
@@ -45,4 +45,4 @@ doc / research artifact는 추가로 **dual-perspective** 점검:
 보고서는 artifact root의 `_internal/audit/{YYYY-MM-DD}_{aspect}.md`에 누적.
 
 ---
-*원본: `<agent-home>/skills/audit/SKILL.md`*
+*Claude adapter realization: `<agent-home>/adapters/claude/skills/audit/SKILL.md`; compatibility reference: `<agent-home>/skills/audit/SKILL.md`*

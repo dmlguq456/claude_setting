@@ -1,6 +1,6 @@
 # code-refine
 
-> 본 README 는 `SKILL.md` 의 GitHub 표시용 mirror. 권위 있는 동작 명세는 `SKILL.md`.
+> 본 README 는 Claude adapter skill 요약. 권위 있는 Claude runtime 동작 명세는 같은 폴더의 `SKILL.md`; portable capability 의미는 `<agent-home>/capabilities/`.
 
 ## 개요
 사용자 메모/코멘트를 plan에 반영해 업데이트하는 skill (**구현 금지**). 한국어 `plan_ko.md`에 삽입된 메모를 감지하고 영·한 양쪽을 동기화.
@@ -67,4 +67,4 @@ Return which steps were changed and a brief summary.
 - 3 라운드 후 🔴 잔여 → `## 미해결 이슈`에 추가, 사용자에게 변경 step / 해결·미해결 이슈 보고
 
 ---
-*원본: `<agent-home>/skills/code-refine/SKILL.md`*
+*Claude adapter realization: `<agent-home>/adapters/claude/skills/code-refine/SKILL.md`; compatibility reference: `<agent-home>/skills/code-refine/SKILL.md`*

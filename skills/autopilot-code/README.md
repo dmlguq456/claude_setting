@@ -1,6 +1,6 @@
 # autopilot-code
 
-> 본 README 는 `SKILL.md` 의 GitHub 표시용 mirror. 권위 있는 동작 명세는 `SKILL.md`.
+> 본 README 는 Claude adapter skill 요약. 권위 있는 Claude runtime 동작 명세는 같은 폴더의 `SKILL.md`; portable capability 의미는 `<agent-home>/capabilities/`.
 
 > **autopilot-code**: dev/debug 2개 모드의 통합 코드 파이프라인. audit 은 별도 `/audit` skill (갈래 D) — autopilot-code 는 dev/debug 만 담당.
 
@@ -95,4 +95,4 @@ flowchart TD
 12. 역할 밖 위임 금지 — 에이전트의 Mode Selection에 정의되지 않은 작업은 핸들러 추가 후 위임
 
 ---
-*원본: `<agent-home>/skills/autopilot-code/SKILL.md`*
+*Claude adapter realization: `<agent-home>/adapters/claude/skills/autopilot-code/SKILL.md`; compatibility reference: `<agent-home>/skills/autopilot-code/SKILL.md`*

@@ -45,4 +45,4 @@ Adapters must preserve the portable invariants relevant to this capability:
 
 ## Compatibility Reference
 
-The historical Claude Skill source remains at `skills/autopilot-apply/SKILL.md` while this capability is being split into portable and adapter-native layers.
+The historical Claude Skill compatibility reference remains at `skills/autopilot-apply/SKILL.md`; Claude Code consumes `adapters/claude/skills/autopilot-apply/SKILL.md` as the adapter-native realization while portable meaning moves here.

@@ -187,7 +187,7 @@ When converting **reviewer concerns / rebuttal materials → paper-body mutation
 
 #### Paste-ready cheatsheet 형식 (사용자 영역 vs 추적 영역 분리)
 
-paper mode 산출물이 _카드 묶음 cheatsheet_ (camera-ready / major revision / 명시적 `subtype: camera-ready-paste-ready`) 인 경우, draft 본문 형식은 `<agent-home>/skills/autopilot-draft/SKILL.md` 의 paper mode "Paste-ready cheatsheet 형식 강제" 섹션이 단일 출처. Strategy 작성 시점에 _향후 draft 의 형식이 그 규칙을 따를 것이라는 점을 전제_ 로 mutation 목록 / paste 순서 / 분기점을 설계.
+paper mode 산출물이 _카드 묶음 cheatsheet_ (camera-ready / major revision / 명시적 `subtype: camera-ready-paste-ready`) 인 경우, draft 본문 형식은 `<agent-home>/adapters/claude/skills/autopilot-draft/SKILL.md` 의 paper mode "Paste-ready cheatsheet 형식 강제" 섹션이 Claude runtime 단일 출처. Strategy 작성 시점에 _향후 draft 의 형식이 그 규칙을 따를 것이라는 점을 전제_ 로 mutation 목록 / paste 순서 / 분기점을 설계.
 
 핵심 — strategy 안 mutation 목록도 _카드 단위_ 로 (한 entry = 위치 한 줄 + paste-ready LaTeX 한 줄 또는 reference + 짧은 이유). Reviewer 매핑 / dependency 표 / Wording invariant 같은 추적용 메타는 strategy 본문에도 _별도 섹션 (§Reviewer mapping / §Dependency map)_ 으로 묶어 본문 흐름과 분리. draft 생성 단계에서 그 추적 섹션은 `_internal/draft_meta.md` 로 옮겨지고 본문 entry 옆에는 안 박힌다.
 

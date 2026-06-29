@@ -1,6 +1,6 @@
 # autopilot-refine
 
-> 본 README 는 `SKILL.md` 의 GitHub 표시용 mirror. 권위 있는 동작 명세는 `SKILL.md`.
+> 본 README 는 Claude adapter skill 요약. 권위 있는 Claude runtime 동작 명세는 같은 폴더의 `SKILL.md`; portable capability 의미는 `<agent-home>/capabilities/`.
 
 ## 개요
 Autopilot family — **post-creation iteration pipeline for research and doc artifacts** (NOT code). 갈래 E (사후 정정).
@@ -59,4 +59,4 @@ Autopilot family — **post-creation iteration pipeline for research and doc art
 - **Minor 적용 시**: snapshot X — 에이전트가 직접 Edit + `pipeline_summary.md` `## 마이너 변경 로그` 섹션에 상세 entry. **추가로 각 affected file의 frontmatter `changelog:` array에 v{N}_M entry 1줄 insert**. last major snapshot이 audit baseline.
 
 ---
-*원본: `<agent-home>/skills/autopilot-refine/SKILL.md`*
+*Claude adapter realization: `<agent-home>/adapters/claude/skills/autopilot-refine/SKILL.md`; compatibility reference: `<agent-home>/skills/autopilot-refine/SKILL.md`*

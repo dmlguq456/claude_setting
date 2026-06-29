@@ -104,4 +104,4 @@ Composite modes are valid. Keep shared decisions in the common PRD section and e
 
 ## Compatibility Reference
 
-The historical Claude Skill source remains at `skills/autopilot-spec/SKILL.md` while this capability is being split into portable and adapter-native layers.
+The historical Claude Skill compatibility reference remains at `skills/autopilot-spec/SKILL.md`; Claude Code consumes `adapters/claude/skills/autopilot-spec/SKILL.md` as the adapter-native realization while portable meaning moves here.

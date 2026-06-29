@@ -1,6 +1,6 @@
 # code-test
 
-> 본 README 는 `SKILL.md` 의 GitHub 표시용 mirror. 권위 있는 동작 명세는 `SKILL.md`.
+> 본 README 는 Claude adapter skill 요약. 권위 있는 Claude runtime 동작 명세는 같은 폴더의 `SKILL.md`; portable capability 의미는 `<agent-home>/capabilities/`.
 
 ## 개요
 code-execute 이후 또는 온디맨드로 기능 테스트를 실행해 코드 정확성을 검증하는 skill. **항상 Thorough 모드** (2 병렬 QA 팀 강제), external adversary 가용 시 자동 Adversarial로 상향.
@@ -76,4 +76,4 @@ ANY agent의 이슈 처리 필수.
 - plan 없음: `<artifact-root>/tests/` + 날짜 스탬프 서브디렉토리
 
 ---
-*원본: `<agent-home>/skills/code-test/SKILL.md`*
+*Claude adapter realization: `<agent-home>/adapters/claude/skills/code-test/SKILL.md`; compatibility reference: `<agent-home>/skills/code-test/SKILL.md`*

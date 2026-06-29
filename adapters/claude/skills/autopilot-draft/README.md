@@ -1,6 +1,6 @@
 # autopilot-draft
 
-> 본 README 는 `SKILL.md` 의 GitHub 표시용 mirror. 권위 있는 동작 명세는 `SKILL.md`.
+> 본 README 는 Claude adapter skill 요약. 권위 있는 Claude runtime 동작 명세는 같은 폴더의 `SKILL.md`; portable capability 의미는 `<agent-home>/capabilities/`.
 
 > **Paper mode camera-ready / major revision 특이 룰** (2026-05-19): reviewer concern → paper-body mutation 변환 시 **natural-integration rule** 적용. Single gating question — *"1-2 sentence inline rewrite로 자연 통합 가능한가?"* YES → M15-style inline rewrite. NO → drop / Appendix defer (rebuttal-format은 본문 mutation 금지). 상세 — `SKILL.md` Mode-Specific Draft Structure `### paper` 끝.
 
@@ -134,4 +134,4 @@ flowchart LR
 학술/산업/시장 조사가 필요하면 autopilot-research를 먼저 돌리면 그 산출물(`research/{topic}/`)을 autopilot-draft이 implicit 자동 발견.
 
 ---
-*원본: `<agent-home>/skills/autopilot-draft/SKILL.md`*
+*Claude adapter realization: `<agent-home>/adapters/claude/skills/autopilot-draft/SKILL.md`; compatibility reference: `<agent-home>/skills/autopilot-draft/SKILL.md`*

@@ -1,6 +1,6 @@
 # draft-strategy
 
-> 본 README 는 `SKILL.md` 의 GitHub 표시용 mirror. 권위 있는 동작 명세는 `SKILL.md`.
+> 본 README 는 Claude adapter skill 요약. 권위 있는 Claude runtime 동작 명세는 같은 폴더의 `SKILL.md`; portable capability 의미는 `<agent-home>/capabilities/`.
 
 ## 개요
 분석된 참고 자료를 기반으로 초기 문서 전략(rebuttal/paper/review/report/proposal/presentation)을 생성하는 skill. 연구팀에 위임 + QA 루프 (quality + fact-checker 병렬) + 한국어 번역.
@@ -82,4 +82,4 @@ Quality reviewer + fact-checker가 **parallel**로 동작 (standard+).
 연구팀 Translate 모드 최종 호출. 전체 번역 (요약 X). Code identifiers·paper titles·technical terms는 영어.
 
 ---
-*원본: `<agent-home>/skills/draft-strategy/SKILL.md`*
+*Claude adapter realization: `<agent-home>/adapters/claude/skills/draft-strategy/SKILL.md`; compatibility reference: `<agent-home>/skills/draft-strategy/SKILL.md`*

@@ -1,6 +1,6 @@
 # autopilot-research
 
-> 본 README 는 `SKILL.md` 의 GitHub 표시용 mirror. 권위 있는 동작 명세는 `SKILL.md`.
+> 본 README 는 Claude adapter skill 요약. 권위 있는 Claude runtime 동작 명세는 같은 폴더의 `SKILL.md`; portable capability 의미는 `<agent-home>/capabilities/`.
 
 ## 개요
 외부 분야 조사 파이프라인 — 학술/산업/시장 3개 mode별 보고서를 생성합니다. 논문 검색 + 분석 + 코드/모델/데이터셋 자원 발견 + 분야 implementation 가이드를 자동으로 산출.
@@ -60,4 +60,4 @@
 ## Wiki database 안내
 
 ---
-*원본: `<agent-home>/skills/autopilot-research/SKILL.md`*
+*Claude adapter realization: `<agent-home>/adapters/claude/skills/autopilot-research/SKILL.md`; compatibility reference: `<agent-home>/skills/autopilot-research/SKILL.md`*

@@ -1,6 +1,6 @@
 # code-report
 
-> 본 README 는 `SKILL.md` 의 GitHub 표시용 mirror. 권위 있는 동작 명세는 `SKILL.md`.
+> 본 README 는 Claude adapter skill 요약. 권위 있는 Claude runtime 동작 명세는 같은 폴더의 `SKILL.md`; portable capability 의미는 `<agent-home>/capabilities/`.
 
 ## 개요
 plan + dev logs로부터 상세 변경 보고서를 생성하는 skill. **핵심 변경, 원리, 인사이트**에 초점. 향후 참고를 위한 문서.
@@ -76,4 +76,4 @@ plan + dev logs로부터 상세 변경 보고서를 생성하는 skill. **핵심
 4. **보고서에 추가 QA 실행 금지**. reconciliation이 경량 safety net.
 
 ---
-*원본: `<agent-home>/skills/code-report/SKILL.md`*
+*Claude adapter realization: `<agent-home>/adapters/claude/skills/code-report/SKILL.md`; compatibility reference: `<agent-home>/skills/code-report/SKILL.md`*

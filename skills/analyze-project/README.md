@@ -1,6 +1,6 @@
 # analyze-project
 
-> 본 README 는 `SKILL.md` 의 GitHub 표시용 mirror. 권위 있는 동작 명세는 `SKILL.md`.
+> 본 README 는 Claude adapter skill 요약. 권위 있는 Claude runtime 동작 명세는 같은 폴더의 `SKILL.md`; portable capability 의미는 `<agent-home>/capabilities/`.
 
 ## 개요
 코드베이스를 분석해 `<artifact-root>/analysis_project/{code,paper,doc}/`에 구조화된 문서를 생성하는 skill. autopilot 파이프라인의 **사전 준비 skill**. mode별:
@@ -70,4 +70,4 @@
 reviewer comments / format templates / past samples / mixed doc 자료를 `<artifact-root>/analysis_project/doc/{name}/` 하위에 분류 (reviewers/, formats/, samples/, misc/). autopilot-draft의 format spec auto-discovery source.
 
 ---
-*원본: `<agent-home>/skills/analyze-project/SKILL.md`*
+*Claude adapter realization: `<agent-home>/adapters/claude/skills/analyze-project/SKILL.md`; compatibility reference: `<agent-home>/skills/analyze-project/SKILL.md`*

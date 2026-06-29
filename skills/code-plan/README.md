@@ -1,6 +1,6 @@
 # code-plan
 
-> 본 README 는 `SKILL.md` 의 GitHub 표시용 mirror. 권위 있는 동작 명세는 `SKILL.md`.
+> 본 README 는 Claude adapter skill 요약. 권위 있는 Claude runtime 동작 명세는 같은 폴더의 `SKILL.md`; portable capability 의미는 `<agent-home>/capabilities/`.
 
 ## 개요
 실제 코드베이스를 기반으로 상세 구현 계획을 작성하는 skill. 기획팀에 위임하여 영어 `plan.md` 생성 + QA 루프 후 한국어 `plan_ko.md` 전체 번역.
@@ -76,4 +76,4 @@ Code identifiers stay in English. Return ONLY the file path.
 사용자에게 영·한 plan 경로, 요약, QA verdict 보고.
 
 ---
-*원본: `<agent-home>/skills/code-plan/SKILL.md`*
+*Claude adapter realization: `<agent-home>/adapters/claude/skills/code-plan/SKILL.md`; compatibility reference: `<agent-home>/skills/code-plan/SKILL.md`*

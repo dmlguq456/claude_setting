@@ -42,9 +42,9 @@
 
 - **autopilot-\*** = 추적형 파이프라인. plan·log 가 `.agent_reports/` 에 누적돼 흐름이 남는다. 기존 프로젝트의 `.claude_reports/`도 같은 artifact root 로 취급한다. 큰 작업·반복 작업용.
 - **직접 처리** = plan/log 안 남는 가벼운 일 (throwaway). 단, `spec/` 잡힌 프로젝트의 사후 수정은 거의 다 `--qa quick` 파이프로 _산출물 남기며_ 진행한다 — 신규 산출물 생성 순서만 [📌 tracked](#-작동-방식--tracked--untracked) hook 강제, 편집·코드는 convention ([WORKFLOW](core/WORKFLOW.md) §7 · Claude adapter [CLAUDE](adapters/claude/CLAUDE.md) §0).
-- 입력은 외부 flag 없이 **artifact root (`.agent_reports/`, legacy `.claude_reports/`)의 영속 산출물에서 자동 발견**. cross-project 는 `cd <other>` 후 별도 세션. 코드 본작업은 작업 브랜치(worktree 격리), 기억 추가는 외부에서 자동·삭제는 메인이 직접 ([`core/MEMORY.md §7`](core/MEMORY.md) · [`core/DESIGN_PRINCIPLES.md §7`](core/DESIGN_PRINCIPLES.md)).
+- 입력은 외부 flag 없이 **artifact root (`.agent_reports/`, legacy `.claude_reports/`)의 영속 산출물에서 자동 발견**. cross-project 는 `cd <other>` 후 별도 세션. 코드 본작업은 작업 브랜치(worktree 격리), 기억 추가는 외부에서 자동·정리와 삭제는 세션끝 deep curator 가 처리한다 ([`core/MEMORY.md §7`](core/MEMORY.md) · [`core/DESIGN_PRINCIPLES.md §7`](core/DESIGN_PRINCIPLES.md)).
 
-> 본 문서는 _의미 지도_ 다. 옵션 spec·trigger 룰·QA 정의 같은 운영 디테일은 각 SKILL.md 와 [`core/CONVENTIONS.md`](core/CONVENTIONS.md) · 런타임별 adapter 문서가 단일 출처 — 여기서 중복하지 않고 링크한다.
+> 본 문서는 _의미 지도_ 다. 옵션 spec·trigger 룰·QA 정의 같은 운영 디테일은 portable capability spec, [`core/CONVENTIONS.md`](core/CONVENTIONS.md), 런타임별 adapter 문서, 그리고 adapter-native Skill 파일이 각각 단일 출처 — 여기서 중복하지 않고 링크한다.
 
 ---
 
@@ -98,29 +98,29 @@ analyze-project  →  autopilot-spec ↻  →  autopilot-code ↻
 
 ## 📋 Skill 카탈로그 — 의의·핵심
 
-무엇을 부르면 무엇이 되나(자연어 발화→동작) — 여기가 사용자 API 표면이다. 부르는 법은 [§7](#-부르는-법), 옵션 세부는 각 SKILL.md.
+무엇을 부르면 무엇이 되나(자연어 발화→동작) — 여기가 사용자 API 표면이다. 부르는 법은 [§7](#-부르는-법), 옵션 세부는 adapter-native Skill 파일(Claude: `adapters/claude/skills/*/SKILL.md`).
 
 | Skill | 의의 — 왜 있나 / 핵심 |
 |---|---|
-| [`analyze-project`](skills/analyze-project/SKILL.md) | 모든 트랙의 _사전 분석_. code/paper/doc 자료를 `analysis_project/` 에 영속화 — 다운스트림 skill 의 입력 source |
-| [`autopilot-research`](skills/autopilot-research/SKILL.md) | 어느 트랙이든 공통 _분야 조사_. academic/technology/market 3 mode 보고서. 실제 문서·코드 생성은 다운스트림이 담당 |
-| [`autopilot-spec`](skills/autopilot-spec/SKILL.md) | 코드 _청사진 + skeleton_ 일반화 entry (app/library/api/cli/research) + **update 모드** (기존 `prd.md` 갱신 — 모든 spec 변경의 canonical 경로, 버전 snapshot 자동). 만들 _것 자체_ 결정 자리라 사용자 비중 큼 — 중간 컨펌 default |
-| [`autopilot-code`](skills/autopilot-code/SKILL.md) | 코드 _작업_ 일반 (라이브러리·연구·앱 모두). dev/debug. `spec/` 발견 시 spec mode 별 분기 자동. `--qa quick` = 소규모 잡일 경량 tier (로그 남김) |
-| [`autopilot-lab`](skills/autopilot-lab/SKILL.md) | _빠른 실험 prototype_. 무거운 학습은 사용자가 실행, lab 은 `setup`(학습 세팅) / `eval`(평가·분석·`--report` 시 정식 보고서[prose→draft / 음성·미디어는 재생 HTML]) 로 앞뒤를 도움. `--parent` 계보로 fine-tune·재평가, `_RUNLOG`(⏳→✅) 누적. 졸업은 autopilot-code |
-| [`autopilot-design`](skills/autopilot-design/SKILL.md) | _시각_ 산출물 (UI·슬라이드·다이어그램·아이콘). Design MCP(`<agent-home>/tools/design-mcp`, Claude adapter 가 runtime home 에 projection)로 렌더→view_image→수정 루프 + verifier 게이트(콘솔·레이아웃) — adapter 구현 패리티. scaffold(deck_stage 등)·converters(PDF/PPTX/번들)·standalone `preview.html` |
-| [`autopilot-ship`](skills/autopilot-ship/SKILL.md) | 앱 _배포 셋업_ 안내 (호스팅·CI/CD·env·domain). 실제 배포 명령은 사용자 직접. 첫 setup·재호출 자리 |
-| [`autopilot-draft`](skills/autopilot-draft/SKILL.md) | 문서 _초안_ (paper/presentation/doc, markdown). 산출물은 최종 문서가 아니라 _적용용 cheatsheet(plan)_ |
-| [`autopilot-apply`](skills/autopilot-apply/SKILL.md) | cheatsheet 를 artifact root _밖_ 실제 소스 (`main.tex`) 에 git 위로 적용 + 컴파일 검증. draft 의 apply 팔 (현재 LaTeX 한정) |
-| [`autopilot-refine`](skills/autopilot-refine/SKILL.md) | doc/research markdown _사후 정정_. prompt + memo 통합 entry, 버전·이력 자동 관리 |
-| [`audit`](skills/audit/SKILL.md) | 산출물 _읽기 전용_ multi-aspect 점검 + 기본 auto-fix dispatch. refine 이 _수정 흐름_ 이면 audit 은 _점검 흐름_ |
-| [`analyze-user`](skills/analyze-user/SKILL.md) | cross-project 사용자 산출물 분석 → DB `type=profile` 레코드 (`mem profile <stem>`) 갱신. 모든 sub-agent 의 default 자료라 QA adversarial 고정 |
-| [`autopilot-note`](skills/autopilot-note/SKILL.md) | 산출물·git log 변화를 L2 노트로 만들어 L1 worklog 카드에 5-way 라우팅 (2-Layer — 카드 연결은 제안만[`routing_status: inbox`], cron 무인은 자동 확정 안 함·확정은 `/triage` 사용자 몫). 일일 digest 누적, idempotent (cron 친화 `--qa light`) |
-| [`post-it`](skills/post-it/SKILL.md) | 사용자 통제 _임시 포스트잇_ 메모. `--scope project`(DB working 레코드) / `--scope user`(profile 레코드 `## 사용자 수동 메모` 블록). `sweep`=졸업·stale prune · `promote`=user 메모 구조화 졸업 — 영구 누적 X |
-| [`sync-skills`](skills/sync-skills/SKILL.md) | 본 README 를 SKILL.md·agent 정의로부터 재생성·동기화 + cross-doc invariant·이름 drift 검사 + 에이전트 매뉴얼 동기 검토 제안 |
+| [`analyze-project`](capabilities/analyze-project.md) | 모든 트랙의 _사전 분석_. code/paper/doc 자료를 `analysis_project/` 에 영속화 — 다운스트림 skill 의 입력 source |
+| [`autopilot-research`](capabilities/autopilot-research.md) | 어느 트랙이든 공통 _분야 조사_. academic/technology/market 3 mode 보고서. 실제 문서·코드 생성은 다운스트림이 담당 |
+| [`autopilot-spec`](capabilities/autopilot-spec.md) | 코드 _청사진 + skeleton_ 일반화 entry (app/library/api/cli/research) + **update 모드** (기존 `prd.md` 갱신 — 모든 spec 변경의 canonical 경로, 버전 snapshot 자동). 만들 _것 자체_ 결정 자리라 사용자 비중 큼 — 중간 컨펌 default |
+| [`autopilot-code`](capabilities/autopilot-code.md) | 코드 _작업_ 일반 (라이브러리·연구·앱 모두). dev/debug. `spec/` 발견 시 spec mode 별 분기 자동. `--qa quick` = 소규모 잡일 경량 tier (로그 남김) |
+| [`autopilot-lab`](capabilities/autopilot-lab.md) | _빠른 실험 prototype_. 무거운 학습은 사용자가 실행, lab 은 `setup`(학습 세팅) / `eval`(평가·분석·`--report` 시 정식 보고서[prose→draft / 음성·미디어는 재생 HTML]) 로 앞뒤를 도움. `--parent` 계보로 fine-tune·재평가, `_RUNLOG`(⏳→✅) 누적. 졸업은 autopilot-code |
+| [`autopilot-design`](capabilities/autopilot-design.md) | _시각_ 산출물 (UI·슬라이드·다이어그램·아이콘). Design MCP(`<agent-home>/tools/design-mcp`, Claude adapter 가 runtime home 에 projection)로 렌더→view_image→수정 루프 + verifier 게이트(콘솔·레이아웃) — adapter 구현 패리티. scaffold(deck_stage 등)·converters(PDF/PPTX/번들)·standalone `preview.html` |
+| [`autopilot-ship`](capabilities/autopilot-ship.md) | 앱 _배포 셋업_ 안내 (호스팅·CI/CD·env·domain). 실제 배포 명령은 사용자 직접. 첫 setup·재호출 자리 |
+| [`autopilot-draft`](capabilities/autopilot-draft.md) | 문서 _초안_ (paper/presentation/doc, markdown). 산출물은 최종 문서가 아니라 _적용용 cheatsheet(plan)_ |
+| [`autopilot-apply`](capabilities/autopilot-apply.md) | cheatsheet 를 artifact root _밖_ 실제 소스 (`main.tex`) 에 git 위로 적용 + 컴파일 검증. draft 의 apply 팔 (현재 LaTeX 한정) |
+| [`autopilot-refine`](capabilities/autopilot-refine.md) | doc/research markdown _사후 정정_. prompt + memo 통합 entry, 버전·이력 자동 관리 |
+| [`audit`](capabilities/audit.md) | 산출물 _읽기 전용_ multi-aspect 점검 + 기본 auto-fix dispatch. refine 이 _수정 흐름_ 이면 audit 은 _점검 흐름_ |
+| [`analyze-user`](capabilities/analyze-user.md) | cross-project 사용자 산출물 분석 → DB `type=profile` 레코드 (`mem profile <stem>`) 갱신. 모든 sub-agent 의 default 자료라 QA adversarial 고정 |
+| [`autopilot-note`](capabilities/autopilot-note.md) | 산출물·git log 변화를 L2 노트로 만들어 L1 worklog 카드에 5-way 라우팅 (2-Layer — 카드 연결은 제안만[`routing_status: inbox`], cron 무인은 자동 확정 안 함·확정은 `/triage` 사용자 몫). 일일 digest 누적, idempotent (cron 친화 `--qa light`) |
+| [`post-it`](capabilities/post-it.md) | 사용자 통제 _임시 포스트잇_ 메모. `--scope project`(DB working 레코드) / `--scope user`(profile 레코드 `## 사용자 수동 메모` 블록). `sweep`=졸업·stale prune · `promote`=user 메모 구조화 졸업 — 영구 누적 X |
+| [`sync-skills`](capabilities/sync-skills.md) | 본 README 를 SKILL.md·agent 정의로부터 재생성·동기화 + cross-doc invariant·이름 drift 검사 + 에이전트 매뉴얼 동기 검토 제안 |
 
 > sub-skill 은 autopilot 내부 자동 호출 (사용자가 직접 안 부름): code 가족 (`code-plan`/`-refine`/`-execute`/`-test`/`-report`) · draft 가족 (`draft-strategy`/`-refine`) · design 가족 (`design-init`/`-refs`/`-tokens`/`-components`/`-review`/`-handoff`). (spec 은 `autopilot-spec` 본문이 mode 무관 직접 처리 — 별도 sub-skill 없음.)
 
-세부 옵션 (`--mode`·`--qa`·`--from`·`--user-refine`) 은 각 SKILL.md 의 `argument-hint`. QA 5단계 (quick/light/standard/thorough/adversarial) 정의는 [`core/CONVENTIONS.md`](core/CONVENTIONS.md) §1.
+세부 옵션 (`--mode`·`--qa`·`--from`·`--user-refine`) 은 adapter-native Skill 파일(Claude: `adapters/claude/skills/*/SKILL.md`)의 `argument-hint`. QA 5단계 (quick/light/standard/thorough/adversarial) 정의는 [`core/CONVENTIONS.md`](core/CONVENTIONS.md) §1.
 
 ---
 
@@ -141,7 +141,7 @@ analyze-project  →  autopilot-spec ↻  →  autopilot-code ↻
 
 **cross-project — `<agent-home>/user_profile/`** — `analyze-user` 가 6 aspect 파일을 누적. 모든 트랙·sub-agent 가 작업 시작 자리에서 default 로 Read. 짧은 메모는 `/post-it --scope user <aspect>` 가 같은 파일에 append.
 
-**통합 기억 — `<agent-home>/memory/` (store, P10)** — 흩어졌던 단기(post-it)·장기(auto-memory)·프로필(user_profile) 3 면을 _하나의 store_ 로 통합. SQLite `memory.db`(진실원천 SoT, FTS5 내장) + `dump.jsonl`(결정론적 텍스트 mirror, git추적) — **전용 private repo** 로 분리(config repo 에선 `memory/` gitignore). 레코드 = tier(working/durable) × scope(project/global) × type. **store 가 세션 주입의 source** — SessionStart hook `mem inject` 이 현 cwd 기억(단기+장기+사용자특성)을 자동 주입, SessionEnd `mem sync` 가 회수, `mem recall`(=`recall.sh`)이 store+세션 FTS 회상. **(C) 세션 자동 distillation** — 외부 detached distiller 가 세션 delta 를 추려 `mem add`; 트리거는 turn-counter hook(N턴) + SessionEnd 공유 marker, distiller 는 판단만 하고(도구 0) dispatch 스크립트가 JSON-lines 검증 후 실행(판단↔실행 분리). `MEM_DISTILL_ENABLE=1` 일 때만 분사(off 면 완전 no-op), 현재 켜져 있다. **(D) 결정론-first lifecycle** — 회상 신호어 감지 시 `mem-recall-inject` hook 이 `mem recall` 결과를 additionalContext 에 자동 주입; 정리 후보는 `mem inject` 로 노출해 메인이 그 자리에서 consolidate/prune/graduate. **추가(가역)는 외부에서 자동·삭제(비가역)는 메인이 직접**. 상세 → [`core/MEMORY.md §7`](core/MEMORY.md) · `tools/memory/`.
+**통합 기억 — `<agent-home>/memory/` (store, P10)** — 흩어졌던 단기(post-it)·장기(auto-memory)·프로필(user_profile) 3 면을 _하나의 store_ 로 통합. SQLite `memory.db`(진실원천 SoT, FTS5 내장) + `dump.jsonl`(결정론적 텍스트 mirror, git추적) — **전용 private repo** 로 분리(config repo 에선 `memory/` gitignore). 레코드 = tier(working/durable) × scope(project/global) × type. **store 가 세션 주입의 source** — SessionStart hook `mem inject` 이 현 cwd 기억(단기+장기+사용자특성)을 자동 주입, SessionEnd `mem sync` 가 회수, `mem recall`(=`recall.sh`)이 store+세션 FTS 회상. **(C) 세션 자동 distillation** — 외부 detached distiller 가 세션 delta 를 추려 `mem add`; 트리거는 turn-counter hook(N턴) + SessionEnd 공유 marker, distiller 는 판단만 하고(도구 0) dispatch 스크립트가 JSON-lines 검증 후 실행(판단↔실행 분리). `MEM_DISTILL_ENABLE=1` 일 때만 분사(off 면 완전 no-op). **(D) 결정론-first lifecycle** — 회상 신호어 감지 시 `mem-recall-inject` hook 이 `mem recall` 결과를 additionalContext 에 자동 주입; 정리 후보는 `mem inject` 에 informational 로 노출된다. **추가(가역)는 외부에서 자동·삭제/prune/consolidate/merge/graduate(비가역)는 세션끝 deep curator**. 상세 → [`core/MEMORY.md §7`](core/MEMORY.md) · `tools/memory/`.
 
 **3-tier 컨벤션** — 한 산출물 폴더 안에서 T1 root (메인 산출물) / T2 named subdir (검토 자료) / T3 `_internal/` (audit·raw·versions) 로 나뉜다. _사용자는 보통 T1 만 보면 된다._ 한 프로젝트는 `spec/`(청사진, 항상 최신) + `plans/`(작업 사이클) 두 형제 bucket 으로 같은 이름에 묶인다.
 
@@ -180,7 +180,7 @@ analyze-project  →  autopilot-spec ↻  →  autopilot-code ↻
 /track            현재 프로젝트 📌tracked ↔ ⚡untracked 토글 (harness 차단 on/off)
 ```
 
-전체 옵션 조합·default·QA 의미는 각 SKILL.md `argument-hint` / `## Usage`.
+전체 옵션 조합·default·QA 의미는 adapter-native Skill 파일(Claude: `adapters/claude/skills/*/SKILL.md`)의 `argument-hint` / `## Usage`.
 
 ---
 
@@ -249,10 +249,10 @@ autopilot-\* 가 내부에서 자동 라우팅하는 전문 팀. Portable 의미
 │   └── codex/              Codex adapter — AGENTS.md + experimental mapping
 ├── capabilities/           portable capability catalog — runtime-neutral 작업 의미
 ├── roles/                  portable role profiles — runtime-neutral delegation semantics
-├── claude_setting/          GitHub-tracked Claude Code projection — symlink mirror for ~/.claude harness-owned files
+├── claude_setting/          GitHub-tracked Claude Code projection — ~/.claude harness-owned entrypoints
 ├── codex_setting/           GitHub-tracked Codex projection — minimal adapted bootstrap + shared core/capabilities/tools
 │
-├── skills/                 작업 매뉴얼 28 — 폴더당 SKILL.md (단일 출처)
+├── skills/                 historical Claude Skill compatibility refs — adapters/claude/skills 와 byte parity 유지, portable source 아님
 │   ├── [entry 파이프]      autopilot-research(분야조사) · -spec(청사진·skeleton) · -code(코드 작업)
 │   │                       · -lab(실험 setup/eval) · -draft(문서 초안) · -apply(cheatsheet→실소스+컴파일)
 │   │                       · -refine(markdown 정정) · -design(시각 파이프) · -ship(배포 셋업)

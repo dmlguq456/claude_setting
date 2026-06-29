@@ -45,4 +45,4 @@ Adapters must preserve the portable invariants relevant to this capability:
 
 ## Compatibility Reference
 
-The historical Claude Skill source remains at `skills/analyze-user/SKILL.md` while this capability is being split into portable and adapter-native layers.
+The historical Claude Skill compatibility reference remains at `skills/analyze-user/SKILL.md`; Claude Code consumes `adapters/claude/skills/analyze-user/SKILL.md` as the adapter-native realization while portable meaning moves here.

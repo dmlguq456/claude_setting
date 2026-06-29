@@ -106,4 +106,4 @@ Field intelligence ends with recommendations for downstream work:
 
 ## Compatibility Reference
 
-The historical Claude Skill source remains at `skills/autopilot-research/SKILL.md` while this capability is being split into portable and adapter-native layers.
+The historical Claude Skill compatibility reference remains at `skills/autopilot-research/SKILL.md`; Claude Code consumes `adapters/claude/skills/autopilot-research/SKILL.md` as the adapter-native realization while portable meaning moves here.

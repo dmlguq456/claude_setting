@@ -1,6 +1,6 @@
 # code-execute
 
-> 본 README 는 `SKILL.md` 의 GitHub 표시용 mirror. 권위 있는 동작 명세는 `SKILL.md`.
+> 본 README 는 Claude adapter skill 요약. 권위 있는 Claude runtime 동작 명세는 같은 폴더의 `SKILL.md`; portable capability 의미는 `<agent-home>/capabilities/`.
 
 ## 개요
 구현 계획을 progress tracking과 함께 실행하는 skill. dev-team 서브에이전트에 step별 위임, phase마다 품질관리팀 리뷰, Git Safety Checkpoint 설정.
@@ -85,4 +85,4 @@ plan frontmatter의 `qa_level`이 모든 phase auto-detect를 override.
 - 모두 `[FAIL]`/`[SKIP-DEP]` → `status: failed`
 
 ---
-*원본: `<agent-home>/skills/code-execute/SKILL.md`*
+*Claude adapter realization: `<agent-home>/adapters/claude/skills/code-execute/SKILL.md`; compatibility reference: `<agent-home>/skills/code-execute/SKILL.md`*

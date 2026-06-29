@@ -311,7 +311,7 @@ Wait for completion before proceeding.
 Otherwise:
 1. Resolve plan paths from code-plan output: `en_plan_path`, `ko_plan_path`, `log_dir`.
 2. **Detect task type** before invoking 연구팀 (this hint provides the type-specific lens — see `adapters/claude/agents/research-team.md` Role 1 Step 3 table):
-   - Read the plan's "## Change Plan" target files. If any target is under `<agent-home>/skills/*` / `<agent-home>/adapters/claude/agents/*` / `<agent-home>/README.md` / `<agent-home>/skills/.sync_state.json` → `task_type=meta-skill`.
+   - Read the plan's "## Change Plan" target files. If any target is under `<agent-home>/adapters/claude/skills/*` / `<agent-home>/skills/*` (compatibility refs) / `<agent-home>/adapters/claude/agents/*` / `<agent-home>/README.md` / `<agent-home>/skills/.sync_state.json` → `task_type=meta-skill`.
    - If targets are under `~/.claude/settings.json` / `keybindings.json` / hooks → `task_type=infra/config`.
    - If targets are project source code (`.py`, `.cpp`, etc.) → `task_type=paper-driven code`.
    - If targets are under `<artifact-root>/documents/*` → `task_type=paper-driven doc`.
