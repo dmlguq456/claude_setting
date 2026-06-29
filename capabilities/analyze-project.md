@@ -40,7 +40,7 @@ Adapters must preserve the portable invariants relevant to this capability:
 
 | Adapter | Realization |
 |---|---|
-| Claude Code | `adapters/claude/skills/analyze-project` currently projects compatibility source `skills/analyze-project/SKILL.md`. |
+| Claude Code | `adapters/claude/skills/analyze-project/SKILL.md` is the Claude-native realization; `skills/analyze-project/SKILL.md` is the compatibility reference. |
 | Codex | Read this spec and run `adapters/codex/bin/preflight.sh capability-info analyze-project`. Do not consume `skills/analyze-project/SKILL.md` as native Codex configuration. |
 
 ## Compatibility Reference

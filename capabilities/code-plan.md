@@ -40,7 +40,7 @@ Adapters must preserve the portable invariants relevant to this capability:
 
 | Adapter | Realization |
 |---|---|
-| Claude Code | `adapters/claude/skills/code-plan` currently projects compatibility source `skills/code-plan/SKILL.md`. |
+| Claude Code | `adapters/claude/skills/code-plan/SKILL.md` is the Claude-native realization; `skills/code-plan/SKILL.md` is the compatibility reference. |
 | Codex | Read this spec and run `adapters/codex/bin/preflight.sh capability-info code-plan`. Do not consume `skills/code-plan/SKILL.md` as native Codex configuration. |
 
 ## Compatibility Reference

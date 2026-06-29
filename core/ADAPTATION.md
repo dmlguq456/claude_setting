@@ -67,8 +67,10 @@ A runtime skill/slash command/native instruction describes:
 - how hook events are attached;
 - runtime-specific file formats and frontmatter.
 
-Current `skills/*/SKILL.md` files are compatibility passthrough for Claude Code.
-They are not yet pure portable capability specs.
+Current `skills/*/SKILL.md` files are compatibility references. Claude Code
+consumes adapter-owned concrete files under
+`adapters/claude/skills/*/SKILL.md`. Portable capability meaning belongs in
+`capabilities/`.
 
 ## 5. Hook Model
 

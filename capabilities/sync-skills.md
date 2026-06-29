@@ -40,7 +40,7 @@ Adapters must preserve the portable invariants relevant to this capability:
 
 | Adapter | Realization |
 |---|---|
-| Claude Code | `adapters/claude/skills/sync-skills` currently projects compatibility source `skills/sync-skills/SKILL.md`. |
+| Claude Code | `adapters/claude/skills/sync-skills/SKILL.md` is the Claude-native realization; `skills/sync-skills/SKILL.md` is the compatibility reference. |
 | Codex | Read this spec and run `adapters/codex/bin/preflight.sh capability-info sync-skills`. Do not consume `skills/sync-skills/SKILL.md` as native Codex configuration. |
 
 ## Compatibility Reference

@@ -31,7 +31,7 @@ portable sources:
 
 | Surface | Current projection | Why passthrough is allowed for now | Required split |
 |---|---|---|---|
-| Skills | `claude_setting/skills -> ../adapters/claude/skills` | Existing files are Claude Skill format and preserve old behavior through adapter-owned symlinks | Grow `capabilities/` into per-capability specs, then replace symlink passthroughs with generated or maintained `adapters/claude/skills/<name>/SKILL.md` |
+| Skills | `claude_setting/skills -> ../adapters/claude/skills` | Adapter-owned concrete Claude Skill files preserve old behavior while portable specs grow under `capabilities/` | Continue splitting semantics into `capabilities/<name>.md`; keep Claude frontmatter and runtime wording here |
 | Agent modes | `claude_setting/agent-modes -> ../adapters/claude/agent-modes` | Mode docs are prompt fragments used by current agents; `roles/MODES.md` classifies portability | Replace family symlink passthroughs with adapter-native mode files as non-Claude adapters implement equivalents |
 | Hooks | `claude_setting/hooks -> ../adapters/claude/hooks` | Shell scripts are wired by Claude settings and preserve old behavior through adapter-owned symlinks; `core/HOOKS.md` names the invariant layer | Replace hook symlink passthroughs with Claude payload wrappers as portable invariant scripts are split out |
 | Utilities | `claude_setting/utilities -> ../adapters/claude/utilities` | Mostly runtime-neutral helper scripts, projected through adapter-owned symlinks | Move Claude-only helpers to adapter-native files if found |
@@ -46,12 +46,12 @@ Agent files have completed the first split: portable role meaning is summarized
 in `roles/README.md`, while Claude Agent frontmatter, tool lists, and concrete
 model mapping live in `adapters/claude/agents/`.
 
-Capability files have started the same split: portable capability meaning is
-summarized in `capabilities/README.md`, while current Claude Skill mechanics
-remain in `skills/*/SKILL.md` as compatibility passthrough. The runtime
-projection now passes through `adapters/claude/skills/` first, so future adapted
-or generated Claude Skill files can replace individual symlink entries without
-changing `claude_setting/skills`.
+Capability files have started the same split: portable capability meaning lives
+in `capabilities/README.md` and `capabilities/<name>.md`, while Claude Skill
+mechanics live as concrete adapter projection files under
+`adapters/claude/skills/<name>/SKILL.md`. The current projection intentionally
+preserves previous Claude behavior; future edits should move invariant meaning
+to `capabilities/` first, then adjust the Claude Skill wording here.
 
 Mode files follow the same adapter-owned passthrough pattern:
 `claude_setting/agent-modes` points at `adapters/claude/agent-modes/`, whose

@@ -99,7 +99,7 @@ Composite modes are valid. Keep shared decisions in the common PRD section and e
 
 | Adapter | Realization |
 |---|---|
-| Claude Code | `adapters/claude/skills/autopilot-spec` currently projects compatibility source `skills/autopilot-spec/SKILL.md`. |
+| Claude Code | `adapters/claude/skills/autopilot-spec/SKILL.md` is the Claude-native realization; `skills/autopilot-spec/SKILL.md` is the compatibility reference. |
 | Codex | Read this spec and run `adapters/codex/bin/preflight.sh capability-info autopilot-spec`. Do not consume `skills/autopilot-spec/SKILL.md` as native Codex configuration. |
 
 ## Compatibility Reference

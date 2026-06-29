@@ -40,7 +40,7 @@ Adapters must preserve the portable invariants relevant to this capability:
 
 | Adapter | Realization |
 |---|---|
-| Claude Code | `adapters/claude/skills/post-it` currently projects compatibility source `skills/post-it/SKILL.md`. |
+| Claude Code | `adapters/claude/skills/post-it/SKILL.md` is the Claude-native realization; `skills/post-it/SKILL.md` is the compatibility reference. |
 | Codex | Read this spec and run `adapters/codex/bin/preflight.sh capability-info post-it`. Do not consume `skills/post-it/SKILL.md` as native Codex configuration. |
 
 ## Compatibility Reference

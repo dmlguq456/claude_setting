@@ -40,7 +40,7 @@ Adapters must preserve the portable invariants relevant to this capability:
 
 | Adapter | Realization |
 |---|---|
-| Claude Code | `adapters/claude/skills/design-review` currently projects compatibility source `skills/design-review/SKILL.md`. |
+| Claude Code | `adapters/claude/skills/design-review/SKILL.md` is the Claude-native realization; `skills/design-review/SKILL.md` is the compatibility reference. |
 | Codex | Read this spec and run `adapters/codex/bin/preflight.sh capability-info design-review`. Do not consume `skills/design-review/SKILL.md` as native Codex configuration. |
 
 ## Compatibility Reference

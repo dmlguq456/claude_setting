@@ -9,7 +9,7 @@ This adapter maps the common agent harness onto Claude Code.
 | Session bootstrap | `adapters/claude/CLAUDE.md` |
 | Runtime settings | `adapters/claude/settings.json` |
 | Slash commands | `adapters/claude/commands/` |
-| Capabilities | `skills/*/SKILL.md` |
+| Capabilities | `adapters/claude/skills/*/SKILL.md` |
 | Role profiles | `adapters/claude/agents/*.md` |
 | Hook scripts | `hooks/`, `utilities/` |
 | Status line | `adapters/claude/statusline.sh` |

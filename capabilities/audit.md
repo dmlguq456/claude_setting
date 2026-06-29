@@ -40,7 +40,7 @@ Adapters must preserve the portable invariants relevant to this capability:
 
 | Adapter | Realization |
 |---|---|
-| Claude Code | `adapters/claude/skills/audit` currently projects compatibility source `skills/audit/SKILL.md`. |
+| Claude Code | `adapters/claude/skills/audit/SKILL.md` is the Claude-native realization; `skills/audit/SKILL.md` is the compatibility reference. |
 | Codex | Read this spec and run `adapters/codex/bin/preflight.sh capability-info audit`. Do not consume `skills/audit/SKILL.md` as native Codex configuration. |
 
 ## Compatibility Reference

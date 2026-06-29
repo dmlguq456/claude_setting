@@ -93,7 +93,7 @@ When no spec exists, infer mode lightly from project files, report the inference
 
 | Adapter | Realization |
 |---|---|
-| Claude Code | `adapters/claude/skills/autopilot-code` currently projects compatibility source `skills/autopilot-code/SKILL.md`. |
+| Claude Code | `adapters/claude/skills/autopilot-code/SKILL.md` is the Claude-native realization; `skills/autopilot-code/SKILL.md` is the compatibility reference. |
 | Codex | Read this spec and run `adapters/codex/bin/preflight.sh capability-info autopilot-code`. Do not consume `skills/autopilot-code/SKILL.md` as native Codex configuration. |
 
 ## Compatibility Reference

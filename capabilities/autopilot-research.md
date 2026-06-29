@@ -101,7 +101,7 @@ Field intelligence ends with recommendations for downstream work:
 
 | Adapter | Realization |
 |---|---|
-| Claude Code | `adapters/claude/skills/autopilot-research` currently projects compatibility source `skills/autopilot-research/SKILL.md`. |
+| Claude Code | `adapters/claude/skills/autopilot-research/SKILL.md` is the Claude-native realization; `skills/autopilot-research/SKILL.md` is the compatibility reference. |
 | Codex | Read this spec and run `adapters/codex/bin/preflight.sh capability-info autopilot-research`. Do not consume `skills/autopilot-research/SKILL.md` as native Codex configuration. |
 
 ## Compatibility Reference

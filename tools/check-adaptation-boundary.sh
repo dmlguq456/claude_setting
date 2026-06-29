@@ -75,13 +75,12 @@ check_claude_skill_projection() {
     [ -d "$d" ] || continue
     [ -f "$d/SKILL.md" ] || continue
     slug=${d#skills/}
-    if [ ! -L "adapters/claude/skills/$slug" ]; then
-      fail_msg "adapters/claude/skills/$slug must be a symlink passthrough"
+    if [ ! -d "adapters/claude/skills/$slug" ]; then
+      fail_msg "adapters/claude/skills/$slug must be an adapter-owned skill directory"
       continue
     fi
-    skill_target=$(readlink "adapters/claude/skills/$slug")
-    if [ "$skill_target" != "../../../skills/$slug" ]; then
-      fail_msg "adapters/claude/skills/$slug points to $skill_target; expected ../../../skills/$slug"
+    if [ ! -f "adapters/claude/skills/$slug/SKILL.md" ]; then
+      fail_msg "adapters/claude/skills/$slug/SKILL.md is missing"
     fi
   done
 }

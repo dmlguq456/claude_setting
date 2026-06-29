@@ -40,7 +40,7 @@ Adapters must preserve the portable invariants relevant to this capability:
 
 | Adapter | Realization |
 |---|---|
-| Claude Code | `adapters/claude/skills/autopilot-draft` currently projects compatibility source `skills/autopilot-draft/SKILL.md`. |
+| Claude Code | `adapters/claude/skills/autopilot-draft/SKILL.md` is the Claude-native realization; `skills/autopilot-draft/SKILL.md` is the compatibility reference. |
 | Codex | Read this spec and run `adapters/codex/bin/preflight.sh capability-info autopilot-draft`. Do not consume `skills/autopilot-draft/SKILL.md` as native Codex configuration. |
 
 ## Compatibility Reference
