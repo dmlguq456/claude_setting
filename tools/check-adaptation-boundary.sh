@@ -165,8 +165,34 @@ check_claude_utility_projection() {
   done
 }
 
+check_claude_scaffold_projection() {
+  if [ ! -L claude_setting/scaffolds ]; then
+    fail_msg "claude_setting/scaffolds must project adapters/claude/scaffolds"
+    return
+  fi
+
+  target=$(readlink claude_setting/scaffolds)
+  if [ "$target" != "../adapters/claude/scaffolds" ]; then
+    fail_msg "claude_setting/scaffolds points to $target; expected ../adapters/claude/scaffolds"
+  fi
+
+  for p in $(find scaffolds -mindepth 1 ! -name '.*' -print); do
+    rel=${p#scaffolds/}
+    adapter_p=adapters/claude/scaffolds/$rel
+    if [ -L "$adapter_p" ]; then
+      fail_msg "$adapter_p must be a concrete adapter-owned scaffold projection"
+      continue
+    fi
+    if [ -d "$p" ]; then
+      [ -d "$adapter_p" ] || fail_msg "$adapter_p is missing"
+    elif [ -f "$p" ]; then
+      [ -f "$adapter_p" ] || fail_msg "$adapter_p is missing"
+    fi
+  done
+}
+
 check_claude_passthrough_projection() {
-  for surface in tools loops scaffolds; do
+  for surface in tools loops; do
     if [ ! -L "claude_setting/$surface" ]; then
       fail_msg "claude_setting/$surface must project adapters/claude/$surface"
       continue
@@ -310,6 +336,7 @@ check_claude_skill_projection
 check_claude_mode_projection
 check_claude_hook_projection
 check_claude_utility_projection
+check_claude_scaffold_projection
 check_claude_passthrough_projection
 check_removed_root_surfaces
 check_capability_catalog
