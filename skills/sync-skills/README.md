@@ -15,6 +15,7 @@ Skills + Agents 정의 변경을 감지해 `<agent-home>/README.md` (GitHub) 의
 - **Capabilities**: `<agent-home>/capabilities/README.md`
 - **Skills**: `<agent-home>/skills/*/SKILL.md` (frontmatter)
 - **Roles**: `<agent-home>/roles/README.md`
+- **Role modes**: `<agent-home>/roles/MODES.md`
 - **Claude Agents**: `<agent-home>/adapters/claude/agents/*.md` (frontmatter)
 - **CONVENTIONS.md**: `<agent-home>/core/CONVENTIONS.md` (QA / model / cross-doc invariants — Step 5b canonical)
 

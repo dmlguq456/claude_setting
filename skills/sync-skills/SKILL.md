@@ -16,7 +16,7 @@ metadata:
 스킬·에이전트를 수정한 후 매번 GitHub README 에 일관된 정보가 반영되어 있는지 확인하는 도구.
 
 **Source of Truth**:
-- `<agent-home>/capabilities/README.md` + `<agent-home>/skills/*/SKILL.md` + `<agent-home>/roles/README.md` + `<agent-home>/adapters/claude/agents/*.md` — 각 capability·skill·role·Claude agent 의 frontmatter/본문
+- `<agent-home>/capabilities/README.md` + `<agent-home>/skills/*/SKILL.md` + `<agent-home>/roles/README.md` + `<agent-home>/roles/MODES.md` + `<agent-home>/adapters/claude/agents/*.md` — 각 capability·skill·role/mode·Claude agent 의 frontmatter/본문
 - **`<agent-home>/core/CONVENTIONS.md`** — family-wide 운영 규칙의 단일 source (QA 5단계 정의 / model role 표기 / cross-doc invariants). 본 skill 의 Step 5b 가 본 문서를 canonical 로 cross-doc grep 해 drift 보고·자동 fix.
 
 **파생 산출물**: GitHub `<agent-home>/README.md`
@@ -30,9 +30,10 @@ metadata:
 - **Skills**: `<agent-home>/skills/*/SKILL.md`
 - **Capabilities**: `<agent-home>/capabilities/README.md`
 - **Roles**: `<agent-home>/roles/README.md`
+- **Role modes**: `<agent-home>/roles/MODES.md`
 - **Claude Agents**: `<agent-home>/adapters/claude/agents/*.md`
 
-자동 발견: `ls <agent-home>/skills/*/SKILL.md <agent-home>/adapters/claude/agents/*.md`. 실제 sync 시점에 발견된 파일 list 가 진실. Portable capability 의미는 `capabilities/README.md`, portable role 의미는 `roles/README.md`, Claude native frontmatter 는 `skills/*/SKILL.md` 와 `adapters/claude/agents/*.md` 가 source. 본 SKILL.md 본문에는 카운트·명단 hardcode 안 함 — drift 의 자기참조 source 가 됨.
+자동 발견: `ls <agent-home>/skills/*/SKILL.md <agent-home>/adapters/claude/agents/*.md`. 실제 sync 시점에 발견된 파일 list 가 진실. Portable capability 의미는 `capabilities/README.md`, portable role 의미는 `roles/README.md`, role mode portability 는 `roles/MODES.md`, Claude native frontmatter 는 `skills/*/SKILL.md` 와 `adapters/claude/agents/*.md` 가 source. 본 SKILL.md 본문에는 카운트·명단 hardcode 안 함 — drift 의 자기참조 source 가 됨.
 
 각 파일에서 추출:
 - frontmatter `name`, `description`, `argument-hint` (skills only), `tools`, `model`
@@ -211,6 +212,7 @@ QA level / model role 표기 / family-wide invariant 은 **`<agent-home>/core/CO
 - `<agent-home>/skills/*/README.md`
 - `<agent-home>/capabilities/README.md`
 - `<agent-home>/roles/README.md`
+- `<agent-home>/roles/MODES.md`
 - `<agent-home>/adapters/claude/agents/*.md`
 - `<agent-home>/README.md`
 

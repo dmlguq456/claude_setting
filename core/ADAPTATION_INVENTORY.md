@@ -26,7 +26,9 @@ into a portable agent setting plus runtime adapters.
 | Portable capability catalog | `capabilities/README.md` | portable | Grow into per-capability specs when adapter parity work needs finer granularity. |
 | Claude skills | `skills/*/SKILL.md` | compat-passthrough, needs-split | Preserve current Claude Skill behavior until generated/maintained `adapters/claude/skills/<name>/SKILL.md` exists. |
 | Portable role catalog | `roles/README.md` | portable | Grow into per-role specs when adapter parity work needs finer granularity. |
+| Role mode inventory | `roles/MODES.md` | portable | Classifies shared `agent-modes/` prompt fragments by portability. |
 | Claude agents | `adapters/claude/agents/*.md` | adapter-native | Preserve Claude Agent frontmatter/model/tool schema while realizing `roles/README.md`. |
+| Agent modes | `agent-modes/*.md` | mixed | Keep portable persona fragments shared; split adapter-coupled design/verification/tool notes when Codex-native modes exist. |
 | Hooks | `hooks/*.sh` | mixed | Split invariant checks from runtime hook payload wrappers. |
 | Memory distiller | `hooks/mem-distill-dispatch.sh`, `tools/memory/` | mixed | Keep DB/CLI portable; move session log reader and model invocation to adapters. |
 | Design MCP | `tools/design-mcp/`, design skills | mixed | Keep render/check semantics portable; move Claude MCP registration paths to adapter docs. |
