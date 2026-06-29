@@ -290,7 +290,7 @@ autopilot-\* 가 내부에서 자동 라우팅하는 전문 팀. Portable 의미
 ├── memory/                 통합 기억 store → 전용 private memory repo (memory.db SoT + dump.jsonl mirror, gitignore) — 세션 주입 source (§7)
 ├── tools/                  자체 도구 — design-mcp (Claude visual harness 구현) · memory (통합 기억 mem CLI) · web-bundle
 ├── scaffolds/              디자인 재사용 골격 (deck_stage 등)
-├── utilities/              보조 스크립트 (workflow-guard-hook · extract_web_figures)
+├── utilities/              보조 스크립트 (workflow-guard-hook · workflow-toggle · extract_web_figures)
 │
 └── (backups · cache · debug · downloads · file-history · paste-cache · plugins · tasks 등 — harness 로컬 캐시/보조 산출물)
 ```

@@ -23,7 +23,7 @@ into a portable agent setting plus runtime adapters.
 | Claude bootstrap | `adapters/claude/CLAUDE.md` | adapter-native | Keep Claude Code response, routing, hook, statusline, and command rules here. |
 | Claude runtime workers | `adapters/claude/bin/*.sh` | adapter-native | Own concrete Claude CLI worker invocations used by shared dispatchers. |
 | Codex bootstrap | `adapters/codex/AGENTS.md` | adapter-native | Expand only with behavior that Codex can actually perform. |
-| Codex preflight wrappers | `adapters/codex/bin/preflight.sh`, `role-map.sh`, `capability-map.sh`, `mode-map.sh`, `distill-worker.sh` | adapter-native | Executable Codex bridge for hook invariants, portable role mapping, capability realization, mode support classification, and distill proposals. |
+| Codex preflight wrappers | `adapters/codex/bin/preflight.sh`, `role-map.sh`, `capability-map.sh`, `mode-map.sh`, `distill-worker.sh` | adapter-native | Executable Codex bridge for hook invariants, workflow start/signal/toggle, portable role mapping, capability realization, mode support classification, and distill proposals. |
 | Codex native skill/plugin surface | not yet materialized | needs-split | If Codex needs discoverable `$...` entrypoints, generate adapter-owned `adapters/codex/skills/*/SKILL.md` or a Codex plugin surface from `capabilities/` and `roles/`; do not reuse Claude Skill files as Codex-native output. |
 | Claude settings/hooks registration | `adapters/claude/settings.json` | adapter-native | Codex must get wrapper/preflight equivalents, not this JSON. |
 | Slash commands | `adapters/claude/commands/` | adapter-native | Future runtimes need native command wrappers or instruction entries. |
