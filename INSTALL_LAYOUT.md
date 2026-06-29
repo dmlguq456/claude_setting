@@ -20,6 +20,7 @@ Claude Code expects files under `$HOME/.claude`. Keep runtime-owned files there,
 export AGENT_HOME="$HOME/agent_setting"
 
 ln -sfn "$AGENT_HOME/adapters/claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
+ln -sfn "$AGENT_HOME/README.md" "$HOME/.claude/README.md"
 ln -sfn "$AGENT_HOME/core" "$HOME/.claude/core"
 ln -sfn "$AGENT_HOME/settings.json" "$HOME/.claude/settings.json"
 ln -sfn "$AGENT_HOME/keybindings.json" "$HOME/.claude/keybindings.json"

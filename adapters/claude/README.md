@@ -42,6 +42,7 @@ Claude Code should see the same files it expects today, but they should be symli
 
 ```text
 $HOME/.claude/CLAUDE.md      -> $HOME/agent_setting/adapters/claude/CLAUDE.md
+$HOME/.claude/README.md      -> $HOME/agent_setting/README.md
 $HOME/.claude/core           -> $HOME/agent_setting/core
 $HOME/.claude/skills         -> $HOME/agent_setting/skills
 $HOME/.claude/agents         -> $HOME/agent_setting/agents
