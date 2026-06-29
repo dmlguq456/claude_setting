@@ -12,6 +12,19 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|apply_patch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$HOME/.codex/agent-harness/adapters/codex/hooks/posttooluse-design-check.py\"",
+            "timeout": 30,
+            "statusMessage": "Checking design HTML after write"
+          }
+        ]
+      }
     ]
   }
 }

@@ -5,6 +5,7 @@ import { spawnSync } from "node:child_process"
 const pluginDir = path.dirname(fileURLToPath(import.meta.url))
 const root = path.resolve(pluginDir, "../../..")
 const preflight = path.join(root, "adapters", "opencode", "bin", "preflight.sh")
+const designPattern = /(designs?\/|\/design\/|spec\/design|preview\.html$|slides?\.html$|03_components|scaffolds\/)/
 
 function baseDir(ctx) {
   return ctx.worktree || ctx.directory || process.cwd()
@@ -39,8 +40,12 @@ function targetFiles(ctx, tool, args) {
   return []
 }
 
-function runPreflight(file, sessionID) {
-  const result = spawnSync(preflight, ["write", file, sessionID || "opencode-plugin"], {
+function isDesignHtml(file) {
+  return /\.html?$/i.test(file) && designPattern.test(file.replaceAll(path.sep, "/"))
+}
+
+function runPreflight(command, args) {
+  const result = spawnSync(preflight, [command, ...args], {
     cwd: root,
     env: { ...process.env, AGENT_HOME: process.env.AGENT_HOME || root },
     encoding: "utf8",
@@ -48,7 +53,7 @@ function runPreflight(file, sessionID) {
 
   if (result.status !== 0) {
     const detail = [result.stdout, result.stderr].filter(Boolean).join("\n").trim()
-    throw new Error(detail || `agent harness preflight failed for ${file}`)
+    throw new Error(detail || `agent harness preflight failed: ${command}`)
   }
 }
 
@@ -56,7 +61,13 @@ export const AgentHarnessGuards = async (ctx) => ({
   "tool.execute.before": async (input, output) => {
     const files = targetFiles(ctx, input.tool || {}, output.args || {})
     for (const file of files) {
-      runPreflight(file, input.sessionID)
+      runPreflight("write", [file, input.sessionID || "opencode-plugin"])
+    }
+  },
+  "tool.execute.after": async (input, output) => {
+    const files = targetFiles(ctx, input.tool || {}, output.args || {})
+    for (const file of files) {
+      if (isDesignHtml(file)) runPreflight("design", [file])
     }
   },
 })

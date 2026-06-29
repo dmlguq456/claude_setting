@@ -341,6 +341,7 @@ ln -s "$ROOT" "$TMP/codex_hook_home/.codex/agent-harness"
 ln -s "$ROOT/codex_setting/codex-hooks/hooks.json" "$TMP/codex_hook_home/.codex/hooks.json"
 if python3 -m json.tool "$TMP/codex_hook_home/.codex/hooks.json" >/tmp/codex_hook_json.out 2>/tmp/codex_hook_json.err \
   && grep -q 'pretooluse-write-guard.py' /tmp/codex_hook_json.out \
+  && grep -q 'posttooluse-design-check.py' /tmp/codex_hook_json.out \
   && printf '{"tool_name":"Write","tool_input":{"file_path":"%s"},"session_id":"testsid","cwd":"%s"}\n' "$TMP/repo/f" "$TMP/repo" \
     | HOME="$TMP/codex_hook_home" python3 "$TMP/codex_hook_home/.codex/agent-harness/adapters/codex/hooks/pretooluse-write-guard.py" >/tmp/codex_hook.out 2>/tmp/codex_hook.err \
   && [ ! -s /tmp/codex_hook.out ]; then
@@ -355,6 +356,16 @@ if printf '{"tool_name":"Write","tool_input":{"file_path":"%s"},"session_id":"te
   ok "codex native hook projection blocks guarded writes"
 else
   bad "codex native hook projection should block guarded writes"
+fi
+mkdir -p "$TMP/repo/spec/design"
+printf '<!doctype html><title>ok</title>\n' > "$TMP/repo/spec/design/preview.html"
+if printf '{"tool_name":"Write","tool_input":{"file_path":"%s"},"session_id":"testsid","cwd":"%s"}\n' "$TMP/repo/spec/design/preview.html" "$TMP/repo" \
+  | DESIGN_POSTWRITE_HOOK=0 HOME="$TMP/codex_hook_home" python3 "$TMP/codex_hook_home/.codex/agent-harness/adapters/codex/hooks/posttooluse-design-check.py" >/tmp/codex_design_hook.out 2>/tmp/codex_design_hook.err \
+  && [ ! -s /tmp/codex_design_hook.out ] \
+  && [ ! -s /tmp/codex_design_hook.err ]; then
+  ok "codex native hook projection bridges design post-write checks"
+else
+  bad "codex native hook projection should bridge design post-write checks"
 fi
 if "$CODEX" mode-info dev/backend >/tmp/mode.out 2>/tmp/mode.err \
   && grep -q '^status=portable$' /tmp/mode.out \
@@ -644,6 +655,16 @@ then
   ok "opencode native plugin write hook blocks guarded writes"
 else
   bad "opencode native plugin write hook should block guarded writes"
+fi
+if DESIGN_POSTWRITE_HOOK=0 node --input-type=module >/tmp/opencode_plugin_design_hook.out 2>/tmp/opencode_plugin_design_hook.err <<EOF
+import { AgentHarnessGuards } from "$ROOT/opencode_setting/opencode-plugins/agent-harness-guards.js"
+const plugin = await AgentHarnessGuards({ directory: "$TMP/repo", worktree: "$TMP/repo" })
+await plugin["tool.execute.after"]({ tool: { name: "write" }, sessionID: "testsid" }, { args: { filePath: "$TMP/repo/spec/design/preview.html" } })
+EOF
+then
+  ok "opencode native plugin design after hook bridges to preflight"
+else
+  bad "opencode native plugin design after hook should bridge to preflight"
 fi
 
 echo "== opencode capability mapping =="

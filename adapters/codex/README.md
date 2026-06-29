@@ -45,7 +45,7 @@ project Claude Skill, command, hook, or statusline files into Codex.
 |---|---|
 | capability | Read `capabilities/README.md` for meaning; run `adapters/codex/bin/preflight.sh capability-info <capability>` to confirm Codex realization; use `adapters/codex/skills/<capability>/SKILL.md` as Codex-native guidance |
 | native skill/plugin surface | Skills are materialized under `adapters/codex/skills/`; the installable plugin projection is materialized under `adapters/codex/plugins/agent-harness-codex`. Command-like capability entrypoints use these native Skills/plugin surfaces and are verified with Codex discoverability (`codex debug prompt-input`) |
-| native hook surface | `adapters/codex/hooks/hooks.json` registers a Codex `PreToolUse` command hook that bridges write/edit/patch targets to `adapters/codex/bin/preflight.sh write`; explicit preflight remains fallback |
+| native hook surface | `adapters/codex/hooks/hooks.json` registers Codex `PreToolUse` write guards and `PostToolUse` design HTML checks; explicit preflight remains fallback |
 | role profile | Use `roles/README.md` for meaning; use `roles/modes/` or Claude agent files only as compatibility references until Codex-native role prompts exist |
 | role mode | Run `adapters/codex/bin/preflight.sh mode-info <family/mode>` before using a `roles/modes/` fragment; portable modes can be used directly, tool-contract modes require equivalent tools, unsupported modes are reference-only |
 | adapter bootstrap | Load `adapters/codex/AGENTS.md`, then `core/CORE.md` plus task-relevant shared docs; do not treat `CLAUDE.md` as portable bootstrap |
@@ -142,10 +142,12 @@ entrypoints are represented by Codex-native Skills and the installable
 
 ## Native Hook Projection
 
-`adapters/codex/hooks/` contains a Codex-native `hooks.json` plus a concrete
-adapter-owned `pretooluse-write-guard.py` bridge. The hook runs before
-write/edit/patch tools and delegates artifact-order, git-state, and memory-write
-checks to `adapters/codex/bin/preflight.sh write`.
+`adapters/codex/hooks/` contains a Codex-native `hooks.json` plus concrete
+adapter-owned hook bridges. The `PreToolUse` bridge runs before write/edit/patch
+tools and delegates artifact-order, git-state, and memory-write checks to
+`adapters/codex/bin/preflight.sh write`. The `PostToolUse` bridge runs after
+write/edit/patch tools and delegates design HTML saves to
+`adapters/codex/bin/preflight.sh design`.
 
 Expose it through `codex_setting/codex-hooks`, not through a plain `hooks/`
 projection:
@@ -154,9 +156,10 @@ projection:
 ln -sfn "$AGENT_HOME/codex_setting/codex-hooks/hooks.json" "$HOME/.codex/hooks.json"
 ```
 
-The bridge accepts Codex hook stdin JSON and returns a `decision=block` hook
-result when the shared guard fails. It does not consume Claude `settings.json`
-or Claude hook payloads.
+The pre-write bridge accepts Codex hook stdin JSON and returns a
+`decision=block` hook result when the shared guard fails. The design bridge is a
+post-write alert path only. Neither bridge consumes Claude `settings.json` or
+Claude hook payloads.
 
 ## Runtime Home Projection
 

@@ -208,6 +208,14 @@ check_codex_bin_wrappers() {
   if ! grep -Fq 'preflight.sh track' adapters/codex/AGENTS.md; then
     fail_msg "adapters/codex/AGENTS.md must document the Codex workflow toggle wrapper"
   fi
+
+  if ! grep -Fq 'visual-harness)' adapters/codex/bin/preflight.sh; then
+    fail_msg "adapters/codex/bin/preflight.sh must expose the Codex visual harness tool-contract"
+  fi
+
+  if ! grep -Fq 'preflight.sh visual-harness' adapters/codex/AGENTS.md; then
+    fail_msg "adapters/codex/AGENTS.md must document the Codex visual harness tool-contract"
+  fi
 }
 
 check_codex_utility_projection() {
@@ -362,18 +370,21 @@ check_codex_native_plugin_projection() {
 check_codex_native_hook_projection() {
   hook_dir="adapters/codex/hooks"
   hook_json="$hook_dir/hooks.json"
-  bridge="$hook_dir/pretooluse-write-guard.py"
+  pre_bridge="$hook_dir/pretooluse-write-guard.py"
+  post_bridge="$hook_dir/posttooluse-design-check.py"
 
   if [ ! -f "$hook_json" ]; then
     fail_msg "$hook_json is missing"
     return
   fi
-  if [ ! -x "$bridge" ]; then
-    fail_msg "$bridge must be executable"
-  fi
-  if [ -L "$bridge" ]; then
-    fail_msg "$bridge must be a concrete adapter-owned Codex hook bridge"
-  fi
+  for bridge in "$pre_bridge" "$post_bridge"; do
+    if [ ! -x "$bridge" ]; then
+      fail_msg "$bridge must be executable"
+    fi
+    if [ -L "$bridge" ]; then
+      fail_msg "$bridge must be a concrete adapter-owned Codex hook bridge"
+    fi
+  done
   if ! python3 -m json.tool "$hook_json" >/tmp/codex-hooks-json.out 2>/tmp/codex-hooks-json.err; then
     fail_msg "$hook_json must be valid JSON"
     cat /tmp/codex-hooks-json.err
@@ -381,10 +392,18 @@ check_codex_native_hook_projection() {
   if ! grep -Fq '"PreToolUse"' "$hook_json" || ! grep -Fq 'pretooluse-write-guard.py' "$hook_json"; then
     fail_msg "$hook_json must register the Codex PreToolUse write guard"
   fi
-  if ! grep -Fq 'adapters" / "codex" / "bin" / "preflight.sh' "$bridge"; then
-    fail_msg "$bridge must call the Codex preflight wrapper"
+  if ! grep -Fq '"PostToolUse"' "$hook_json" || ! grep -Fq 'posttooluse-design-check.py' "$hook_json"; then
+    fail_msg "$hook_json must register the Codex PostToolUse design check"
   fi
-  if grep -Eq 'adapters/claude|claude_setting|settings\.json|statusline\.sh' "$hook_json" "$bridge"; then
+  for bridge in "$pre_bridge" "$post_bridge"; do
+    if ! grep -Fq 'adapters" / "codex" / "bin" / "preflight.sh' "$bridge"; then
+      fail_msg "$bridge must call the Codex preflight wrapper"
+    fi
+  done
+  if ! grep -Fq '"design"' "$post_bridge"; then
+    fail_msg "$post_bridge must call the Codex design preflight"
+  fi
+  if grep -Eq 'adapters/claude|claude_setting|settings\.json|statusline\.sh' "$hook_json" "$pre_bridge" "$post_bridge"; then
     fail_msg "Codex hook projection must not reference Claude-native surfaces"
   fi
 }
@@ -462,6 +481,14 @@ check_opencode_bin_wrappers() {
 
   if ! grep -Fq 'preflight.sh track' adapters/opencode/AGENTS.md; then
     fail_msg "adapters/opencode/AGENTS.md must document the OpenCode workflow toggle wrapper"
+  fi
+
+  if ! grep -Fq 'visual-harness)' adapters/opencode/bin/preflight.sh; then
+    fail_msg "adapters/opencode/bin/preflight.sh must expose the OpenCode visual harness tool-contract"
+  fi
+
+  if ! grep -Fq 'preflight.sh visual-harness' adapters/opencode/AGENTS.md; then
+    fail_msg "adapters/opencode/AGENTS.md must document the OpenCode visual harness tool-contract"
   fi
 }
 
@@ -662,8 +689,14 @@ check_opencode_native_plugin_projection() {
   if ! grep -Fq '"tool.execute.before"' "$plugin"; then
     fail_msg "$plugin must use OpenCode tool.execute.before hook"
   fi
+  if ! grep -Fq '"tool.execute.after"' "$plugin"; then
+    fail_msg "$plugin must use OpenCode tool.execute.after hook for design checks"
+  fi
   if ! grep -Fq 'adapters", "opencode", "bin", "preflight.sh' "$plugin"; then
     fail_msg "$plugin must bridge to the OpenCode preflight wrapper"
+  fi
+  if ! grep -Fq 'runPreflight("design"' "$plugin"; then
+    fail_msg "$plugin must bridge design HTML writes to the OpenCode design preflight"
   fi
   if grep -Eq 'adapters/claude|claude_setting|settings\.json|statusline\.sh' "$plugin"; then
     fail_msg "$plugin must not reference Claude-native surfaces"

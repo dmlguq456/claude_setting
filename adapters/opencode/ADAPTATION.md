@@ -87,7 +87,10 @@ contract. This adapter materializes a concrete OpenCode plugin at
 `adapters/opencode/plugins/agent-harness-guards.js`. It uses
 `tool.execute.before` to detect write/edit/patch targets and calls
 `adapters/opencode/bin/preflight.sh write <file> <session-id>`, which runs the
-portable artifact-order, git-state, and memory-write guards.
+portable artifact-order, git-state, and memory-write guards. It also uses
+`tool.execute.after` to route saved design HTML files through
+`adapters/opencode/bin/preflight.sh design <file>` as a post-write console-check
+alert path.
 
 When changing the plugin:
 
@@ -156,7 +159,7 @@ Harness-specific status signals need OpenCode-native realization:
 | worklog state signal | Run `adapters/opencode/bin/preflight.sh worklog [cwd]` to inspect configured `<agent-notes-root>` / `<worklog-board-app>` paths read-only before OpenCode updates notes or diagnoses board state |
 | role profiles | Read `roles/README.md`, then run `adapters/opencode/bin/preflight.sh role <portable-role>` to resolve OpenCode model/variant settings |
 | role modes | Read `roles/MODES.md`, then run `adapters/opencode/bin/preflight.sh mode-info <family/mode>`; treat adapter-coupled modes as unsupported unless wrappers exist |
-| hook invariants | Read `core/HOOKS.md`; run explicit preflight wrappers until an OpenCode plugin hook realization exists |
+| hook invariants | Read `core/HOOKS.md`; OpenCode plugin hooks cover write/edit/patch guards and design HTML post-write checks, while explicit preflight wrappers remain fallback for disabled/untrusted plugins and events not yet covered |
 | capabilities | Read `capabilities/README.md`, then run `adapters/opencode/bin/preflight.sh capability-info <capability>`; do not assume Claude Skill invocation |
 
 ## Model Mapping
