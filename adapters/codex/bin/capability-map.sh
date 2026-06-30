@@ -40,6 +40,11 @@ fi
 status="instruction-only"
 realization="portable-instructions"
 tool_contract=""
+pipeline_contract=""
+optional_pipeline_step=""
+artifact_contract=""
+role_contract=""
+dispatch_contract=""
 note="Codex has no native skill/plugin realization for this capability yet; read the portable catalog and task-relevant docs, then use preflight guards. Legacy compatibility references are not native input."
 native_skill_path="adapters/codex/skills/$cap/SKILL.md"
 native_plugin_skill_path="adapters/codex/plugins/agent-harness-codex/skills/$cap/SKILL.md"
@@ -61,6 +66,14 @@ else
 fi
 
 case "$cap" in
+  autopilot-code)
+    pipeline_contract="code-plan>code-execute>code-test>code-report"
+    optional_pipeline_step="code-refine"
+    artifact_contract="plans/<date>_<slug>:plan.md,checklist.md,pipeline_summary.md,dev_logs/,test_logs/"
+    role_contract="planning=plan-team,implementation=dev-team,verification=qa-team,report=editorial-team"
+    dispatch_contract="preflight.sh dispatch --capability autopilot-code --mode <family/mode> --qa <level>"
+    note="$note Follow the reported pipeline_contract and artifact_contract before claiming the autopilot-code cycle is complete."
+    ;;
   autopilot-design|design-*)
     status="tool-contract"
     tool_contract="visual-harness"
@@ -92,6 +105,21 @@ printf 'compat_reference=not-projected\n'
 printf 'bootstrap=adapters/codex/AGENTS.md\n'
 printf 'guards=adapters/codex/bin/preflight.sh\n'
 printf 'status=%s\n' "$status"
+if [ -n "$pipeline_contract" ]; then
+  printf 'pipeline_contract=%s\n' "$pipeline_contract"
+fi
+if [ -n "$optional_pipeline_step" ]; then
+  printf 'optional_pipeline_step=%s\n' "$optional_pipeline_step"
+fi
+if [ -n "$artifact_contract" ]; then
+  printf 'artifact_contract=%s\n' "$artifact_contract"
+fi
+if [ -n "$role_contract" ]; then
+  printf 'role_contract=%s\n' "$role_contract"
+fi
+if [ -n "$dispatch_contract" ]; then
+  printf 'dispatch_contract=%s\n' "$dispatch_contract"
+fi
 if [ -n "$tool_contract" ]; then
   printf 'tool_contract=%s\n' "$tool_contract"
   if [ "$tool_contract" = "visual-harness" ]; then

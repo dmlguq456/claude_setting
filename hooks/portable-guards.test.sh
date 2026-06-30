@@ -146,7 +146,8 @@ fi
 if "$CODEX" route autopilot-code "$TMP/specproj" testsid >/tmp/codex_route.out 2>/tmp/codex_route.err \
   && grep -q '^runtime_surface=codex-userprompt-hook-signal$' /tmp/codex_route.out \
   && grep -q '^capability=autopilot-code$' /tmp/codex_route.out \
-  && grep -q '^compat_reference=not-projected$' /tmp/codex_route.out; then
+  && grep -q '^compat_reference=not-projected$' /tmp/codex_route.out \
+  && grep -q '^pipeline_contract=code-plan>code-execute>code-test>code-report$' /tmp/codex_route.out; then
   ok "codex route wrapper combines prompt signal, capability-info, and spec gate"
 else
   bad "codex route wrapper should combine prompt signal, capability-info, and spec gate"
@@ -458,6 +459,13 @@ if PATH="$TMP/codex-stubbin:$PATH" CODEX_HOME="$TMP/codex_headless_home" CODEX_S
   && grep -q 'Read adapters/codex/AGENTS.md first' "$TMP/codex-logs/nested/codex-start.codex.prompt.txt" \
   && grep -q 'preflight.sh route autopilot-code . codex-headless' "$TMP/codex-logs/nested/codex-start.codex.prompt.txt" \
   && grep -q 'preflight.sh mode-info dev/backend' "$TMP/codex-logs/nested/codex-start.codex.prompt.txt" \
+  && grep -q 'Autopilot-code execution contract' "$TMP/codex-logs/nested/codex-start.codex.prompt.txt" \
+  && grep -q 'code-plan -> code-execute -> code-test -> code-report' "$TMP/codex-logs/nested/codex-start.codex.prompt.txt" \
+  && grep -q 'preflight.sh mode-info qa/plan-review' "$TMP/codex-logs/nested/codex-start.codex.prompt.txt" \
+  && grep -q 'preflight.sh mode-info qa/test' "$TMP/codex-logs/nested/codex-start.codex.prompt.txt" \
+  && grep -q 'preflight.sh role fast reviewer' "$TMP/codex-logs/nested/codex-start.codex.prompt.txt" \
+  && grep -q 'pipeline_summary.md' "$TMP/codex-logs/nested/codex-start.codex.prompt.txt" \
+  && grep -q 'Do not claim independent QA delegation' "$TMP/codex-logs/nested/codex-start.codex.prompt.txt" \
   && grep -q 'Do not use adapters/claude' "$TMP/codex-logs/nested/codex-start.codex.prompt.txt" \
   && grep -q 'nested work' "$TMP/codex-logs/nested/codex-start.codex.prompt.txt"; then
   for _ in $(seq 1 20); do
@@ -691,7 +699,12 @@ if "$CODEX" capability-info autopilot-code >/tmp/cap.out 2>/tmp/cap.err \
   && grep -q '^realization=codex-native-skill-plugin$' /tmp/cap.out \
   && grep -q '^compat_reference=not-projected$' /tmp/cap.out \
   && ! grep -q '^compat_reference=skills/' /tmp/cap.out \
-  && grep -q '^status=instruction-only$' /tmp/cap.out; then
+  && grep -q '^status=instruction-only$' /tmp/cap.out \
+  && grep -q '^pipeline_contract=code-plan>code-execute>code-test>code-report$' /tmp/cap.out \
+  && grep -q '^optional_pipeline_step=code-refine$' /tmp/cap.out \
+  && grep -q '^artifact_contract=plans/<date>_<slug>:plan.md,checklist.md,pipeline_summary.md,dev_logs/,test_logs/$' /tmp/cap.out \
+  && grep -q '^role_contract=planning=plan-team,implementation=dev-team,verification=qa-team,report=editorial-team$' /tmp/cap.out \
+  && grep -q '^dispatch_contract=preflight.sh dispatch --capability autopilot-code --mode <family/mode> --qa <level>$' /tmp/cap.out; then
   ok "codex capability wrapper reports native skill and plugin realization"
 else
   bad "codex capability wrapper should report native skill and plugin realization"

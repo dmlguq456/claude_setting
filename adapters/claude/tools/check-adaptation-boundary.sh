@@ -597,6 +597,13 @@ check_codex_bin_wrappers() {
     || ! grep -Fq 'Read adapters/codex/AGENTS.md first' adapters/codex/bin/dispatch-headless.py \
     || ! grep -Fq 'preflight.sh route {args.capability} . codex-headless' adapters/codex/bin/dispatch-headless.py \
     || ! grep -Fq 'preflight.sh mode-info {args.mode}' adapters/codex/bin/dispatch-headless.py \
+    || ! grep -Fq 'Autopilot-code execution contract' adapters/codex/bin/dispatch-headless.py \
+    || ! grep -Fq 'code-plan -> code-execute -> code-test -> code-report' adapters/codex/bin/dispatch-headless.py \
+    || ! grep -Fq 'preflight.sh mode-info qa/plan-review' adapters/codex/bin/dispatch-headless.py \
+    || ! grep -Fq 'preflight.sh mode-info qa/test' adapters/codex/bin/dispatch-headless.py \
+    || ! grep -Fq 'preflight.sh role fast reviewer' adapters/codex/bin/dispatch-headless.py \
+    || ! grep -Fq 'pipeline_summary.md' adapters/codex/bin/dispatch-headless.py \
+    || ! grep -Fq 'Do not claim independent QA delegation' adapters/codex/bin/dispatch-headless.py \
     || ! grep -Fq 'Do not use adapters/claude' adapters/codex/bin/dispatch-headless.py; then
     fail_msg "adapters/codex/bin/dispatch-headless.py must validate dispatch inputs and wrap worker prompts with Codex harness bootstrap/preflight gates"
   fi
@@ -750,6 +757,18 @@ check_codex_bin_wrappers() {
     || grep -Fq 'compat_reference="skills/' adapters/codex/bin/capability-map.sh \
     || grep -Fq "printf 'compat_reference=skills/" adapters/codex/bin/capability-map.sh; then
     fail_msg "adapters/codex/bin/capability-map.sh must not expose root Skill compatibility paths as Codex capability-info output"
+  fi
+  if ! grep -Fq 'pipeline_contract="code-plan>code-execute>code-test>code-report"' adapters/codex/bin/capability-map.sh \
+    || ! grep -Fq 'optional_pipeline_step="code-refine"' adapters/codex/bin/capability-map.sh \
+    || ! grep -Fq 'artifact_contract="plans/<date>_<slug>:plan.md,checklist.md,pipeline_summary.md,dev_logs/,test_logs/"' adapters/codex/bin/capability-map.sh \
+    || ! grep -Fq 'role_contract="planning=plan-team,implementation=dev-team,verification=qa-team,report=editorial-team"' adapters/codex/bin/capability-map.sh \
+    || ! grep -Fq 'dispatch_contract="preflight.sh dispatch --capability autopilot-code --mode <family/mode> --qa <level>"' adapters/codex/bin/capability-map.sh; then
+    fail_msg "Codex autopilot-code capability-info must expose the portable pipeline/artifact/role/dispatch contracts"
+  fi
+  if ! grep -Fq 'capability-info` and `route` print the portable pipeline contract (`code-plan>code-execute>code-test>code-report`)' adapters/codex/AGENTS.md \
+    || ! grep -Fq 'autopilot-code pipeline' adapters/codex/README.md \
+    || ! grep -Fq 'pipeline_contract=code-plan>code-execute>code-test>code-report' adapters/codex/README.md; then
+    fail_msg "Codex docs must describe the autopilot-code pipeline metadata exposed by capability-info/route"
   fi
   if ! grep -Fq 'compat_reference=not-projected' adapters/codex/README.md \
     || grep -Fq 'legacy compatibility reference, if one exists' adapters/codex/README.md; then

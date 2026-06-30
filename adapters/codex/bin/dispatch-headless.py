@@ -62,6 +62,19 @@ def task_prompt(args: argparse.Namespace) -> tuple[str, str]:
 
 def dispatch_prompt(args: argparse.Namespace) -> tuple[str, str]:
     task, source = task_prompt(args)
+    execution_contract = ""
+    if args.capability == "autopilot-code":
+        execution_contract = (
+            "\nAutopilot-code execution contract:\n"
+            "- Before code edits, emit a `spec-significance` verdict.\n"
+            "- Run the pipeline in order: code-plan -> code-execute -> code-test -> code-report. Use optional code-refine only when user feedback or QA review requires plan correction.\n"
+            "- For each sub-step, read the matching adapters/codex/skills/<step>/SKILL.md when present and run adapters/codex/bin/preflight.sh capability-info <step>.\n"
+            "- Planning review: run adapters/codex/bin/preflight.sh mode-info qa/plan-review and adapters/codex/bin/preflight.sh role fast reviewer. For thorough/adversarial QA, also use a deep/external reviewer role when available.\n"
+            "- Implementation: run adapters/codex/bin/preflight.sh role fast implementer and obey the requested development mode.\n"
+            "- Testing: run adapters/codex/bin/preflight.sh mode-info qa/test, satisfy the reported verification-runner contract, and record evidence under test_logs/.\n"
+            "- Reporting: write or update pipeline_summary.md with changed files, verification commands/results, artifact paths, and unsupported Codex tool contracts.\n"
+            "- Do not claim independent QA delegation if no separate Codex agent/headless pass actually ran; report inline fallback explicitly.\n"
+        )
     return (
         "You are a Codex headless worker launched by the portable agent harness.\n"
         "Follow the Codex adapter contract before doing task work.\n\n"
@@ -78,6 +91,7 @@ def dispatch_prompt(args: argparse.Namespace) -> tuple[str, str]:
         f"- mode: {args.mode}\n"
         f"- qa: {args.qa}\n"
         f"- worktree: {args.worktree}\n\n"
+        f"{execution_contract}"
         "User task:\n"
         f"{task.rstrip()}\n\n"
         "Return a concise Korean report with changed files, verification commands, artifact paths, and any blocked/unsupported Codex tool contracts. "
