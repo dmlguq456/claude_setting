@@ -1243,6 +1243,19 @@ then
 else
   bad "opencode native plugin write hook should bridge to preflight"
 fi
+mkdir -p "$TMP/opencode_copied_plugin"
+cp "$ROOT/opencode_setting/opencode-plugins/agent-harness-guards.js" "$TMP/opencode_copied_plugin/agent-harness-guards.js"
+if node --input-type=module >/tmp/opencode_plugin_copy.out 2>/tmp/opencode_plugin_copy.err <<EOF
+process.env.AGENT_HOME = "$ROOT"
+const mod = await import("$TMP/opencode_copied_plugin/agent-harness-guards.js")
+const plugin = await mod.AgentHarnessGuards({ directory: "$TMP/repo", worktree: "$TMP/repo" })
+await plugin["tool.execute.before"]({ tool: { name: "write" }, sessionID: "testsid" }, { args: { filePath: "$TMP/repo/f" } })
+EOF
+then
+  ok "opencode native plugin copy resolves harness through AGENT_HOME"
+else
+  bad "opencode native plugin copy should resolve harness through AGENT_HOME"
+fi
 if node --input-type=module >/tmp/opencode_plugin_lifecycle.out 2>/tmp/opencode_plugin_lifecycle.err <<EOF
 import { AgentHarnessGuards } from "$ROOT/opencode_setting/opencode-plugins/agent-harness-guards.js"
 const plugin = await AgentHarnessGuards({ directory: "$TMP/flowproj", worktree: "$TMP/flowproj" })

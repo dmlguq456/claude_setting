@@ -1,9 +1,12 @@
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { spawnSync } from "node:child_process"
+import { existsSync } from "node:fs"
 
 const pluginDir = path.dirname(fileURLToPath(import.meta.url))
-const root = path.resolve(pluginDir, "../../..")
+const pluginRoot = path.resolve(pluginDir, "../../..")
+const envRoot = process.env.AGENT_HOME ? path.resolve(process.env.AGENT_HOME) : ""
+const root = envRoot && existsSync(path.join(envRoot, "adapters", "opencode", "bin", "preflight.sh")) ? envRoot : pluginRoot
 const preflight = path.join(root, "adapters", "opencode", "bin", "preflight.sh")
 const designPattern = /(designs?\/|\/design\/|spec\/design|preview\.html$|slides?\.html$|03_components|scaffolds\/)/
 const seenLifecycle = new Set()

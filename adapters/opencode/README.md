@@ -206,7 +206,9 @@ ln -sfn "$AGENT_HOME/opencode_setting/opencode-plugins/agent-harness-guards.js" 
 
 The plugin bridges to `adapters/opencode/bin/preflight.sh`; it does not copy or
 invoke Claude hook files. Keep explicit `preflight.sh` calls as the fallback
-path for runtimes or invocations where plugins are disabled.
+path for runtimes or invocations where plugins are disabled. When a runtime
+loads a copied plugin file instead of a symlinked projection, set `AGENT_HOME`
+to the harness repo so the plugin can resolve `adapters/opencode/bin/preflight.sh`.
 
 ## Runtime Home Projection
 

@@ -1492,6 +1492,9 @@ check_opencode_native_plugin_projection() {
   if ! grep -Fq 'adapters", "opencode", "bin", "preflight.sh' "$plugin"; then
     fail_msg "$plugin must bridge to the OpenCode preflight wrapper"
   fi
+  if ! grep -Fq 'process.env.AGENT_HOME' "$plugin"; then
+    fail_msg "$plugin must prefer AGENT_HOME for harness root resolution"
+  fi
   for p in 'collectPreflight("start"' 'collectPreflight("memory"' 'collectPreflight("mode"' 'collectPreflight("recall"' 'collectPreflight("briefing"'; do
     if ! grep -Fq "$p" "$plugin"; then
       fail_msg "$plugin must bridge OpenCode lifecycle context through $p"
