@@ -178,6 +178,10 @@ rg '^family=fast$' /tmp/codex-role.txt
 codex_setting/bin/preflight.sh mode-info dev/backend >/tmp/codex-mode.txt
 rg '^adapter=codex$' /tmp/codex-mode.txt
 rg '^status=portable$' /tmp/codex-mode.txt
+codex_setting/bin/preflight.sh visual-harness >/tmp/codex-visual-contract.txt
+rg '^adapter=codex$' /tmp/codex-visual-contract.txt
+rg '^runtime_surface=adapter-owned-visual-harness$' /tmp/codex-visual-contract.txt
+test -x codex_setting/tools/design/visual-harness.sh
 tmp_codex_bootstrap_home=$(mktemp -d)
 ln -s "$PWD/codex_setting/AGENTS.md" "$tmp_codex_bootstrap_home/AGENTS.md"
 CODEX_HOME="$tmp_codex_bootstrap_home" codex debug prompt-input 'bootstrap check' >/tmp/codex-bootstrap.json
@@ -245,6 +249,10 @@ rg '^family=fast$' /tmp/opencode-role.txt
 opencode_setting/bin/preflight.sh mode-info dev/backend >/tmp/opencode-mode.txt
 rg '^adapter=opencode$' /tmp/opencode-mode.txt
 rg '^status=portable$' /tmp/opencode-mode.txt
+opencode_setting/bin/preflight.sh visual-harness >/tmp/opencode-visual-contract.txt
+rg '^adapter=opencode$' /tmp/opencode-visual-contract.txt
+rg '^runtime_surface=adapter-owned-visual-harness$' /tmp/opencode-visual-contract.txt
+test -x opencode_setting/tools/design/visual-harness.sh
 mkdir -p "$tmp_opencode_bootstrap_home/.config/opencode" "$tmp_opencode_bootstrap_home/.local/share"
 OPENCODE_CONFIG_CONTENT="{\"instructions\":[\"$PWD/opencode_setting/AGENTS.md\"],\"skills\":{\"paths\":[\"$PWD/opencode_setting/opencode-skills\"]}}" \
   HOME="$tmp_opencode_bootstrap_home" \

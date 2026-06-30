@@ -15,6 +15,13 @@ Implements the runtime design harness loop used by design capabilities.
 | `view_image({ path, maxSize? })` | Load an image as a vision input (downscaled to ≤1000px long edge). |
 | `image_metadata({ path })` | Dimensions / format / alpha / animation without sending pixels. |
 
+## CLI Backstops
+
+| command | purpose |
+|---|---|
+| `node console-check.mjs <file.html>` | Deterministic console/page-error check for design HTML post-write hooks. |
+| `node visual-check.mjs <file.html> [--out <dir>] [--viewport <width>x<height>]` | Render one HTML file, capture a screenshot, and report console errors as machine-readable status lines. Codex/OpenCode adapter-owned visual harness wrappers call this checker without projecting the full MCP package. |
+
 ## Registration Boundary
 
 This package is portable tool source. Runtime-specific registration belongs in

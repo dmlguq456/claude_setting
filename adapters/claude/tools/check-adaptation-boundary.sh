@@ -221,6 +221,12 @@ check_install_layout_codex_projection() {
     || ! grep -Fq "rg '^status=portable$' /tmp/codex-mode.txt" INSTALL_LAYOUT.md; then
     fail_msg "INSTALL_LAYOUT.md must validate Codex role and mode mapping surfaces"
   fi
+  if ! grep -Fq 'codex_setting/bin/preflight.sh visual-harness >/tmp/codex-visual-contract.txt' INSTALL_LAYOUT.md \
+    || ! grep -Fq "rg '^adapter=codex$' /tmp/codex-visual-contract.txt" INSTALL_LAYOUT.md \
+    || ! grep -Fq "rg '^runtime_surface=adapter-owned-visual-harness$' /tmp/codex-visual-contract.txt" INSTALL_LAYOUT.md \
+    || ! grep -Fq 'test -x codex_setting/tools/design/visual-harness.sh' INSTALL_LAYOUT.md; then
+    fail_msg "INSTALL_LAYOUT.md must validate Codex visual harness projection"
+  fi
 }
 
 check_install_layout_opencode_projection() {
@@ -258,6 +264,12 @@ check_install_layout_opencode_projection() {
     || ! grep -Fq "rg '^adapter=opencode$' /tmp/opencode-mode.txt" INSTALL_LAYOUT.md \
     || ! grep -Fq "rg '^status=portable$' /tmp/opencode-mode.txt" INSTALL_LAYOUT.md; then
     fail_msg "INSTALL_LAYOUT.md must validate OpenCode role and mode mapping surfaces"
+  fi
+  if ! grep -Fq 'opencode_setting/bin/preflight.sh visual-harness >/tmp/opencode-visual-contract.txt' INSTALL_LAYOUT.md \
+    || ! grep -Fq "rg '^adapter=opencode$' /tmp/opencode-visual-contract.txt" INSTALL_LAYOUT.md \
+    || ! grep -Fq "rg '^runtime_surface=adapter-owned-visual-harness$' /tmp/opencode-visual-contract.txt" INSTALL_LAYOUT.md \
+    || ! grep -Fq 'test -x opencode_setting/tools/design/visual-harness.sh' INSTALL_LAYOUT.md; then
+    fail_msg "INSTALL_LAYOUT.md must validate OpenCode visual harness projection"
   fi
 }
 
