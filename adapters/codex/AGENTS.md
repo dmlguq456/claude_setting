@@ -46,6 +46,7 @@ This file maps the shared agent harness onto Codex-style sessions. It is an adap
 - Codex `UserPromptSubmit` hook bridge runs `adapters/codex/bin/preflight.sh mode [cwd] [session-id]`, `adapters/codex/bin/preflight.sh recall "<prompt>" [cwd]`, `adapters/codex/bin/preflight.sh briefing [cwd]`, and `adapters/codex/bin/preflight.sh turn-nudge [cwd] [session-id]`; run them manually when hooks are unavailable.
 - Use `adapters/codex/bin/preflight.sh status [cwd] [session-id]` when you need a read-only harness snapshot for workflow, artifact, notes, worktree, and git-risk signals. Keep Codex `/statusline` responsible for model, context, token, limit, and session footer fields.
 - Use `adapters/codex/bin/preflight.sh doctor` for a quick adapter readiness check covering manifest freshness, native projections, hook bridge syntax, and boundary rules.
+- Use `adapters/codex/bin/preflight.sh loop-info <oncall|note|study|drill>` before following a loop guide; do not run Claude-coupled loop scripts as Codex-native executables.
 - Use `adapters/codex/bin/preflight.sh track [cwd] [session-id]` only when the user explicitly wants to toggle the tracked/untracked workflow escape hatch.
 - Use `adapters/codex/bin/preflight.sh worklog [cwd]` before worklog-board or agent-notes work to inspect configured notes/app paths without mutating data.
 - Use `adapters/codex/bin/preflight.sh headless [--check] <worktree>` before any Codex headless dispatch. Use `adapters/codex/bin/preflight.sh dispatch --dry-run|--register|--start --worktree <path> --slug <slug> --capability <name> --mode <family/mode> --qa <level>` to build/register/start the headless command. Do not launch headless work unless the job is main-dispatched, depth 1, registered in `.dispatch/jobs.log`, and monitored with `adapters/codex/bin/preflight.sh liveness [jobs.log]` while waiting. After main-session harvest, use `adapters/codex/bin/preflight.sh harvest --slug <slug> --mark-done` only to update the registry; merges and cleanup remain main/orchestrator responsibilities.
@@ -60,7 +61,7 @@ This file maps the shared agent harness onto Codex-style sessions. It is an adap
 - Answer the user in Korean unless they explicitly request another language.
 - Keep implementation work grounded in the repo's current files and existing conventions.
 - When modifying this harness repo, commit and push after validation.
-- Do not run drill automatically; it can invoke headless runtime sessions and spend tokens. Report when drill would be useful.
+- Do not run drill automatically; it can invoke headless runtime sessions and spend tokens. Run `adapters/codex/bin/preflight.sh loop-info drill` and report when drill would be useful.
 
 ## Compatibility Boundary
 

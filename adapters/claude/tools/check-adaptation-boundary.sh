@@ -566,7 +566,7 @@ check_codex_bin_wrappers() {
     fail_msg "adapters/codex/AGENTS.md must document the Codex workflow toggle wrapper"
   fi
 
-  for p in 'preflight.sh start' 'preflight.sh session-end' 'preflight.sh mode' 'preflight.sh turn-nudge' 'preflight.sh track' 'preflight.sh memory' 'preflight.sh recall' 'preflight.sh briefing' 'preflight.sh worklog' 'preflight.sh distill-delta' 'preflight.sh distill-propose'; do
+  for p in 'preflight.sh start' 'preflight.sh session-end' 'preflight.sh mode' 'preflight.sh turn-nudge' 'preflight.sh track' 'preflight.sh memory' 'preflight.sh recall' 'preflight.sh briefing' 'preflight.sh worklog' 'preflight.sh loop-info' 'preflight.sh distill-delta' 'preflight.sh distill-propose'; do
     if ! grep -Fq "$p" adapters/codex/AGENTS.md; then
       fail_msg "adapters/codex/AGENTS.md must document manual Codex lifecycle wrapper $p"
     fi
@@ -677,6 +677,20 @@ check_codex_bin_wrappers() {
     || ! grep -Fq 'runtime_surface' adapters/codex/README.md \
     || ! grep -Fq 'tool_contract_check' adapters/codex/ADAPTATION.md; then
     fail_msg "Codex docs must document mode-info contract metadata fields"
+  fi
+
+  if ! grep -Fq 'loop-info)' adapters/codex/bin/preflight.sh \
+    || ! grep -Fq 'loop-info <oncall|note|study|drill>' adapters/codex/bin/preflight.sh \
+    || ! grep -Fq 'source=loops/oncall.md' adapters/codex/bin/preflight.sh \
+    || ! grep -Fq 'source=loops/study.md' adapters/codex/bin/preflight.sh \
+    || ! grep -Fq 'source=loops/drill/README.md' adapters/codex/bin/preflight.sh \
+    || ! grep -Fq 'auto_run=unsupported' adapters/codex/bin/preflight.sh \
+    || ! grep -Fq 'fallback=worklog-board-or-manual-post-it-flow' adapters/codex/bin/preflight.sh; then
+    fail_msg "adapters/codex/bin/preflight.sh must expose Codex loop-info contracts without running loop scripts"
+  fi
+  if ! grep -Fq 'loop-info <oncall|note|study|drill>' adapters/codex/README.md \
+    || ! grep -Fq 'preflight.sh loop-info <loop>' adapters/codex/ADAPTATION.md; then
+    fail_msg "Codex docs must document loop-info support/fallback contracts"
   fi
 
   if grep -Fq 'Codex commands must be expressed as AGENTS instructions or wrapper commands' adapters/codex/ADAPTATION.md; then

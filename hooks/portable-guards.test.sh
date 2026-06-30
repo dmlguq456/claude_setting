@@ -445,6 +445,36 @@ if "$CODEX" mcp --check >/tmp/codex_mcp_check.out 2>/tmp/codex_mcp_check.err \
 else
   bad "codex mcp wrapper should check native MCP CLI"
 fi
+if "$CODEX" loop-info oncall >/tmp/codex_loop_oncall.out 2>/tmp/codex_loop_oncall.err \
+  && grep -q '^adapter=codex$' /tmp/codex_loop_oncall.out \
+  && grep -q '^loop=oncall$' /tmp/codex_loop_oncall.out \
+  && grep -q '^source=loops/oncall.md$' /tmp/codex_loop_oncall.out \
+  && grep -q '^status=manual-contract$' /tmp/codex_loop_oncall.out \
+  && grep -q '^runtime_surface=codex-loop-guidance$' /tmp/codex_loop_oncall.out \
+  && grep -q '^executable_projection=unsupported-runtime-script$' /tmp/codex_loop_oncall.out; then
+  ok "codex loop wrapper reports oncall manual contract"
+else
+  bad "codex loop wrapper should report oncall manual contract"
+fi
+if "$CODEX" loop-info drill >/tmp/codex_loop_drill.out 2>/tmp/codex_loop_drill.err \
+  && grep -q '^source=loops/drill/README.md$' /tmp/codex_loop_drill.out \
+  && grep -q '^status=manual-contract$' /tmp/codex_loop_drill.out \
+  && grep -q '^trigger=manual-only$' /tmp/codex_loop_drill.out \
+  && grep -q '^auto_run=unsupported$' /tmp/codex_loop_drill.out \
+  && grep -q '^fallback=report-drill-would-be-useful$' /tmp/codex_loop_drill.out; then
+  ok "codex loop wrapper prevents automatic drill execution"
+else
+  bad "codex loop wrapper should prevent automatic drill execution"
+fi
+if "$CODEX" loop-info note >/tmp/codex_loop_note.out 2>/tmp/codex_loop_note.err \
+  && grep -q '^loop=note$' /tmp/codex_loop_note.out \
+  && grep -q '^status=unsupported$' /tmp/codex_loop_note.out \
+  && grep -q '^runtime_surface=missing-native-loop$' /tmp/codex_loop_note.out \
+  && grep -q '^fallback=worklog-board-or-manual-post-it-flow$' /tmp/codex_loop_note.out; then
+  ok "codex loop wrapper marks missing note loop unsupported"
+else
+  bad "codex loop wrapper should mark missing note loop unsupported"
+fi
 if AGENT_MODEL_FAST=fast-model AGENT_REASONING_FAST=low "$CODEX" role fast reviewer >/tmp/role.out 2>/tmp/role.err \
   && grep -q '^family=fast$' /tmp/role.out \
   && grep -q '^adapter=codex$' /tmp/role.out \

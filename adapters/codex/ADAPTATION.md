@@ -228,7 +228,7 @@ Harness-specific status signals still need Codex-native realization:
 | headless/autopilot/background jobs | `preflight.sh headless` / `dispatch` / `liveness` / `harvest` provide the tool-contract path; only UI/status surfacing remains future work |
 | sibling `-wt/<slug>` dispatch detection | preserve the worktree naming invariant; choose a Codex-native display surface later |
 | pipeline stage nudges | preflight/AGENTS instructions first; UI only when Codex exposes a suitable surface |
-| oncall/note/study/drill loop nudges | `preflight.sh briefing` / future loop-specific wrappers |
+| oncall/note/study/drill loop nudges | `preflight.sh briefing` plus `preflight.sh loop-info <loop>` for loop-specific support/fallback status |
 | merge/rebase/merged-branch risk | `preflight.sh write` git safety checks plus any future Codex-native warning surface |
 
 ## Required Codex Mappings
@@ -246,6 +246,7 @@ Harness-specific status signals still need Codex-native realization:
 | memory inject | Run `adapters/codex/bin/preflight.sh memory [cwd]` for plain-text session-start memory injection |
 | memory recall | Run `adapters/codex/bin/preflight.sh recall <prompt> [cwd]` before prompt handling when no automatic prompt hook is attached |
 | oncall briefing | Run `adapters/codex/bin/preflight.sh briefing [cwd]` before prompt handling on the dedicated agent desk |
+| loop guidance | Run `adapters/codex/bin/preflight.sh loop-info <oncall|note|study|drill>` before following loop guides; Codex reports manual contracts, missing implementations, and drill auto-run restrictions without executing loop scripts |
 | memory distill | Transcript delta extraction exists via `adapters/codex/bin/preflight.sh distill-delta <session-id>`; opt-in proposal generation exists via `CODEX_DISTILL_ENABLE=1 adapters/codex/bin/preflight.sh distill-propose <session-id> [cwd]`; automatic memory mutation remains disabled until Codex has an accepted no-tools/action contract |
 | worklog state signal | Run `adapters/codex/bin/preflight.sh worklog [cwd]` to inspect configured `<agent-notes-root>` / `<worklog-board-app>` paths read-only before Codex updates notes or diagnoses board state |
 | role profiles | Read `roles/README.md`, then run `adapters/codex/bin/preflight.sh role <portable-role>` to resolve Codex model/reasoning-effort settings |
