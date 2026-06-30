@@ -2485,6 +2485,12 @@ check_adaptation_inventory_native_surfaces() {
     || ! grep -Fq 'preflight.sh ui-info' core/ADAPTATION_INVENTORY.md; then
     fail_msg "core/ADAPTATION_INVENTORY.md must preserve the Codex /statusline vs harness status split"
   fi
+  if ! grep -Fq 'capabilities/analyze-user.md' core/MEMORY.md \
+    || ! grep -Fq 'adapter-native `analyze-user` projection' core/MEMORY.md \
+    || ! grep -Fq 'root `skills/analyze-user/SKILL.md` 는 compatibility reference' core/MEMORY.md \
+    || grep -Fq '`skills/analyze-user/SKILL.md` 의 agent-중심 표는 동형 뷰' core/MEMORY.md; then
+    fail_msg "core/MEMORY.md must route analyze-user profile mapping through portable capability and adapter projections, not root Skill compatibility refs"
+  fi
 }
 
 check_projection_summary_docs() {
