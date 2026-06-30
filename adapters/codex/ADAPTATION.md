@@ -84,7 +84,11 @@ Before adding or changing Codex-native skills or plugins:
 
 Design capabilities are a tool-contract exception: Codex has native Skill
 guidance for them, but must run the adapter visual harness before claiming full
-support. `capability-info` reports `status=tool-contract` for those entries.
+support. `capability-info` reports `status=tool-contract` for those capability
+entries. This does not make `roles/modes/design/*` native Codex modes; those
+mode fragments remain `mode-info status=unsupported` / `fallback=reference-only`
+because they are adapter-coupled persona fragments, while the concrete
+capability path is `autopilot-design` plus the visual harness contract.
 
 `roles/modes/material/browser-fetch.md` has a Codex-owned executable
 tool-contract surface:
@@ -196,7 +200,7 @@ Codex must not consume these Claude-native files as native configuration:
 | `adapters/claude/track-toggle.sh` | Do not consume; portable semantics live in `utilities/workflow-toggle.sh`, and Codex exposes them through `preflight.sh track` |
 | `adapters/claude/CLAUDE.md` | Reference only; not bootstrap |
 | `adapters/claude/agents/*.md` | Reference only; Codex custom agents are generated from `roles/README.md` |
-| `roles/modes/design/*` | Compatibility reference only until Codex has an equivalent visual/browser verification harness |
+| `roles/modes/design/*` | Reference-only adapter-coupled mode fragments; concrete design work uses `autopilot-design` capability guidance plus `preflight.sh visual-harness` |
 
 ## Status Surface Boundary
 
