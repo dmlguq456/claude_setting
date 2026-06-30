@@ -1083,7 +1083,7 @@ for source in sources:
     for item in required:
         if item not in body:
             raise SystemExit(f"{rel}: missing {item}")
-    forbidden = ("adapters/claude", "claude_setting", "settings.json", "statusline.sh", "CLAUDE.md", "agent-modes", "allowedTools")
+    forbidden = ("adapters/claude", "claude_setting", "settings.json", "statusline.sh", "CLAUDE.md", "agent-modes", "allowedTools", "Design MCP", "mcp__design__", "tools/design-mcp", "getConsoleLogs", "eval_js")
     if any(item in body for item in forbidden):
         raise SystemExit(f"{rel}: leaked non-Codex runtime surface")
 PY
@@ -1108,6 +1108,7 @@ if grep -q 'Test Levels (execute in order, stop on failure)' "$ROOT/codex_settin
   && grep -q 'verification-runner' "$ROOT/codex_setting/codex-modes/qa/test.md" \
   && grep -q 'Codex visual harness' "$ROOT/codex_setting/codex-modes/design/maker.md" \
   && grep -q 'preflight.sh visual-harness <file.html>' "$ROOT/codex_setting/codex-modes/design/maker.md" \
+  && grep -q 'preflight.sh visual-harness <file.html>' "$ROOT/codex_setting/codex-modes/design/verifier.md" \
   && grep -q 'adapter skill projections' "$ROOT/codex_setting/codex-modes/research/plan-review.md"; then
   ok "codex native mode projection embeds sanitized portable mode contracts"
 else

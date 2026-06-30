@@ -53,14 +53,14 @@ surfaces rewritten to Codex-native preflight/tool-contract wording.
 
 도구는 **Codex visual harness** (`adapters/codex/bin/preflight.sh visual-harness <file.html>`, 설치는 design-init 이 보장):
 
-1. **preview** — `preview({ path })` 로 HTML 을 headless 브라우저에 로드. 콘솔 버퍼 리셋.
-2. **getConsoleLogs** — 로드 직후 _첫 점검_. 에러 있으면 먼저 고친다 (깨진 화면을 비평해봐야 무의미).
-3. **screenshot → view_image** — `screenshot({ savePath, steps })` 로 캡처 후 `view_image({ path })` (또는 Read) 로 **이미지를 직접 본다**. 여러 상태(슬라이드·hover·scroll)는 `steps[]` 로 연속 캡처.
-4. **eval_js** — 의심나면 `eval_js` 로 `getComputedStyle(el)`·box 위치·대비를 질의해 _보이는 것_ 을 수치로 교차확인.
+1. **preview** — `adapters/codex/bin/preflight.sh visual-harness <file.html>` 로 HTML 을 headless 브라우저에 로드. 콘솔 버퍼 리셋.
+2. **visual-harness console report** — 로드 직후 _첫 점검_. 에러 있으면 먼저 고친다 (깨진 화면을 비평해봐야 무의미).
+3. **visual-harness screenshot inspection** — `adapters/codex/bin/preflight.sh visual-harness <file.html>` 로 캡처하고 **이미지를 직접 본다**. 여러 상태(슬라이드·hover·scroll)는 `steps[]` 로 연속 캡처.
+4. **visual-harness DOM evidence** — 의심나면 `adapters/codex/bin/preflight.sh visual-harness <file.html>` 로 `getComputedStyle(el)`·box 위치·대비를 질의해 _보이는 것_ 을 수치로 교차확인.
 5. **자가 비평 → 수정 → 재렌더** — 관통·overlap·정렬 어긋남·spacing 불균형·위계 불명확(focal point 없음)·색 역할 혼선·잘림(clipping). 큰 화면은 의심 영역 `clip` crop 확대. 시각적으로 깨끗할 때까지 (최대 3-5 회전).
 6. **보고는 본 것으로** — "valid/교차 0" 대신 "렌더해 확인: X 영역 관통 수정, label overlap 없음, 콘솔 에러 0" 식 _관찰_ 보고. **렌더 이미지를 사용자에 제시** (live-preview 패리티).
 
-> SVG/diagram 단품은 `sharp`/`rsvg-convert`/`mmdc` 로 PNG 렌더 후 `view_image` 도 가능 (브라우저 불필요한 정적 자산). HTML·React·인터랙션·콘솔 점검이 필요하면 반드시 Codex visual harness.
+> SVG/diagram 단품은 `sharp`/`rsvg-convert`/`mmdc` 로 PNG 렌더 후 screenshot inspection 도 가능 (브라우저 불필요한 정적 자산). HTML·React·인터랙션·콘솔 점검이 필요하면 반드시 Codex visual harness.
 
 ## 슬롭 회피 (그대로 지킬 것)
 

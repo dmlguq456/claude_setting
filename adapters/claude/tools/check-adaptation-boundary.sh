@@ -27,6 +27,7 @@ fail_msg() {
 }
 
 CLAUDE_NATIVE_SURFACE_PATTERN='adapters/claude|claude_setting|settings\.json|statusline\.sh|CLAUDE\.md|CLAUDE_HOME|track-toggle\.sh|agent-modes|allowedTools|(^|[^[:alnum:]_/.-])skills/|/\.claude/'
+NON_CODEX_DESIGN_SURFACE_PATTERN='Design MCP|mcp__design__|tools/design-mcp|<agent-home>/tools/design-mcp|getConsoleLogs|eval_js|preview\(\{ path \}\)'
 
 check_no_claude_native_refs() {
   path=$1
@@ -1363,6 +1364,9 @@ check_codex_native_mode_projection() {
     if grep -Eq "$CLAUDE_NATIVE_SURFACE_PATTERN" "$native"; then
       fail_msg "$native must not expose Claude-native surfaces"
     fi
+    if grep -Eq "$NON_CODEX_DESIGN_SURFACE_PATTERN" "$native"; then
+      fail_msg "$native must not expose non-Codex design runtime surfaces"
+    fi
   done
 
   if ! grep -Fq "Test Levels (execute in order, stop on failure)" adapters/codex/modes/qa/test.md \
@@ -1371,7 +1375,8 @@ check_codex_native_mode_projection() {
     fail_msg "adapters/codex/modes/qa/test.md must project the QA graduated test contract"
   fi
   if ! grep -Fq "Codex visual harness" adapters/codex/modes/design/maker.md \
-    || ! grep -Fq "preflight.sh visual-harness <file.html>" adapters/codex/modes/design/maker.md; then
+    || ! grep -Fq "preflight.sh visual-harness <file.html>" adapters/codex/modes/design/maker.md \
+    || ! grep -Fq "preflight.sh visual-harness <file.html>" adapters/codex/modes/design/verifier.md; then
     fail_msg "adapters/codex/modes/design/maker.md must project the design visual harness contract"
   fi
   if ! grep -Fq "adapter skill projections" adapters/codex/modes/research/plan-review.md; then

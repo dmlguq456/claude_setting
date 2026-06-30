@@ -42,10 +42,32 @@ def title_for(mode: str) -> str:
 
 def sanitize_portable_contract(text: str) -> str:
     """Project portable mode text without leaking non-Codex runtime surfaces."""
+    text = re.sub(r"`?mcp__design__[A-Za-z_]+(?:\([^`]*\))?`?", "`adapters/codex/bin/preflight.sh visual-harness <file.html>`", text)
+    text = re.sub(r"`?mcp__design__\*`?", "`adapters/codex/bin/preflight.sh visual-harness <file.html>`", text)
+    text = re.sub(r"`?node <agent-home>/tools/design-mcp/console-check\.mjs <file(?:\.html)?>`?", "`adapters/codex/bin/preflight.sh visual-harness <file.html>`", text)
+    text = text.replace("<agent-home>/tools/design-mcp/", "adapters/codex/bin/preflight.sh visual-harness ")
+
     replacements = {
         "<agent-home>/agent-modes/": "roles/modes/",
         "agent-modes/": "roles/modes/",
         "Design MCP": "Codex visual harness",
+        "`node <agent-home>/tools/design-mcp/console-check.mjs <file.html>` 또는 adapter equivalent": "`adapters/codex/bin/preflight.sh visual-harness <file.html>`",
+        "`node <agent-home>/tools/design-mcp/console-check.mjs <file>` 또는 adapter equivalent": "`adapters/codex/bin/preflight.sh visual-harness <file.html>`",
+        "MCP 있으면 `getConsoleLogs` 동등": "console/page-error evidence is reported by the Codex visual harness",
+        "MCP 있으면": "rendered evidence로",
+        "MCP 불필요": "adapter wrapper only",
+        "MCP-free": "visual-harness",
+        "MCP·브라우저": "visual-harness/browser",
+        "`eval_js`": "`adapters/codex/bin/preflight.sh visual-harness <file.html>`",
+        "eval_js": "visual-harness DOM evidence",
+        "`preview({ path })`": "`adapters/codex/bin/preflight.sh visual-harness <file.html>`",
+        "`getConsoleLogs`": "`adapters/codex/bin/preflight.sh visual-harness <file.html>`",
+        "getConsoleLogs": "visual-harness console report",
+        "`screenshot → view_image`": "visual-harness screenshot inspection",
+        "screenshot → view_image": "visual-harness screenshot inspection",
+        "`screenshot({ savePath, steps })` 로 캡처 후 `view_image({ path })` (또는 Read) 로": "`adapters/codex/bin/preflight.sh visual-harness <file.html>` 로 캡처하고",
+        "`view_image`": "screenshot inspection",
+        "view_image": "screenshot inspection",
         "Claude Code 내장": "legacy runtime reference",
         "Claude Design": "legacy design guidance",
         "nas_Uihyeop/claude-meta-spec/reverse_engineering/deep-research.md": "legacy reverse-engineering notes",
@@ -58,8 +80,6 @@ def sanitize_portable_contract(text: str) -> str:
     }
     for old, new in replacements.items():
         text = text.replace(old, new)
-    text = re.sub(r"`?mcp__design__[A-Za-z_]+(?:\([^`]*\))?`?", "`adapters/codex/bin/preflight.sh visual-harness <file.html>`", text)
-    text = re.sub(r"`?mcp__design__\*`?", "`adapters/codex/bin/preflight.sh visual-harness <file.html>`", text)
     return text.rstrip()
 
 
