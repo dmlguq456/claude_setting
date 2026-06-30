@@ -39,6 +39,7 @@ requirement=""
 tool_contract=""
 tool_contract_check=""
 runtime_surface=""
+native_mode_path=""
 fallback=""
 note=""
 
@@ -46,11 +47,13 @@ case "$family" in
   dev|editorial)
     status=portable
     realization=portable-persona
+    native_mode_path="adapters/codex/modes/$family/$name.md"
     requirement="codex edit/read tools plus normal preflight guards"
     ;;
   material)
     status=tool-contract
     realization=portable-with-tool-contract
+    native_mode_path="adapters/codex/modes/$family/$name.md"
     fallback="satisfy-tool-contract-or-report-unavailable"
     case "$name" in
       browser-fetch)
@@ -109,6 +112,7 @@ case "$family" in
       test)
         status=tool-contract
         realization=portable-with-tool-contract
+        native_mode_path="adapters/codex/modes/$family/$name.md"
         fallback="satisfy-tool-contract-or-report-unavailable"
         tool_contract=verification-runner
         tool_contract_check="adapters/codex/bin/preflight.sh verification-runner --check -- <command>"
@@ -118,11 +122,13 @@ case "$family" in
       security-review)
         status=portable
         realization=portable-persona
+        native_mode_path="adapters/codex/modes/$family/$name.md"
         requirement="perform read-only security review with Codex file and git diff tools; do not invoke Claude slash-command surfaces"
         ;;
       *)
         status=portable
         realization=portable-persona
+        native_mode_path="adapters/codex/modes/$family/$name.md"
         requirement="read-only review with Codex file/test tools"
         ;;
     esac
@@ -132,6 +138,7 @@ case "$family" in
       claim-verify)
         status=tool-contract
         realization=portable-with-tool-contract
+        native_mode_path="adapters/codex/modes/$family/$name.md"
         fallback="satisfy-tool-contract-or-report-unavailable"
         tool_contract=external-claim-verification
         tool_contract_check="adapters/codex/bin/preflight.sh claim-verify --check <claim>"
@@ -141,6 +148,7 @@ case "$family" in
       *)
         status=portable
         realization=portable-persona
+        native_mode_path="adapters/codex/modes/$family/$name.md"
         requirement="read/cite primary sources through available Codex tools"
         ;;
     esac

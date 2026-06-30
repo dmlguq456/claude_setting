@@ -105,6 +105,7 @@ doctor() {
   doctor_check native-skills "$ROOT/adapters/codex/bin/sync-native-skills.py" --check || rc=1
   doctor_check native-plugin "$ROOT/adapters/codex/bin/sync-native-plugin.py" --check || rc=1
   doctor_check native-agents "$ROOT/adapters/codex/bin/sync-native-agents.py" --check || rc=1
+  doctor_check native-modes "$ROOT/adapters/codex/bin/sync-native-modes.py" --check || rc=1
   doctor_check hook-bridges python3 -c 'import pathlib, sys; [compile(pathlib.Path(p).read_text(encoding="utf-8"), p, "exec") for p in sys.argv[1:]]' \
     "$ROOT/adapters/codex/hooks/sessionstart-lifecycle.py" \
     "$ROOT/adapters/codex/hooks/sessionend-lifecycle.py" \

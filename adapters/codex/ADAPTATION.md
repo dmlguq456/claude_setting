@@ -45,7 +45,7 @@ invariant.
 | Preflight wrappers | `adapters/codex/bin/` | `codex_setting/bin` |
 | Skills | `adapters/codex/skills/<name>/SKILL.md` generated from `capabilities/` | `codex_setting/codex-skills` |
 | Custom agents | `adapters/codex/agents/<role>.toml` generated from `roles/README.md` | `codex_setting/codex-agents` |
-| Design modes | `adapters/codex/modes/design/*.md` mapping design modes to Codex visual-harness contract | adapter docs / `mode-info` |
+| Mode guides | `adapters/codex/modes/*/*.md` generated from `roles/modes/` with Codex mode-info contracts | `codex_setting/codex-modes` |
 | Plugin marketplace | `adapters/codex/plugin-marketplace/.agents/plugins/marketplace.json` plus `adapters/codex/plugin-marketplace/plugins/agent-harness-codex` | `codex_setting/codex-plugin-marketplace` |
 | Hook bridge | `adapters/codex/hooks/hooks.json`, `adapters/codex/hooks/pretooluse-write-guard.py`, `adapters/codex/hooks/posttooluse-design-check.py` | `codex_setting/codex-hooks` |
 | Permission/sandbox contract | `adapters/codex/bin/preflight.sh permissions` | `codex_setting/bin/preflight.sh permissions` |
@@ -87,10 +87,10 @@ Before adding or changing Codex-native skills or plugins:
 Design capabilities are a tool-contract exception: Codex has native Skill
 guidance for them, but must run the adapter visual harness before claiming full
 support. `capability-info` reports `status=tool-contract` for those capability
-entries. This does not make `roles/modes/design/*` native Codex modes; those
-mode fragments remain `mode-info status=unsupported` / `fallback=reference-only`
-because they are adapter-coupled persona fragments, while the concrete
-capability path is `autopilot-design` plus the visual harness contract.
+entries. Design mode fragments now have Codex-owned guides under
+`adapters/codex/modes/design/`; `mode-info` reports the guide path and the
+`visual-harness` contract, and Codex must report unavailable if the harness
+cannot run.
 
 `roles/modes/material/browser-fetch.md` has a Codex-owned executable
 tool-contract surface:
@@ -207,7 +207,7 @@ Codex must not consume these Claude-native files as native configuration:
 | `adapters/claude/track-toggle.sh` | Do not consume; portable semantics live in `utilities/workflow-toggle.sh`, and Codex exposes them through `preflight.sh track` |
 | `adapters/claude/CLAUDE.md` | Reference only; not bootstrap |
 | `adapters/claude/agents/*.md` | Reference only; Codex custom agents are generated from `roles/README.md` |
-| `roles/modes/design/*` | Reference-only adapter-coupled mode fragments; concrete design work uses `autopilot-design` capability guidance plus `preflight.sh visual-harness` |
+| `roles/modes/*/*` | Portable source fragments; Codex consumes generated `adapters/codex/modes/*/*.md` guides plus `mode-info` metadata |
 
 ## Status Surface Boundary
 
@@ -252,8 +252,9 @@ Harness-specific status signals still need Codex-native realization:
 | permission mapping | Run `adapters/codex/bin/preflight.sh permissions` to inspect the Codex approval/sandbox contract and confirm Claude `allowedTools` is unsupported |
 | MCP mapping | Run `adapters/codex/bin/preflight.sh mcp --check` to inspect Codex's native MCP CLI/config surface; do not copy Claude `settings.json` MCP registrations or project `tools/design-mcp` wholesale |
 | headless dispatch | Run `adapters/codex/bin/preflight.sh headless --check <worktree>` before Codex `exec` dispatch; it checks the worktree, command availability, and installed Codex runtime projection (`agent-harness`, bootstrap, hooks, native Skills, and native Agents) without launching. Use `adapters/codex/bin/preflight.sh dispatch --dry-run|--register|--start --worktree <path> --slug <slug> --capability <name> --mode <family/mode> --qa <level>` to build the Codex headless command and append `.dispatch/jobs.log` before launch; `--start` reruns the same projection check before launching. While waiting on dispatched work, run `adapters/codex/bin/preflight.sh liveness [jobs.log]` to match open jobs to Codex session JSONL files by `cwd` and transcript mtime. After main-session harvest, run `adapters/codex/bin/preflight.sh harvest --slug <slug> --mark-done` to mark selected registry rows done; merge and worktree cleanup stay outside the adapter wrapper |
-| role modes | Read `roles/MODES.md`, then run `adapters/codex/bin/preflight.sh mode-info <family/mode>`; use Codex-native design mode realizations where present, treat adapter-coupled modes as unsupported unless wrappers exist, obey `fallback=reference-only`, and satisfy any named `tool_contract` / `tool_contract_check` before claiming tool-contract modes |
-| design modes | Use `adapters/codex/modes/design/<mode>.md` as the Codex-native realization; satisfy `visual-harness` or report unavailable before claiming rendered visual verification |
+| role modes | Read `roles/MODES.md`, then run `adapters/codex/bin/preflight.sh mode-info <family/mode>`; read the reported `native_mode_path`, obey `fallback=reference-only` only for unsupported modes, and satisfy any named `tool_contract` / `tool_contract_check` before claiming tool-contract modes |
+| mode guides | Use `adapters/codex/modes/<family>/<mode>.md` as the Codex-native realization guide reported by `mode-info`; satisfy named tool contracts or report unavailable before claiming support |
+| design modes | Use `adapters/codex/modes/design/<mode>.md` as the Codex-native realization guide; satisfy `visual-harness` or report unavailable before claiming rendered visual verification |
 | hook invariants | `adapters/codex/hooks/sessionend-lifecycle.py` realizes SessionEnd memory sync/distill hooks; `pretooluse-write-guard.py` realizes write guards through Codex `PreToolUse`; `posttooluse-read-marker.py` records actual spec reads through `PostToolUse`; `posttooluse-design-check.py` realizes design HTML console checks through `PostToolUse`; run explicit preflight wrappers for events not yet covered by native hooks |
 | capabilities | Read `capabilities/README.md`, then run `adapters/codex/bin/preflight.sh capability-info <capability>`; do not assume Claude Skill invocation |
 

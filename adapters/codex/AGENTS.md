@@ -21,9 +21,11 @@ This file maps the shared agent harness onto Codex-style sessions. It is an adap
 - Treat Codex custom agents under `adapters/codex/agents/*.toml` as generated adapter output from `roles/`; do not load Claude Agent files as native Codex agents.
 - Expose Codex custom agents through `codex_setting/codex-agents`.
 - Expose the installable Codex plugin through `codex_setting/codex-plugin-marketplace`, not by copying Claude Skill or command files.
+- Expose Codex mode guides through `codex_setting/codex-modes`.
 - Treat command-like capability entrypoints as Codex-native Skills/plugin output, not deprecated custom prompt files or Claude slash commands.
 - Before using a `roles/modes/` fragment, run `adapters/codex/bin/preflight.sh mode-info <family/mode>` and obey portable/tool-contract/unsupported status plus any named `tool_contract`, `tool_contract_check`, `runtime_surface`, and `fallback`.
-- For `design/*` modes, read the corresponding `adapters/codex/modes/design/<mode>.md` realization and satisfy `adapters/codex/bin/preflight.sh visual-harness <file.html>` before claiming rendered visual verification.
+- Read the reported `native_mode_path` under `adapters/codex/modes/` before applying a mode persona.
+- For `design/*` modes, satisfy `adapters/codex/bin/preflight.sh visual-harness <file.html>` before claiming rendered visual verification.
 - Run deterministic guard scripts directly when Codex hooks are unavailable or untrusted.
 - Expose Codex hook bridges through `codex_setting/codex-hooks`; do not project Claude `settings.json` or hook payloads.
 - Use `adapters/codex/bin/preflight.sh permissions` to inspect the Codex approval/sandbox contract; do not port Claude `allowedTools`.

@@ -89,7 +89,7 @@ check_opencode_forbidden_entries() {
 }
 
 check_required_projection_entries() {
-  for p in AGENTS.md README.md core capabilities roles bin tools utilities codex-skills codex-plugin-marketplace codex-hooks codex-agents; do
+  for p in AGENTS.md README.md core capabilities roles bin tools utilities codex-skills codex-modes codex-plugin-marketplace codex-hooks codex-agents; do
     if [ ! -L "codex_setting/$p" ]; then
       fail_msg "codex_setting/$p must be a symlink projection entry"
     fi
@@ -106,6 +106,7 @@ check_codex_projection_targets() {
   check_link_target codex_setting/tools ../adapters/codex/tools
   check_link_target codex_setting/utilities ../adapters/codex/utilities
   check_link_target codex_setting/codex-skills ../adapters/codex/skills
+  check_link_target codex_setting/codex-modes ../adapters/codex/modes
   check_link_target codex_setting/codex-plugin-marketplace ../adapters/codex/plugin-marketplace
   check_link_target codex_setting/codex-hooks ../adapters/codex/hooks
   check_link_target codex_setting/codex-agents ../adapters/codex/agents
@@ -257,7 +258,7 @@ check_link_target() {
 check_install_layout_codex_projection() {
   [ -f INSTALL_LAYOUT.md ] || { fail_msg "INSTALL_LAYOUT.md is missing"; return; }
 
-  for p in AGENTS.md README.md core capabilities roles bin tools utilities codex-skills codex-plugin-marketplace codex-hooks codex-agents; do
+  for p in AGENTS.md README.md core capabilities roles bin tools utilities codex-skills codex-modes codex-plugin-marketplace codex-hooks codex-agents; do
     if ! grep -Fq "\$AGENT_HOME/codex_setting/$p" INSTALL_LAYOUT.md; then
       fail_msg "INSTALL_LAYOUT.md must include Codex projection install step for codex_setting/$p"
     fi
@@ -313,7 +314,9 @@ check_install_layout_codex_projection() {
     || ! grep -Fq "rg '^family=fast$' /tmp/codex-role.txt" INSTALL_LAYOUT.md \
     || ! grep -Fq 'codex_setting/bin/preflight.sh mode-info dev/backend >/tmp/codex-mode.txt' INSTALL_LAYOUT.md \
     || ! grep -Fq "rg '^adapter=codex$' /tmp/codex-mode.txt" INSTALL_LAYOUT.md \
-    || ! grep -Fq "rg '^status=portable$' /tmp/codex-mode.txt" INSTALL_LAYOUT.md; then
+    || ! grep -Fq "rg '^status=portable$' /tmp/codex-mode.txt" INSTALL_LAYOUT.md \
+    || ! grep -Fq "rg '^native_mode_path=adapters/codex/modes/dev/backend.md$' /tmp/codex-mode.txt" INSTALL_LAYOUT.md \
+    || ! grep -Fq 'test -f codex_setting/codex-modes/dev/backend.md' INSTALL_LAYOUT.md; then
     fail_msg "INSTALL_LAYOUT.md must validate Codex role and mode mapping surfaces"
   fi
   if ! grep -Fq 'codex_setting/bin/preflight.sh visual-harness >/tmp/codex-visual-contract.txt' INSTALL_LAYOUT.md \
@@ -325,6 +328,7 @@ check_install_layout_codex_projection() {
   if ! grep -Fq 'codex_setting/bin/preflight.sh mode-info material/browser-fetch >/tmp/codex-browser-fetch-mode.txt' INSTALL_LAYOUT.md \
     || ! grep -Fq "rg '^tool_contract=browser-fetch$' /tmp/codex-browser-fetch-mode.txt" INSTALL_LAYOUT.md \
     || ! grep -Fq "rg '^runtime_surface=adapter-owned-browser-fetch$' /tmp/codex-browser-fetch-mode.txt" INSTALL_LAYOUT.md \
+    || ! grep -Fq "rg '^native_mode_path=adapters/codex/modes/material/browser-fetch.md$' /tmp/codex-browser-fetch-mode.txt" INSTALL_LAYOUT.md \
     || ! grep -Fq 'test -x codex_setting/tools/material/browser-fetch.sh' INSTALL_LAYOUT.md; then
     fail_msg "INSTALL_LAYOUT.md must validate Codex material browser-fetch projection"
   fi
@@ -355,6 +359,7 @@ check_install_layout_codex_projection() {
   if ! grep -Fq 'codex_setting/bin/preflight.sh mode-info qa/test >/tmp/codex-test-mode.txt' INSTALL_LAYOUT.md \
     || ! grep -Fq "rg '^tool_contract=verification-runner$' /tmp/codex-test-mode.txt" INSTALL_LAYOUT.md \
     || ! grep -Fq "rg '^runtime_surface=adapter-owned-verification-runner$' /tmp/codex-test-mode.txt" INSTALL_LAYOUT.md \
+    || ! grep -Fq "rg '^native_mode_path=adapters/codex/modes/qa/test.md$' /tmp/codex-test-mode.txt" INSTALL_LAYOUT.md \
     || ! grep -Fq 'test -x codex_setting/tools/qa/verification-runner.sh' INSTALL_LAYOUT.md; then
     fail_msg "INSTALL_LAYOUT.md must validate Codex QA verification runner projection"
   fi
@@ -479,7 +484,7 @@ check_codex_bin_wrappers() {
     fail_msg "codex_setting/bin points to $target; expected ../adapters/codex/bin"
   fi
 
-  for p in preflight.sh role-map.sh capability-map.sh mode-map.sh dispatch-headless.py dispatch-liveness.py dispatch-harvest.py distill-worker.sh sync-native-skills.py sync-native-plugin.py sync-native-agents.py; do
+  for p in preflight.sh role-map.sh capability-map.sh mode-map.sh dispatch-headless.py dispatch-liveness.py dispatch-harvest.py distill-worker.sh sync-native-skills.py sync-native-plugin.py sync-native-agents.py sync-native-modes.py; do
     if [ ! -x "adapters/codex/bin/$p" ]; then
       fail_msg "adapters/codex/bin/$p is missing or not executable"
     fi
@@ -567,6 +572,10 @@ check_codex_bin_wrappers() {
 
   if ! grep -Fq 'codex_setting/codex-plugin-marketplace' adapters/codex/AGENTS.md; then
     fail_msg "adapters/codex/AGENTS.md must document the Codex native plugin projection"
+  fi
+
+  if ! grep -Fq 'codex_setting/codex-modes' adapters/codex/AGENTS.md; then
+    fail_msg "adapters/codex/AGENTS.md must document the Codex native mode projection"
   fi
 
   if ! grep -Fq 'codex_setting/codex-hooks' adapters/codex/AGENTS.md; then
@@ -1052,6 +1061,56 @@ PY
     || ! grep -Fq '`codex debug agent` listing surface' adapters/codex/ADAPTATION.md; then
     fail_msg "Codex custom agent docs must state current validation boundary until runtime agent discovery exists"
   fi
+}
+
+check_codex_native_mode_projection() {
+  if [ ! -x adapters/codex/bin/sync-native-modes.py ]; then
+    fail_msg "adapters/codex/bin/sync-native-modes.py must be executable"
+    return
+  fi
+
+  if ! adapters/codex/bin/sync-native-modes.py --check >/tmp/codex-sync-modes.out 2>/tmp/codex-sync-modes.err; then
+    fail_msg "Codex native mode projections are stale; run adapters/codex/bin/sync-native-modes.py"
+    cat /tmp/codex-sync-modes.err
+  fi
+
+  for f in roles/modes/*/*.md; do
+    [ -f "$f" ] || continue
+    rel=${f#roles/modes/}
+    mode=${rel%.md}
+    native="adapters/codex/modes/$mode.md"
+    if [ ! -f "$native" ]; then
+      fail_msg "$native is missing"
+      continue
+    fi
+    if [ -L "$native" ]; then
+      fail_msg "$native must be a concrete adapter-owned Codex mode projection"
+    fi
+    if ! grep -Fq "roles/modes/$mode.md" "$native"; then
+      fail_msg "$native must reference roles/modes/$mode.md as portable source"
+    fi
+    if ! grep -Fq "adapters/codex/bin/preflight.sh mode-info $mode" "$native"; then
+      fail_msg "$native must reference the Codex mode-info wrapper"
+    fi
+    if ! grep -Fq "not a legacy runtime mode copy" "$native"; then
+      fail_msg "$native must state that it is not a legacy runtime mode copy"
+    fi
+    if ! grep -Fq "Treat \`adapters/codex/modes/$mode.md\` as the adapter-owned mode guide" "$native"; then
+      fail_msg "$native must report its adapter-owned native mode path"
+    fi
+    if grep -Eq "$CLAUDE_NATIVE_SURFACE_PATTERN" "$native"; then
+      fail_msg "$native must not expose Claude-native surfaces"
+    fi
+  done
+
+  for native in adapters/codex/modes/*/*.md; do
+    [ -f "$native" ] || continue
+    rel=${native#adapters/codex/modes/}
+    mode=${rel%.md}
+    if [ ! -f "roles/modes/$mode.md" ]; then
+      fail_msg "$native has no matching portable mode source"
+    fi
+  done
 }
 
 check_codex_native_hook_projection() {
@@ -2191,6 +2250,17 @@ check_codex_mode_map() {
         fi
         ;;
     esac
+    native_path="adapters/codex/modes/$rel.md"
+    if [ ! -f "$native_path" ]; then
+      fail_msg "Codex mode projection missing: $native_path"
+    elif [ -L "$native_path" ]; then
+      fail_msg "Codex mode projection must be concrete: $native_path"
+    elif grep -Eq "$CLAUDE_NATIVE_SURFACE_PATTERN" "$native_path"; then
+      fail_msg "Codex mode projection must not reference Claude-native surfaces: $native_path"
+    fi
+    if ! grep -Fq "native_mode_path=$native_path" "$out"; then
+      fail_msg "Codex mode map must report native_mode_path=$native_path"
+    fi
     if ! grep -Fq "source=roles/modes/$rel.md" "$out"; then
       fail_msg "Codex mode map must report the portable source for $rel"
     fi
@@ -2368,7 +2438,7 @@ check_projection_symlinks claude_setting
 check_projection_symlinks codex_setting
 check_projection_symlinks opencode_setting
 check_projection_entry_allowlist claude_setting CLAUDE.md README.md agent-modes agents bin commands core hooks keybindings.json loops manifest.json scaffolds settings.json skills statusline.sh tools track-toggle.sh utilities
-check_projection_entry_allowlist codex_setting AGENTS.md README.md core capabilities roles bin tools utilities codex-skills codex-plugin-marketplace codex-hooks codex-agents
+check_projection_entry_allowlist codex_setting AGENTS.md README.md core capabilities roles bin tools utilities codex-skills codex-modes codex-plugin-marketplace codex-hooks codex-agents
 check_projection_entry_allowlist opencode_setting AGENTS.md README.md core capabilities roles bin tools utilities opencode-skills opencode-agents opencode-commands opencode-plugins
 check_codex_forbidden_entries
 check_codex_native_surface_debt
@@ -2390,6 +2460,7 @@ check_codex_tool_projection
 check_codex_native_skill_projection
 check_codex_native_plugin_projection
 check_codex_native_agent_projection
+check_codex_native_mode_projection
 check_codex_native_hook_projection
 check_portable_agent_home_resolution
 check_opencode_tool_projection

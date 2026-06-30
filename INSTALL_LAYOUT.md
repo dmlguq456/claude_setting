@@ -38,7 +38,7 @@ be committed to this repo. Adapter docs own concrete local path realizations.
 
 Keep `$HOME/.codex` runtime-owned. Project the portable harness through a
 stable pointer plus adapter-owned Codex-native Skills, custom Agents, plugin
-marketplace, and hook bridges:
+marketplace, mode guides, and hook bridges:
 
 ```bash
 export AGENT_HOME="$HOME/agent_setting"
@@ -52,6 +52,7 @@ ln -sfn "$AGENT_HOME/codex_setting/bin" "$HOME/.codex/agent-bin"
 ln -sfn "$AGENT_HOME/codex_setting/tools" "$HOME/.codex/agent-tools"
 ln -sfn "$AGENT_HOME/codex_setting/utilities" "$HOME/.codex/agent-utilities"
 ln -sfn "$AGENT_HOME/codex_setting/codex-skills" "$HOME/.codex/agent-skills"
+ln -sfn "$AGENT_HOME/codex_setting/codex-modes" "$HOME/.codex/agent-modes"
 ln -sfn "$AGENT_HOME/codex_setting/codex-agents" "$HOME/.codex/agent-agents"
 ln -sfn "$AGENT_HOME/codex_setting/codex-plugin-marketplace" "$HOME/.codex/agent-plugin-marketplace"
 ln -sfn "$AGENT_HOME/codex_setting/codex-hooks" "$HOME/.codex/agent-hooks"
@@ -76,6 +77,8 @@ root `skills/`, root `agents/`, `statusline.sh`, or `hooks/` into `$HOME/.codex`
 Skill projections must come from `codex_setting/codex-skills`, which is
 generated from `capabilities/`. Codex-native custom Agent projections must come
 from `codex_setting/codex-agents`, which is generated from `roles/`.
+Codex-native mode guides must come from `codex_setting/codex-modes`, which is
+generated from `roles/modes/` and checked through `mode-info`.
 Codex-native plugin installation must use
 `codex_setting/codex-plugin-marketplace`, which points at the adapter-owned
 repo-local marketplace projection rather than the whole Codex adapter.
@@ -172,6 +175,7 @@ sh utilities/agent-home.sh
 tools/check-adaptation-boundary.sh
 adapters/codex/bin/sync-native-skills.py --check
 adapters/codex/bin/sync-native-agents.py --check
+adapters/codex/bin/sync-native-modes.py --check
 adapters/codex/bin/sync-native-plugin.py --check
 codex_setting/bin/preflight.sh capability-info autopilot-code >/tmp/codex-capability.txt
 rg '^native_skill_path=adapters/codex/skills/autopilot-code/SKILL.md$' /tmp/codex-capability.txt
@@ -198,6 +202,8 @@ codex_setting/bin/preflight.sh liveness "$AGENT_HOME/.dispatch/jobs.log" >/tmp/c
 codex_setting/bin/preflight.sh mode-info dev/backend >/tmp/codex-mode.txt
 rg '^adapter=codex$' /tmp/codex-mode.txt
 rg '^status=portable$' /tmp/codex-mode.txt
+rg '^native_mode_path=adapters/codex/modes/dev/backend.md$' /tmp/codex-mode.txt
+test -f codex_setting/codex-modes/dev/backend.md
 codex_setting/bin/preflight.sh status "$PWD" install-check >/tmp/codex-status.txt
 rg '^adapter=codex$' /tmp/codex-status.txt
 rg '^runtime_surface=adapter-owned-harness-status$' /tmp/codex-status.txt
@@ -205,6 +211,7 @@ test -x codex_setting/utilities/harness-status.sh
 codex_setting/bin/preflight.sh mode-info material/browser-fetch >/tmp/codex-browser-fetch-mode.txt
 rg '^tool_contract=browser-fetch$' /tmp/codex-browser-fetch-mode.txt
 rg '^runtime_surface=adapter-owned-browser-fetch$' /tmp/codex-browser-fetch-mode.txt
+rg '^native_mode_path=adapters/codex/modes/material/browser-fetch.md$' /tmp/codex-browser-fetch-mode.txt
 test -x codex_setting/tools/material/browser-fetch.sh
 codex_setting/bin/preflight.sh mode-info material/data-script >/tmp/codex-data-script-mode.txt
 rg '^tool_contract=data-script$' /tmp/codex-data-script-mode.txt
@@ -225,6 +232,7 @@ test -x codex_setting/tools/material/web-image-search.sh
 codex_setting/bin/preflight.sh mode-info qa/test >/tmp/codex-test-mode.txt
 rg '^tool_contract=verification-runner$' /tmp/codex-test-mode.txt
 rg '^runtime_surface=adapter-owned-verification-runner$' /tmp/codex-test-mode.txt
+rg '^native_mode_path=adapters/codex/modes/qa/test.md$' /tmp/codex-test-mode.txt
 test -x codex_setting/tools/qa/verification-runner.sh
 codex_setting/bin/preflight.sh mode-info research/claim-verify >/tmp/codex-claim-verify-mode.txt
 rg '^tool_contract=external-claim-verification$' /tmp/codex-claim-verify-mode.txt

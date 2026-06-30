@@ -1,0 +1,133 @@
+#!/usr/bin/env python3
+"""Generate Codex-native mode realization guides from portable mode fragments."""
+
+from __future__ import annotations
+
+import argparse
+import subprocess
+import sys
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[3]
+MODES = ROOT / "roles" / "modes"
+OUT = ROOT / "adapters" / "codex" / "modes"
+MODE_MAP = ROOT / "adapters" / "codex" / "bin" / "mode-map.sh"
+
+
+def mode_metadata(mode: str) -> dict[str, str]:
+    result = subprocess.run(
+        [str(MODE_MAP), mode],
+        cwd=ROOT,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    if result.returncode != 0:
+        raise SystemExit(result.stderr or f"mode-map failed for {mode}")
+    fields: dict[str, str] = {}
+    for line in result.stdout.splitlines():
+        if "=" in line:
+            key, value = line.split("=", 1)
+            fields[key] = value
+    return fields
+
+
+def title_for(mode: str) -> str:
+    family, name = mode.split("/", 1)
+    return f"Codex {family.title()} {name.replace('-', ' ').title()} Mode"
+
+
+def render(mode_file: Path) -> tuple[Path, str]:
+    rel = mode_file.relative_to(MODES)
+    mode = rel.with_suffix("").as_posix()
+    fields = mode_metadata(mode)
+    source = f"roles/modes/{mode}.md"
+    status = fields.get("status", "unsupported")
+    realization = fields.get("realization", "compat-reference")
+    requirement = fields.get("requirement", "")
+    note = fields.get("note", "")
+    native_mode_path = fields.get("native_mode_path", f"adapters/codex/modes/{mode}.md")
+
+    contract_lines = [
+        f"- Status: `{status}`",
+        f"- Realization: `{realization}`",
+    ]
+    for key in ("tool_contract", "tool_contract_check", "runtime_surface", "fallback"):
+        if fields.get(key):
+            contract_lines.append(f"- {key.replace('_', ' ').title()}: `{fields[key]}`")
+    if requirement:
+        contract_lines.append(f"- Requirement: {requirement}")
+    if note:
+        contract_lines.append(f"- Note: {note}")
+
+    body = f"""# {title_for(mode)}
+
+This is a Codex-native realization guide generated from the portable mode
+inventory. It is adapter-owned output, not a legacy runtime mode copy.
+
+## Source Order
+
+1. Read `roles/MODES.md`.
+2. Read `{source}` for the portable mode contract.
+3. Run `adapters/codex/bin/preflight.sh mode-info {mode}`.
+4. Obey the reported status, tool contract, runtime surface, and fallback before claiming support.
+
+## Codex Runtime Mapping
+
+{chr(10).join(contract_lines)}
+
+## Use
+
+- Use Codex file, terminal, approval, sandbox, hook, and skill surfaces.
+- Run `adapters/codex/bin/preflight.sh write <file> [session-id]` before edits.
+- For `tool-contract` modes, run the named contract check before claiming the tool-backed result.
+- If a required local provider or executable is unavailable, report the unavailable contract instead of silently downgrading.
+- Treat `{native_mode_path}` as the adapter-owned mode guide for this runtime.
+"""
+    return OUT / rel, body
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--check", action="store_true", help="verify generated projections")
+    args = parser.parse_args()
+
+    mode_files = sorted(MODES.glob("*/*.md"))
+    expected = dict(render(path) for path in mode_files)
+
+    stale: list[str] = []
+    for path, body in expected.items():
+        if args.check:
+            if not path.exists() or path.read_text(encoding="utf-8") != body:
+                stale.append(str(path.relative_to(ROOT)))
+        else:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(body, encoding="utf-8")
+
+    existing = sorted(OUT.glob("*/*.md")) if OUT.exists() else []
+    extras = [path for path in existing if path not in expected]
+    if args.check:
+        stale.extend(str(path.relative_to(ROOT)) for path in extras)
+    else:
+        for path in extras:
+            path.unlink()
+            try:
+                path.parent.rmdir()
+            except OSError:
+                pass
+
+    if stale:
+        print("Codex native mode projections are stale:", file=sys.stderr)
+        for item in stale:
+            print(f"  {item}", file=sys.stderr)
+        return 1
+
+    if not args.check:
+        print(f"generated {len(expected)} Codex native mode projections")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

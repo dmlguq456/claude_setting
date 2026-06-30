@@ -36,7 +36,7 @@ project Claude Skill, Agent, command, hook, or statusline files into Codex.
 | Hook and guard scripts | `hooks/`, `utilities/` |
 | Native skills | `adapters/codex/skills/` |
 | Native agents | `adapters/codex/agents/` |
-| Native design modes | `adapters/codex/modes/design/` |
+| Native mode guides | `adapters/codex/modes/` |
 | Native plugin | `adapters/codex/plugins/agent-harness-codex` |
 | Native hooks | `adapters/codex/hooks/` |
 | Selected tool projection | `adapters/codex/tools/` |
@@ -50,8 +50,8 @@ project Claude Skill, Agent, command, hook, or statusline files into Codex.
 | native skill/plugin surface | Skills are materialized under `adapters/codex/skills/`; the installable plugin projection is materialized under `adapters/codex/plugins/agent-harness-codex`. Command-like capability entrypoints use these native Skills/plugin surfaces and are verified with Codex discoverability (`codex debug prompt-input`) |
 | native hook surface | `adapters/codex/hooks/hooks.json` registers Codex `SessionStart` lifecycle prep, `SessionEnd` memory sync/distill, `UserPromptSubmit` prompt signals and turn nudges, `PreToolUse` write guards, `PostToolUse` spec read markers, and `PostToolUse` design HTML checks; explicit preflight remains fallback |
 | role profile | Use `roles/README.md` for meaning; Codex custom agents are materialized under `adapters/codex/agents/*.toml` and still call `adapters/codex/bin/preflight.sh role <portable-role>` for concrete model/reasoning mapping |
-| role mode | Run `adapters/codex/bin/preflight.sh mode-info <family/mode>` before using a `roles/modes/` fragment; portable modes can be used directly, tool-contract modes require equivalent tools, unsupported modes report `fallback=reference-only` when no Codex-native runtime surface exists |
-| native design mode surface | Design modes are realized under `adapters/codex/modes/design/` and require the Codex visual-harness tool contract before claiming rendered visual completion |
+| role mode | Run `adapters/codex/bin/preflight.sh mode-info <family/mode>` before using a `roles/modes/` fragment; use the reported `native_mode_path` under `adapters/codex/modes/`; portable modes can be used directly, tool-contract modes require equivalent tools, unsupported modes report `fallback=reference-only` when no Codex-native runtime surface exists |
+| native mode surface | Mode guides are generated under `adapters/codex/modes/` from `roles/modes/`; design modes additionally require the Codex visual-harness tool contract before claiming rendered visual completion |
 | adapter bootstrap | Load `adapters/codex/AGENTS.md`, then `core/CORE.md` plus task-relevant shared docs; do not treat `CLAUDE.md` as portable bootstrap |
 | agent home | Set `AGENT_HOME` to the installed harness directory |
 | permission model | Run `adapters/codex/bin/preflight.sh permissions`; use Codex native approval policy and sandbox settings, not Claude `allowedTools` |
@@ -60,7 +60,7 @@ project Claude Skill, Agent, command, hook, or statusline files into Codex.
 | workflow start cleanup | Codex `SessionStart` hook bridge runs `adapters/codex/bin/preflight.sh start [cwd] [session-id]`; run it manually when hooks are unavailable |
 | tracked/untracked signal | Codex `UserPromptSubmit` hook bridge runs `adapters/codex/bin/preflight.sh mode [cwd] [session-id]`; run it manually when hooks are unavailable |
 | harness status snapshot | Run `adapters/codex/bin/preflight.sh status [cwd] [session-id]` for read-only workflow, artifact, notes, worktree, and git-risk signals. This does not replace Codex `/statusline` for model/context/token/session fields |
-| adapter readiness | Run `adapters/codex/bin/preflight.sh doctor` to check manifest freshness, native projections, hook bridge syntax, and boundary rules in one command |
+| adapter readiness | Run `adapters/codex/bin/preflight.sh doctor` to check manifest freshness, native skill/plugin/agent/mode projections, hook bridge syntax, and boundary rules in one command |
 | tracked/untracked toggle | Portable `utilities/workflow-toggle.sh`; run `adapters/codex/bin/preflight.sh track [cwd] [session-id]` only on explicit user request |
 | headless dispatch | Tool-contract check: `adapters/codex/bin/preflight.sh headless --check <worktree>` verifies the worktree, `codex exec` availability, and installed Codex runtime projection (`agent-harness`, bootstrap, hooks, native Skills, and native Agents). Use `adapters/codex/bin/preflight.sh dispatch --dry-run|--register|--start --worktree <path> --slug <slug> --capability <name> --mode <family/mode> --qa <level>` to build the Codex command and register open jobs before launch. `--start` reruns the same runtime projection check before launching. Use `adapters/codex/bin/preflight.sh liveness [jobs.log]` while waiting on dispatched work; it matches open jobs to Codex session JSONL files by `cwd` and transcript mtime. Use `adapters/codex/bin/preflight.sh harvest --slug <slug> --mark-done` after main-session harvest to mark registry rows done only; it does not merge or clean worktrees |
 | artifact-order gate | `core/HOOKS.md` defines the invariant; run `adapters/codex/bin/preflight.sh write <file> [session-id]` before writes |
@@ -195,19 +195,23 @@ resolution, and absence of non-Codex adapter paths. Codex CLI 0.142.x exposes
 not expose a `codex debug agent` listing surface. Add a runtime discovery test
 when Codex exposes one.
 
-## Native Design Mode Projection
+## Native Mode Projection
 
-`adapters/codex/modes/design/` contains Codex-owned mode realization guides for
-`roles/modes/design/`. These files are not copied from another runtime. They
-preserve the portable maker, critic, verifier, and design-rule semantics while
-mapping visual verification to `adapters/codex/bin/preflight.sh visual-harness
-<file.html>`.
+`adapters/codex/modes/` contains Codex-owned mode realization guides generated
+from `roles/modes/`. These files are not copied from another runtime. They keep
+the portable mode source visible while mapping each mode through
+`adapters/codex/bin/preflight.sh mode-info <family/mode>`.
 
-`adapters/codex/bin/preflight.sh mode-info design/<mode>` reports
-`status=tool-contract`, `realization=codex-native-mode-with-tool-contract`, and
-`native_mode_path=adapters/codex/modes/design/<mode>.md`. If the visual harness
-is unavailable, report that tool-contract failure instead of claiming native
-visual verification.
+```bash
+adapters/codex/bin/sync-native-modes.py --check
+```
+
+`mode-info` reports `native_mode_path=adapters/codex/modes/<family>/<mode>.md`.
+For tool-contract modes, run the reported `tool_contract_check` or report the
+unavailable contract before claiming support. Design modes report
+`realization=codex-native-mode-with-tool-contract` and require
+`adapters/codex/bin/preflight.sh visual-harness <file.html>` before claiming
+rendered visual verification.
 
 ## Command-Like Entries
 

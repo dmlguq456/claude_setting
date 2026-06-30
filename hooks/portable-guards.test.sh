@@ -789,6 +789,41 @@ then
 else
   bad "codex native agent projection should have valid custom agent TOML without Claude paths"
 fi
+if [ -L "$ROOT/codex_setting/codex-modes" ] \
+  && [ "$(readlink "$ROOT/codex_setting/codex-modes")" = "../adapters/codex/modes" ] \
+  && "$ROOT/adapters/codex/bin/sync-native-modes.py" --check >/tmp/codex_modes_sync.out 2>/tmp/codex_modes_sync.err \
+  && python3 - "$ROOT" >/tmp/codex_modes.out 2>/tmp/codex_modes.err <<'PY'
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[1])
+sources = sorted((root / "roles" / "modes").glob("*/*.md"))
+modes = sorted((root / "codex_setting" / "codex-modes").glob("*/*.md"))
+if len(modes) != len(sources):
+    raise SystemExit(f"expected {len(sources)} Codex modes, got {len(modes)}")
+for source in sources:
+    rel = source.relative_to(root / "roles" / "modes")
+    mode = rel.with_suffix("").as_posix()
+    native = root / "codex_setting" / "codex-modes" / rel
+    body = native.read_text(encoding="utf-8")
+    required = [
+        f"roles/modes/{mode}.md",
+        f"adapters/codex/bin/preflight.sh mode-info {mode}",
+        f"adapters/codex/modes/{mode}.md",
+        "not a legacy runtime mode copy",
+    ]
+    for item in required:
+        if item not in body:
+            raise SystemExit(f"{rel}: missing {item}")
+    forbidden = ("adapters/claude", "claude_setting", "settings.json", "statusline.sh", "CLAUDE.md", "agent-modes", "allowedTools")
+    if any(item in body for item in forbidden):
+        raise SystemExit(f"{rel}: leaked non-Codex runtime surface")
+PY
+then
+  ok "codex native mode projection covers portable modes without Claude paths"
+else
+  bad "codex native mode projection should cover portable modes without Claude paths"
+fi
 mkdir -p "$TMP/codex_hook_home/.codex"
 ln -s "$ROOT" "$TMP/codex_hook_home/.codex/agent-harness"
 ln -s "$ROOT/codex_setting/codex-hooks/hooks.json" "$TMP/codex_hook_home/.codex/hooks.json"
