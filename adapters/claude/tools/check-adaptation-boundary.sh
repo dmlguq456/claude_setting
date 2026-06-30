@@ -290,6 +290,16 @@ check_codex_bin_wrappers() {
   if ! grep -Fq 'preflight.sh visual-harness' adapters/codex/AGENTS.md; then
     fail_msg "adapters/codex/AGENTS.md must document the Codex visual harness tool-contract"
   fi
+
+  if grep -Fq 'Codex commands must be expressed as AGENTS instructions or wrapper commands' adapters/codex/ADAPTATION.md; then
+    fail_msg "adapters/codex/ADAPTATION.md must describe command-like entries through native Skills/plugins, not stale wrapper-command wording"
+  fi
+  if ! grep -Fq 'command-like harness entries use Codex-native Skills and the installable `agent-harness-codex` plugin' adapters/codex/ADAPTATION.md; then
+    fail_msg "adapters/codex/ADAPTATION.md must document native Skills/plugin realization for Claude command non-support"
+  fi
+  if ! grep -Fq '`codex-plugin-marketplace`, `codex-hooks`, selected tools' adapters/codex/ADAPTATION.md; then
+    fail_msg "adapters/codex/ADAPTATION.md current projection boundary must include codex-hooks"
+  fi
 }
 
 check_codex_utility_projection() {

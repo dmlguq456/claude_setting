@@ -126,7 +126,7 @@ Codex must not consume these Claude-native files as native configuration:
 | Claude-native surface | Codex status |
 |---|---|
 | `adapters/claude/settings.json` | Not consumable; Codex needs wrapper/preflight equivalents |
-| `adapters/claude/commands/` | Not consumable; Codex commands must be expressed as AGENTS instructions or wrapper commands |
+| `adapters/claude/commands/` | Not consumable; command-like harness entries use Codex-native Skills and the installable `agent-harness-codex` plugin |
 | `skills/*/SKILL.md` | Compatibility reference only; Codex should start from `capabilities/README.md` |
 | `adapters/claude/statusline.sh` | Not consumable; input schema is Claude statusline JSON |
 | `adapters/claude/track-toggle.sh` | Do not consume; portable semantics live in `utilities/workflow-toggle.sh`, and Codex exposes them through `preflight.sh track` |
@@ -202,7 +202,7 @@ When no concrete model is configured, the adapter reports `codex-default` and
 
 `codex_setting/` should remain minimal and explicit. It may expose `AGENTS.md`,
 `README.md`, `core/`, `capabilities/`, `roles/`, `bin/`, `codex-skills`,
-`codex-agents`, `codex-plugin-marketplace`, selected tools, and selected utilities, but must not expose Claude-native
+`codex-agents`, `codex-plugin-marketplace`, `codex-hooks`, selected tools, and selected utilities, but must not expose Claude-native
 `settings.json`, `commands/`, root `skills/`, `hooks/`, or `statusline.sh` as if Codex
 could consume them.
 
