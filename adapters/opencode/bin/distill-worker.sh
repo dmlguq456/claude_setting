@@ -22,6 +22,16 @@ This proposal worker must not auto-apply memory mutations until an OpenCode
 no-tools worker contract is verified. Candidate: `opencode run --agent
 <restricted-agent>` with deny permissions, or a future plugin-mediated worker.
 Set OPENCODE_DISTILL_ENABLE=1 only when testing that contract.
+
+Verification finding (vs codex's OS-level read-only sandbox): `opencode run
+--agent <agent>` with `tools:` off / `permission: deny` does block writes, but
+the boundary is framework-soft (the model declines, or repeatedly retries the
+denied tool) rather than an OS-enforced read-only filesystem. Under an
+adversarial "use any tool to write" prompt the run can retry-loop and hang
+instead of failing fast, which would stall an automatic session-end dispatch.
+This is below the codex bar for the D-14 trust boundary, so OpenCode auto-distill
+stays disabled; the preferred enablement path is a plugin-mediated worker that
+hard-strips tool execution, not `opencode run --agent`.
 EOF
 }
 
