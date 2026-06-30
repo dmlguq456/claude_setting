@@ -994,12 +994,13 @@ check_codex_native_hook_projection() {
   prompt_bridge="$hook_dir/userprompt-lifecycle.py"
   pre_bridge="$hook_dir/pretooluse-write-guard.py"
   post_bridge="$hook_dir/posttooluse-design-check.py"
+  launcher="$hook_dir/run-hook.sh"
 
   if [ ! -f "$hook_json" ]; then
     fail_msg "$hook_json is missing"
     return
   fi
-  for bridge in "$session_bridge" "$prompt_bridge" "$pre_bridge" "$post_bridge"; do
+  for bridge in "$session_bridge" "$prompt_bridge" "$pre_bridge" "$post_bridge" "$launcher"; do
     if [ ! -x "$bridge" ]; then
       fail_msg "$bridge must be executable"
     fi
@@ -1012,10 +1013,14 @@ check_codex_native_hook_projection() {
     cat /tmp/codex-hooks-json.err
   fi
   for script in sessionstart-lifecycle.py userprompt-lifecycle.py pretooluse-write-guard.py posttooluse-design-check.py; do
-    if ! grep -Fq "\${AGENT_HOME:-\$HOME/.codex/agent-harness}/adapters/codex/hooks/$script" "$hook_json"; then
-      fail_msg "$hook_json must register $script through AGENT_HOME with Codex agent-harness fallback"
+    if ! grep -Fq "run-hook.sh\\\" $script" "$hook_json"; then
+      fail_msg "$hook_json must register $script through the Codex hook launcher"
     fi
   done
+  if ! grep -Fq '[ -f \"$root/core/CORE.md\" ]' "$hook_json" \
+    || grep -Fq "\${AGENT_HOME:-\$HOME/.codex/agent-harness}/adapters/codex/hooks/" "$hook_json"; then
+    fail_msg "$hook_json must validate harness roots before launching Codex hook bridges"
+  fi
   if ! grep -Fq '"SessionStart"' "$hook_json" || ! grep -Fq 'sessionstart-lifecycle.py' "$hook_json"; then
     fail_msg "$hook_json must register the Codex SessionStart lifecycle bridge"
   fi
@@ -1041,7 +1046,7 @@ check_codex_native_hook_projection() {
     || ! grep -Fq 'preflight.sh design' adapters/codex/README.md; then
     fail_msg "adapters/codex/README.md must document the Codex native hook bridges"
   fi
-  if grep -Eq 'adapters/claude|claude_setting|settings\.json|statusline\.sh' "$hook_json" "$session_bridge" "$prompt_bridge" "$pre_bridge" "$post_bridge"; then
+  if grep -Eq 'adapters/claude|claude_setting|settings\.json|statusline\.sh' "$hook_json" "$session_bridge" "$prompt_bridge" "$pre_bridge" "$post_bridge" "$launcher"; then
     fail_msg "Codex hook projection must not reference Claude-native surfaces"
   fi
 }

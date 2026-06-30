@@ -742,6 +742,13 @@ if printf '{"tool_name":"Write","tool_input":{"file_path":"%s"},"session_id":"te
 else
   bad "codex hook command should resolve harness through AGENT_HOME"
 fi
+if printf '{"tool_name":"Write","tool_input":{"file_path":"%s"},"session_id":"testsid","cwd":"%s"}\n' "$TMP/repo/f" "$TMP/repo" \
+  | AGENT_HOME="$TMP/not-agent-home" HOME="$TMP/codex_hook_home" sh -c "$codex_hook_command" >/tmp/codex_hook_invalid_agent_home.out 2>/tmp/codex_hook_invalid_agent_home.err \
+  && [ ! -s /tmp/codex_hook_invalid_agent_home.out ]; then
+  ok "codex hook command ignores invalid AGENT_HOME"
+else
+  bad "codex hook command should ignore invalid AGENT_HOME"
+fi
 if printf '{"session_id":"testsid","cwd":"%s"}\n' "$TMP/repo" \
   | MEM_STORE="$TMP/codex_hook_mem" HOME="$TMP/codex_hook_home" python3 "$TMP/codex_hook_home/.codex/agent-harness/adapters/codex/hooks/sessionstart-lifecycle.py" >/tmp/codex_session_hook.out 2>/tmp/codex_session_hook.err \
   && ! grep -q 'adapters/claude\|claude_setting\|statusline.sh' /tmp/codex_session_hook.out /tmp/codex_session_hook.err; then

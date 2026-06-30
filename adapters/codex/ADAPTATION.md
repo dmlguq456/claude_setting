@@ -160,6 +160,8 @@ when Codex exposes one.
 
 Codex supports lifecycle hooks through `hooks.json` and inline config. This
 adapter materializes a Codex-native hook projection under `adapters/codex/hooks/`.
+Hook commands enter through `run-hook.sh`, which validates `AGENT_HOME` or the
+Codex harness pointer before executing bridge scripts.
 The `SessionStart` bridge calls `adapters/codex/bin/preflight.sh start` and
 `memory` for stale workflow cleanup and memory context. The `UserPromptSubmit`
 bridge calls `mode`, `recall`, and `briefing` for prompt-time workflow and memory

@@ -199,9 +199,10 @@ entrypoints are represented by Codex-native Skills and the installable
 
 ## Native Hook Projection
 
-`adapters/codex/hooks/` contains a Codex-native `hooks.json` plus concrete
-adapter-owned hook bridges. The `PreToolUse` bridge runs before write/edit/patch
-tools and delegates artifact-order, git-state, and memory-write checks to
+`adapters/codex/hooks/` contains a Codex-native `hooks.json`, a validated
+`run-hook.sh` launcher, and concrete adapter-owned hook bridges. The
+`PreToolUse` bridge runs before write/edit/patch tools and delegates
+artifact-order, git-state, and memory-write checks to
 `adapters/codex/bin/preflight.sh write`. The `PostToolUse` bridge runs after
 write/edit/patch tools and delegates design HTML saves to
 `adapters/codex/bin/preflight.sh design`.
