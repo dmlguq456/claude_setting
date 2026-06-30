@@ -282,6 +282,9 @@ check_install_layout_opencode_projection() {
       fail_msg "INSTALL_LAYOUT.md must include OpenCode projection install step for opencode_setting/$p"
     fi
   done
+  if ! grep -Fq 'ln -sfn "$AGENT_HOME" "$HOME/.config/opencode/agent-harness"' INSTALL_LAYOUT.md; then
+    fail_msg "INSTALL_LAYOUT.md must install the OpenCode agent-harness pointer"
+  fi
 
   if ! grep -Fq 'OPENCODE_CONFIG_CONTENT=' INSTALL_LAYOUT.md \
     || ! grep -Fq 'opencode_setting/opencode-skills' INSTALL_LAYOUT.md \
@@ -557,6 +560,9 @@ check_codex_utility_projection() {
     fail_msg "adapters/codex/utilities/agent-home.sh must be concrete, not a symlink to the shared Claude-compatible fallback"
   elif grep -q '\.claude' "adapters/codex/utilities/agent-home.sh"; then
     fail_msg "adapters/codex/utilities/agent-home.sh must not fall back to Claude runtime home"
+  fi
+  if ! grep -Fq '$HOME/.codex/agent-harness' adapters/codex/utilities/agent-home.sh; then
+    fail_msg "adapters/codex/utilities/agent-home.sh must support the Codex runtime agent-harness pointer"
   fi
 
   for p in artifact-root.sh agent-worklog-state.sh harness-status.sh workflow-guard-hook.sh workflow-toggle.sh; do
@@ -1154,6 +1160,9 @@ check_opencode_utility_projection() {
     fail_msg "adapters/opencode/utilities/agent-home.sh must be concrete, not a symlink to the shared Claude-compatible fallback"
   elif grep -q '\.claude' "adapters/opencode/utilities/agent-home.sh"; then
     fail_msg "adapters/opencode/utilities/agent-home.sh must not fall back to Claude runtime home"
+  fi
+  if ! grep -Fq '$HOME/.config/opencode/agent-harness' adapters/opencode/utilities/agent-home.sh; then
+    fail_msg "adapters/opencode/utilities/agent-home.sh must support the OpenCode runtime agent-harness pointer"
   fi
 
   for p in artifact-root.sh agent-worklog-state.sh harness-status.sh workflow-guard-hook.sh workflow-toggle.sh; do

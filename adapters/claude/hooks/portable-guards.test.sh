@@ -96,6 +96,14 @@ if "$CODEX_PROJECTION" capability-info audit >/tmp/codex_projection.out 2>/tmp/c
 else
   bad "codex projection preflight should resolve harness root"
 fi
+mkdir -p "$TMP/codex_pointer_home/.codex"
+ln -s "$ROOT" "$TMP/codex_pointer_home/.codex/agent-harness"
+if env -u AGENT_HOME HOME="$TMP/codex_pointer_home" "$ROOT/adapters/codex/utilities/agent-home.sh" >/tmp/codex_agent_home.out 2>/tmp/codex_agent_home.err \
+  && grep -q "^$TMP/codex_pointer_home/.codex/agent-harness$" /tmp/codex_agent_home.out; then
+  ok "codex agent-home wrapper resolves runtime pointer"
+else
+  bad "codex agent-home wrapper should resolve runtime pointer"
+fi
 
 echo "== spec read gate CLI =="
 mkdir -p "$TMP/specproj/.agent_reports/spec"
@@ -913,6 +921,14 @@ if "$OPENCODE_PROJECTION" capability-info audit >/tmp/opencode_projection.out 2>
   ok "opencode projection preflight resolves harness root"
 else
   bad "opencode projection preflight should resolve harness root"
+fi
+mkdir -p "$TMP/opencode_pointer_home/.config/opencode"
+ln -s "$ROOT" "$TMP/opencode_pointer_home/.config/opencode/agent-harness"
+if env -u AGENT_HOME HOME="$TMP/opencode_pointer_home" "$ROOT/adapters/opencode/utilities/agent-home.sh" >/tmp/opencode_agent_home.out 2>/tmp/opencode_agent_home.err \
+  && grep -q "^$TMP/opencode_pointer_home/.config/opencode/agent-harness$" /tmp/opencode_agent_home.out; then
+  ok "opencode agent-home wrapper resolves runtime pointer"
+else
+  bad "opencode agent-home wrapper should resolve runtime pointer"
 fi
 
 echo "== opencode spec read gate =="
