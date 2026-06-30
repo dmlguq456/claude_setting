@@ -190,6 +190,10 @@ codex_setting/bin/preflight.sh mode-info material/pdf-extract >/tmp/codex-pdf-ex
 rg '^tool_contract=pdf-extract$' /tmp/codex-pdf-extract-mode.txt
 rg '^runtime_surface=adapter-owned-pdf-extract$' /tmp/codex-pdf-extract-mode.txt
 test -x codex_setting/tools/material/pdf-extract.sh
+codex_setting/bin/preflight.sh mode-info material/web-image-search >/tmp/codex-web-image-search-mode.txt
+rg '^tool_contract=web-image-search$' /tmp/codex-web-image-search-mode.txt
+rg '^runtime_surface=adapter-owned-web-image-search$' /tmp/codex-web-image-search-mode.txt
+test -x codex_setting/tools/material/web-image-search.sh
 codex_setting/bin/preflight.sh mode-info qa/test >/tmp/codex-test-mode.txt
 rg '^tool_contract=verification-runner$' /tmp/codex-test-mode.txt
 rg '^runtime_surface=adapter-owned-verification-runner$' /tmp/codex-test-mode.txt
@@ -277,6 +281,10 @@ opencode_setting/bin/preflight.sh mode-info material/pdf-extract >/tmp/opencode-
 rg '^tool_contract=pdf-extract$' /tmp/opencode-pdf-extract-mode.txt
 rg '^runtime_surface=adapter-owned-pdf-extract$' /tmp/opencode-pdf-extract-mode.txt
 test -x opencode_setting/tools/material/pdf-extract.sh
+opencode_setting/bin/preflight.sh mode-info material/web-image-search >/tmp/opencode-web-image-search-mode.txt
+rg '^tool_contract=web-image-search$' /tmp/opencode-web-image-search-mode.txt
+rg '^runtime_surface=adapter-owned-web-image-search$' /tmp/opencode-web-image-search-mode.txt
+test -x opencode_setting/tools/material/web-image-search.sh
 opencode_setting/bin/preflight.sh mode-info qa/test >/tmp/opencode-test-mode.txt
 rg '^tool_contract=verification-runner$' /tmp/opencode-test-mode.txt
 rg '^runtime_surface=adapter-owned-verification-runner$' /tmp/opencode-test-mode.txt

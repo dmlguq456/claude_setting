@@ -101,6 +101,12 @@ tool-contract surface:
 local PDF text extraction through `adapters/codex/tools/material/` and reports
 exit 69 when the local extractor is unavailable.
 
+`roles/modes/material/web-image-search.md` has a Codex-owned executable
+tool-contract surface:
+`adapters/codex/bin/preflight.sh web-image-search --check <query>` verifies a
+configured image-search provider command through `adapters/codex/tools/material/`
+and reports exit 69 when no provider is configured.
+
 `roles/modes/qa/security-review.md` is portable read-only mode guidance for
 Codex. It is consumed with Codex file and git diff tools and does not project
 or invoke Claude's `/security-review` slash command.
@@ -256,6 +262,7 @@ could consume them.
 - `material/browser-fetch.sh` (Codex-owned launcher for rendered web page extraction)
 - `material/data-script.sh` (Codex-owned launcher for Python data-analysis scripts)
 - `material/pdf-extract.sh` (Codex-owned launcher for local PDF text extraction)
+- `material/web-image-search.sh` (Codex-owned launcher for configured image search providers)
 - `qa/verification-runner.sh` (Codex-owned launcher for explicit verification commands)
 - `design/visual-harness.sh` (Codex-owned launcher for render/screenshot/console checks)
 

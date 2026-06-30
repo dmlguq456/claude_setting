@@ -69,7 +69,11 @@ case "$family" in
         tool_contract_check="adapters/codex/bin/preflight.sh pdf-extract --check <file.pdf>"
         runtime_surface=adapter-owned-pdf-extract
         ;;
-      web-image-search) tool_contract=web-image-search ;;
+      web-image-search)
+        tool_contract=web-image-search
+        tool_contract_check="adapters/codex/bin/preflight.sh web-image-search --check <query>"
+        runtime_surface=adapter-owned-web-image-search
+        ;;
       *) tool_contract=material-tooling ;;
     esac
     if [ "$name" = "browser-fetch" ]; then
@@ -78,6 +82,8 @@ case "$family" in
       requirement="run the adapter-owned Python data-script launcher for generated analysis scripts, or report unavailable"
     elif [ "$name" = "pdf-extract" ]; then
       requirement="run the adapter-owned PDF extraction launcher for PDF inputs, or report unavailable"
+    elif [ "$name" = "web-image-search" ]; then
+      requirement="run the adapter-owned web image search launcher with a configured provider, or report unavailable"
     else
       requirement="provide the named browser/pdf/script/web tool contract or report unavailable"
     fi

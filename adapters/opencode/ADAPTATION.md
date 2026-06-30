@@ -96,6 +96,13 @@ tool-contract surface:
 local PDF text extraction through `adapters/opencode/tools/material/` and
 reports exit 69 when the local extractor is unavailable.
 
+`roles/modes/material/web-image-search.md` has an OpenCode-owned executable
+tool-contract surface:
+`adapters/opencode/bin/preflight.sh web-image-search --check <query>` verifies
+a configured image-search provider command through
+`adapters/opencode/tools/material/` and reports exit 69 when no provider is
+configured.
+
 `roles/modes/qa/security-review.md` is portable read-only mode guidance for
 OpenCode. It is consumed with OpenCode file and git diff tools and does not
 project or invoke Claude's `/security-review` slash command.
@@ -234,6 +241,7 @@ shared `tools/` directory. The current allowlist is:
 - `material/browser-fetch.sh` (OpenCode-owned launcher for rendered web page extraction)
 - `material/data-script.sh` (OpenCode-owned launcher for Python data-analysis scripts)
 - `material/pdf-extract.sh` (OpenCode-owned launcher for local PDF text extraction)
+- `material/web-image-search.sh` (OpenCode-owned launcher for configured image search providers)
 - `qa/verification-runner.sh` (OpenCode-owned launcher for explicit verification commands)
 - `design/visual-harness.sh` (OpenCode-owned launcher for render/screenshot/console checks)
 

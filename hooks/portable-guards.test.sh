@@ -386,6 +386,27 @@ else
     bad "codex pdf-extract wrapper should report missing PDF"
   fi
 fi
+if "$CODEX" web-image-search >/tmp/codex_web_image.out 2>/tmp/codex_web_image.err \
+  && grep -q '^adapter=codex$' /tmp/codex_web_image.out \
+  && grep -q '^tool_contract=web-image-search$' /tmp/codex_web_image.out \
+  && grep -q '^runtime_surface=adapter-owned-web-image-search$' /tmp/codex_web_image.out \
+  && grep -q '^status=tool-contract$' /tmp/codex_web_image.out; then
+  ok "codex web-image-search wrapper reports tool contract"
+else
+  bad "codex web-image-search wrapper should report tool contract"
+fi
+if "$CODEX" web-image-search --check "speech enhancement timeline" >/tmp/codex_web_image_unavailable.out 2>/tmp/codex_web_image_unavailable.err; then
+  bad "codex web-image-search wrapper should report unavailable provider by default"
+else
+  rc=$?
+  if [ "$rc" -eq 69 ] \
+    && grep -q '^adapter=codex$' /tmp/codex_web_image_unavailable.out \
+    && grep -q '^reason=web-image-search-provider-unavailable$' /tmp/codex_web_image_unavailable.out; then
+    ok "codex web-image-search wrapper reports unavailable provider"
+  else
+    bad "codex web-image-search wrapper should report unavailable provider"
+  fi
+fi
 if "$CODEX" verification-runner --check -- python3 >/tmp/codex_verify_check.out 2>/tmp/codex_verify_check.err \
   && grep -q '^adapter=codex$' /tmp/codex_verify_check.out \
   && grep -q '^tool_contract=verification-runner$' /tmp/codex_verify_check.out \
@@ -603,6 +624,17 @@ if "$CODEX" mode-info material/browser-fetch >/tmp/mode.out 2>/tmp/mode.err \
   ok "codex mode wrapper reports material browser-fetch contract surface"
 else
   bad "codex mode wrapper should report material browser-fetch contract surface"
+fi
+if "$CODEX" mode-info material/web-image-search >/tmp/mode.out 2>/tmp/mode.err \
+  && grep -q '^status=tool-contract$' /tmp/mode.out \
+  && grep -q '^realization=portable-with-tool-contract$' /tmp/mode.out \
+  && grep -q '^tool_contract=web-image-search$' /tmp/mode.out \
+  && grep -q '^tool_contract_check=adapters/codex/bin/preflight.sh web-image-search --check <query>$' /tmp/mode.out \
+  && grep -q '^runtime_surface=adapter-owned-web-image-search$' /tmp/mode.out \
+  && grep -q '^fallback=satisfy-tool-contract-or-report-unavailable$' /tmp/mode.out; then
+  ok "codex mode wrapper reports material web-image-search contract surface"
+else
+  bad "codex mode wrapper should report material web-image-search contract surface"
 fi
 if "$CODEX" mode-info research/claim-verify >/tmp/mode.out 2>/tmp/mode.err \
   && grep -q '^status=tool-contract$' /tmp/mode.out \
@@ -1075,6 +1107,27 @@ else
     bad "opencode pdf-extract wrapper should report missing PDF"
   fi
 fi
+if "$OPENCODE" web-image-search >/tmp/opencode_web_image.out 2>/tmp/opencode_web_image.err \
+  && grep -q '^adapter=opencode$' /tmp/opencode_web_image.out \
+  && grep -q '^tool_contract=web-image-search$' /tmp/opencode_web_image.out \
+  && grep -q '^runtime_surface=adapter-owned-web-image-search$' /tmp/opencode_web_image.out \
+  && grep -q '^status=tool-contract$' /tmp/opencode_web_image.out; then
+  ok "opencode web-image-search wrapper reports tool contract"
+else
+  bad "opencode web-image-search wrapper should report tool contract"
+fi
+if "$OPENCODE" web-image-search --check "speech enhancement timeline" >/tmp/opencode_web_image_unavailable.out 2>/tmp/opencode_web_image_unavailable.err; then
+  bad "opencode web-image-search wrapper should report unavailable provider by default"
+else
+  rc=$?
+  if [ "$rc" -eq 69 ] \
+    && grep -q '^adapter=opencode$' /tmp/opencode_web_image_unavailable.out \
+    && grep -q '^reason=web-image-search-provider-unavailable$' /tmp/opencode_web_image_unavailable.out; then
+    ok "opencode web-image-search wrapper reports unavailable provider"
+  else
+    bad "opencode web-image-search wrapper should report unavailable provider"
+  fi
+fi
 if "$OPENCODE" verification-runner --check -- python3 >/tmp/opencode_verify_check.out 2>/tmp/opencode_verify_check.err \
   && grep -q '^adapter=opencode$' /tmp/opencode_verify_check.out \
   && grep -q '^tool_contract=verification-runner$' /tmp/opencode_verify_check.out \
@@ -1184,6 +1237,17 @@ if "$OPENCODE" mode-info material/browser-fetch >/tmp/opencode_mode.out 2>/tmp/o
   ok "opencode mode wrapper reports material browser-fetch contract surface"
 else
   bad "opencode mode wrapper should report material browser-fetch contract surface"
+fi
+if "$OPENCODE" mode-info material/web-image-search >/tmp/opencode_mode.out 2>/tmp/opencode_mode.err \
+  && grep -q '^status=tool-contract$' /tmp/opencode_mode.out \
+  && grep -q '^realization=portable-with-tool-contract$' /tmp/opencode_mode.out \
+  && grep -q '^tool_contract=web-image-search$' /tmp/opencode_mode.out \
+  && grep -q '^tool_contract_check=adapters/opencode/bin/preflight.sh web-image-search --check <query>$' /tmp/opencode_mode.out \
+  && grep -q '^runtime_surface=adapter-owned-web-image-search$' /tmp/opencode_mode.out \
+  && grep -q '^fallback=satisfy-tool-contract-or-report-unavailable$' /tmp/opencode_mode.out; then
+  ok "opencode mode wrapper reports material web-image-search contract surface"
+else
+  bad "opencode mode wrapper should report material web-image-search contract surface"
 fi
 if "$OPENCODE" mode-info research/claim-verify >/tmp/opencode_mode.out 2>/tmp/opencode_mode.err \
   && grep -q '^status=tool-contract$' /tmp/opencode_mode.out \

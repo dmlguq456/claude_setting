@@ -60,6 +60,7 @@ project Claude Skill, Agent, command, hook, or statusline files into Codex.
 | material browser fetch | Tool-contract check: `adapters/codex/bin/preflight.sh browser-fetch --check <url>` verifies rendered browser access through the adapter-owned Playwright launcher before using `roles/modes/material/browser-fetch.md`. Exit 69 means the local browser stack is unavailable |
 | material data script | Tool-contract check: `adapters/codex/bin/preflight.sh data-script --check <script.py>` verifies generated Python analysis scripts through the adapter-owned launcher before using `roles/modes/material/data-script.md` |
 | material PDF extract | Tool-contract check: `adapters/codex/bin/preflight.sh pdf-extract --check <file.pdf>` verifies local PDF text extraction through the adapter-owned launcher before using `roles/modes/material/pdf-extract.md`. Exit 69 means the local extractor is unavailable |
+| material web image search | Tool-contract check: `adapters/codex/bin/preflight.sh web-image-search --check <query>` verifies that `CODEX_WEB_IMAGE_SEARCH_CMD` or `AGENT_WEB_IMAGE_SEARCH_CMD` provides a local image-search command before using `roles/modes/material/web-image-search.md`. Exit 69 means no provider is configured |
 | QA security review | Portable read-only persona: `roles/modes/qa/security-review.md` is consumed with Codex file and git diff tools. Do not project or invoke Claude `/security-review` |
 | QA verification runner | Tool-contract check: `adapters/codex/bin/preflight.sh verification-runner --check -- <command>` verifies explicit QA/test commands through the adapter-owned runner before using `roles/modes/qa/test.md` |
 | design post-write verification | `core/HOOKS.md` defines the invariant; run `adapters/codex/bin/preflight.sh design <file>` after design HTML writes |
@@ -89,6 +90,7 @@ Codex wrappers use directly:
 - `material/browser-fetch.sh` (Codex-owned launcher for rendered web page extraction)
 - `material/data-script.sh` (Codex-owned launcher for Python data-analysis scripts)
 - `material/pdf-extract.sh` (Codex-owned launcher for local PDF text extraction)
+- `material/web-image-search.sh` (Codex-owned launcher for configured image search providers)
 - `qa/verification-runner.sh` (Codex-owned launcher for explicit verification commands)
 - `design/visual-harness.sh` (Codex-owned launcher for render/screenshot/console checks)
 
