@@ -74,6 +74,13 @@ case "$cap" in
     dispatch_contract="preflight.sh dispatch --capability autopilot-code --mode <family/mode> --qa <level>"
     note="$note Follow the reported pipeline_contract and artifact_contract before claiming the autopilot-code cycle is complete."
     ;;
+  code-test)
+    status="tool-contract"
+    tool_contract="verification-runner"
+    artifact_contract="plans/<date>_<slug>:test_logs/,pipeline_summary.md"
+    role_contract="verification=qa-team,review=qa-team"
+    note="$note Run mode-info qa/test and the verification-runner contract before claiming code-test results."
+    ;;
   autopilot-design|design-*)
     status="tool-contract"
     tool_contract="visual-harness"
@@ -126,6 +133,10 @@ if [ -n "$tool_contract" ]; then
     printf 'runtime_surface=adapter-owned-visual-harness\n'
     printf 'tool_contract_check=adapters/codex/bin/preflight.sh visual-harness <file.html>\n'
     printf 'fallback=preflight.sh visual-harness <file.html>\n'
+  elif [ "$tool_contract" = "verification-runner" ]; then
+    printf 'runtime_surface=adapter-owned-verification-runner\n'
+    printf 'tool_contract_check=adapters/codex/bin/preflight.sh verification-runner --check -- <command>\n'
+    printf 'fallback=satisfy-tool-contract-or-report-unavailable\n'
   fi
 fi
 printf 'note=%s\n' "$note"

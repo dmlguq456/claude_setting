@@ -754,6 +754,20 @@ check_codex_bin_wrappers() {
     || ! grep -Fq 'fallback=preflight.sh visual-harness <file.html>' adapters/codex/bin/capability-map.sh; then
     fail_msg "adapters/codex/bin/capability-map.sh must report visual harness runtime surface and fallback"
   fi
+  if ! grep -Fq 'code-test)' adapters/codex/bin/capability-map.sh \
+    || ! grep -Fq 'tool_contract="verification-runner"' adapters/codex/bin/capability-map.sh \
+    || ! grep -Fq 'runtime_surface=adapter-owned-verification-runner' adapters/codex/bin/capability-map.sh \
+    || ! grep -Fq 'tool_contract_check=adapters/codex/bin/preflight.sh verification-runner --check -- <command>' adapters/codex/bin/capability-map.sh \
+    || ! grep -Fq 'artifact_contract="plans/<date>_<slug>:test_logs/,pipeline_summary.md"' adapters/codex/bin/capability-map.sh \
+    || ! grep -Fq 'role_contract="verification=qa-team,review=qa-team"' adapters/codex/bin/capability-map.sh; then
+    fail_msg "Codex code-test capability-info must expose the verification-runner tool contract"
+  fi
+  if ! grep -Fq 'graduated verification' capabilities/code-test.md \
+    || ! grep -Fq 'verification-runner' capabilities/code-test.md \
+    || ! grep -Fq 'test_logs/' adapters/codex/skills/code-test/SKILL.md \
+    || ! grep -Fq 'verification-runner' adapters/codex/plugins/agent-harness-codex/skills/code-test/SKILL.md; then
+    fail_msg "code-test portable spec and Codex projections must describe the verification-runner contract"
+  fi
   if ! grep -Fq 'compat_reference=not-projected' adapters/codex/bin/capability-map.sh \
     || grep -Fq 'compat_reference="skills/' adapters/codex/bin/capability-map.sh \
     || grep -Fq "printf 'compat_reference=skills/" adapters/codex/bin/capability-map.sh; then

@@ -20,7 +20,7 @@ This is adapter-owned output generated from `capabilities/code-test.md`, not a r
 
 Portable contract excerpt:
 
-- Invocation semantics: Run functional tests after code-execute or on demand to verify code correctness Adapters may expose this capability through native commands, skill files, prompt instructions, or explicit wrappers. The adapter must report unsupported runtime mechanics instead of silently treating another runtime's native file format as portable.
+- Invocation semantics: Run graduated verification after `code-execute` or on demand to verify code correctness. The capability resolves a plan path, changed-file list, or test scope, runs the applicable test levels, stops on the first failing level, and records durable evidence before reporting a verdict. Adapters may expose this capability through native commands, skill files, prompt instructions, or explicit wrappers. The adapter must report unsupported runtime mechanics instead of silently treating another runtime's native file format as portable.
 
 
 User arguments from OpenCode: `$ARGUMENTS`

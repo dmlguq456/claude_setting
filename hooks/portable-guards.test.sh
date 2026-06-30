@@ -723,6 +723,22 @@ if "$CODEX" capability-info autopilot-code >/tmp/cap.out 2>/tmp/cap.err \
 else
   bad "codex capability wrapper should report native skill and plugin realization"
 fi
+if "$CODEX" capability-info code-test >/tmp/cap_code_test.out 2>/tmp/cap_code_test.err \
+  && grep -q '^capability=code-test$' /tmp/cap_code_test.out \
+  && grep -q '^native_skill=1$' /tmp/cap_code_test.out \
+  && grep -q '^native_plugin=1$' /tmp/cap_code_test.out \
+  && grep -q '^status=tool-contract$' /tmp/cap_code_test.out \
+  && grep -q '^tool_contract=verification-runner$' /tmp/cap_code_test.out \
+  && grep -q '^tool_contract_check=adapters/codex/bin/preflight.sh verification-runner --check -- <command>$' /tmp/cap_code_test.out \
+  && grep -q '^runtime_surface=adapter-owned-verification-runner$' /tmp/cap_code_test.out \
+  && grep -q '^artifact_contract=plans/<date>_<slug>:test_logs/,pipeline_summary.md$' /tmp/cap_code_test.out \
+  && grep -q '^role_contract=verification=qa-team,review=qa-team$' /tmp/cap_code_test.out \
+  && grep -q 'graduated verification' "$ROOT/adapters/codex/skills/code-test/SKILL.md" \
+  && grep -q 'verification-runner' "$ROOT/adapters/codex/plugins/agent-harness-codex/skills/code-test/SKILL.md"; then
+  ok "codex code-test capability reports verification-runner contract"
+else
+  bad "codex code-test capability should report verification-runner contract"
+fi
 if "$CODEX" capability-info design-review >/tmp/cap.out 2>/tmp/cap.err \
   && grep -q '^capability=design-review$' /tmp/cap.out \
   && grep -q '^native_skill=1$' /tmp/cap.out \

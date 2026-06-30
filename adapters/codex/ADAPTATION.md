@@ -137,7 +137,9 @@ configured.
 `roles/modes/qa/test.md` has a Codex-owned executable tool-contract surface:
 `adapters/codex/bin/preflight.sh verification-runner --check -- <command>`
 checks explicit verification commands and the same wrapper can execute them
-with a bounded timeout.
+with a bounded timeout. `capability-info code-test` exposes the same
+`verification-runner` contract plus the `test_logs/` artifact contract so the
+capability and mode surfaces agree.
 
 The boundary guard checks that generated Codex skills and the generated Codex
 plugin remain in sync, and that neither surface is built from Claude Skill
