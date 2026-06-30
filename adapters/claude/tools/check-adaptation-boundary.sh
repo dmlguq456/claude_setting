@@ -734,13 +734,18 @@ check_codex_bin_wrappers() {
     || ! grep -Fq 'run_preflight("briefing"' adapters/codex/hooks/userprompt-lifecycle.py \
     || ! grep -Fq 'run_preflight("turn-nudge"' adapters/codex/hooks/userprompt-lifecycle.py \
     || ! grep -Fq 'emit_context("UserPromptSubmit"' adapters/codex/hooks/userprompt-lifecycle.py \
+    || ! grep -Fq 'run_preflight("status"' adapters/codex/hooks/permissionrequest-lifecycle.py \
+    || ! grep -Fq 'emit_context("PermissionRequest"' adapters/codex/hooks/permissionrequest-lifecycle.py \
+    || ! grep -Fq 'hookSpecificOutput' adapters/codex/hooks/permissionrequest-lifecycle.py \
     || ! grep -Fq 'hookSpecificOutput' adapters/codex/hooks/userprompt-lifecycle.py; then
     fail_msg "Codex lifecycle hook bridges must route through preflight.sh lifecycle commands"
   fi
   if ! grep -Fq '세션 시작 기억 주입 확인' hooks/portable-guards.test.sh \
     || ! grep -Fq 'out["hookEventName"]=="SessionStart"' hooks/portable-guards.test.sh \
     || ! grep -Fq 'out["hookEventName"]=="UserPromptSubmit"' hooks/portable-guards.test.sh \
+    || ! grep -Fq 'out["hookEventName"]=="PermissionRequest"' hooks/portable-guards.test.sh \
     || ! grep -Fq 'hook_event=UserPromptSubmit' hooks/portable-guards.test.sh \
+    || ! grep -Fq 'runtime_surface=adapter-owned-harness-status' hooks/portable-guards.test.sh \
     || ! grep -Fq 'hookSpecificOutput.additionalContext' adapters/codex/README.md \
     || ! grep -Fq 'hookSpecificOutput.additionalContext' adapters/codex/AGENTS.md \
     || ! grep -Fq 'hookSpecificOutput.additionalContext' adapters/codex/ADAPTATION.md; then

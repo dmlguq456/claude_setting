@@ -1249,8 +1249,7 @@ else
 fi
 if printf '{"context":{"cwd":"%s","session_id":"permissionsid"}}\n' "$TMP/flowproj" \
   | HOME="$TMP/codex_hook_home" python3 "$TMP/codex_hook_home/.codex/agent-harness/adapters/codex/hooks/permissionrequest-lifecycle.py" >/tmp/codex_permission_hook.out 2>/tmp/codex_permission_hook.err \
-  && grep -q '^runtime_surface=adapter-owned-harness-status$' /tmp/codex_permission_hook.out \
-  && grep -q "^cwd=$TMP/flowproj$" /tmp/codex_permission_hook.out \
+  && python3 -c 'import json,sys; d=json.load(open(sys.argv[1],encoding="utf-8")); out=d["hookSpecificOutput"]; ctx=out["additionalContext"]; assert out["hookEventName"]=="PermissionRequest"; assert "runtime_surface=adapter-owned-harness-status" in ctx; assert "cwd="+sys.argv[2] in ctx' /tmp/codex_permission_hook.out "$TMP/flowproj" \
   && ! grep -q 'adapters/claude\|claude_setting\|statusline.sh' /tmp/codex_permission_hook.out /tmp/codex_permission_hook.err; then
   ok "codex native hook projection bridges permission requests to harness status"
 else

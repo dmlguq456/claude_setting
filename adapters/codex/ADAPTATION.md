@@ -189,8 +189,9 @@ collected prompt context as one `hookSpecificOutput.additionalContext`. The stru
 `routing_action=read-workflow-and-select-codex-skill`, and
 `capability_entrypoints=codex-native-skills-plugin` for tracked work, extracting prompt
 text from top-level and nested message/content payloads. The `PermissionRequest`
-bridge calls `status` to surface read-only harness context while Codex owns
-approval and sandbox decisions. The write bridge registers
+bridge calls `status` and emits it as `hookSpecificOutput.additionalContext` to
+surface read-only harness context while Codex owns approval and sandbox
+decisions. The write bridge registers
 `PreToolUse` for write/edit/multiedit/patch tools, including qualified
 `functions.apply_patch` payloads, and calls
 `adapters/codex/bin/preflight.sh write <file> <session-id>`, which runs

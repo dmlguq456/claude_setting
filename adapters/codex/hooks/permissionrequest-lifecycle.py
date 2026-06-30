@@ -56,7 +56,7 @@ def session_id(payload: dict[str, Any]) -> str:
     return sid or "codex-hook"
 
 
-def run_preflight(*args: str) -> None:
+def run_preflight(*args: str) -> str:
     env = os.environ.copy()
     env.setdefault("AGENT_HOME", str(ROOT))
     result = subprocess.run(
@@ -68,15 +68,21 @@ def run_preflight(*args: str) -> None:
         stderr=subprocess.PIPE,
         check=False,
     )
-    if result.stdout:
-        sys.stdout.write(result.stdout)
     if result.stderr:
         sys.stderr.write(result.stderr)
+    return result.stdout
+
+
+def emit_context(event_name: str, parts: list[str]) -> None:
+    context = "\n".join(part.strip() for part in parts if part.strip())
+    if not context:
+        return
+    print(json.dumps({"hookSpecificOutput": {"hookEventName": event_name, "additionalContext": context}}, ensure_ascii=False))
 
 
 def main() -> int:
     payload = load_payload()
-    run_preflight("status", cwd(payload), session_id(payload))
+    emit_context("PermissionRequest", [run_preflight("status", cwd(payload), session_id(payload))])
     return 0
 
 

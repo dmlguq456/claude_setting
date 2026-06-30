@@ -246,8 +246,9 @@ entrypoints are represented by Codex-native Skills and the installable
 default; opt out with `CODEX_DISTILL_ENABLE=0`). The `UserPromptSubmit` bridge extracts
 prompt text from top-level and nested message/content payloads for recall, and
 also runs the deterministic N-turn distill nudge under the same default. The
-`PermissionRequest` bridge reports the read-only harness status snapshot while
-Codex owns approval and sandbox decisions. The
+`PermissionRequest` bridge reports the read-only harness status snapshot through
+`hookSpecificOutput.additionalContext` while Codex owns approval and sandbox
+decisions. The
 `PreToolUse` bridge runs before write/edit/multiedit/patch tools, including
 qualified `functions.apply_patch` payloads, and delegates
 artifact-order, git-state, and memory-write checks to
