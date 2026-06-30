@@ -20,7 +20,19 @@ fail_msg() {
   fail=1
 }
 
-CLAUDE_NATIVE_SURFACE_PATTERN='adapters/claude|claude_setting|settings\.json|statusline\.sh|CLAUDE\.md|track-toggle\.sh|agent-modes|allowedTools|(^|[^[:alnum:]_/.-])skills/|/\.claude/'
+CLAUDE_NATIVE_SURFACE_PATTERN='adapters/claude|claude_setting|settings\.json|statusline\.sh|CLAUDE\.md|CLAUDE_HOME|track-toggle\.sh|agent-modes|allowedTools|(^|[^[:alnum:]_/.-])skills/|/\.claude/'
+
+check_no_claude_native_refs() {
+  path=$1
+  label=$2
+  bad=$(rg -n "$CLAUDE_NATIVE_SURFACE_PATTERN" "$path" 2>/dev/null || true)
+  if [ -n "$bad" ]; then
+    fail_msg "$label must not reference Claude-native surfaces:"
+    printf '%s\n' "$bad"
+    return 1
+  fi
+  return 0
+}
 
 check_projection_symlinks() {
   dir=$1
@@ -721,8 +733,8 @@ check_codex_tool_projection() {
       fail_msg "adapters/codex/tools/memory/$p must be an executable Codex-owned memory launcher"
     elif [ -L "adapters/codex/tools/memory/$p" ]; then
       fail_msg "adapters/codex/tools/memory/$p must be concrete, not a symlink to the shared Claude-compatible fallback"
-    elif grep -q '\.claude\|CLAUDE_HOME' "adapters/codex/tools/memory/$p"; then
-      fail_msg "adapters/codex/tools/memory/$p must not fall back to Claude runtime home"
+    elif ! check_no_claude_native_refs "adapters/codex/tools/memory/$p" "adapters/codex/tools/memory/$p"; then
+      :
     elif ! grep -Fq '[ -f "$AGENT_HOME/tools/memory/mem.py" ]' "adapters/codex/tools/memory/$p" \
       || grep -Fq 'if [ "${AGENT_HOME:-}" ]; then' "adapters/codex/tools/memory/$p"; then
       fail_msg "adapters/codex/tools/memory/$p must validate AGENT_HOME before using it as the harness root"
@@ -744,64 +756,64 @@ check_codex_tool_projection() {
     fail_msg "adapters/codex/tools/design/visual-harness.sh must be an executable Codex-owned design launcher"
   elif [ -L adapters/codex/tools/design/visual-harness.sh ]; then
     fail_msg "adapters/codex/tools/design/visual-harness.sh must be concrete, not a symlink"
-  elif grep -q 'adapters/claude\|claude_setting\|CLAUDE_HOME' adapters/codex/tools/design/visual-harness.sh; then
-    fail_msg "adapters/codex/tools/design/visual-harness.sh must not reference Claude-native surfaces"
+  elif ! check_no_claude_native_refs adapters/codex/tools/design/visual-harness.sh adapters/codex/tools/design/visual-harness.sh; then
+    :
   fi
 
   if [ ! -x adapters/codex/tools/material/data-script.sh ]; then
     fail_msg "adapters/codex/tools/material/data-script.sh must be an executable Codex-owned material launcher"
   elif [ -L adapters/codex/tools/material/data-script.sh ]; then
     fail_msg "adapters/codex/tools/material/data-script.sh must be concrete, not a symlink"
-  elif grep -q 'adapters/claude\|claude_setting\|CLAUDE_HOME' adapters/codex/tools/material/data-script.sh; then
-    fail_msg "adapters/codex/tools/material/data-script.sh must not reference Claude-native surfaces"
+  elif ! check_no_claude_native_refs adapters/codex/tools/material/data-script.sh adapters/codex/tools/material/data-script.sh; then
+    :
   fi
 
   if [ ! -x adapters/codex/tools/material/browser-fetch.sh ]; then
     fail_msg "adapters/codex/tools/material/browser-fetch.sh must be an executable Codex-owned material launcher"
   elif [ -L adapters/codex/tools/material/browser-fetch.sh ]; then
     fail_msg "adapters/codex/tools/material/browser-fetch.sh must be concrete, not a symlink"
-  elif grep -q 'adapters/claude\|claude_setting\|CLAUDE_HOME' adapters/codex/tools/material/browser-fetch.sh; then
-    fail_msg "adapters/codex/tools/material/browser-fetch.sh must not reference Claude-native surfaces"
+  elif ! check_no_claude_native_refs adapters/codex/tools/material/browser-fetch.sh adapters/codex/tools/material/browser-fetch.sh; then
+    :
   fi
 
   if [ ! -x adapters/codex/tools/material/figure-gen.sh ]; then
     fail_msg "adapters/codex/tools/material/figure-gen.sh must be an executable Codex-owned material launcher"
   elif [ -L adapters/codex/tools/material/figure-gen.sh ]; then
     fail_msg "adapters/codex/tools/material/figure-gen.sh must be concrete, not a symlink"
-  elif grep -q 'adapters/claude\|claude_setting\|CLAUDE_HOME' adapters/codex/tools/material/figure-gen.sh; then
-    fail_msg "adapters/codex/tools/material/figure-gen.sh must not reference Claude-native surfaces"
+  elif ! check_no_claude_native_refs adapters/codex/tools/material/figure-gen.sh adapters/codex/tools/material/figure-gen.sh; then
+    :
   fi
 
   if [ ! -x adapters/codex/tools/material/pdf-extract.sh ]; then
     fail_msg "adapters/codex/tools/material/pdf-extract.sh must be an executable Codex-owned material launcher"
   elif [ -L adapters/codex/tools/material/pdf-extract.sh ]; then
     fail_msg "adapters/codex/tools/material/pdf-extract.sh must be concrete, not a symlink"
-  elif grep -q 'adapters/claude\|claude_setting\|CLAUDE_HOME' adapters/codex/tools/material/pdf-extract.sh; then
-    fail_msg "adapters/codex/tools/material/pdf-extract.sh must not reference Claude-native surfaces"
+  elif ! check_no_claude_native_refs adapters/codex/tools/material/pdf-extract.sh adapters/codex/tools/material/pdf-extract.sh; then
+    :
   fi
 
   if [ ! -x adapters/codex/tools/material/web-image-search.sh ]; then
     fail_msg "adapters/codex/tools/material/web-image-search.sh must be an executable Codex-owned material launcher"
   elif [ -L adapters/codex/tools/material/web-image-search.sh ]; then
     fail_msg "adapters/codex/tools/material/web-image-search.sh must be concrete, not a symlink"
-  elif grep -q 'adapters/claude\|claude_setting\|CLAUDE_HOME' adapters/codex/tools/material/web-image-search.sh; then
-    fail_msg "adapters/codex/tools/material/web-image-search.sh must not reference Claude-native surfaces"
+  elif ! check_no_claude_native_refs adapters/codex/tools/material/web-image-search.sh adapters/codex/tools/material/web-image-search.sh; then
+    :
   fi
 
   if [ ! -x adapters/codex/tools/qa/verification-runner.sh ]; then
     fail_msg "adapters/codex/tools/qa/verification-runner.sh must be an executable Codex-owned QA launcher"
   elif [ -L adapters/codex/tools/qa/verification-runner.sh ]; then
     fail_msg "adapters/codex/tools/qa/verification-runner.sh must be concrete, not a symlink"
-  elif grep -q 'adapters/claude\|claude_setting\|CLAUDE_HOME' adapters/codex/tools/qa/verification-runner.sh; then
-    fail_msg "adapters/codex/tools/qa/verification-runner.sh must not reference Claude-native surfaces"
+  elif ! check_no_claude_native_refs adapters/codex/tools/qa/verification-runner.sh adapters/codex/tools/qa/verification-runner.sh; then
+    :
   fi
 
   if [ ! -x adapters/codex/tools/research/claim-verify.sh ]; then
     fail_msg "adapters/codex/tools/research/claim-verify.sh must be an executable Codex-owned research launcher"
   elif [ -L adapters/codex/tools/research/claim-verify.sh ]; then
     fail_msg "adapters/codex/tools/research/claim-verify.sh must be concrete, not a symlink"
-  elif grep -q 'adapters/claude\|claude_setting\|CLAUDE_HOME' adapters/codex/tools/research/claim-verify.sh; then
-    fail_msg "adapters/codex/tools/research/claim-verify.sh must not reference Claude-native surfaces"
+  elif ! check_no_claude_native_refs adapters/codex/tools/research/claim-verify.sh adapters/codex/tools/research/claim-verify.sh; then
+    :
   fi
 
   extra=$(find adapters/codex/tools -mindepth 1 ! \( -path adapters/codex/tools/memory -o -path adapters/codex/tools/memory/mem.py -o -path adapters/codex/tools/memory/apply-distill-actions.py -o -path adapters/codex/tools/memory/recall.sh -o -path adapters/codex/tools/design -o -path adapters/codex/tools/design/visual-harness.sh -o -path adapters/codex/tools/material -o -path adapters/codex/tools/material/browser-fetch.sh -o -path adapters/codex/tools/material/data-script.sh -o -path adapters/codex/tools/material/figure-gen.sh -o -path adapters/codex/tools/material/pdf-extract.sh -o -path adapters/codex/tools/material/web-image-search.sh -o -path adapters/codex/tools/qa -o -path adapters/codex/tools/qa/verification-runner.sh -o -path adapters/codex/tools/research -o -path adapters/codex/tools/research/claim-verify.sh \) -print 2>/dev/null || true)
@@ -1374,8 +1386,8 @@ check_opencode_tool_projection() {
       fail_msg "adapters/opencode/tools/memory/$p must be an executable OpenCode-owned memory launcher"
     elif [ -L "adapters/opencode/tools/memory/$p" ]; then
       fail_msg "adapters/opencode/tools/memory/$p must be concrete, not a symlink to the shared Claude-compatible fallback"
-    elif grep -q '\.claude\|CLAUDE_HOME' "adapters/opencode/tools/memory/$p"; then
-      fail_msg "adapters/opencode/tools/memory/$p must not fall back to Claude runtime home"
+    elif ! check_no_claude_native_refs "adapters/opencode/tools/memory/$p" "adapters/opencode/tools/memory/$p"; then
+      :
     elif ! grep -Fq '[ -f "$AGENT_HOME/tools/memory/mem.py" ]' "adapters/opencode/tools/memory/$p" \
       || grep -Fq 'if [ "${AGENT_HOME:-}" ]; then' "adapters/opencode/tools/memory/$p"; then
       fail_msg "adapters/opencode/tools/memory/$p must validate AGENT_HOME before using it as the harness root"
@@ -1397,64 +1409,64 @@ check_opencode_tool_projection() {
     fail_msg "adapters/opencode/tools/design/visual-harness.sh must be an executable OpenCode-owned design launcher"
   elif [ -L adapters/opencode/tools/design/visual-harness.sh ]; then
     fail_msg "adapters/opencode/tools/design/visual-harness.sh must be concrete, not a symlink"
-  elif grep -q 'adapters/claude\|claude_setting\|CLAUDE_HOME' adapters/opencode/tools/design/visual-harness.sh; then
-    fail_msg "adapters/opencode/tools/design/visual-harness.sh must not reference Claude-native surfaces"
+  elif ! check_no_claude_native_refs adapters/opencode/tools/design/visual-harness.sh adapters/opencode/tools/design/visual-harness.sh; then
+    :
   fi
 
   if [ ! -x adapters/opencode/tools/material/data-script.sh ]; then
     fail_msg "adapters/opencode/tools/material/data-script.sh must be an executable OpenCode-owned material launcher"
   elif [ -L adapters/opencode/tools/material/data-script.sh ]; then
     fail_msg "adapters/opencode/tools/material/data-script.sh must be concrete, not a symlink"
-  elif grep -q 'adapters/claude\|claude_setting\|CLAUDE_HOME' adapters/opencode/tools/material/data-script.sh; then
-    fail_msg "adapters/opencode/tools/material/data-script.sh must not reference Claude-native surfaces"
+  elif ! check_no_claude_native_refs adapters/opencode/tools/material/data-script.sh adapters/opencode/tools/material/data-script.sh; then
+    :
   fi
 
   if [ ! -x adapters/opencode/tools/material/browser-fetch.sh ]; then
     fail_msg "adapters/opencode/tools/material/browser-fetch.sh must be an executable OpenCode-owned material launcher"
   elif [ -L adapters/opencode/tools/material/browser-fetch.sh ]; then
     fail_msg "adapters/opencode/tools/material/browser-fetch.sh must be concrete, not a symlink"
-  elif grep -q 'adapters/claude\|claude_setting\|CLAUDE_HOME' adapters/opencode/tools/material/browser-fetch.sh; then
-    fail_msg "adapters/opencode/tools/material/browser-fetch.sh must not reference Claude-native surfaces"
+  elif ! check_no_claude_native_refs adapters/opencode/tools/material/browser-fetch.sh adapters/opencode/tools/material/browser-fetch.sh; then
+    :
   fi
 
   if [ ! -x adapters/opencode/tools/material/figure-gen.sh ]; then
     fail_msg "adapters/opencode/tools/material/figure-gen.sh must be an executable OpenCode-owned material launcher"
   elif [ -L adapters/opencode/tools/material/figure-gen.sh ]; then
     fail_msg "adapters/opencode/tools/material/figure-gen.sh must be concrete, not a symlink"
-  elif grep -q 'adapters/claude\|claude_setting\|CLAUDE_HOME' adapters/opencode/tools/material/figure-gen.sh; then
-    fail_msg "adapters/opencode/tools/material/figure-gen.sh must not reference Claude-native surfaces"
+  elif ! check_no_claude_native_refs adapters/opencode/tools/material/figure-gen.sh adapters/opencode/tools/material/figure-gen.sh; then
+    :
   fi
 
   if [ ! -x adapters/opencode/tools/material/pdf-extract.sh ]; then
     fail_msg "adapters/opencode/tools/material/pdf-extract.sh must be an executable OpenCode-owned material launcher"
   elif [ -L adapters/opencode/tools/material/pdf-extract.sh ]; then
     fail_msg "adapters/opencode/tools/material/pdf-extract.sh must be concrete, not a symlink"
-  elif grep -q 'adapters/claude\|claude_setting\|CLAUDE_HOME' adapters/opencode/tools/material/pdf-extract.sh; then
-    fail_msg "adapters/opencode/tools/material/pdf-extract.sh must not reference Claude-native surfaces"
+  elif ! check_no_claude_native_refs adapters/opencode/tools/material/pdf-extract.sh adapters/opencode/tools/material/pdf-extract.sh; then
+    :
   fi
 
   if [ ! -x adapters/opencode/tools/material/web-image-search.sh ]; then
     fail_msg "adapters/opencode/tools/material/web-image-search.sh must be an executable OpenCode-owned material launcher"
   elif [ -L adapters/opencode/tools/material/web-image-search.sh ]; then
     fail_msg "adapters/opencode/tools/material/web-image-search.sh must be concrete, not a symlink"
-  elif grep -q 'adapters/claude\|claude_setting\|CLAUDE_HOME' adapters/opencode/tools/material/web-image-search.sh; then
-    fail_msg "adapters/opencode/tools/material/web-image-search.sh must not reference Claude-native surfaces"
+  elif ! check_no_claude_native_refs adapters/opencode/tools/material/web-image-search.sh adapters/opencode/tools/material/web-image-search.sh; then
+    :
   fi
 
   if [ ! -x adapters/opencode/tools/qa/verification-runner.sh ]; then
     fail_msg "adapters/opencode/tools/qa/verification-runner.sh must be an executable OpenCode-owned QA launcher"
   elif [ -L adapters/opencode/tools/qa/verification-runner.sh ]; then
     fail_msg "adapters/opencode/tools/qa/verification-runner.sh must be concrete, not a symlink"
-  elif grep -q 'adapters/claude\|claude_setting\|CLAUDE_HOME' adapters/opencode/tools/qa/verification-runner.sh; then
-    fail_msg "adapters/opencode/tools/qa/verification-runner.sh must not reference Claude-native surfaces"
+  elif ! check_no_claude_native_refs adapters/opencode/tools/qa/verification-runner.sh adapters/opencode/tools/qa/verification-runner.sh; then
+    :
   fi
 
   if [ ! -x adapters/opencode/tools/research/claim-verify.sh ]; then
     fail_msg "adapters/opencode/tools/research/claim-verify.sh must be an executable OpenCode-owned research launcher"
   elif [ -L adapters/opencode/tools/research/claim-verify.sh ]; then
     fail_msg "adapters/opencode/tools/research/claim-verify.sh must be concrete, not a symlink"
-  elif grep -q 'adapters/claude\|claude_setting\|CLAUDE_HOME' adapters/opencode/tools/research/claim-verify.sh; then
-    fail_msg "adapters/opencode/tools/research/claim-verify.sh must not reference Claude-native surfaces"
+  elif ! check_no_claude_native_refs adapters/opencode/tools/research/claim-verify.sh adapters/opencode/tools/research/claim-verify.sh; then
+    :
   fi
 
   extra=$(find adapters/opencode/tools -mindepth 1 ! \( -path adapters/opencode/tools/memory -o -path adapters/opencode/tools/memory/mem.py -o -path adapters/opencode/tools/memory/apply-distill-actions.py -o -path adapters/opencode/tools/memory/recall.sh -o -path adapters/opencode/tools/design -o -path adapters/opencode/tools/design/visual-harness.sh -o -path adapters/opencode/tools/material -o -path adapters/opencode/tools/material/browser-fetch.sh -o -path adapters/opencode/tools/material/data-script.sh -o -path adapters/opencode/tools/material/figure-gen.sh -o -path adapters/opencode/tools/material/pdf-extract.sh -o -path adapters/opencode/tools/material/web-image-search.sh -o -path adapters/opencode/tools/qa -o -path adapters/opencode/tools/qa/verification-runner.sh -o -path adapters/opencode/tools/research -o -path adapters/opencode/tools/research/claim-verify.sh \) -print 2>/dev/null || true)
