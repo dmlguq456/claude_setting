@@ -566,6 +566,10 @@ check_codex_utility_projection() {
   elif grep -q '\.claude' "adapters/codex/utilities/agent-home.sh"; then
     fail_msg "adapters/codex/utilities/agent-home.sh must not fall back to Claude runtime home"
   fi
+  if ! grep -Fq '[ -f "$AGENT_HOME/core/CORE.md" ]' adapters/codex/utilities/agent-home.sh \
+    || grep -Fq 'if [ "${AGENT_HOME:-}" ]; then' adapters/codex/utilities/agent-home.sh; then
+    fail_msg "adapters/codex/utilities/agent-home.sh must validate AGENT_HOME before returning it"
+  fi
   if ! grep -Fq '$HOME/.codex/agent-harness' adapters/codex/utilities/agent-home.sh; then
     fail_msg "adapters/codex/utilities/agent-home.sh must support the Codex runtime agent-harness pointer"
   fi
@@ -1173,6 +1177,10 @@ check_opencode_utility_projection() {
     fail_msg "adapters/opencode/utilities/agent-home.sh must be concrete, not a symlink to the shared Claude-compatible fallback"
   elif grep -q '\.claude' "adapters/opencode/utilities/agent-home.sh"; then
     fail_msg "adapters/opencode/utilities/agent-home.sh must not fall back to Claude runtime home"
+  fi
+  if ! grep -Fq '[ -f "$AGENT_HOME/core/CORE.md" ]' adapters/opencode/utilities/agent-home.sh \
+    || grep -Fq 'if [ "${AGENT_HOME:-}" ]; then' adapters/opencode/utilities/agent-home.sh; then
+    fail_msg "adapters/opencode/utilities/agent-home.sh must validate AGENT_HOME before returning it"
   fi
   if ! grep -Fq '$HOME/.config/opencode/agent-harness' adapters/opencode/utilities/agent-home.sh; then
     fail_msg "adapters/opencode/utilities/agent-home.sh must support the OpenCode runtime agent-harness pointer"

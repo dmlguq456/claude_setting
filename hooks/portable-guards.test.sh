@@ -104,6 +104,12 @@ if env -u AGENT_HOME HOME="$TMP/codex_pointer_home" "$ROOT/adapters/codex/utilit
 else
   bad "codex agent-home wrapper should resolve runtime pointer"
 fi
+if AGENT_HOME="$TMP/not-agent-home" HOME="$TMP/codex_pointer_home" "$ROOT/adapters/codex/utilities/agent-home.sh" >/tmp/codex_agent_home_invalid.out 2>/tmp/codex_agent_home_invalid.err \
+  && grep -q "^$TMP/codex_pointer_home/.codex/agent-harness$" /tmp/codex_agent_home_invalid.out; then
+  ok "codex agent-home wrapper ignores invalid AGENT_HOME"
+else
+  bad "codex agent-home wrapper should ignore invalid AGENT_HOME"
+fi
 
 echo "== spec read gate CLI =="
 mkdir -p "$TMP/specproj/.agent_reports/spec"
@@ -958,6 +964,12 @@ if env -u AGENT_HOME HOME="$TMP/opencode_pointer_home" "$ROOT/adapters/opencode/
   ok "opencode agent-home wrapper resolves runtime pointer"
 else
   bad "opencode agent-home wrapper should resolve runtime pointer"
+fi
+if AGENT_HOME="$TMP/not-agent-home" HOME="$TMP/opencode_pointer_home" "$ROOT/adapters/opencode/utilities/agent-home.sh" >/tmp/opencode_agent_home_invalid.out 2>/tmp/opencode_agent_home_invalid.err \
+  && grep -q "^$TMP/opencode_pointer_home/.config/opencode/agent-harness$" /tmp/opencode_agent_home_invalid.out; then
+  ok "opencode agent-home wrapper ignores invalid AGENT_HOME"
+else
+  bad "opencode agent-home wrapper should ignore invalid AGENT_HOME"
 fi
 
 echo "== opencode spec read gate =="
