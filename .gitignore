@@ -26,6 +26,10 @@ plugins/
 !adapters/opencode/plugins/
 !adapters/opencode/plugins/**
 
+# Python bytecode caches (per-machine, ephemeral)
+__pycache__/
+*.py[cod]
+
 # Project-scoped memory (per-project, not shared)
 projects/
 

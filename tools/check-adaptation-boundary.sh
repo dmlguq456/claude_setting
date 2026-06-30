@@ -120,6 +120,15 @@ check_opencode_projection_targets() {
   check_link_target opencode_setting/opencode-plugins ../adapters/opencode/plugins
 }
 
+check_non_claude_projection_runtime_caches() {
+  cache_paths=$(find adapters/codex adapters/opencode codex_setting opencode_setting \
+    \( -type d -name __pycache__ -o -type f -name '*.py[co]' \) -print 2>/dev/null || true)
+  if [ -n "$cache_paths" ]; then
+    fail_msg "Codex/OpenCode adapter projections must not expose Python bytecode caches:"
+    printf '%s\n' "$cache_paths"
+  fi
+}
+
 check_claude_projection_targets() {
   check_link_target claude_setting/CLAUDE.md ../adapters/claude/CLAUDE.md
   check_link_target claude_setting/README.md ../README.md
@@ -2192,6 +2201,7 @@ check_codex_projection_targets
 check_opencode_forbidden_entries
 check_opencode_required_projection_entries
 check_opencode_projection_targets
+check_non_claude_projection_runtime_caches
 check_claude_projection_targets
 check_claude_adapter_concrete_surfaces
 check_non_claude_adapter_symlink_boundaries
