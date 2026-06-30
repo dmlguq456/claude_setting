@@ -596,6 +596,12 @@ PY
     fail_msg "Codex native agent surfaces must not expose non-Codex adapter paths:"
     printf '%s\n' "$bad"
   fi
+  if ! grep -Fq 'structural plus install-path validation' adapters/codex/README.md \
+    || ! grep -Fq '`codex debug agent` listing surface' adapters/codex/README.md \
+    || ! grep -Fq 'structural plus install-path validation' adapters/codex/ADAPTATION.md \
+    || ! grep -Fq '`codex debug agent` listing surface' adapters/codex/ADAPTATION.md; then
+    fail_msg "Codex custom agent docs must state current validation boundary until runtime agent discovery exists"
+  fi
 }
 
 check_codex_native_hook_projection() {

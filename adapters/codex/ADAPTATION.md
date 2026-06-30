@@ -103,6 +103,13 @@ choices to `adapters/codex/bin/preflight.sh role <portable-role>` and the
 runtime's parent session/config inheritance. Do not project Claude Agent files
 or OpenCode Agent files into Codex.
 
+Validation is currently structural plus install-path validation. The boundary
+guard verifies generated TOML fields, portable role references, role-map
+resolution, and absence of non-Codex adapter paths. Codex CLI 0.142.x exposes
+`codex debug prompt-input` for bootstrap/Skill/plugin discovery, but it does
+not expose a `codex debug agent` listing surface; add runtime discovery coverage
+when Codex exposes one.
+
 ## Native Hook Surface
 
 Codex supports lifecycle hooks through `hooks.json` and inline config. This

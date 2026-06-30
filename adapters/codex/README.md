@@ -153,6 +153,13 @@ the required Codex custom agent fields (`name`, `description`, and
 `adapters/codex/bin/preflight.sh role <portable-role>`. Do not expose
 `adapters/claude/agents/` as Codex-native agents.
 
+Current validation is structural plus install-path validation: the boundary
+guard verifies generated TOML fields, portable role references, role-map
+resolution, and absence of non-Codex adapter paths. Codex CLI 0.142.x exposes
+`codex debug prompt-input` for bootstrap/Skill/plugin discovery, but it does
+not expose a `codex debug agent` listing surface. Add a runtime discovery test
+when Codex exposes one.
+
 ## Command-Like Entries
 
 Custom prompts are deprecated in Codex. Do not generate a `prompts/` projection
