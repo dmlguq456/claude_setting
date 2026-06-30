@@ -77,7 +77,7 @@ project Claude Skill, Agent, command, hook, or statusline files into Codex.
 | memory injection | Codex `SessionStart` hook bridge runs `adapters/codex/bin/preflight.sh memory [cwd]`; run it manually when hooks are unavailable |
 | memory recall injection | Codex `UserPromptSubmit` hook bridge runs `adapters/codex/bin/preflight.sh recall <prompt> [cwd]`; run it manually when hooks are unavailable |
 | oncall briefing injection | Codex `UserPromptSubmit` hook bridge runs `adapters/codex/bin/preflight.sh briefing [cwd]`; run it manually when hooks are unavailable |
-| capability mapping | `adapters/codex/bin/preflight.sh capability-info <capability>` reports Codex's native Skill/plugin realization, instruction-only or tool-contract status, and the legacy compatibility reference, if one exists |
+| capability mapping | `adapters/codex/bin/preflight.sh capability-info <capability>` reports Codex's native Skill/plugin realization and instruction-only or tool-contract status; root Skill compatibility references are not projected and report `compat_reference=not-projected` |
 | model role mapping | `adapters/codex/bin/preflight.sh role <portable-role>` resolves portable model roles through Codex adapter environment variables |
 | mode mapping | `adapters/codex/bin/preflight.sh mode-info <family/mode>` reports whether a mode is portable, tool-contract, or unsupported for Codex; tool-contract and unsupported adapter-coupled modes include machine-readable `tool_contract`, optional `tool_contract_check`, `runtime_surface`, and `fallback` fields |
 | memory distill delta | Codex session transcript extraction is available through `adapters/codex/bin/preflight.sh distill-delta <session-id>` |

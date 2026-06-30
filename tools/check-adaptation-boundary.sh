@@ -582,6 +582,10 @@ check_codex_bin_wrappers() {
     || grep -Fq "printf 'compat_reference=skills/" adapters/codex/bin/capability-map.sh; then
     fail_msg "adapters/codex/bin/capability-map.sh must not expose root Skill compatibility paths as Codex capability-info output"
   fi
+  if ! grep -Fq 'compat_reference=not-projected' adapters/codex/README.md \
+    || grep -Fq 'legacy compatibility reference, if one exists' adapters/codex/README.md; then
+    fail_msg "adapters/codex/README.md must document that capability-info does not project root Skill compatibility references"
+  fi
   if grep -Eq 'Claude Design MCP|Claude visual harness' adapters/codex/bin/preflight.sh adapters/codex/bin/capability-map.sh; then
     fail_msg "Codex runtime-facing visual harness output must use legacy/adapter-specific wording, not Claude implementation names"
   fi
@@ -1231,6 +1235,10 @@ check_opencode_bin_wrappers() {
     || grep -Fq 'compat_reference="skills/' adapters/opencode/bin/capability-map.sh \
     || grep -Fq "printf 'compat_reference=skills/" adapters/opencode/bin/capability-map.sh; then
     fail_msg "adapters/opencode/bin/capability-map.sh must not expose root Skill compatibility paths as OpenCode capability-info output"
+  fi
+  if ! grep -Fq 'compat_reference=not-projected' adapters/opencode/README.md \
+    || grep -Fq 'legacy compatibility reference, if one exists' adapters/opencode/README.md; then
+    fail_msg "adapters/opencode/README.md must document that capability-info does not project root Skill compatibility references"
   fi
   if grep -Eq 'Claude Design MCP|Claude visual harness' adapters/opencode/bin/preflight.sh adapters/opencode/bin/capability-map.sh; then
     fail_msg "OpenCode runtime-facing visual harness output must use legacy/adapter-specific wording, not Claude implementation names"
