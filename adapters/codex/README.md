@@ -36,6 +36,7 @@ project Claude Skill, Agent, command, hook, or statusline files into Codex.
 | Hook and guard scripts | `hooks/`, `utilities/` |
 | Native skills | `adapters/codex/skills/` |
 | Native agents | `adapters/codex/agents/` |
+| Native design modes | `adapters/codex/modes/design/` |
 | Native plugin | `adapters/codex/plugins/agent-harness-codex` |
 | Native hooks | `adapters/codex/hooks/` |
 | Selected tool projection | `adapters/codex/tools/` |
@@ -50,6 +51,7 @@ project Claude Skill, Agent, command, hook, or statusline files into Codex.
 | native hook surface | `adapters/codex/hooks/hooks.json` registers Codex `SessionStart` lifecycle prep, `SessionEnd` memory sync/distill, `UserPromptSubmit` prompt signals and turn nudges, `PreToolUse` write guards, `PostToolUse` spec read markers, and `PostToolUse` design HTML checks; explicit preflight remains fallback |
 | role profile | Use `roles/README.md` for meaning; Codex custom agents are materialized under `adapters/codex/agents/*.toml` and still call `adapters/codex/bin/preflight.sh role <portable-role>` for concrete model/reasoning mapping |
 | role mode | Run `adapters/codex/bin/preflight.sh mode-info <family/mode>` before using a `roles/modes/` fragment; portable modes can be used directly, tool-contract modes require equivalent tools, unsupported modes report `fallback=reference-only` when no Codex-native runtime surface exists |
+| native design mode surface | Design modes are realized under `adapters/codex/modes/design/` and require the Codex visual-harness tool contract before claiming rendered visual completion |
 | adapter bootstrap | Load `adapters/codex/AGENTS.md`, then `core/CORE.md` plus task-relevant shared docs; do not treat `CLAUDE.md` as portable bootstrap |
 | agent home | Set `AGENT_HOME` to the installed harness directory |
 | permission model | Run `adapters/codex/bin/preflight.sh permissions`; use Codex native approval policy and sandbox settings, not Claude `allowedTools` |
@@ -192,6 +194,20 @@ resolution, and absence of non-Codex adapter paths. Codex CLI 0.142.x exposes
 `codex debug prompt-input` for bootstrap/Skill/plugin discovery, but it does
 not expose a `codex debug agent` listing surface. Add a runtime discovery test
 when Codex exposes one.
+
+## Native Design Mode Projection
+
+`adapters/codex/modes/design/` contains Codex-owned mode realization guides for
+`roles/modes/design/`. These files are not copied from another runtime. They
+preserve the portable maker, critic, verifier, and design-rule semantics while
+mapping visual verification to `adapters/codex/bin/preflight.sh visual-harness
+<file.html>`.
+
+`adapters/codex/bin/preflight.sh mode-info design/<mode>` reports
+`status=tool-contract`, `realization=codex-native-mode-with-tool-contract`, and
+`native_mode_path=adapters/codex/modes/design/<mode>.md`. If the visual harness
+is unavailable, report that tool-contract failure instead of claiming native
+visual verification.
 
 ## Command-Like Entries
 

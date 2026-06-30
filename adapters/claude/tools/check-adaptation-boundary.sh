@@ -2105,14 +2105,25 @@ check_codex_mode_map() {
     fi
     case "$rel" in
       design/*)
-        if ! grep -Fq 'status=unsupported' "$out" || ! grep -Fq 'realization=adapter-coupled' "$out"; then
-          fail_msg "Codex mode map must mark $rel as unsupported adapter-coupled"
+        native_path="adapters/codex/modes/$rel.md"
+        if [ ! -f "$native_path" ]; then
+          fail_msg "Codex design mode realization missing: $native_path"
+        fi
+        if [ -L "$native_path" ]; then
+          fail_msg "Codex design mode realization must be concrete: $native_path"
+        fi
+        if grep -Eq "$CLAUDE_NATIVE_SURFACE_PATTERN" "$native_path"; then
+          fail_msg "Codex design mode realization must not reference Claude-native surfaces: $native_path"
+        fi
+        if ! grep -Fq 'status=tool-contract' "$out" || ! grep -Fq 'realization=codex-native-mode-with-tool-contract' "$out"; then
+          fail_msg "Codex mode map must mark $rel as Codex-native tool-contract"
         fi
         if ! grep -Fq 'tool_contract=visual-harness' "$out" \
           || ! grep -Fq 'tool_contract_check=adapters/codex/bin/preflight.sh visual-harness <file.html>' "$out" \
           || ! grep -Fq 'runtime_surface=adapter-owned-visual-harness' "$out" \
-          || ! grep -Fq 'fallback=reference-only' "$out"; then
-          fail_msg "Codex mode map must report visual-harness contract metadata for unsupported design mode $rel"
+          || ! grep -Fq 'fallback=satisfy-tool-contract-or-report-unavailable' "$out" \
+          || ! grep -Fq "native_mode_path=$native_path" "$out"; then
+          fail_msg "Codex mode map must report visual-harness contract metadata for native design mode $rel"
         fi
         ;;
       material/*|qa/test|research/claim-verify)

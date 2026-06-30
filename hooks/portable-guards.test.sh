@@ -903,20 +903,21 @@ for mode_file in "$ROOT"/roles/modes/design/*.md; do
   [ "$mode_name" = "_design_rules" ] && continue
   mode="design/$mode_name"
   if ! "$CODEX" mode-info "$mode" >/tmp/mode.out 2>/tmp/mode.err \
-    || ! grep -q '^status=unsupported$' /tmp/mode.out \
-    || ! grep -q '^realization=adapter-coupled$' /tmp/mode.out \
+    || ! grep -q '^status=tool-contract$' /tmp/mode.out \
+    || ! grep -q '^realization=codex-native-mode-with-tool-contract$' /tmp/mode.out \
     || ! grep -q '^tool_contract=visual-harness$' /tmp/mode.out \
     || ! grep -q '^tool_contract_check=adapters/codex/bin/preflight.sh visual-harness <file.html>$' /tmp/mode.out \
     || ! grep -q '^runtime_surface=adapter-owned-visual-harness$' /tmp/mode.out \
-    || ! grep -q '^fallback=reference-only$' /tmp/mode.out; then
+    || ! grep -q "^native_mode_path=adapters/codex/modes/design/$mode_name.md$" /tmp/mode.out \
+    || ! grep -q '^fallback=satisfy-tool-contract-or-report-unavailable$' /tmp/mode.out; then
     codex_design_modes_ok=0
     break
   fi
 done
 if [ "$codex_design_modes_ok" -eq 1 ]; then
-  ok "codex mode wrapper marks every adapter-coupled design mode unsupported"
+  ok "codex mode wrapper maps design modes to native visual-harness contract"
 else
-  bad "codex mode wrapper should mark every adapter-coupled design mode unsupported"
+  bad "codex mode wrapper should map design modes to native visual-harness contract"
 fi
 if "$CODEX" mode-info material/data-script >/tmp/mode.out 2>/tmp/mode.err \
   && grep -q '^status=tool-contract$' /tmp/mode.out \

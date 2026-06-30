@@ -95,13 +95,14 @@ case "$family" in
     fi
     ;;
   design)
-    status=unsupported
-    realization=adapter-coupled
+    status=tool-contract
+    realization=codex-native-mode-with-tool-contract
     tool_contract=visual-harness
     tool_contract_check="adapters/codex/bin/preflight.sh visual-harness <file.html>"
     runtime_surface=adapter-owned-visual-harness
-    fallback=reference-only
-    requirement="adapter-owned visual harness must be run for concrete design outputs; mode fragment remains reference-only"
+    fallback="satisfy-tool-contract-or-report-unavailable"
+    native_mode_path="adapters/codex/modes/design/$name.md"
+    requirement="read the Codex-native design mode realization, run the adapter-owned visual harness for concrete design outputs, or report unavailable"
     ;;
   qa)
     case "$name" in
@@ -176,6 +177,9 @@ if [ -n "$tool_contract_check" ]; then
 fi
 if [ -n "$runtime_surface" ]; then
   printf 'runtime_surface=%s\n' "$runtime_surface"
+fi
+if [ -n "${native_mode_path:-}" ]; then
+  printf 'native_mode_path=%s\n' "$native_mode_path"
 fi
 if [ -n "$fallback" ]; then
   printf 'fallback=%s\n' "$fallback"
