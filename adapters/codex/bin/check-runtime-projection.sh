@@ -6,6 +6,7 @@
 # status; bootstrap/plugin checks are soft (skipped when codex is unavailable,
 # the plugin reports install commands when missing). config.toml stays
 # runtime-owned, so only the harness config fragment pointer is checked.
+# Set CODEX_REQUIRE_HOOK_TRUST=1 to make missing `/hooks` trust records fail.
 set -eu
 
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
@@ -47,6 +48,38 @@ expect_link "$CODEX_HOME/agent-modes"              "$S/codex-modes"             
 expect_link "$CODEX_HOME/agent-hooks"              "$S/codex-hooks"               agent-hooks
 expect_link "$CODEX_HOME/agent-config"             "$S/codex-config"              agent-config
 expect_link "$CODEX_HOME/agent-plugin-marketplace" "$S/codex-plugin-marketplace" agent-plugin-marketplace
+
+hook_trust_check() {
+  cfg="$CODEX_HOME/config.toml"
+  hook_file="$CODEX_HOME/hooks.json"
+  if [ ! -f "$cfg" ]; then
+    printf 'check=hook-trust:review-needed reason=config-missing\n'
+    printf 'hook_trust_hint=run /hooks in Codex CLI and trust changed agent harness hooks\n'
+    [ "${CODEX_REQUIRE_HOOK_TRUST:-0}" = "1" ] && return 1
+    return 0
+  fi
+  missing=""
+  for event in session_start user_prompt_submit pre_tool_use post_tool_use; do
+    if ! grep -Fq "$hook_file:$event:" "$cfg"; then
+      missing="$missing $event"
+    fi
+  done
+  if ! grep -Eq "$hook_file:(session_end|stop):" "$cfg"; then
+    missing="$missing session_end"
+  fi
+  if [ -n "$missing" ]; then
+    printf 'check=hook-trust:review-needed missing=%s\n' "$(printf '%s' "$missing" | sed 's/^ //')"
+    printf 'hook_trust_hint=run /hooks in Codex CLI and trust changed agent harness hooks\n'
+    [ "${CODEX_REQUIRE_HOOK_TRUST:-0}" = "1" ] && return 1
+    return 0
+  fi
+  printf 'check=hook-trust:ok\n'
+  return 0
+}
+
+if ! hook_trust_check; then
+  fails=$((fails + 1))
+fi
 
 # hooks.json: harness projection symlink, or a real file with matching content.
 if [ -L "$CODEX_HOME/hooks.json" ] && [ "$(real "$CODEX_HOME/hooks.json")" = "$(real "$S/codex-hooks/hooks.json")" ]; then

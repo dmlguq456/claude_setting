@@ -171,8 +171,8 @@ Codex harness pointer before executing bridge scripts.
 The `SessionStart` bridge calls `adapters/codex/bin/preflight.sh start` and
 `memory` for stale workflow cleanup and memory context. The `SessionEnd` bridge
 calls `session-end` for `mem sync` plus the opt-in distill proposal worker. The
-`UserPromptSubmit` bridge calls `mode`, `recall`, `briefing`, and `turn-nudge`
-for prompt-time workflow and memory signals. The write bridge registers
+`UserPromptSubmit` bridge calls `prompt-signal`, `mode`, `recall`, `briefing`,
+and `turn-nudge` for prompt-time workflow and memory signals. The write bridge registers
 `PreToolUse` for write/edit/patch tools and calls
 `adapters/codex/bin/preflight.sh write <file> <session-id>`, which runs
 the portable artifact-order, git-state, and memory-write guards. The read bridge
@@ -185,6 +185,10 @@ write/edit/patch surface and calls `adapters/codex/bin/preflight.sh design
 Do not project Claude `hooks/` or `settings.json` into Codex. Use
 `codex_setting/codex-hooks` as the install source, and keep explicit
 `preflight.sh` calls as fallback where Codex hooks are disabled or untrusted.
+`adapters/codex/bin/check-runtime-projection.sh` reports `check=hook-trust:ok`
+or `check=hook-trust:review-needed`; run `/hooks` in Codex after hook definition
+changes, and set `CODEX_REQUIRE_HOOK_TRUST=1` when hook trust must fail runtime
+checks.
 The lifecycle hooks are informational/context bridges and do not replace
 deterministic write guards. The design hook is a console-check alert path, not a
 full render/screenshot visual harness.
@@ -228,7 +232,7 @@ Harness-specific status signals still need Codex-native realization:
 | Harness signal | Codex direction |
 |---|---|
 | stale workflow bypass flag cleanup | Codex `SessionStart` hook bridge runs `preflight.sh start`; explicit preflight remains fallback when hooks are unavailable |
-| tracked/untracked workflow state | Codex `UserPromptSubmit` hook bridge runs `preflight.sh mode`; explicit preflight remains fallback when hooks are unavailable |
+| tracked/untracked workflow state | Codex `UserPromptSubmit` hook bridge runs `preflight.sh prompt-signal` and `preflight.sh mode`; explicit preflight remains fallback when hooks are unavailable |
 | workflow/artifact/notes/git-risk snapshot | explicit `preflight.sh status`; keep Codex `/statusline` for native model/context/token/session fields |
 | UI boundary report | explicit `preflight.sh ui-info`; reports built-in footer/title support, unsupported arbitrary live statusline scripts, Skill/plugin autopilot entrypoints, and explicit/main-dispatched subagent behavior |
 | tracked/untracked toggle | explicit `preflight.sh track`; do not expose Claude `/track` command files |

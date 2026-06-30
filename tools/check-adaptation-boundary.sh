@@ -612,7 +612,7 @@ check_codex_bin_wrappers() {
     fail_msg "adapters/codex/AGENTS.md must document the Codex workflow toggle wrapper"
   fi
 
-  for p in 'preflight.sh start' 'preflight.sh session-end' 'preflight.sh mode' 'preflight.sh turn-nudge' 'preflight.sh track' 'preflight.sh memory' 'preflight.sh recall' 'preflight.sh briefing' 'preflight.sh worklog' 'preflight.sh ui-info' 'preflight.sh tui-config' 'preflight.sh loop-info' 'preflight.sh distill-delta' 'preflight.sh distill-propose'; do
+  for p in 'preflight.sh start' 'preflight.sh session-end' 'preflight.sh mode' 'preflight.sh prompt-signal' 'preflight.sh turn-nudge' 'preflight.sh track' 'preflight.sh memory' 'preflight.sh recall' 'preflight.sh briefing' 'preflight.sh worklog' 'preflight.sh ui-info' 'preflight.sh tui-config' 'preflight.sh loop-info' 'preflight.sh distill-delta' 'preflight.sh distill-propose'; do
     if ! grep -Fq "$p" adapters/codex/AGENTS.md; then
       fail_msg "adapters/codex/AGENTS.md must document manual Codex lifecycle wrapper $p"
     fi
@@ -655,11 +655,18 @@ check_codex_bin_wrappers() {
   if ! grep -Fq 'run_preflight("start"' adapters/codex/hooks/sessionstart-lifecycle.py \
     || ! grep -Fq 'run_preflight("memory"' adapters/codex/hooks/sessionstart-lifecycle.py \
     || ! grep -Fq 'run_preflight("session-end"' adapters/codex/hooks/sessionend-lifecycle.py \
+    || ! grep -Fq 'run_preflight("prompt-signal"' adapters/codex/hooks/userprompt-lifecycle.py \
     || ! grep -Fq 'run_preflight("mode"' adapters/codex/hooks/userprompt-lifecycle.py \
     || ! grep -Fq 'run_preflight("recall"' adapters/codex/hooks/userprompt-lifecycle.py \
     || ! grep -Fq 'run_preflight("briefing"' adapters/codex/hooks/userprompt-lifecycle.py \
     || ! grep -Fq 'run_preflight("turn-nudge"' adapters/codex/hooks/userprompt-lifecycle.py; then
     fail_msg "Codex lifecycle hook bridges must route through preflight.sh lifecycle commands"
+  fi
+  if ! grep -Fq 'runtime_surface=codex-userprompt-hook-signal' adapters/codex/bin/preflight.sh \
+    || ! grep -Fq 'hook_scope=runtime-hook' adapters/codex/bin/preflight.sh \
+    || ! grep -Fq 'autopilot_route=autopilot-required-for-spec-and-nontrivial-work' adapters/codex/bin/preflight.sh \
+    || ! grep -Fq 'enforced_hooks=pretool-write-guards,posttool-spec-read-marker,posttool-design-check,session-memory,turn-nudge' adapters/codex/bin/preflight.sh; then
+    fail_msg "Codex UserPromptSubmit hook must expose a structured workflow/autopilot signal"
   fi
 
   if ! grep -Fq 'named `tool_contract`, `tool_contract_check`, `runtime_surface`, and `fallback`' adapters/codex/AGENTS.md; then
@@ -2178,7 +2185,11 @@ check_adaptation_inventory_native_surfaces() {
     || ! grep -Fq 'check-runtime-projection.sh' adapters/codex/README.md \
     || ! grep -Fq 'install-runtime-projection.sh' adapters/codex/AGENTS.md \
     || ! grep -Fq 'preflight.sh doctor --runtime' adapters/codex/bin/preflight.sh \
-    || ! grep -Fq 'check=runtime-projection:skipped' adapters/codex/bin/preflight.sh; then
+    || ! grep -Fq 'check=runtime-projection:skipped' adapters/codex/bin/preflight.sh \
+    || ! grep -Fq 'check=hook-trust:review-needed' adapters/codex/bin/check-runtime-projection.sh \
+    || ! grep -Fq 'CODEX_REQUIRE_HOOK_TRUST=1' adapters/codex/bin/check-runtime-projection.sh \
+    || ! grep -Fq 'check=hook-trust:review-needed' adapters/codex/README.md \
+    || ! grep -Fq 'check=hook-trust:review-needed' adapters/codex/ADAPTATION.md; then
     fail_msg "adapters/codex/README.md and adapters/codex/AGENTS.md must document the Codex runtime projection installer/checker"
   fi
   if [ ! -x adapters/codex/bin/apply-tui-config.sh ] \

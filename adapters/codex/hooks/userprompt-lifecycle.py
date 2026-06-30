@@ -79,6 +79,7 @@ def main() -> int:
     sid = session_id(payload)
     prompt = prompt_text(payload)
 
+    run_preflight("prompt-signal", current_cwd, sid)
     run_preflight("mode", current_cwd, sid)
     if prompt:
         run_preflight("recall", prompt, current_cwd)

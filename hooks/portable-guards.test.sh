@@ -988,6 +988,10 @@ fi
 if "$CODEX" track "$TMP/flowproj" promptlifecyclesid >/tmp/codex_prompt_toggle.out 2>/tmp/codex_prompt_toggle.err \
   && printf '{"prompt":"remember this project context","session_id":"promptlifecyclesid","cwd":"%s"}\n' "$TMP/flowproj" \
   | MEM_NUDGE_INTERVAL=1 MEM_STORE="$TMP/codex_hook_mem" HOME="$TMP/codex_hook_home" python3 "$TMP/codex_hook_home/.codex/agent-harness/adapters/codex/hooks/userprompt-lifecycle.py" >/tmp/codex_prompt_hook.out 2>/tmp/codex_prompt_hook.err \
+  && grep -q '^hook_event=UserPromptSubmit$' /tmp/codex_prompt_hook.out \
+  && grep -q '^hook_scope=runtime-hook$' /tmp/codex_prompt_hook.out \
+  && grep -q '^workflow_state=untracked$' /tmp/codex_prompt_hook.out \
+  && grep -q '^autopilot_route=optional-direct-work-allowed$' /tmp/codex_prompt_hook.out \
   && grep -q 'untracked' /tmp/codex_prompt_hook.out \
   && grep -q '^0$' "$TMP/codex_hook_mem/.codex-turn-state-promptlifecyclesid" \
   && ! grep -q 'adapters/claude\|claude_setting\|statusline.sh' /tmp/codex_prompt_hook.out /tmp/codex_prompt_hook.err; then
@@ -1242,6 +1246,7 @@ if AGENT_HOME="$ROOT" CODEX_HOME="$RPHOME" "$ROOT/adapters/codex/bin/install-run
   && AGENT_HOME="$ROOT" CODEX_HOME="$RPHOME" "$ROOT/adapters/codex/bin/check-runtime-projection.sh" >/tmp/codex_rp2.out 2>/tmp/codex_rp2.err \
   && grep -q '^check=agent-harness:ok' /tmp/codex_rp2.out \
   && grep -q '^check=agent-config:ok' /tmp/codex_rp2.out \
+  && grep -q '^check=hook-trust:review-needed' /tmp/codex_rp2.out \
   && grep -q '^check=hooks-json:ok' /tmp/codex_rp2.out \
   && grep -q '^check=skills-linked:ok' /tmp/codex_rp2.out \
   && grep -q '^check=agents-linked:ok' /tmp/codex_rp2.out \
@@ -1256,6 +1261,11 @@ if AGENT_HOME="$ROOT" CODEX_HOME="$RPHOME" "$CODEX" runtime-projection >/tmp/cod
   ok "codex preflight runtime-projection validates installed runtime wiring"
 else
   bad "codex preflight runtime-projection should validate installed runtime wiring"
+fi
+if AGENT_HOME="$ROOT" CODEX_HOME="$RPHOME" CODEX_REQUIRE_HOOK_TRUST=1 "$CODEX" runtime-projection >/tmp/codex_rp_trust.out 2>/tmp/codex_rp_trust.err; then
+  bad "codex runtime-projection should fail when hook trust is required but missing"
+else
+  grep -q '^check=hook-trust:review-needed' /tmp/codex_rp_trust.out && ok "codex runtime-projection can require hook trust" || bad "codex runtime-projection required hook trust output wrong"
 fi
 if AGENT_HOME="$ROOT" CODEX_HOME="$RPHOME" "$CODEX" doctor --runtime >/tmp/codex_doctor_runtime.out 2>/tmp/codex_doctor_runtime.err \
   && grep -q '^check=runtime-projection:ok' /tmp/codex_doctor_runtime.out \

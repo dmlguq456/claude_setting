@@ -27,6 +27,7 @@ usage: preflight.sh write <file> [session-id]
        preflight.sh start [cwd] [session-id]
        preflight.sh session-end [cwd] [session-id]
        preflight.sh mode [cwd] [session-id]
+       preflight.sh prompt-signal [cwd] [session-id]
        preflight.sh turn-nudge [cwd] [session-id]
        preflight.sh track [cwd] [session-id]
        preflight.sh memory [cwd]
@@ -243,6 +244,29 @@ case "$cmd" in
     cwd=${2:-$PWD}
     sid=${3:-codex}
     "$ROOT/utilities/workflow-guard-hook.sh" --event prompt --cwd "$cwd" --session "$sid" --format text --toggle-label "preflight.sh track"
+    ;;
+  prompt-signal)
+    cwd=${2:-$PWD}
+    sid=${3:-codex}
+    status=$(AGENT_ADAPTER=codex "$ROOT/utilities/harness-status.sh" "$cwd" "$sid")
+    workflow_state=$(printf '%s\n' "$status" | awk -F= '$1=="workflow_state"{print $2; exit}')
+    artifact_root_kind=$(printf '%s\n' "$status" | awk -F= '$1=="artifact_root_kind"{print $2; exit}')
+    git_operation=$(printf '%s\n' "$status" | awk -F= '$1=="git_operation"{print $2; exit}')
+    headless_open_jobs=$(printf '%s\n' "$status" | awk -F= '$1=="headless_open_jobs"{print $2; exit}')
+    printf 'adapter=codex\n'
+    printf 'runtime_surface=codex-userprompt-hook-signal\n'
+    printf 'hook_event=UserPromptSubmit\n'
+    printf 'hook_scope=runtime-hook\n'
+    printf 'workflow_state=%s\n' "${workflow_state:-unknown}"
+    printf 'artifact_root_kind=%s\n' "${artifact_root_kind:-unknown}"
+    printf 'git_operation=%s\n' "${git_operation:-unknown}"
+    printf 'headless_open_jobs=%s\n' "${headless_open_jobs:-0}"
+    if [ "${workflow_state:-tracked}" = "untracked" ]; then
+      printf 'autopilot_route=optional-direct-work-allowed\n'
+    else
+      printf 'autopilot_route=autopilot-required-for-spec-and-nontrivial-work\n'
+    fi
+    printf 'enforced_hooks=pretool-write-guards,posttool-spec-read-marker,posttool-design-check,session-memory,turn-nudge\n'
     ;;
   turn-nudge)
     cwd=${2:-$PWD}
