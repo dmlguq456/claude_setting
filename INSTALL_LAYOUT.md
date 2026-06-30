@@ -178,6 +178,9 @@ rg '^family=fast$' /tmp/codex-role.txt
 codex_setting/bin/preflight.sh permissions >/tmp/codex-permissions.txt
 rg '^runtime_surface=codex-native-approval-sandbox$' /tmp/codex-permissions.txt
 rg '^claude_allowed_tools=unsupported$' /tmp/codex-permissions.txt
+codex_setting/bin/preflight.sh mcp >/tmp/codex-mcp.txt
+rg '^runtime_surface=codex-native-mcp$' /tmp/codex-mcp.txt
+rg '^claude_settings_mcp=unsupported$' /tmp/codex-mcp.txt
 codex_setting/bin/preflight.sh headless >/tmp/codex-headless.txt
 rg '^runtime_surface=codex-exec-headless$' /tmp/codex-headless.txt
 rg '^liveness_surface=unsupported-until-codex-transcript-mtime-mapping$' /tmp/codex-headless.txt
@@ -287,6 +290,9 @@ rg '^family=fast$' /tmp/opencode-role.txt
 opencode_setting/bin/preflight.sh permissions >/tmp/opencode-permissions.txt
 rg '^runtime_surface=opencode-native-permission-config$' /tmp/opencode-permissions.txt
 rg '^claude_allowed_tools=unsupported$' /tmp/opencode-permissions.txt
+opencode_setting/bin/preflight.sh mcp >/tmp/opencode-mcp.txt
+rg '^runtime_surface=opencode-native-mcp$' /tmp/opencode-mcp.txt
+rg '^claude_settings_mcp=unsupported$' /tmp/opencode-mcp.txt
 opencode_setting/bin/preflight.sh headless >/tmp/opencode-headless.txt
 rg '^runtime_surface=opencode-run-headless$' /tmp/opencode-headless.txt
 rg '^liveness_surface=unsupported-until-opencode-transcript-mtime-mapping$' /tmp/opencode-headless.txt

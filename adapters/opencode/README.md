@@ -60,6 +60,7 @@ guards and tool-contract reporting.
 | adapter bootstrap | Add `adapters/opencode/AGENTS.md` to the `instructions` array in `opencode.json`/`opencode.jsonc`; then load `core/CORE.md` plus task-relevant shared docs; do not treat `CLAUDE.md` as portable bootstrap |
 | agent home | Set `AGENT_HOME` to the installed harness directory |
 | permission model | Run `adapters/opencode/bin/preflight.sh permissions`; use OpenCode native `permission` config and plugin hooks, not Claude `allowedTools` |
+| MCP config | Run `adapters/opencode/bin/preflight.sh mcp [--check]`; use OpenCode native `opencode mcp`/config surfaces, not Claude `settings.json` MCP payloads |
 | artifact root | `.agent_reports`, legacy fallback `.claude_reports` only when already present |
 | workflow start cleanup | OpenCode plugin system transform runs `adapters/opencode/bin/preflight.sh start [cwd] [session-id]` once per session; run it manually when plugins are unavailable |
 | tracked/untracked signal | OpenCode plugin system transform runs `adapters/opencode/bin/preflight.sh mode [cwd] [session-id]`; run it manually when plugins are unavailable |

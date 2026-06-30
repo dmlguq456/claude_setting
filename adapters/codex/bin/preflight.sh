@@ -23,6 +23,7 @@ usage: preflight.sh write <file> [session-id]
        preflight.sh status [cwd] [session-id]
        preflight.sh permissions
        preflight.sh headless [--check] <worktree>
+       preflight.sh mcp [--check]
        preflight.sh worklog [cwd]
        preflight.sh claim-verify [--check] <claim> [--out <file>]
        preflight.sh browser-fetch [--check] <url> [--out <dir>]
@@ -171,6 +172,47 @@ EOF
       exit 65
     fi
     printf 'check=ok\nworktree=%s\n' "$worktree"
+    ;;
+  mcp)
+    shift
+    check_only=0
+    while [ "$#" -gt 0 ]; do
+      case "$1" in
+        --check)
+          check_only=1
+          shift
+          ;;
+        --*)
+          echo "codex preflight: unknown mcp option: $1" >&2
+          exit 64
+          ;;
+        *)
+          echo "codex preflight: mcp accepts no positional arguments" >&2
+          exit 64
+          ;;
+      esac
+    done
+    cat <<'EOF'
+adapter=codex
+runtime_surface=codex-native-mcp
+status=native-runtime-config
+mcp_surface=codex mcp
+config_surface=$CODEX_HOME/config.toml
+design_mcp_projection=unsupported
+claude_settings_mcp=unsupported
+tool_contract_check=adapters/codex/bin/preflight.sh mcp --check
+fallback=use-adapter-visual-harness-or-report-mcp-unavailable
+note=Do not copy Claude settings.json MCP registrations or project tools/design-mcp wholesale into Codex.
+EOF
+    if [ "$check_only" -eq 0 ]; then
+      exit 0
+    fi
+    if command -v codex >/dev/null 2>&1 && codex mcp --help >/dev/null 2>&1; then
+      printf 'check=ok\n'
+    else
+      printf 'check=failed\nreason=codex-mcp-unavailable\n'
+      exit 69
+    fi
     ;;
   worklog)
     cwd=${2:-$PWD}

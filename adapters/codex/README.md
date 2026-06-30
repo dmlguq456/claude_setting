@@ -53,6 +53,7 @@ project Claude Skill, Agent, command, hook, or statusline files into Codex.
 | adapter bootstrap | Load `adapters/codex/AGENTS.md`, then `core/CORE.md` plus task-relevant shared docs; do not treat `CLAUDE.md` as portable bootstrap |
 | agent home | Set `AGENT_HOME` to the installed harness directory |
 | permission model | Run `adapters/codex/bin/preflight.sh permissions`; use Codex native approval policy and sandbox settings, not Claude `allowedTools` |
+| MCP config | Run `adapters/codex/bin/preflight.sh mcp [--check]`; use Codex native `codex mcp`/config surfaces, not Claude `settings.json` MCP payloads |
 | artifact root | `.agent_reports`, legacy fallback `.claude_reports` only when already present |
 | workflow start cleanup | Codex `SessionStart` hook bridge runs `adapters/codex/bin/preflight.sh start [cwd] [session-id]`; run it manually when hooks are unavailable |
 | tracked/untracked signal | Codex `UserPromptSubmit` hook bridge runs `adapters/codex/bin/preflight.sh mode [cwd] [session-id]`; run it manually when hooks are unavailable |

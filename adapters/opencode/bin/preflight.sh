@@ -23,6 +23,7 @@ usage: preflight.sh write <file> [session-id]
        preflight.sh status [cwd] [session-id]
        preflight.sh permissions
        preflight.sh headless [--check] <worktree>
+       preflight.sh mcp [--check]
        preflight.sh worklog [cwd]
        preflight.sh claim-verify [--check] <claim> [--out <file>]
        preflight.sh browser-fetch [--check] <url> [--out <dir>]
@@ -173,6 +174,47 @@ EOF
       exit 65
     fi
     printf 'check=ok\nworktree=%s\n' "$worktree"
+    ;;
+  mcp)
+    shift
+    check_only=0
+    while [ "$#" -gt 0 ]; do
+      case "$1" in
+        --check)
+          check_only=1
+          shift
+          ;;
+        --*)
+          echo "opencode preflight: unknown mcp option: $1" >&2
+          exit 64
+          ;;
+        *)
+          echo "opencode preflight: mcp accepts no positional arguments" >&2
+          exit 64
+          ;;
+      esac
+    done
+    cat <<'EOF'
+adapter=opencode
+runtime_surface=opencode-native-mcp
+status=native-runtime-config
+mcp_surface=opencode mcp
+config_surface=$HOME/.config/opencode/opencode.json
+design_mcp_projection=unsupported
+claude_settings_mcp=unsupported
+tool_contract_check=adapters/opencode/bin/preflight.sh mcp --check
+fallback=use-adapter-visual-harness-or-report-mcp-unavailable
+note=Do not copy Claude settings.json MCP registrations or project tools/design-mcp wholesale into OpenCode.
+EOF
+    if [ "$check_only" -eq 0 ]; then
+      exit 0
+    fi
+    if command -v opencode >/dev/null 2>&1 && opencode mcp --help >/dev/null 2>&1; then
+      printf 'check=ok\n'
+    else
+      printf 'check=failed\nreason=opencode-mcp-unavailable\n'
+      exit 69
+    fi
     ;;
   worklog)
     cwd=${2:-$PWD}

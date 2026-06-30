@@ -292,6 +292,22 @@ else
     bad "codex headless wrapper should report missing worktree"
   fi
 fi
+if "$CODEX" mcp >/tmp/codex_mcp.out 2>/tmp/codex_mcp.err \
+  && grep -q '^adapter=codex$' /tmp/codex_mcp.out \
+  && grep -q '^runtime_surface=codex-native-mcp$' /tmp/codex_mcp.out \
+  && grep -q '^mcp_surface=codex mcp$' /tmp/codex_mcp.out \
+  && grep -q '^design_mcp_projection=unsupported$' /tmp/codex_mcp.out \
+  && grep -q '^claude_settings_mcp=unsupported$' /tmp/codex_mcp.out; then
+  ok "codex mcp wrapper reports native MCP contract"
+else
+  bad "codex mcp wrapper should report native MCP contract"
+fi
+if "$CODEX" mcp --check >/tmp/codex_mcp_check.out 2>/tmp/codex_mcp_check.err \
+  && grep -q '^check=ok$' /tmp/codex_mcp_check.out; then
+  ok "codex mcp wrapper checks native MCP CLI"
+else
+  bad "codex mcp wrapper should check native MCP CLI"
+fi
 if AGENT_MODEL_FAST=fast-model AGENT_REASONING_FAST=low "$CODEX" role fast reviewer >/tmp/role.out 2>/tmp/role.err \
   && grep -q '^family=fast$' /tmp/role.out \
   && grep -q '^adapter=codex$' /tmp/role.out \
@@ -968,6 +984,22 @@ else
   else
     bad "opencode headless wrapper should report missing worktree"
   fi
+fi
+if "$OPENCODE" mcp >/tmp/opencode_mcp.out 2>/tmp/opencode_mcp.err \
+  && grep -q '^adapter=opencode$' /tmp/opencode_mcp.out \
+  && grep -q '^runtime_surface=opencode-native-mcp$' /tmp/opencode_mcp.out \
+  && grep -q '^mcp_surface=opencode mcp$' /tmp/opencode_mcp.out \
+  && grep -q '^design_mcp_projection=unsupported$' /tmp/opencode_mcp.out \
+  && grep -q '^claude_settings_mcp=unsupported$' /tmp/opencode_mcp.out; then
+  ok "opencode mcp wrapper reports native MCP contract"
+else
+  bad "opencode mcp wrapper should report native MCP contract"
+fi
+if "$OPENCODE" mcp --check >/tmp/opencode_mcp_check.out 2>/tmp/opencode_mcp_check.err \
+  && grep -q '^check=ok$' /tmp/opencode_mcp_check.out; then
+  ok "opencode mcp wrapper checks native MCP CLI"
+else
+  bad "opencode mcp wrapper should check native MCP CLI"
 fi
 
 echo "== opencode role mapping =="
