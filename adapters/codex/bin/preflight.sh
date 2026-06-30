@@ -118,6 +118,42 @@ doctor() {
   return "$rc"
 }
 
+codex_runtime_projection_check() {
+  codex_home=${CODEX_HOME:-${HOME:-}/.codex}
+  if [ -z "$codex_home" ]; then
+    printf 'check=failed\nreason=codex-home-unset\n'
+    return 69
+  fi
+  harness="$codex_home/agent-harness"
+  if [ ! -f "$harness/core/CORE.md" ]; then
+    printf 'check=failed\nreason=codex-agent-harness-missing\ncodex_home=%s\nexpected=%s\n' "$codex_home" "$harness"
+    return 69
+  fi
+  if [ ! -f "$codex_home/AGENTS.md" ]; then
+    printf 'check=failed\nreason=codex-bootstrap-missing\ncodex_home=%s\nexpected=%s\n' "$codex_home" "$codex_home/AGENTS.md"
+    return 69
+  fi
+  if [ ! -f "$codex_home/hooks.json" ]; then
+    printf 'check=failed\nreason=codex-hooks-missing\ncodex_home=%s\nexpected=%s\n' "$codex_home" "$codex_home/hooks.json"
+    return 69
+  fi
+  if [ ! -f "$codex_home/skills/autopilot-code/SKILL.md" ]; then
+    printf 'check=failed\nreason=codex-native-skills-missing\ncodex_home=%s\nexpected=%s\n' "$codex_home" "$codex_home/skills/autopilot-code/SKILL.md"
+    return 69
+  fi
+  if [ ! -f "$codex_home/agents/qa-team.toml" ]; then
+    printf 'check=failed\nreason=codex-native-agents-missing\ncodex_home=%s\nexpected=%s\n' "$codex_home" "$codex_home/agents/qa-team.toml"
+    return 69
+  fi
+  if rg -q 'adapters/claude|claude_setting|settings\.json|statusline\.sh|CLAUDE\.md|track-toggle\.sh|agent-modes|allowedTools|/\.claude/' \
+    "$codex_home/hooks.json" "$codex_home/skills/autopilot-code/SKILL.md" "$codex_home/agents/qa-team.toml" 2>/dev/null; then
+    printf 'check=failed\nreason=codex-runtime-projection-exposes-claude-surface\ncodex_home=%s\n' "$codex_home"
+    return 69
+  fi
+  printf 'runtime_projection=ok\ncodex_home=%s\n' "$codex_home"
+  return 0
+}
+
 cmd=${1:-}
 case "$cmd" in
   doctor)
@@ -249,6 +285,7 @@ EOF
       printf 'check=failed\nreason=not-a-git-worktree\nworktree=%s\n' "$worktree"
       exit 65
     fi
+    codex_runtime_projection_check
     printf 'check=ok\nworktree=%s\n' "$worktree"
     ;;
   liveness)

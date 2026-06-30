@@ -89,6 +89,23 @@ def resolve_agent_home() -> Path:
     return ROOT
 
 
+def check_runtime_projection(worktree: str) -> int:
+    result = subprocess.run(
+        [str(ROOT / "adapters" / "opencode" / "bin" / "preflight.sh"), "headless", "--check", worktree],
+        cwd=ROOT,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    if result.returncode != 0:
+        if result.stdout:
+            print(result.stdout, end="")
+        if result.stderr:
+            print(result.stderr, end="", file=sys.stderr)
+    return result.returncode
+
+
 def main(argv: list[str]) -> int:
     args = parser().parse_args(argv[1:])
     action = "start" if args.start else "register" if args.register else "dry-run"
@@ -99,6 +116,10 @@ def main(argv: list[str]) -> int:
         return fail("not-a-git-worktree", 65, worktree=args.worktree)
     if args.start and shutil.which("opencode") is None:
         return fail("opencode-command-unavailable", 69, worktree=args.worktree)
+    if args.start:
+        rc = check_runtime_projection(args.worktree)
+        if rc != 0:
+            return rc
 
     agent_home = resolve_agent_home()
     jobs = Path(args.jobs) if args.jobs else agent_home / ".dispatch" / "jobs.log"

@@ -313,6 +313,19 @@ else
     bad "codex headless wrapper should report missing worktree"
   fi
 fi
+mkdir -p "$TMP/codex_headless_home/skills" "$TMP/codex_headless_home/agents"
+ln -s "$ROOT" "$TMP/codex_headless_home/agent-harness"
+ln -s "$ROOT/codex_setting/AGENTS.md" "$TMP/codex_headless_home/AGENTS.md"
+ln -s "$ROOT/codex_setting/codex-hooks/hooks.json" "$TMP/codex_headless_home/hooks.json"
+ln -s "$ROOT/codex_setting/codex-skills/autopilot-code" "$TMP/codex_headless_home/skills/autopilot-code"
+ln -s "$ROOT/codex_setting/codex-agents/qa-team.toml" "$TMP/codex_headless_home/agents/qa-team.toml"
+if CODEX_HOME="$TMP/codex_headless_home" "$CODEX" headless --check "$TMP/repo" >/tmp/codex_headless_check.out 2>/tmp/codex_headless_check.err \
+  && grep -q '^runtime_projection=ok$' /tmp/codex_headless_check.out \
+  && grep -q '^check=ok$' /tmp/codex_headless_check.out; then
+  ok "codex headless check validates runtime projection"
+else
+  bad "codex headless check should validate runtime projection"
+fi
 if "$CODEX" dispatch --dry-run --worktree "$TMP/repo" --slug codex-dispatch --capability autopilot-code --mode dev/backend --qa standard --prompt-text "do work" --jobs "$TMP/codex-dispatch.log" >/tmp/codex_dispatch.out 2>/tmp/codex_dispatch.err \
   && grep -q '^adapter=codex$' /tmp/codex_dispatch.out \
   && grep -q '^status=dry-run$' /tmp/codex_dispatch.out \
@@ -338,6 +351,29 @@ if AGENT_HOME="$TMP/not-agent-home" python3 "$ROOT/adapters/codex/bin/dispatch-h
   ok "codex dispatch script ignores invalid AGENT_HOME"
 else
   bad "codex dispatch script should validate AGENT_HOME"
+fi
+mkdir -p "$TMP/codex-stubbin"
+cat > "$TMP/codex-stubbin/codex" <<'EOF'
+#!/usr/bin/env sh
+printf '%s\n' "$*" > "$CODEX_STUB_ARGV"
+EOF
+chmod +x "$TMP/codex-stubbin/codex"
+if PATH="$TMP/codex-stubbin:$PATH" CODEX_HOME="$TMP/codex_headless_home" CODEX_STUB_ARGV="$TMP/codex-start.argv" \
+  "$CODEX" dispatch --start --worktree "$TMP/repo" --slug nested/codex-start --capability autopilot-code --mode dev/backend --qa standard --prompt-text "nested work" --jobs "$TMP/codex-start.log" --log-dir "$TMP/codex-logs" >/tmp/codex_dispatch_start.out 2>/tmp/codex_dispatch_start.err \
+  && grep -q '^status=start$' /tmp/codex_dispatch_start.out \
+  && grep -q '^started=1$' /tmp/codex_dispatch_start.out \
+  && [ -f "$TMP/codex-logs/nested/codex-start.codex.prompt.txt" ]; then
+  for _ in $(seq 1 20); do
+    [ -f "$TMP/codex-start.argv" ] && break
+    sleep 0.1
+  done
+  if grep -q -- '--cd' "$TMP/codex-start.argv" 2>/dev/null; then
+    ok "codex dispatch wrapper starts nested slug after runtime projection check"
+  else
+    bad "codex dispatch wrapper should launch codex exec after projection check"
+  fi
+else
+  bad "codex dispatch wrapper should start nested slug after runtime projection check"
 fi
 if "$CODEX" dispatch --register --worktree "$TMP/repo" --slug codex-dispatch --capability autopilot-code --mode dev/backend --qa standard --prompt-text "do work" --jobs "$TMP/codex-dispatch.log" >/tmp/codex_dispatch.out 2>/tmp/codex_dispatch.err \
   && grep -q '^status=register$' /tmp/codex_dispatch.out \
@@ -1145,6 +1181,22 @@ else
     bad "opencode headless wrapper should report missing worktree"
   fi
 fi
+mkdir -p "$TMP/opencode_headless_home/.config/opencode/agent" \
+  "$TMP/opencode_headless_home/.config/opencode/command" \
+  "$TMP/opencode_headless_home/.config/opencode/plugins"
+ln -s "$ROOT" "$TMP/opencode_headless_home/.config/opencode/agent-harness"
+ln -s "$ROOT/opencode_setting/opencode-skills" "$TMP/opencode_headless_home/.config/opencode/agent-skills"
+ln -s "$ROOT/opencode_setting/opencode-agents/qa-team/qa-team.md" "$TMP/opencode_headless_home/.config/opencode/agent/qa-team.md"
+ln -s "$ROOT/opencode_setting/opencode-commands/autopilot-code.md" "$TMP/opencode_headless_home/.config/opencode/command/autopilot-code.md"
+ln -s "$ROOT/opencode_setting/opencode-plugins/agent-harness-guards.js" "$TMP/opencode_headless_home/.config/opencode/plugins/agent-harness-guards.js"
+if HOME="$TMP/opencode_headless_home" XDG_CONFIG_HOME="$TMP/opencode_headless_home/.config" \
+  "$OPENCODE" headless --check "$TMP/repo" >/tmp/opencode_headless_check.out 2>/tmp/opencode_headless_check.err \
+  && grep -q '^runtime_projection=ok$' /tmp/opencode_headless_check.out \
+  && grep -q '^check=ok$' /tmp/opencode_headless_check.out; then
+  ok "opencode headless check validates runtime projection"
+else
+  bad "opencode headless check should validate runtime projection"
+fi
 if "$OPENCODE" dispatch --dry-run --worktree "$TMP/repo" --slug opencode-dispatch --capability autopilot-code --mode dev/backend --qa standard --prompt-text "do work" --jobs "$TMP/opencode-dispatch.log" >/tmp/opencode_dispatch.out 2>/tmp/opencode_dispatch.err \
   && grep -q '^adapter=opencode$' /tmp/opencode_dispatch.out \
   && grep -q '^status=dry-run$' /tmp/opencode_dispatch.out \
@@ -1166,6 +1218,7 @@ printf '%s\n' "$*" > "$OPENCODE_STUB_ARGV"
 EOF
 chmod +x "$TMP/opencode-stubbin/opencode"
 if PATH="$TMP/opencode-stubbin:$PATH" OPENCODE_STUB_ARGV="$TMP/opencode-start.argv" \
+  HOME="$TMP/opencode_headless_home" XDG_CONFIG_HOME="$TMP/opencode_headless_home/.config" \
   "$OPENCODE" dispatch --start --worktree "$TMP/repo" --slug nested/opencode-start --capability autopilot-code --mode dev/backend --qa standard --prompt-text "nested work" --jobs "$TMP/opencode-start.log" --log-dir "$TMP/opencode-logs" >/tmp/opencode_dispatch_start.out 2>/tmp/opencode_dispatch_start.err \
   && grep -q '^status=start$' /tmp/opencode_dispatch_start.out \
   && grep -q '^started=1$' /tmp/opencode_dispatch_start.out \
