@@ -8,8 +8,10 @@ This is adapter-owned output generated from `capabilities/code-plan.md`, not a r
 1. Read `capabilities/code-plan.md` for the runtime-neutral contract.
 2. Run `adapters/opencode/bin/preflight.sh capability-info code-plan` and
    obey `instruction-only`, `tool-contract`, or `unsupported` status. For
-   `tool-contract`, report the named `tool_contract` and run any
-   `tool_contract_check` before claiming full support.
+   `tool-contract`, report the named `tool_contract`, run any
+   `tool_contract_check`, and obey `runtime_surface` / `fallback` before
+   claiming full support. For `unsupported`, stop or use the reported
+   `fallback`.
 3. Before edits, run `adapters/opencode/bin/preflight.sh write <file> [session-id]`.
 4. Before spec-changing work, run
    `adapters/opencode/bin/preflight.sh capability code-plan [cwd] [session-id]`.

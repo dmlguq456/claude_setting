@@ -20,8 +20,8 @@ contract. It is adapter-owned output, not a legacy compatibility Skill copy.
 2. Run `adapters/codex/bin/preflight.sh capability-info autopilot-research`.
 3. Obey the reported status:
    - `instruction-only`: use this Skill as Codex guidance plus explicit preflight guards.
-   - `tool-contract`: report the named `tool_contract` and run any `tool_contract_check` before claiming full support.
-   - `unsupported`: stop or use the documented fallback.
+   - `tool-contract`: report the named `tool_contract`, run any `tool_contract_check`, and obey `runtime_surface` / `fallback` before claiming full support.
+   - `unsupported`: stop or use the reported `fallback`.
 
 ## Shape
 

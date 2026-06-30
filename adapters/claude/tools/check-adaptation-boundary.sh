@@ -480,8 +480,11 @@ check_codex_native_skill_projection() {
     if ! grep -Fq "not a legacy compatibility Skill copy" "$skill"; then
       fail_msg "$skill must state that it is not a legacy compatibility Skill copy"
     fi
-    if ! grep -Fq 'named `tool_contract`' "$skill"; then
-      fail_msg "$skill must instruct Codex to report named tool contracts"
+    if ! grep -Fq 'named `tool_contract`' "$skill" \
+      || ! grep -Fq '`tool_contract_check`' "$skill" \
+      || ! grep -Fq '`runtime_surface` / `fallback`' "$skill" \
+      || ! grep -Fq 'reported `fallback`' "$skill"; then
+      fail_msg "$skill must instruct Codex to obey capability-info tool contract metadata"
     fi
     if grep -Fq "metadata:" "$skill"; then
       fail_msg "$skill must use Codex Skill frontmatter only, without adapter metadata"
@@ -938,8 +941,11 @@ check_opencode_native_skill_projection() {
     if ! grep -Fq "not a legacy compatibility Skill copy" "$skill"; then
       fail_msg "$skill must state that it is not a legacy compatibility Skill copy"
     fi
-    if ! grep -Fq 'named `tool_contract`' "$skill"; then
-      fail_msg "$skill must instruct OpenCode to report named tool contracts"
+    if ! grep -Fq 'named `tool_contract`' "$skill" \
+      || ! grep -Fq '`tool_contract_check`' "$skill" \
+      || ! grep -Fq '`runtime_surface` / `fallback`' "$skill" \
+      || ! grep -Fq 'reported `fallback`' "$skill"; then
+      fail_msg "$skill must instruct OpenCode to obey capability-info tool contract metadata"
     fi
   done
   for skill in adapters/opencode/skills/*/SKILL.md; do
@@ -1050,8 +1056,11 @@ check_opencode_native_command_projection() {
     if ! grep -Fq '$ARGUMENTS' "$command"; then
       fail_msg "$command must pass OpenCode command arguments through $ARGUMENTS"
     fi
-    if ! grep -Fq 'named `tool_contract`' "$command"; then
-      fail_msg "$command must instruct OpenCode to report named tool contracts"
+    if ! grep -Fq 'named `tool_contract`' "$command" \
+      || ! grep -Fq '`tool_contract_check`' "$command" \
+      || ! grep -Fq '`runtime_surface` / `fallback`' "$command" \
+      || ! grep -Fq 'reported' "$command"; then
+      fail_msg "$command must instruct OpenCode to obey capability-info tool contract metadata"
     fi
   done
   for command in adapters/opencode/commands/*.md; do

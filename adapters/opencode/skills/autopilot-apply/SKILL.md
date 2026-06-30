@@ -23,8 +23,8 @@ capability contract. It is adapter-owned output, not a legacy compatibility Skil
 2. Run `adapters/opencode/bin/preflight.sh capability-info autopilot-apply`.
 3. Obey the reported status:
    - `instruction-only`: use this Skill as OpenCode guidance plus explicit preflight guards.
-   - `tool-contract`: report the named `tool_contract` and run any `tool_contract_check` before claiming full support.
-   - `unsupported`: stop or use the documented fallback.
+   - `tool-contract`: report the named `tool_contract`, run any `tool_contract_check`, and obey `runtime_surface` / `fallback` before claiming full support.
+   - `unsupported`: stop or use the reported `fallback`.
 
 ## Shape
 
