@@ -724,13 +724,27 @@ check_codex_bin_wrappers() {
   done
   if ! grep -Fq 'run_preflight("start"' adapters/codex/hooks/sessionstart-lifecycle.py \
     || ! grep -Fq 'run_preflight("memory"' adapters/codex/hooks/sessionstart-lifecycle.py \
+    || ! grep -Fq 'emit_context(' adapters/codex/hooks/sessionstart-lifecycle.py \
+    || ! grep -Fq '"SessionStart"' adapters/codex/hooks/sessionstart-lifecycle.py \
+    || ! grep -Fq 'hookSpecificOutput' adapters/codex/hooks/sessionstart-lifecycle.py \
     || ! grep -Fq 'run_preflight("session-end"' adapters/codex/hooks/sessionend-lifecycle.py \
     || ! grep -Fq 'run_preflight("prompt-signal"' adapters/codex/hooks/userprompt-lifecycle.py \
     || ! grep -Fq 'run_preflight("mode"' adapters/codex/hooks/userprompt-lifecycle.py \
     || ! grep -Fq 'run_preflight("recall"' adapters/codex/hooks/userprompt-lifecycle.py \
     || ! grep -Fq 'run_preflight("briefing"' adapters/codex/hooks/userprompt-lifecycle.py \
-    || ! grep -Fq 'run_preflight("turn-nudge"' adapters/codex/hooks/userprompt-lifecycle.py; then
+    || ! grep -Fq 'run_preflight("turn-nudge"' adapters/codex/hooks/userprompt-lifecycle.py \
+    || ! grep -Fq 'emit_context("UserPromptSubmit"' adapters/codex/hooks/userprompt-lifecycle.py \
+    || ! grep -Fq 'hookSpecificOutput' adapters/codex/hooks/userprompt-lifecycle.py; then
     fail_msg "Codex lifecycle hook bridges must route through preflight.sh lifecycle commands"
+  fi
+  if ! grep -Fq '세션 시작 기억 주입 확인' hooks/portable-guards.test.sh \
+    || ! grep -Fq 'out["hookEventName"]=="SessionStart"' hooks/portable-guards.test.sh \
+    || ! grep -Fq 'out["hookEventName"]=="UserPromptSubmit"' hooks/portable-guards.test.sh \
+    || ! grep -Fq 'hook_event=UserPromptSubmit' hooks/portable-guards.test.sh \
+    || ! grep -Fq 'hookSpecificOutput.additionalContext' adapters/codex/README.md \
+    || ! grep -Fq 'hookSpecificOutput.additionalContext' adapters/codex/AGENTS.md \
+    || ! grep -Fq 'hookSpecificOutput.additionalContext' adapters/codex/ADAPTATION.md; then
+    fail_msg "Codex lifecycle hooks must aggregate runtime context into hookSpecificOutput.additionalContext and prove it in portable guards"
   fi
   if ! grep -Fq 'def text_from_value' adapters/codex/hooks/userprompt-lifecycle.py \
     || ! grep -Fq '"content", "messages", "input", "payload", "event", "data"' adapters/codex/hooks/userprompt-lifecycle.py; then

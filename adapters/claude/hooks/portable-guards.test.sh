@@ -1203,8 +1203,10 @@ if printf '{"tool_name":"Write","tool_input":{"file_path":"%s"},"session_id":"te
 else
   bad "codex hook command should ignore invalid AGENT_HOME"
 fi
-if printf '{"session_id":"testsid","cwd":"%s"}\n' "$TMP/repo" \
+if (cd "$TMP/repo" && MEM_STORE="$TMP/codex_hook_mem" python3 "$ROOT/tools/memory/mem.py" add durable thread "세션 시작 기억 주입 확인: Codex SessionStart bridge는 mem inject 결과를 hookSpecificOutput additionalContext로 전달해야 한다" >/tmp/codex_session_seed.out 2>/tmp/codex_session_seed.err) \
+  && printf '{"session_id":"testsid","cwd":"%s"}\n' "$TMP/repo" \
   | MEM_STORE="$TMP/codex_hook_mem" HOME="$TMP/codex_hook_home" python3 "$TMP/codex_hook_home/.codex/agent-harness/adapters/codex/hooks/sessionstart-lifecycle.py" >/tmp/codex_session_hook.out 2>/tmp/codex_session_hook.err \
+  && python3 -c 'import json,sys; d=json.load(open(sys.argv[1],encoding="utf-8")); out=d["hookSpecificOutput"]; assert out["hookEventName"]=="SessionStart"; assert "세션 시작 기억 주입 확인" in out["additionalContext"]' /tmp/codex_session_hook.out \
   && ! grep -q 'adapters/claude\|claude_setting\|statusline.sh' /tmp/codex_session_hook.out /tmp/codex_session_hook.err; then
   ok "codex native hook projection bridges session start lifecycle"
 else
@@ -1237,11 +1239,7 @@ fi
 if "$CODEX" track "$TMP/flowproj" promptlifecyclesid >/tmp/codex_prompt_toggle.out 2>/tmp/codex_prompt_toggle.err \
   && printf '{"prompt":"remember this project context","session_id":"promptlifecyclesid","cwd":"%s"}\n' "$TMP/flowproj" \
   | MEM_NUDGE_INTERVAL=1 MEM_STORE="$TMP/codex_hook_mem" HOME="$TMP/codex_hook_home" python3 "$TMP/codex_hook_home/.codex/agent-harness/adapters/codex/hooks/userprompt-lifecycle.py" >/tmp/codex_prompt_hook.out 2>/tmp/codex_prompt_hook.err \
-  && grep -q '^hook_event=UserPromptSubmit$' /tmp/codex_prompt_hook.out \
-  && grep -q '^hook_scope=runtime-hook$' /tmp/codex_prompt_hook.out \
-  && grep -q '^workflow_state=untracked$' /tmp/codex_prompt_hook.out \
-  && grep -q '^autopilot_route=optional-direct-work-allowed$' /tmp/codex_prompt_hook.out \
-  && grep -q '^routing_contract=untracked-direct-work$' /tmp/codex_prompt_hook.out \
+  && python3 -c 'import json,sys; d=json.load(open(sys.argv[1],encoding="utf-8")); out=d["hookSpecificOutput"]; ctx=out["additionalContext"]; assert out["hookEventName"]=="UserPromptSubmit"; assert "hook_event=UserPromptSubmit" in ctx; assert "hook_scope=runtime-hook" in ctx; assert "workflow_state=untracked" in ctx; assert "autopilot_route=optional-direct-work-allowed" in ctx; assert "routing_contract=untracked-direct-work" in ctx' /tmp/codex_prompt_hook.out \
   && grep -q 'untracked' /tmp/codex_prompt_hook.out \
   && grep -q '^0$' "$TMP/codex_hook_mem/.codex-turn-state-promptlifecyclesid" \
   && ! grep -q 'adapters/claude\|claude_setting\|statusline.sh' /tmp/codex_prompt_hook.out /tmp/codex_prompt_hook.err; then

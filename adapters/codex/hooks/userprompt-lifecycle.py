@@ -88,7 +88,7 @@ def prompt_text(payload: dict[str, Any]) -> str:
     return ""
 
 
-def run_preflight(*args: str) -> None:
+def run_preflight(*args: str) -> str:
     env = os.environ.copy()
     env.setdefault("AGENT_HOME", str(ROOT))
     result = subprocess.run(
@@ -100,10 +100,16 @@ def run_preflight(*args: str) -> None:
         stderr=subprocess.PIPE,
         check=False,
     )
-    if result.stdout:
-        sys.stdout.write(result.stdout)
     if result.stderr:
         sys.stderr.write(result.stderr)
+    return result.stdout
+
+
+def emit_context(event_name: str, parts: list[str]) -> None:
+    context = "\n".join(part.strip() for part in parts if part.strip())
+    if not context:
+        return
+    print(json.dumps({"hookSpecificOutput": {"hookEventName": event_name, "additionalContext": context}}, ensure_ascii=False))
 
 
 def main() -> int:
@@ -112,12 +118,15 @@ def main() -> int:
     sid = session_id(payload)
     prompt = prompt_text(payload)
 
-    run_preflight("prompt-signal", current_cwd, sid)
-    run_preflight("mode", current_cwd, sid)
+    parts = [
+        run_preflight("prompt-signal", current_cwd, sid),
+        run_preflight("mode", current_cwd, sid),
+    ]
     if prompt:
-        run_preflight("recall", prompt, current_cwd)
-    run_preflight("briefing", current_cwd)
+        parts.append(run_preflight("recall", prompt, current_cwd))
+    parts.append(run_preflight("briefing", current_cwd))
     run_preflight("turn-nudge", current_cwd, sid)
+    emit_context("UserPromptSubmit", parts)
     return 0
 
 
