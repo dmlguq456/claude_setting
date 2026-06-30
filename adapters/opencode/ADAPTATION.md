@@ -84,13 +84,15 @@ those entries.
 
 OpenCode exposes JS/TS plugin hooks that can enforce part of the harness guard
 contract. This adapter materializes a concrete OpenCode plugin at
-`adapters/opencode/plugins/agent-harness-guards.js`. It uses
-`tool.execute.before` to detect write/edit/patch targets and calls
-`adapters/opencode/bin/preflight.sh write <file> <session-id>`, which runs the
-portable artifact-order, git-state, and memory-write guards. It also uses
-`tool.execute.after` to route saved design HTML files through
-`adapters/opencode/bin/preflight.sh design <file>` as a post-write console-check
-alert path.
+`adapters/opencode/plugins/agent-harness-guards.js`. It uses `chat.message` plus
+`experimental.chat.system.transform` to inject prompt-time workflow, memory,
+recall, and briefing context through `adapters/opencode/bin/preflight.sh`
+without copying Claude hook JSON. It uses `tool.execute.before` to detect
+write/edit/patch targets and calls `adapters/opencode/bin/preflight.sh write
+<file> <session-id>`, which runs the portable artifact-order, git-state, and
+memory-write guards. It also uses `tool.execute.after` to route saved design
+HTML files through `adapters/opencode/bin/preflight.sh design <file>` as a
+post-write console-check alert path.
 
 When changing the plugin:
 
@@ -100,9 +102,9 @@ When changing the plugin:
 4. Keep shell preflight wrappers as fallback so the adapter remains usable
    when plugins are disabled.
 
-The first plugin pass covers write guard enforcement. Session-start, prompt,
-recall, and distillation signals still use explicit preflight wrappers until
-their OpenCode hook contracts are fully mapped.
+The plugin covers prompt lifecycle context, write guard enforcement, and design
+post-write console checks. Distillation still uses explicit preflight wrappers
+until the OpenCode no-tools worker contract is verified.
 
 ## Explicit Non-Support
 
@@ -149,17 +151,17 @@ Harness-specific status signals need OpenCode-native realization:
 | memory write guard | Run `adapters/opencode/bin/preflight.sh write <file> [session-id]` before writes |
 | design post-write verification | Run `adapters/opencode/bin/preflight.sh design <file>` after design HTML writes |
 | spec read gate | Run `adapters/opencode/bin/preflight.sh read <prd.md> [session-id]` after actual reads and `adapters/opencode/bin/preflight.sh capability <name> [cwd] [session-id]` before spec/code capabilities |
-| workflow start cleanup | Run `adapters/opencode/bin/preflight.sh start [cwd] [session-id]` when no automatic session-start hook is attached |
-| workflow signal | Run `adapters/opencode/bin/preflight.sh mode [cwd] [session-id]` as explicit prompt/session reminder; no statusline assumption |
+| workflow start cleanup | OpenCode plugin system transform runs `adapters/opencode/bin/preflight.sh start [cwd] [session-id]` once per session; run it manually when plugins are unavailable |
+| workflow signal | OpenCode plugin system transform runs `adapters/opencode/bin/preflight.sh mode [cwd] [session-id]`; no statusline assumption |
 | workflow toggle | Run `adapters/opencode/bin/preflight.sh track [cwd] [session-id]` only when the user explicitly requests tracked/untracked mode switching |
-| memory inject | Run `adapters/opencode/bin/preflight.sh memory [cwd]` for plain-text session-start memory injection |
-| memory recall | Run `adapters/opencode/bin/preflight.sh recall <prompt> [cwd]` before prompt handling when no automatic prompt hook is attached |
-| oncall briefing | Run `adapters/opencode/bin/preflight.sh briefing [cwd]` before prompt handling on the dedicated agent desk |
+| memory inject | OpenCode plugin system transform runs `adapters/opencode/bin/preflight.sh memory [cwd]` once per session; run it manually when plugins are unavailable |
+| memory recall | OpenCode plugin `chat.message` captures prompt text and system transform runs `adapters/opencode/bin/preflight.sh recall <prompt> [cwd]`; run it manually when plugins are unavailable |
+| oncall briefing | OpenCode plugin system transform runs `adapters/opencode/bin/preflight.sh briefing [cwd]`; run it manually when plugins are unavailable |
 | memory distill | Transcript delta extraction uses `opencode export` through the shared memory CLI; automatic memory mutation remains disabled until an OpenCode no-tools worker contract is verified |
 | worklog state signal | Run `adapters/opencode/bin/preflight.sh worklog [cwd]` to inspect configured `<agent-notes-root>` / `<worklog-board-app>` paths read-only before OpenCode updates notes or diagnoses board state |
 | role profiles | Read `roles/README.md`, then run `adapters/opencode/bin/preflight.sh role <portable-role>` to resolve OpenCode model/variant settings |
 | role modes | Read `roles/MODES.md`, then run `adapters/opencode/bin/preflight.sh mode-info <family/mode>`; treat adapter-coupled modes as unsupported unless wrappers exist, obey `fallback=reference-only`, and satisfy any named `tool_contract` / `tool_contract_check` before claiming tool-contract modes |
-| hook invariants | Read `core/HOOKS.md`; OpenCode plugin hooks cover write/edit/patch guards and design HTML post-write checks, while explicit preflight wrappers remain fallback for disabled/untrusted plugins and events not yet covered |
+| hook invariants | Read `core/HOOKS.md`; OpenCode plugin hooks cover prompt lifecycle context, write/edit/patch guards, and design HTML post-write checks, while explicit preflight wrappers remain fallback for disabled/untrusted plugins and events not yet covered |
 | capabilities | Read `capabilities/README.md`, then run `adapters/opencode/bin/preflight.sh capability-info <capability>`; do not assume Claude Skill invocation |
 
 ## Model Mapping

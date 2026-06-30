@@ -24,17 +24,14 @@ adapter bootstrap, not the portable source of truth. Load it through the
 - Expose OpenCode skills, agents, commands, and plugin guards through `opencode_setting/opencode-skills`, `opencode_setting/opencode-agents`, `opencode_setting/opencode-commands`, and `opencode_setting/opencode-plugins`; do not copy Claude-native surfaces.
 - When validating OpenCode-native discoverability, run with `OPENCODE_DISABLE_CLAUDE_CODE_SKILLS=1` so OpenCode's `~/.claude/skills/` compatibility autoload cannot mask missing adapter-owned output.
 - Before using a `roles/modes/` fragment, run `adapters/opencode/bin/preflight.sh mode-info <family/mode>` and obey portable/tool-contract/unsupported status plus any named `tool_contract`, `tool_contract_check`, `runtime_surface`, and `fallback`.
-- Run deterministic guard scripts directly when the OpenCode runtime cannot attach equivalent hooks. The adapter provides a JS plugin guard for write/edit/patch tools; use explicit preflight wrappers when that plugin is not installed or trusted.
+- Run deterministic guard scripts directly when OpenCode plugins are unavailable or untrusted. The adapter provides a JS plugin for prompt lifecycle context, write/edit/patch guards, and design post-write checks; use explicit preflight wrappers when that plugin is not installed or trusted.
 - Before edits, run `adapters/opencode/bin/preflight.sh write <file> [session-id]`.
 - After design HTML writes, run `adapters/opencode/bin/preflight.sh design <file>`.
 - Before claiming full design/autopilot-design support, run `adapters/opencode/bin/preflight.sh visual-harness`; exit 69 means the required OpenCode-native render/screenshot/image-inspection harness is still a tool-contract.
 - After actually reading `<artifact-root>/spec/prd.md`, run `adapters/opencode/bin/preflight.sh read <prd.md> [session-id]`; before spec-changing capability work, run `adapters/opencode/bin/preflight.sh capability <name> [cwd] [session-id]`.
-- Use `adapters/opencode/bin/preflight.sh start [cwd] [session-id]` when no automatic session-start hook is attached, so stale untracked flags are GC'd.
-- Use `adapters/opencode/bin/preflight.sh mode [cwd] [session-id]` to surface tracked/untracked workflow state when OpenCode has no automatic prompt hook.
+- OpenCode plugin system transform runs `adapters/opencode/bin/preflight.sh start [cwd] [session-id]` and `adapters/opencode/bin/preflight.sh memory [cwd]` once per session; run them manually when plugins are unavailable.
+- OpenCode plugin system transform runs `adapters/opencode/bin/preflight.sh mode [cwd] [session-id]`, `adapters/opencode/bin/preflight.sh recall "<prompt>" [cwd]`, and `adapters/opencode/bin/preflight.sh briefing [cwd]`; run them manually when plugins are unavailable.
 - Use `adapters/opencode/bin/preflight.sh track [cwd] [session-id]` only when the user explicitly wants to toggle the tracked/untracked workflow escape hatch.
-- Use `adapters/opencode/bin/preflight.sh memory [cwd]` for plain-text memory injection when OpenCode has no automatic session-start hook.
-- Use `adapters/opencode/bin/preflight.sh recall "<prompt>" [cwd]` before answering prompts with recall signal words when OpenCode has no automatic prompt hook.
-- Use `adapters/opencode/bin/preflight.sh briefing [cwd]` on the dedicated agent desk when OpenCode has no automatic prompt hook.
 - Use `adapters/opencode/bin/preflight.sh worklog [cwd]` before worklog-board or agent-notes work to inspect configured notes/app paths without mutating data.
 - Use `adapters/opencode/bin/preflight.sh distill-delta <session-id>` to read transcript deltas through `opencode export`. Use `adapters/opencode/bin/preflight.sh distill-propose <session-id> [cwd]` only for explicit proposal attempts; it is disabled by default and reports the remaining OpenCode no-tools worker tool-contract instead of auto-applying memory distillation.
 - Treat `opencode_setting/tools` as a selective memory-tool projection. Do not assume every shared tool is OpenCode-supported.

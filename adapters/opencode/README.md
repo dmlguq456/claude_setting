@@ -54,14 +54,14 @@ guards and tool-contract reporting.
 |---|---|
 | capability | Read `capabilities/README.md` for meaning; run `adapters/opencode/bin/preflight.sh capability-info <capability>` to confirm OpenCode realization; use `adapters/opencode/skills/<capability>/SKILL.md` as OpenCode-native guidance |
 | native skill/command/agent surface | Skills are materialized under `adapters/opencode/skills/`; agents are materialized under `adapters/opencode/agents/`; commands are materialized under `adapters/opencode/commands/`. Future output must be generated from portable capability/role sources and verified with OpenCode discoverability (`opencode debug skill`, `opencode debug agent`, `opencode debug config`) |
-| native plugin hook surface | `adapters/opencode/plugins/agent-harness-guards.js` uses `tool.execute.before` to bridge write/edit/patch targets to `adapters/opencode/bin/preflight.sh write`, and `tool.execute.after` to bridge design HTML saves to `preflight.sh design`; explicit preflight remains fallback |
+| native plugin hook surface | `adapters/opencode/plugins/agent-harness-guards.js` uses `chat.message` and `experimental.chat.system.transform` for prompt lifecycle context, `tool.execute.before` to bridge write/edit/patch targets to `adapters/opencode/bin/preflight.sh write`, and `tool.execute.after` to bridge design HTML saves to `preflight.sh design`; explicit preflight remains fallback |
 | role profile | Use `roles/README.md` for meaning; use `adapters/opencode/agents/<role>/<role>.md` as OpenCode-native role guidance, and use Claude agent files only as compatibility references |
 | role mode | Run `adapters/opencode/bin/preflight.sh mode-info <family/mode>` before using a `roles/modes/` fragment; portable modes can be used directly, tool-contract modes require equivalent tools, unsupported modes report `fallback=reference-only` when no OpenCode-native runtime surface exists |
 | adapter bootstrap | Add `adapters/opencode/AGENTS.md` to the `instructions` array in `opencode.json`/`opencode.jsonc`; then load `core/CORE.md` plus task-relevant shared docs; do not treat `CLAUDE.md` as portable bootstrap |
 | agent home | Set `AGENT_HOME` to the installed harness directory |
 | artifact root | `.agent_reports`, legacy fallback `.claude_reports` only when already present |
-| workflow start cleanup | Run `adapters/opencode/bin/preflight.sh start [cwd] [session-id]` when no automatic session-start hook is attached, so stale untracked flags are GC'd |
-| tracked/untracked signal | Portable tracked/untracked semantics plus `utilities/workflow-guard-hook.sh`; run `adapters/opencode/bin/preflight.sh mode [cwd] [session-id]` when no automatic prompt hook is attached |
+| workflow start cleanup | OpenCode plugin system transform runs `adapters/opencode/bin/preflight.sh start [cwd] [session-id]` once per session; run it manually when plugins are unavailable |
+| tracked/untracked signal | OpenCode plugin system transform runs `adapters/opencode/bin/preflight.sh mode [cwd] [session-id]`; run it manually when plugins are unavailable |
 | tracked/untracked toggle | Portable `utilities/workflow-toggle.sh`; run `adapters/opencode/bin/preflight.sh track [cwd] [session-id]` only on explicit user request |
 | artifact-order gate | `core/HOOKS.md` defines the invariant; run `adapters/opencode/bin/preflight.sh write <file> [session-id]` before writes |
 | design post-write verification | `core/HOOKS.md` defines the invariant; run `adapters/opencode/bin/preflight.sh design <file>` after design HTML writes |
@@ -69,9 +69,9 @@ guards and tool-contract reporting.
 | spec read gate | `core/HOOKS.md` defines marker/check semantics; run `adapters/opencode/bin/preflight.sh read <prd.md> [session-id]` after actual reads and `adapters/opencode/bin/preflight.sh capability <name> [cwd] [session-id]` before spec/code capabilities |
 | git safety gate | `core/HOOKS.md` defines the invariant; included in `adapters/opencode/bin/preflight.sh write <file> [session-id]` |
 | memory write guard | `core/HOOKS.md` defines the invariant; included in `adapters/opencode/bin/preflight.sh write <file> [session-id]` |
-| memory injection | `tools/memory/mem.py inject` is runtime-neutral; run `adapters/opencode/bin/preflight.sh memory [cwd]` when no automatic session-start hook is attached |
-| memory recall injection | `hooks/mem-recall-inject.sh` is runtime-neutral for prompt text; run `adapters/opencode/bin/preflight.sh recall <prompt> [cwd]` when no automatic prompt hook is attached |
-| oncall briefing injection | `hooks/mem-briefing-inject.sh` is runtime-neutral for cwd/text output; run `adapters/opencode/bin/preflight.sh briefing [cwd]` when no automatic prompt hook is attached |
+| memory injection | OpenCode plugin system transform runs `adapters/opencode/bin/preflight.sh memory [cwd]` once per session; run it manually when plugins are unavailable |
+| memory recall injection | OpenCode plugin `chat.message` captures prompt text and system transform runs `adapters/opencode/bin/preflight.sh recall <prompt> [cwd]`; run it manually when plugins are unavailable |
+| oncall briefing injection | OpenCode plugin system transform runs `adapters/opencode/bin/preflight.sh briefing [cwd]`; run it manually when plugins are unavailable |
 | capability mapping | `adapters/opencode/bin/preflight.sh capability-info <capability>` reports OpenCode's native Skill/command realization, instruction-only or tool-contract status, and the legacy compatibility reference, if one exists |
 | model role mapping | `adapters/opencode/bin/preflight.sh role <portable-role>` resolves portable model roles through OpenCode adapter environment variables |
 | mode mapping | `adapters/opencode/bin/preflight.sh mode-info <family/mode>` reports whether a mode is portable, tool-contract, or unsupported for OpenCode; tool-contract and unsupported adapter-coupled modes include machine-readable `tool_contract`, optional `tool_contract_check`, `runtime_surface`, and `fallback` fields |

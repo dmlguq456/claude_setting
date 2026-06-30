@@ -748,6 +748,20 @@ then
 else
   bad "opencode native plugin write hook should bridge to preflight"
 fi
+if node --input-type=module >/tmp/opencode_plugin_lifecycle.out 2>/tmp/opencode_plugin_lifecycle.err <<EOF
+import { AgentHarnessGuards } from "$ROOT/opencode_setting/opencode-plugins/agent-harness-guards.js"
+const plugin = await AgentHarnessGuards({ directory: "$TMP/flowproj", worktree: "$TMP/flowproj" })
+await plugin["chat.message"]({ sessionID: "oplifecyclesid" }, { parts: [{ type: "text", text: "remember this project context" }] })
+const output = { system: [] }
+await plugin["experimental.chat.system.transform"]({ sessionID: "oplifecyclesid", model: {} }, output)
+if (!output.system.join("\\n").includes("tracked")) process.exit(1)
+if (output.system.join("\\n").includes("adapters/claude") || output.system.join("\\n").includes("statusline.sh")) process.exit(1)
+EOF
+then
+  ok "opencode native plugin prompt lifecycle bridges to preflight"
+else
+  bad "opencode native plugin prompt lifecycle should bridge to preflight"
+fi
 if node --input-type=module >/tmp/opencode_plugin_hook_block.out 2>/tmp/opencode_plugin_hook_block.err <<EOF
 import { AgentHarnessGuards } from "$ROOT/opencode_setting/opencode-plugins/agent-harness-guards.js"
 const plugin = await AgentHarnessGuards({ directory: "$TMP/runtime", worktree: "$TMP/runtime" })

@@ -1127,15 +1127,25 @@ check_opencode_native_plugin_projection() {
   if ! grep -Fq '"tool.execute.after"' "$plugin"; then
     fail_msg "$plugin must use OpenCode tool.execute.after hook for design checks"
   fi
+  if ! grep -Fq '"chat.message"' "$plugin" \
+    || ! grep -Fq '"experimental.chat.system.transform"' "$plugin"; then
+    fail_msg "$plugin must use OpenCode prompt lifecycle plugin hooks"
+  fi
   if ! grep -Fq 'adapters", "opencode", "bin", "preflight.sh' "$plugin"; then
     fail_msg "$plugin must bridge to the OpenCode preflight wrapper"
   fi
+  for p in 'collectPreflight("start"' 'collectPreflight("memory"' 'collectPreflight("mode"' 'collectPreflight("recall"' 'collectPreflight("briefing"'; do
+    if ! grep -Fq "$p" "$plugin"; then
+      fail_msg "$plugin must bridge OpenCode lifecycle context through $p"
+    fi
+  done
   if ! grep -Fq 'runPreflight("design"' "$plugin"; then
     fail_msg "$plugin must bridge design HTML writes to the OpenCode design preflight"
   fi
-  if ! grep -Fq 'tool.execute.after' adapters/opencode/README.md \
+  if ! grep -Fq 'experimental.chat.system.transform' adapters/opencode/README.md \
+    || ! grep -Fq 'tool.execute.after' adapters/opencode/README.md \
     || ! grep -Fq 'preflight.sh design' adapters/opencode/README.md; then
-    fail_msg "adapters/opencode/README.md must document the OpenCode design post-write plugin bridge"
+    fail_msg "adapters/opencode/README.md must document the OpenCode lifecycle and design plugin bridges"
   fi
   if grep -Eq 'adapters/claude|claude_setting|settings\.json|statusline\.sh' "$plugin"; then
     fail_msg "$plugin must not reference Claude-native surfaces"

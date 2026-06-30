@@ -6,6 +6,8 @@ const pluginDir = path.dirname(fileURLToPath(import.meta.url))
 const root = path.resolve(pluginDir, "../../..")
 const preflight = path.join(root, "adapters", "opencode", "bin", "preflight.sh")
 const designPattern = /(designs?\/|\/design\/|spec\/design|preview\.html$|slides?\.html$|03_components|scaffolds\/)/
+const seenLifecycle = new Set()
+const promptBySession = new Map()
 
 function baseDir(ctx) {
   return ctx.worktree || ctx.directory || process.cwd()
@@ -57,7 +59,49 @@ function runPreflight(command, args) {
   }
 }
 
+function collectPreflight(command, args) {
+  const result = spawnSync(preflight, [command, ...args], {
+    cwd: root,
+    env: { ...process.env, AGENT_HOME: process.env.AGENT_HOME || root },
+    encoding: "utf8",
+  })
+
+  return [result.stdout, result.stderr].filter(Boolean).join("\n").trim()
+}
+
+function textFromParts(parts) {
+  if (!Array.isArray(parts)) return ""
+  return parts
+    .filter((part) => part && part.type === "text" && typeof part.text === "string")
+    .map((part) => part.text)
+    .join("\n")
+    .trim()
+}
+
+function appendContext(output, text) {
+  if (!text) return
+  if (!Array.isArray(output.system)) output.system = []
+  output.system.push(text)
+}
+
 export const AgentHarnessGuards = async (ctx) => ({
+  "chat.message": async (input, output) => {
+    const prompt = textFromParts(output.parts)
+    if (prompt) promptBySession.set(input.sessionID || "opencode-plugin", prompt)
+  },
+  "experimental.chat.system.transform": async (input, output) => {
+    const sid = input.sessionID || "opencode-plugin"
+    const cwd = baseDir(ctx)
+    if (!seenLifecycle.has(sid)) {
+      seenLifecycle.add(sid)
+      appendContext(output, collectPreflight("start", [cwd, sid]))
+      appendContext(output, collectPreflight("memory", [cwd]))
+    }
+    appendContext(output, collectPreflight("mode", [cwd, sid]))
+    const prompt = promptBySession.get(sid) || ""
+    if (prompt) appendContext(output, collectPreflight("recall", [prompt, cwd]))
+    appendContext(output, collectPreflight("briefing", [cwd]))
+  },
   "tool.execute.before": async (input, output) => {
     const files = targetFiles(ctx, input.tool || {}, output.args || {})
     for (const file of files) {
