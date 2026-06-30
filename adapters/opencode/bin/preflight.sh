@@ -22,6 +22,7 @@ usage: preflight.sh write <file> [session-id]
        preflight.sh briefing [cwd]
        preflight.sh status [cwd] [session-id]
        preflight.sh permissions
+       preflight.sh headless [--check] <worktree>
        preflight.sh worklog [cwd]
        preflight.sh claim-verify [--check] <claim> [--out <file>]
        preflight.sh browser-fetch [--check] <url> [--out <dir>]
@@ -116,6 +117,62 @@ guard_contract=preflight-write-plugin-and-explicit-tool-contracts
 fallback=configure-opencode-permissions-and-run-preflight-guards
 note=Do not port Claude allowedTools into OpenCode; use OpenCode permission config plus adapter preflight/plugin guards.
 EOF
+    ;;
+  headless)
+    shift
+    check_only=0
+    worktree=""
+    while [ "$#" -gt 0 ]; do
+      case "$1" in
+        --check)
+          check_only=1
+          shift
+          ;;
+        --*)
+          echo "opencode preflight: unknown headless option: $1" >&2
+          exit 64
+          ;;
+        *)
+          if [ -z "$worktree" ]; then
+            worktree=$1
+          else
+            echo "opencode preflight: headless accepts one worktree path" >&2
+            exit 64
+          fi
+          shift
+          ;;
+      esac
+    done
+    cat <<'EOF'
+adapter=opencode
+runtime_surface=opencode-run-headless
+status=tool-contract
+tool_contract=headless-dispatch
+tool_contract_check=adapters/opencode/bin/preflight.sh headless --check <worktree>
+command_template=opencode run --dir <worktree> --format json --agent <agent> <prompt>
+job_registry=<agent-home>/.dispatch/jobs.log
+liveness_surface=unsupported-until-opencode-transcript-mtime-mapping
+constraints=main-only,max-depth-1,register-open-job,explicit-capability-mode-qa,transcript-liveness-required
+claude_headless=unsupported
+fallback=manual-main-session-or-report-unavailable
+EOF
+    if [ "$check_only" -eq 0 ]; then
+      exit 0
+    fi
+    [ -n "$worktree" ] || { echo "opencode preflight: headless --check requires a worktree path" >&2; exit 64; }
+    if [ ! -d "$worktree" ]; then
+      printf 'check=failed\nreason=worktree-not-found\nworktree=%s\n' "$worktree"
+      exit 66
+    fi
+    if ! command -v opencode >/dev/null 2>&1; then
+      printf 'check=failed\nreason=opencode-command-unavailable\nworktree=%s\n' "$worktree"
+      exit 69
+    fi
+    if ! git -C "$worktree" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+      printf 'check=failed\nreason=not-a-git-worktree\nworktree=%s\n' "$worktree"
+      exit 65
+    fi
+    printf 'check=ok\nworktree=%s\n' "$worktree"
     ;;
   worklog)
     cwd=${2:-$PWD}

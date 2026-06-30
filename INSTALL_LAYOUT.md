@@ -178,6 +178,9 @@ rg '^family=fast$' /tmp/codex-role.txt
 codex_setting/bin/preflight.sh permissions >/tmp/codex-permissions.txt
 rg '^runtime_surface=codex-native-approval-sandbox$' /tmp/codex-permissions.txt
 rg '^claude_allowed_tools=unsupported$' /tmp/codex-permissions.txt
+codex_setting/bin/preflight.sh headless >/tmp/codex-headless.txt
+rg '^runtime_surface=codex-exec-headless$' /tmp/codex-headless.txt
+rg '^liveness_surface=unsupported-until-codex-transcript-mtime-mapping$' /tmp/codex-headless.txt
 codex_setting/bin/preflight.sh mode-info dev/backend >/tmp/codex-mode.txt
 rg '^adapter=codex$' /tmp/codex-mode.txt
 rg '^status=portable$' /tmp/codex-mode.txt
@@ -284,6 +287,9 @@ rg '^family=fast$' /tmp/opencode-role.txt
 opencode_setting/bin/preflight.sh permissions >/tmp/opencode-permissions.txt
 rg '^runtime_surface=opencode-native-permission-config$' /tmp/opencode-permissions.txt
 rg '^claude_allowed_tools=unsupported$' /tmp/opencode-permissions.txt
+opencode_setting/bin/preflight.sh headless >/tmp/opencode-headless.txt
+rg '^runtime_surface=opencode-run-headless$' /tmp/opencode-headless.txt
+rg '^liveness_surface=unsupported-until-opencode-transcript-mtime-mapping$' /tmp/opencode-headless.txt
 opencode_setting/bin/preflight.sh mode-info dev/backend >/tmp/opencode-mode.txt
 rg '^adapter=opencode$' /tmp/opencode-mode.txt
 rg '^status=portable$' /tmp/opencode-mode.txt

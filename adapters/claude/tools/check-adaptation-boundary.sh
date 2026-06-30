@@ -381,6 +381,11 @@ check_codex_bin_wrappers() {
     || ! grep -Fq 'claude_allowed_tools=unsupported' adapters/codex/bin/preflight.sh; then
     fail_msg "adapters/codex/bin/preflight.sh must report the Codex permission/sandbox contract without Claude allowedTools"
   fi
+  if ! grep -Fq 'runtime_surface=codex-exec-headless' adapters/codex/bin/preflight.sh \
+    || ! grep -Fq 'liveness_surface=unsupported-until-codex-transcript-mtime-mapping' adapters/codex/bin/preflight.sh \
+    || ! grep -Fq 'claude_headless=unsupported' adapters/codex/bin/preflight.sh; then
+    fail_msg "adapters/codex/bin/preflight.sh must report the Codex headless dispatch contract without Claude headless assumptions"
+  fi
 
   if ! grep -Fq -- '--event start' adapters/codex/bin/preflight.sh; then
     fail_msg "adapters/codex/bin/preflight.sh must expose workflow start cleanup"
@@ -980,6 +985,11 @@ check_opencode_bin_wrappers() {
   if ! grep -Fq 'runtime_surface=opencode-native-permission-config' adapters/opencode/bin/preflight.sh \
     || ! grep -Fq 'claude_allowed_tools=unsupported' adapters/opencode/bin/preflight.sh; then
     fail_msg "adapters/opencode/bin/preflight.sh must report the OpenCode permission contract without Claude allowedTools"
+  fi
+  if ! grep -Fq 'runtime_surface=opencode-run-headless' adapters/opencode/bin/preflight.sh \
+    || ! grep -Fq 'liveness_surface=unsupported-until-opencode-transcript-mtime-mapping' adapters/opencode/bin/preflight.sh \
+    || ! grep -Fq 'claude_headless=unsupported' adapters/opencode/bin/preflight.sh; then
+    fail_msg "adapters/opencode/bin/preflight.sh must report the OpenCode headless dispatch contract without Claude headless assumptions"
   fi
 
   if ! grep -Fq -- '--event start' adapters/opencode/bin/preflight.sh; then

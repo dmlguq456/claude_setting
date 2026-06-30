@@ -270,6 +270,28 @@ if "$CODEX" permissions >/tmp/codex_permissions.out 2>/tmp/codex_permissions.err
 else
   bad "codex permissions wrapper should report native approval/sandbox contract"
 fi
+if "$CODEX" headless >/tmp/codex_headless.out 2>/tmp/codex_headless.err \
+  && grep -q '^adapter=codex$' /tmp/codex_headless.out \
+  && grep -q '^runtime_surface=codex-exec-headless$' /tmp/codex_headless.out \
+  && grep -q '^tool_contract=headless-dispatch$' /tmp/codex_headless.out \
+  && grep -q '^claude_headless=unsupported$' /tmp/codex_headless.out \
+  && grep -q '^liveness_surface=unsupported-until-codex-transcript-mtime-mapping$' /tmp/codex_headless.out \
+  && grep -q '^constraints=main-only,max-depth-1,register-open-job,explicit-capability-mode-qa,transcript-liveness-required$' /tmp/codex_headless.out; then
+  ok "codex headless wrapper reports dispatch contract"
+else
+  bad "codex headless wrapper should report dispatch contract"
+fi
+if "$CODEX" headless --check "$TMP/missing-worktree" >/tmp/codex_headless_missing.out 2>/tmp/codex_headless_missing.err; then
+  bad "codex headless wrapper should fail missing worktree"
+else
+  rc=$?
+  if [ "$rc" -eq 66 ] \
+    && grep -q '^reason=worktree-not-found$' /tmp/codex_headless_missing.out; then
+    ok "codex headless wrapper reports missing worktree"
+  else
+    bad "codex headless wrapper should report missing worktree"
+  fi
+fi
 if AGENT_MODEL_FAST=fast-model AGENT_REASONING_FAST=low "$CODEX" role fast reviewer >/tmp/role.out 2>/tmp/role.err \
   && grep -q '^family=fast$' /tmp/role.out \
   && grep -q '^adapter=codex$' /tmp/role.out \
@@ -924,6 +946,28 @@ if "$OPENCODE" permissions >/tmp/opencode_permissions.out 2>/tmp/opencode_permis
   ok "opencode permissions wrapper reports native permission contract"
 else
   bad "opencode permissions wrapper should report native permission contract"
+fi
+if "$OPENCODE" headless >/tmp/opencode_headless.out 2>/tmp/opencode_headless.err \
+  && grep -q '^adapter=opencode$' /tmp/opencode_headless.out \
+  && grep -q '^runtime_surface=opencode-run-headless$' /tmp/opencode_headless.out \
+  && grep -q '^tool_contract=headless-dispatch$' /tmp/opencode_headless.out \
+  && grep -q '^claude_headless=unsupported$' /tmp/opencode_headless.out \
+  && grep -q '^liveness_surface=unsupported-until-opencode-transcript-mtime-mapping$' /tmp/opencode_headless.out \
+  && grep -q '^constraints=main-only,max-depth-1,register-open-job,explicit-capability-mode-qa,transcript-liveness-required$' /tmp/opencode_headless.out; then
+  ok "opencode headless wrapper reports dispatch contract"
+else
+  bad "opencode headless wrapper should report dispatch contract"
+fi
+if "$OPENCODE" headless --check "$TMP/missing-worktree" >/tmp/opencode_headless_missing.out 2>/tmp/opencode_headless_missing.err; then
+  bad "opencode headless wrapper should fail missing worktree"
+else
+  rc=$?
+  if [ "$rc" -eq 66 ] \
+    && grep -q '^reason=worktree-not-found$' /tmp/opencode_headless_missing.out; then
+    ok "opencode headless wrapper reports missing worktree"
+  else
+    bad "opencode headless wrapper should report missing worktree"
+  fi
 fi
 
 echo "== opencode role mapping =="
