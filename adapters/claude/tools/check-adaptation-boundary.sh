@@ -185,6 +185,9 @@ check_install_layout_codex_projection() {
       fail_msg "INSTALL_LAYOUT.md must include Codex projection install step for codex_setting/$p"
     fi
   done
+  if ! grep -Fq 'ln -sfn "$AGENT_HOME" "$HOME/.codex/agent-harness"' INSTALL_LAYOUT.md; then
+    fail_msg "INSTALL_LAYOUT.md must install the Codex hook command agent-harness pointer"
+  fi
 
   for p in settings.json commands skills agents statusline.sh hooks; do
     if ! grep -Fq "$p" INSTALL_LAYOUT.md; then
@@ -893,6 +896,8 @@ PY
 check_codex_native_hook_projection() {
   hook_dir="adapters/codex/hooks"
   hook_json="$hook_dir/hooks.json"
+  session_bridge="$hook_dir/sessionstart-lifecycle.py"
+  prompt_bridge="$hook_dir/userprompt-lifecycle.py"
   pre_bridge="$hook_dir/pretooluse-write-guard.py"
   post_bridge="$hook_dir/posttooluse-design-check.py"
 
@@ -900,7 +905,7 @@ check_codex_native_hook_projection() {
     fail_msg "$hook_json is missing"
     return
   fi
-  for bridge in "$pre_bridge" "$post_bridge"; do
+  for bridge in "$session_bridge" "$prompt_bridge" "$pre_bridge" "$post_bridge"; do
     if [ ! -x "$bridge" ]; then
       fail_msg "$bridge must be executable"
     fi
@@ -912,13 +917,24 @@ check_codex_native_hook_projection() {
     fail_msg "$hook_json must be valid JSON"
     cat /tmp/codex-hooks-json.err
   fi
+  for script in sessionstart-lifecycle.py userprompt-lifecycle.py pretooluse-write-guard.py posttooluse-design-check.py; do
+    if ! grep -Fq "\$HOME/.codex/agent-harness/adapters/codex/hooks/$script" "$hook_json"; then
+      fail_msg "$hook_json must register $script through the installed Codex agent-harness pointer"
+    fi
+  done
+  if ! grep -Fq '"SessionStart"' "$hook_json" || ! grep -Fq 'sessionstart-lifecycle.py' "$hook_json"; then
+    fail_msg "$hook_json must register the Codex SessionStart lifecycle bridge"
+  fi
+  if ! grep -Fq '"UserPromptSubmit"' "$hook_json" || ! grep -Fq 'userprompt-lifecycle.py' "$hook_json"; then
+    fail_msg "$hook_json must register the Codex UserPromptSubmit lifecycle bridge"
+  fi
   if ! grep -Fq '"PreToolUse"' "$hook_json" || ! grep -Fq 'pretooluse-write-guard.py' "$hook_json"; then
     fail_msg "$hook_json must register the Codex PreToolUse write guard"
   fi
   if ! grep -Fq '"PostToolUse"' "$hook_json" || ! grep -Fq 'posttooluse-design-check.py' "$hook_json"; then
     fail_msg "$hook_json must register the Codex PostToolUse design check"
   fi
-  for bridge in "$pre_bridge" "$post_bridge"; do
+  for bridge in "$session_bridge" "$prompt_bridge" "$pre_bridge" "$post_bridge"; do
     if ! grep -Fq 'adapters" / "codex" / "bin" / "preflight.sh' "$bridge"; then
       fail_msg "$bridge must call the Codex preflight wrapper"
     fi
@@ -931,7 +947,7 @@ check_codex_native_hook_projection() {
     || ! grep -Fq 'preflight.sh design' adapters/codex/README.md; then
     fail_msg "adapters/codex/README.md must document the Codex native hook bridges"
   fi
-  if grep -Eq 'adapters/claude|claude_setting|settings\.json|statusline\.sh' "$hook_json" "$pre_bridge" "$post_bridge"; then
+  if grep -Eq 'adapters/claude|claude_setting|settings\.json|statusline\.sh' "$hook_json" "$session_bridge" "$prompt_bridge" "$pre_bridge" "$post_bridge"; then
     fail_msg "Codex hook projection must not reference Claude-native surfaces"
   fi
 }
