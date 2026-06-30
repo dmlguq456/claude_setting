@@ -1,6 +1,6 @@
 import path from "node:path"
 import { fileURLToPath } from "node:url"
-import { spawnSync } from "node:child_process"
+import { spawnSync, spawn } from "node:child_process"
 import { existsSync } from "node:fs"
 
 const pluginDir = path.dirname(fileURLToPath(import.meta.url))
@@ -69,6 +69,22 @@ function runPreflight(command, args) {
   }
 }
 
+function spawnDetached(command, args) {
+  // Fire-and-forget: must not block the user's turn. The child runs the
+  // preflight session-end → no-tools distiller worker independently.
+  try {
+    const child = spawn(preflight, [command, ...args], {
+      cwd: root,
+      env: { ...process.env, AGENT_HOME: root },
+      detached: true,
+      stdio: "ignore",
+    })
+    child.unref()
+  } catch {
+    // best-effort; distillation is non-critical
+  }
+}
+
 function collectPreflight(command, args) {
   const result = spawnSync(preflight, [command, ...args], {
     cwd: root,
@@ -95,6 +111,16 @@ function appendContext(output, text) {
 }
 
 export const AgentHarnessGuards = async (ctx) => ({
+  event: async ({ event }) => {
+    // session.idle fires after each turn (the session is waiting for the user).
+    // Use it as the auto-distillation trigger; preflight session-end debounces
+    // per session and the --pure worker never re-enters this plugin. Mirrors the
+    // Claude SessionEnd + codex session-end detached distiller.
+    if (event && event.type === "session.idle") {
+      const sid = (event.properties && event.properties.sessionID) || "opencode-plugin"
+      spawnDetached("session-end", [baseDir(ctx), sid])
+    }
+  },
   "chat.message": async (input, output) => {
     const prompt = textFromParts(output.parts)
     if (prompt) promptBySession.set(input.sessionID || "opencode-plugin", prompt)

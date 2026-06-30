@@ -460,9 +460,9 @@ check_install_layout_opencode_projection() {
   fi
   if ! grep -Fq 'opencode_setting/bin/preflight.sh distill-propose install-check "$PWD" >/tmp/opencode-distill-propose.txt' INSTALL_LAYOUT.md \
     || ! grep -Fq "rg '^status=tool-contract$' /tmp/opencode-distill-propose.txt" INSTALL_LAYOUT.md \
-    || ! grep -Fq "rg '^reason=no-tools-worker-unverified$' /tmp/opencode-distill-propose.txt" INSTALL_LAYOUT.md \
+    || ! grep -Fq "rg '^reason=distill-proposal-disabled$' /tmp/opencode-distill-propose.txt" INSTALL_LAYOUT.md \
     || ! grep -Fq "rg '^tool_contract=no-tools-distill-worker$' /tmp/opencode-distill-propose.txt" INSTALL_LAYOUT.md; then
-    fail_msg "INSTALL_LAYOUT.md must validate OpenCode distill-propose no-tools worker tool-contract"
+    fail_msg "INSTALL_LAYOUT.md must validate OpenCode distill-propose opt-in preview tool-contract"
   fi
   if ! grep -Fq 'opencode_setting/bin/preflight.sh mode-info material/browser-fetch >/tmp/opencode-browser-fetch-mode.txt' INSTALL_LAYOUT.md \
     || ! grep -Fq "rg '^tool_contract=browser-fetch$' /tmp/opencode-browser-fetch-mode.txt" INSTALL_LAYOUT.md \
@@ -2224,7 +2224,7 @@ check_adaptation_inventory_native_surfaces() {
   fi
   if ! grep -Fq 'Codex and OpenCode expose `preflight.sh distill-propose` as a no-tools worker tool-contract by default' core/ADAPTATION_INVENTORY.md \
     || ! grep -Fq 'Codex exits 69 until `CODEX_DISTILL_ENABLE=1`' core/ADAPTATION_INVENTORY.md \
-    || ! grep -Fq 'OpenCode exits 69 until a native no-tools worker contract is verified' core/ADAPTATION_INVENTORY.md; then
+    || ! grep -Fq 'OpenCode exits 69 until `OPENCODE_DISTILL_ENABLE=1`' core/ADAPTATION_INVENTORY.md; then
     fail_msg "core/ADAPTATION_INVENTORY.md must describe adapter distill-propose tool-contract boundaries"
   fi
   if ! grep -Fq 'Codex, leave `/statusline`' core/ADAPTATION_INVENTORY.md \

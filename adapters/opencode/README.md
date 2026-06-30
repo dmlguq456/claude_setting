@@ -89,8 +89,9 @@ guards and tool-contract reporting.
 | capability mapping | `adapters/opencode/bin/preflight.sh capability-info <capability>` reports OpenCode's native Skill/command realization and instruction-only or tool-contract status; root Skill compatibility references are not projected and report `compat_reference=not-projected` |
 | model role mapping | `adapters/opencode/bin/preflight.sh role <portable-role>` resolves portable model roles through OpenCode adapter environment variables |
 | mode mapping | `adapters/opencode/bin/preflight.sh mode-info <family/mode>` reports whether a mode is portable, tool-contract, or unsupported for OpenCode; tool-contract and unsupported adapter-coupled modes include machine-readable `tool_contract`, optional `tool_contract_check`, `runtime_surface`, and `fallback` fields |
-| memory distill delta | Supported through `tools/memory/mem.py --source opencode`, backed by `opencode export <session-id>` |
-| memory distill proposal | Disabled by default; requires a verified OpenCode no-tools worker contract before it can be enabled |
+| memory distill delta | Supported through `tools/memory/mem.py --source opencode`, backed by `opencode export <session-id>` (captured to a temp file — piped export stdout truncates) |
+| memory distill proposal | Implemented — `distill-worker.sh` runs a no-tools `opencode run --pure --agent <distiller>` worker (verified: no shell exec, no hang, timeout-guarded) |
+| memory auto-distillation | Enabled by default — plugin `event`/`session.idle` → detached `preflight session-end` (debounced) → worker → apply. Opt out `OPENCODE_DISTILL_ENABLE=0`; set `OPENCODE_DISTILL_MODEL` for quality |
 | memory store | `tools/memory/mem.py` is runtime-neutral; detached distillation worker execution remains adapter-specific |
 | permission model | OpenCode native `permission` config (`allow`/`ask`/`deny` per tool, per-agent override); adapter documents recommended rules, not a harness guard replacement |
 | statusline | OpenCode TUI footer is native; no user shell statusline surface in config schema; harness status signals stay instruction-only/preflight |
