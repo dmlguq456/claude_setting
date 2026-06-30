@@ -12,6 +12,8 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[3]
+
 
 def parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description=__doc__)
@@ -80,6 +82,13 @@ def append_job(jobs: Path, args: argparse.Namespace) -> None:
         f.write(f"{ts}\topen\t{repo}\t{args.worktree}\t{args.slug}\t{pipe}\n")
 
 
+def resolve_agent_home() -> Path:
+    env_home = os.environ.get("AGENT_HOME")
+    if env_home and (Path(env_home) / "core" / "CORE.md").is_file():
+        return Path(env_home)
+    return ROOT
+
+
 def main(argv: list[str]) -> int:
     args = parser().parse_args(argv[1:])
     action = "start" if args.start else "register" if args.register else "dry-run"
@@ -91,7 +100,7 @@ def main(argv: list[str]) -> int:
     if args.start and shutil.which("opencode") is None:
         return fail("opencode-command-unavailable", 69, worktree=args.worktree)
 
-    agent_home = Path(os.environ.get("AGENT_HOME", os.getcwd()))
+    agent_home = resolve_agent_home()
     jobs = Path(args.jobs) if args.jobs else agent_home / ".dispatch" / "jobs.log"
     log_dir = Path(args.log_dir) if args.log_dir else agent_home / ".dispatch" / "logs"
     prompt_text, prompt_source = prompt(args)

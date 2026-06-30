@@ -9,6 +9,8 @@ import sys
 import tempfile
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[3]
+
 
 def parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description=__doc__)
@@ -49,6 +51,13 @@ def matches(args: argparse.Namespace, fields: list[str]) -> bool:
     return True
 
 
+def resolve_agent_home() -> Path:
+    env_home = os.environ.get("AGENT_HOME")
+    if env_home and (Path(env_home) / "core" / "CORE.md").is_file():
+        return Path(env_home)
+    return ROOT
+
+
 def main(argv: list[str]) -> int:
     args = parser().parse_args(argv[1:])
     if args.mark_done and not (args.slug or args.worktree):
@@ -57,7 +66,7 @@ def main(argv: list[str]) -> int:
         print("hint=pass --slug or --worktree before --mark-done")
         return 64
 
-    agent_home = Path(os.environ.get("AGENT_HOME", os.getcwd()))
+    agent_home = resolve_agent_home()
     jobs = Path(args.jobs) if args.jobs else agent_home / ".dispatch" / "jobs.log"
     if not jobs.exists():
         emit_header(args, jobs, 0, 0, 0)

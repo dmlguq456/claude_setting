@@ -380,6 +380,14 @@ check_codex_bin_wrappers() {
     fi
   done
 
+  for p in dispatch-headless.py dispatch-liveness.py dispatch-harvest.py; do
+    if ! grep -Fq 'def resolve_agent_home()' "adapters/codex/bin/$p" \
+      || ! grep -Fq 'core" / "CORE.md"' "adapters/codex/bin/$p" \
+      || grep -Fq 'Path(os.environ.get("AGENT_HOME", os.getcwd()))' "adapters/codex/bin/$p"; then
+      fail_msg "adapters/codex/bin/$p must validate AGENT_HOME before using it as the harness root"
+    fi
+  done
+
   if ! grep -Fq 'utilities/workflow-toggle.sh' adapters/codex/bin/preflight.sh; then
     fail_msg "adapters/codex/bin/preflight.sh must realize workflow toggle through utilities/workflow-toggle.sh"
   fi
@@ -1026,6 +1034,14 @@ check_opencode_bin_wrappers() {
   for p in preflight.sh role-map.sh capability-map.sh mode-map.sh dispatch-headless.py dispatch-liveness.py dispatch-harvest.py distill-worker.sh sync-native-skills.py sync-native-agents.py sync-native-commands.py; do
     if [ ! -x "adapters/opencode/bin/$p" ]; then
       fail_msg "adapters/opencode/bin/$p is missing or not executable"
+    fi
+  done
+
+  for p in dispatch-headless.py dispatch-liveness.py dispatch-harvest.py; do
+    if ! grep -Fq 'def resolve_agent_home()' "adapters/opencode/bin/$p" \
+      || ! grep -Fq 'core" / "CORE.md"' "adapters/opencode/bin/$p" \
+      || grep -Fq 'Path(os.environ.get("AGENT_HOME", os.getcwd()))' "adapters/opencode/bin/$p"; then
+      fail_msg "adapters/opencode/bin/$p must validate AGENT_HOME before using it as the harness root"
     fi
   done
 

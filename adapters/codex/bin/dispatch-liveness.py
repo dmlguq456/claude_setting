@@ -9,6 +9,8 @@ import sys
 import time
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[3]
+
 
 def usage() -> int:
     print("usage: dispatch-liveness.py [jobs.log]", file=sys.stderr)
@@ -62,7 +64,7 @@ def main(argv: list[str]) -> int:
     if len(argv) > 2 or (len(argv) == 2 and argv[1] in {"-h", "--help"}):
         return usage()
 
-    agent_home = Path(os.environ.get("AGENT_HOME", os.getcwd()))
+    agent_home = resolve_agent_home()
     jobs = Path(argv[1]) if len(argv) == 2 else agent_home / ".dispatch" / "jobs.log"
     sessions = Path(os.environ.get("CODEX_SESSIONS", Path.home() / ".codex" / "sessions"))
     stale_min = int(os.environ.get("DISPATCH_STALE_MIN", "15"))
@@ -104,6 +106,13 @@ def main(argv: list[str]) -> int:
         print("SUSPECT/DEAD: inspect Codex transcript and dispatch log, then harvest or redispatch.")
         return 3
     return 0
+
+
+def resolve_agent_home() -> Path:
+    env_home = os.environ.get("AGENT_HOME")
+    if env_home and (Path(env_home) / "core" / "CORE.md").is_file():
+        return Path(env_home)
+    return ROOT
 
 
 if __name__ == "__main__":

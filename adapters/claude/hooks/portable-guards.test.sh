@@ -332,6 +332,13 @@ if "$CODEX" dispatch --dry-run --worktree "$TMP/repo" --slug codex-default-home 
 else
   bad "codex dispatch wrapper should not trust invalid AGENT_HOME for default registry"
 fi
+if AGENT_HOME="$TMP/not-agent-home" python3 "$ROOT/adapters/codex/bin/dispatch-headless.py" --dry-run --worktree "$TMP/repo" --slug codex-direct-home --capability autopilot-code --mode dev/backend --qa standard --prompt-text "do work" >/tmp/codex_dispatch_direct.out 2>/tmp/codex_dispatch_direct.err \
+  && grep -Fxq "job_registry=$ROOT/.dispatch/jobs.log" /tmp/codex_dispatch_direct.out \
+  && grep -Fxq "prompt_file=$ROOT/.dispatch/logs/codex-direct-home.codex.prompt.txt" /tmp/codex_dispatch_direct.out; then
+  ok "codex dispatch script ignores invalid AGENT_HOME"
+else
+  bad "codex dispatch script should validate AGENT_HOME"
+fi
 if "$CODEX" dispatch --register --worktree "$TMP/repo" --slug codex-dispatch --capability autopilot-code --mode dev/backend --qa standard --prompt-text "do work" --jobs "$TMP/codex-dispatch.log" >/tmp/codex_dispatch.out 2>/tmp/codex_dispatch.err \
   && grep -q '^status=register$' /tmp/codex_dispatch.out \
   && grep -q '^registered=1$' /tmp/codex_dispatch.out \
@@ -1132,6 +1139,13 @@ if "$OPENCODE" dispatch --dry-run --worktree "$TMP/repo" --slug opencode-default
   ok "opencode dispatch wrapper defaults to validated harness root"
 else
   bad "opencode dispatch wrapper should not trust invalid AGENT_HOME for default registry"
+fi
+if AGENT_HOME="$TMP/not-agent-home" python3 "$ROOT/adapters/opencode/bin/dispatch-headless.py" --dry-run --worktree "$TMP/repo" --slug opencode-direct-home --capability autopilot-code --mode dev/backend --qa standard --prompt-text "do work" >/tmp/opencode_dispatch_direct.out 2>/tmp/opencode_dispatch_direct.err \
+  && grep -Fxq "job_registry=$ROOT/.dispatch/jobs.log" /tmp/opencode_dispatch_direct.out \
+  && grep -Fxq "prompt_file=$ROOT/.dispatch/logs/opencode-direct-home.opencode.prompt.txt" /tmp/opencode_dispatch_direct.out; then
+  ok "opencode dispatch script ignores invalid AGENT_HOME"
+else
+  bad "opencode dispatch script should validate AGENT_HOME"
 fi
 if "$OPENCODE" dispatch --register --worktree "$TMP/repo" --slug opencode-dispatch --capability autopilot-code --mode dev/backend --qa standard --prompt-text "do work" --jobs "$TMP/opencode-dispatch.log" >/tmp/opencode_dispatch.out 2>/tmp/opencode_dispatch.err \
   && grep -q '^status=register$' /tmp/opencode_dispatch.out \
