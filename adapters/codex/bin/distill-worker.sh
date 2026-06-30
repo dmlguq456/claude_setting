@@ -93,9 +93,9 @@ if [ -n "${CODEX_DISTILL_MODEL:-}" ]; then
   codex exec \
     --cd "$cwd" \
     --sandbox read-only \
-    --ask-for-approval never \
     --ephemeral \
     --ignore-rules \
+    --skip-git-repo-check \
     --output-last-message "$out_file" \
     -m "$CODEX_DISTILL_MODEL" \
     - < "$prompt_file" >/dev/null
@@ -103,9 +103,9 @@ else
   codex exec \
     --cd "$cwd" \
     --sandbox read-only \
-    --ask-for-approval never \
     --ephemeral \
     --ignore-rules \
+    --skip-git-repo-check \
     --output-last-message "$out_file" \
     - < "$prompt_file" >/dev/null
 fi

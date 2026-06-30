@@ -1124,10 +1124,10 @@ if CODEX_DISTILL_ENABLE=1 CODEX_SESSIONS="$TMP/codex_sessions" MEM_STORE="$TMP/s
   "$CODEX" distill-propose codexsid "$TMP/flowproj" >/tmp/codex_distill.out 2>/tmp/codex_distill.err \
   && grep -q -- '--sandbox' "$TMP/codex_argv" \
   && grep -q -- 'read-only' "$TMP/codex_argv" \
-  && grep -q -- '--ask-for-approval' "$TMP/codex_argv" \
-  && grep -q -- 'never' "$TMP/codex_argv" \
+  && ! grep -q -- '--ask-for-approval' "$TMP/codex_argv" \
   && grep -q -- '--ephemeral' "$TMP/codex_argv" \
   && grep -q -- '--ignore-rules' "$TMP/codex_argv" \
+  && grep -q -- '--skip-git-repo-check' "$TMP/codex_argv" \
   && grep -q '"action":"add"' /tmp/codex_distill.out; then
   ok "codex distill proposal uses constrained exec"
 else

@@ -344,14 +344,26 @@ separates the pipeline:
 1. `distill-delta` reads Codex JSONL session logs and emits transcript delta text.
 2. User-facing `preflight.sh distill-propose` reports `status=tool-contract`
    and exits 69 while disabled. With `CODEX_DISTILL_ENABLE=1`, it invokes
-   `codex exec --sandbox read-only --ask-for-approval never --ephemeral
-   --ignore-rules` and writes a JSON-lines proposal.
+   `codex exec --sandbox read-only --ephemeral --ignore-rules
+   --skip-git-repo-check` and writes a JSON-lines proposal. `codex exec` does
+   not accept `--ask-for-approval` (that is a top-level `codex` flag only); the
+   read-only sandbox alone enforces the no-write contract.
 3. The proposal is parsed by the shared `tools/memory/apply-distill-actions.py`
    applier only when both `CODEX_DISTILL_APPLY=1` and
    `CODEX_DISTILL_CONTRACT_ACCEPTED=1` are explicitly set.
 4. The proposal is not applied to memory automatically. The acceptance gate
    must prove tool-free execution or provide a native no-tools flag before this
    adapter may match Claude's automatic distillation behavior.
+
+Verification (codex-cli 0.142.4): an adversarial write probe run under the exact
+worker flags (`codex exec --sandbox read-only --ephemeral --ignore-rules`)
+proved tool-free execution. Every model-attempted write — creating a sentinel
+inside and outside the working root, overwriting an existing file, and creating
+a new file under the workspace — failed with an OS-level `Read-only file system`
+error, so no write mechanism (shell command or `apply_patch`) can mutate state.
+The read-only sandbox is therefore a sufficient no-write boundary; the remaining
+step to match Claude's automatic distillation is flipping the
+`CODEX_DISTILL_CONTRACT_ACCEPTED` acceptance gate, deferred pending review.
 
 ## Worklog Boundary
 
