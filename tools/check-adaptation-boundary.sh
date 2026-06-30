@@ -196,6 +196,28 @@ check_non_claude_adapter_symlink_boundaries() {
     [ -n "$links" ] || continue
     for link in $links; do
       target=$(readlink "$link")
+      case "$link:$target" in
+        adapters/codex/plugin-marketplace/plugins/agent-harness-codex:../../plugins/agent-harness-codex|\
+        adapters/codex/tools/memory/apply-distill-actions.py:../../../../tools/memory/apply-distill-actions.py|\
+        adapters/codex/utilities/agent-worklog-state.sh:../../../utilities/agent-worklog-state.sh|\
+        adapters/codex/utilities/artifact-root.sh:../../../utilities/artifact-root.sh|\
+        adapters/codex/utilities/harness-status.sh:../../../utilities/harness-status.sh|\
+        adapters/codex/utilities/workflow-guard-hook.sh:../../../utilities/workflow-guard-hook.sh|\
+        adapters/codex/utilities/workflow-toggle.sh:../../../utilities/workflow-toggle.sh|\
+        adapters/opencode/tools/memory/apply-distill-actions.py:../../../../tools/memory/apply-distill-actions.py|\
+        adapters/opencode/utilities/agent-worklog-state.sh:../../../utilities/agent-worklog-state.sh|\
+        adapters/opencode/utilities/artifact-root.sh:../../../utilities/artifact-root.sh|\
+        adapters/opencode/utilities/harness-status.sh:../../../utilities/harness-status.sh|\
+        adapters/opencode/utilities/workflow-guard-hook.sh:../../../utilities/workflow-guard-hook.sh|\
+        adapters/opencode/utilities/workflow-toggle.sh:../../../utilities/workflow-toggle.sh)
+          ;;
+        *)
+          fail_msg "$link points to $target; $adapter adapter symlinks must be explicitly allowlisted portable projections"
+          ;;
+      esac
+      if [ ! -e "$link" ]; then
+        fail_msg "$link points to $target; symlink target is missing"
+      fi
       case "$target" in
         *adapters/claude*|*claude_setting*|*"/skills"*|*"/commands"*|*"/hooks"*)
           fail_msg "$link points to $target; $adapter adapter symlinks must not target Claude-native or compat surfaces"
