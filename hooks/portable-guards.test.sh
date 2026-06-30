@@ -799,16 +799,26 @@ if "$CODEX" mode-info qa/security-review >/tmp/mode.out 2>/tmp/mode.err \
 else
   bad "codex mode wrapper should treat security-review as portable read-only guidance"
 fi
-if "$CODEX" mode-info design/maker >/tmp/mode.out 2>/tmp/mode.err \
-  && grep -q '^status=unsupported$' /tmp/mode.out \
-  && grep -q '^realization=adapter-coupled$' /tmp/mode.out \
-  && grep -q '^tool_contract=visual-harness$' /tmp/mode.out \
-  && grep -q '^tool_contract_check=adapters/codex/bin/preflight.sh visual-harness <file.html>$' /tmp/mode.out \
-  && grep -q '^runtime_surface=adapter-owned-visual-harness$' /tmp/mode.out \
-  && grep -q '^fallback=reference-only$' /tmp/mode.out; then
-  ok "codex mode wrapper marks adapter-coupled design mode unsupported"
+codex_design_modes_ok=1
+for mode_file in "$ROOT"/roles/modes/design/*.md; do
+  mode_name=$(basename "$mode_file" .md)
+  [ "$mode_name" = "_design_rules" ] && continue
+  mode="design/$mode_name"
+  if ! "$CODEX" mode-info "$mode" >/tmp/mode.out 2>/tmp/mode.err \
+    || ! grep -q '^status=unsupported$' /tmp/mode.out \
+    || ! grep -q '^realization=adapter-coupled$' /tmp/mode.out \
+    || ! grep -q '^tool_contract=visual-harness$' /tmp/mode.out \
+    || ! grep -q '^tool_contract_check=adapters/codex/bin/preflight.sh visual-harness <file.html>$' /tmp/mode.out \
+    || ! grep -q '^runtime_surface=adapter-owned-visual-harness$' /tmp/mode.out \
+    || ! grep -q '^fallback=reference-only$' /tmp/mode.out; then
+    codex_design_modes_ok=0
+    break
+  fi
+done
+if [ "$codex_design_modes_ok" -eq 1 ]; then
+  ok "codex mode wrapper marks every adapter-coupled design mode unsupported"
 else
-  bad "codex mode wrapper should mark adapter-coupled design mode unsupported"
+  bad "codex mode wrapper should mark every adapter-coupled design mode unsupported"
 fi
 if "$CODEX" mode-info material/data-script >/tmp/mode.out 2>/tmp/mode.err \
   && grep -q '^status=tool-contract$' /tmp/mode.out \
@@ -1668,16 +1678,26 @@ if "$OPENCODE" mode-info qa/security-review >/tmp/opencode_mode.out 2>/tmp/openc
 else
   bad "opencode mode wrapper should treat security-review as portable read-only guidance"
 fi
-if "$OPENCODE" mode-info design/maker >/tmp/opencode_mode.out 2>/tmp/opencode_mode.err \
-  && grep -q '^status=unsupported$' /tmp/opencode_mode.out \
-  && grep -q '^realization=adapter-coupled$' /tmp/opencode_mode.out \
-  && grep -q '^tool_contract=visual-harness$' /tmp/opencode_mode.out \
-  && grep -q '^tool_contract_check=adapters/opencode/bin/preflight.sh visual-harness <file.html>$' /tmp/opencode_mode.out \
-  && grep -q '^runtime_surface=adapter-owned-visual-harness$' /tmp/opencode_mode.out \
-  && grep -q '^fallback=reference-only$' /tmp/opencode_mode.out; then
-  ok "opencode mode wrapper marks adapter-coupled design mode unsupported"
+opencode_design_modes_ok=1
+for mode_file in "$ROOT"/roles/modes/design/*.md; do
+  mode_name=$(basename "$mode_file" .md)
+  [ "$mode_name" = "_design_rules" ] && continue
+  mode="design/$mode_name"
+  if ! "$OPENCODE" mode-info "$mode" >/tmp/opencode_mode.out 2>/tmp/opencode_mode.err \
+    || ! grep -q '^status=unsupported$' /tmp/opencode_mode.out \
+    || ! grep -q '^realization=adapter-coupled$' /tmp/opencode_mode.out \
+    || ! grep -q '^tool_contract=visual-harness$' /tmp/opencode_mode.out \
+    || ! grep -q '^tool_contract_check=adapters/opencode/bin/preflight.sh visual-harness <file.html>$' /tmp/opencode_mode.out \
+    || ! grep -q '^runtime_surface=adapter-owned-visual-harness$' /tmp/opencode_mode.out \
+    || ! grep -q '^fallback=reference-only$' /tmp/opencode_mode.out; then
+    opencode_design_modes_ok=0
+    break
+  fi
+done
+if [ "$opencode_design_modes_ok" -eq 1 ]; then
+  ok "opencode mode wrapper marks every adapter-coupled design mode unsupported"
 else
-  bad "opencode mode wrapper should mark adapter-coupled design mode unsupported"
+  bad "opencode mode wrapper should mark every adapter-coupled design mode unsupported"
 fi
 if "$OPENCODE" mode-info material/data-script >/tmp/opencode_mode.out 2>/tmp/opencode_mode.err \
   && grep -q '^status=tool-contract$' /tmp/opencode_mode.out \
