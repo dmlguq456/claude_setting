@@ -989,6 +989,7 @@ if python3 -m json.tool "$TMP/codex_hook_home/.codex/hooks.json" >/tmp/codex_hoo
   && grep -q 'pretooluse-write-guard.py' /tmp/codex_hook_json.out \
   && grep -q 'posttooluse-read-marker.py' /tmp/codex_hook_json.out \
   && grep -q 'posttooluse-design-check.py' /tmp/codex_hook_json.out \
+  && grep -q 'Write|Edit|MultiEdit|apply_patch' /tmp/codex_hook_json.out \
   && printf '{"tool_name":"Write","tool_input":{"file_path":"%s"},"session_id":"testsid","cwd":"%s"}\n' "$TMP/repo/f" "$TMP/repo" \
     | HOME="$TMP/codex_hook_home" python3 "$TMP/codex_hook_home/.codex/agent-harness/adapters/codex/hooks/pretooluse-write-guard.py" >/tmp/codex_hook.out 2>/tmp/codex_hook.err \
   && [ ! -s /tmp/codex_hook.out ]; then
@@ -1079,6 +1080,14 @@ if printf '{"tool_name":"Write","tool_input":{"file_path":"%s"},"session_id":"te
 else
   bad "codex native hook projection should block guarded writes"
 fi
+if printf '{"tool_name":"MultiEdit","tool_input":{"file_path":"%s","edits":[]},"session_id":"testsid","cwd":"%s"}\n' "$TMP/runtime/projects/abc/memory/MEMORY.md" "$TMP/runtime" \
+  | HOME="$TMP/codex_hook_home" python3 "$TMP/codex_hook_home/.codex/agent-harness/adapters/codex/hooks/pretooluse-write-guard.py" >/tmp/codex_multiedit_block.out 2>/tmp/codex_multiedit_block.err \
+  && grep -q '"decision": "block"' /tmp/codex_multiedit_block.out \
+  && grep -q 'memory' /tmp/codex_multiedit_block.out; then
+  ok "codex native hook projection blocks guarded MultiEdit writes"
+else
+  bad "codex native hook projection should block guarded MultiEdit writes"
+fi
 mkdir -p "$TMP/repo/spec/design"
 printf '<!doctype html><title>ok</title>\n' > "$TMP/repo/spec/design/preview.html"
 if printf '{"tool_name":"Write","tool_input":{"file_path":"%s"},"session_id":"testsid","cwd":"%s"}\n' "$TMP/repo/spec/design/preview.html" "$TMP/repo" \
@@ -1096,6 +1105,14 @@ if printf '{"toolUse":{"name":"Write","input":{"path":"%s"}},"session_id":"tests
   ok "codex native design hook accepts toolUse input payloads"
 else
   bad "codex native design hook should accept toolUse input payloads"
+fi
+if printf '{"tool_name":"MultiEdit","tool_input":{"file_path":"%s","edits":[]},"session_id":"testsid","cwd":"%s"}\n' "$TMP/repo/spec/design/preview.html" "$TMP/repo" \
+  | DESIGN_POSTWRITE_HOOK=0 HOME="$TMP/codex_hook_home" python3 "$TMP/codex_hook_home/.codex/agent-harness/adapters/codex/hooks/posttooluse-design-check.py" >/tmp/codex_design_hook_multiedit.out 2>/tmp/codex_design_hook_multiedit.err \
+  && [ ! -s /tmp/codex_design_hook_multiedit.out ] \
+  && [ ! -s /tmp/codex_design_hook_multiedit.err ]; then
+  ok "codex native design hook accepts MultiEdit payloads"
+else
+  bad "codex native design hook should accept MultiEdit payloads"
 fi
 if "$CODEX" mode-info dev/backend >/tmp/mode.out 2>/tmp/mode.err \
   && grep -q '^status=portable$' /tmp/mode.out \

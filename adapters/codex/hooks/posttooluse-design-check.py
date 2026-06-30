@@ -84,7 +84,7 @@ def target_files(payload: dict[str, Any]) -> list[str]:
     args = tool_input(payload)
     base = cwd(payload)
 
-    if name in {"Write", "write", "Edit", "edit"}:
+    if name in {"Write", "write", "Edit", "edit", "MultiEdit", "multi_edit", "multiedit"}:
         file = normalize(base, first_string(args, "file_path", "filePath", "path", "file"))
         return [file] if file else []
 

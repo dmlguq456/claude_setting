@@ -90,7 +90,7 @@ def target_files(payload: dict[str, Any]) -> list[str]:
     args = tool_input(payload)
     base = cwd(payload)
 
-    if name in {"Write", "write", "Edit", "edit"}:
+    if name in {"Write", "write", "Edit", "edit", "MultiEdit", "multi_edit", "multiedit"}:
         file = normalize(base, first_string(args, "file_path", "filePath", "path", "file"))
         return [file] if file else []
 
@@ -111,7 +111,7 @@ def main() -> int:
 
     name = tool_name(payload)
     files = target_files(payload)
-    if name in {"Write", "write", "Edit", "edit", "apply_patch", "ApplyPatch", "patch"} and not files:
+    if name in {"Write", "write", "Edit", "edit", "MultiEdit", "multi_edit", "multiedit", "apply_patch", "ApplyPatch", "patch"} and not files:
         return hook_block(f"agent harness preflight could not determine target file for Codex tool {name}")
 
     session_id = first_string(payload, "session_id", "sessionID", "thread_id", "threadID") or "codex-hook"
