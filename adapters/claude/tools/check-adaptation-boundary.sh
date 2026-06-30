@@ -597,6 +597,7 @@ check_codex_bin_wrappers() {
     || ! grep -Fq 'Read adapters/codex/AGENTS.md first' adapters/codex/bin/dispatch-headless.py \
     || ! grep -Fq 'preflight.sh route {args.capability} . codex-headless' adapters/codex/bin/dispatch-headless.py \
     || ! grep -Fq 'preflight.sh mode-info {args.mode}' adapters/codex/bin/dispatch-headless.py \
+    || ! grep -Fq 'preflight.sh qa-policy {args.qa} {track}' adapters/codex/bin/dispatch-headless.py \
     || ! grep -Fq 'Autopilot-code execution contract' adapters/codex/bin/dispatch-headless.py \
     || ! grep -Fq 'code-plan -> code-execute -> code-test -> code-report' adapters/codex/bin/dispatch-headless.py \
     || ! grep -Fq 'preflight.sh mode-info qa/plan-review' adapters/codex/bin/dispatch-headless.py \
@@ -648,7 +649,7 @@ check_codex_bin_wrappers() {
     fail_msg "adapters/codex/AGENTS.md must document the Codex workflow toggle wrapper"
   fi
 
-  for p in 'preflight.sh start' 'preflight.sh session-end' 'preflight.sh mode' 'preflight.sh prompt-signal' 'preflight.sh turn-nudge' 'preflight.sh track' 'preflight.sh memory' 'preflight.sh recall' 'preflight.sh briefing' 'preflight.sh worklog' 'preflight.sh ui-info' 'preflight.sh tui-config' 'preflight.sh loop-info' 'preflight.sh distill-delta' 'preflight.sh distill-propose'; do
+  for p in 'preflight.sh start' 'preflight.sh session-end' 'preflight.sh mode' 'preflight.sh prompt-signal' 'preflight.sh turn-nudge' 'preflight.sh track' 'preflight.sh memory' 'preflight.sh recall' 'preflight.sh briefing' 'preflight.sh worklog' 'preflight.sh ui-info' 'preflight.sh tui-config' 'preflight.sh loop-info' 'preflight.sh qa-policy' 'preflight.sh distill-delta' 'preflight.sh distill-propose'; do
     if ! grep -Fq "$p" adapters/codex/AGENTS.md; then
       fail_msg "adapters/codex/AGENTS.md must document manual Codex lifecycle wrapper $p"
     fi
@@ -769,6 +770,13 @@ check_codex_bin_wrappers() {
     || ! grep -Fq 'autopilot-code pipeline' adapters/codex/README.md \
     || ! grep -Fq 'pipeline_contract=code-plan>code-execute>code-test>code-report' adapters/codex/README.md; then
     fail_msg "Codex docs must describe the autopilot-code pipeline metadata exposed by capability-info/route"
+  fi
+  if ! grep -Fq 'qa-policy <quick|light|standard|thorough|adversarial> [code|research|doc|general]' adapters/codex/bin/preflight.sh \
+    || ! grep -Fq 'runtime_surface=codex-qa-policy' adapters/codex/bin/preflight.sh \
+    || ! grep -Fq 'independent_delegation_policy=claim-only-if-separate-codex-agent-headless-or-external-pass-ran' adapters/codex/bin/preflight.sh \
+    || ! grep -Fq 'preflight.sh qa-policy <level> [code|research|doc|general]' adapters/codex/AGENTS.md \
+    || ! grep -Fq 'QA policy mapping' adapters/codex/README.md; then
+    fail_msg "Codex adapter must expose QA level policy mapping as a runtime preflight contract"
   fi
   if ! grep -Fq 'compat_reference=not-projected' adapters/codex/README.md \
     || grep -Fq 'legacy compatibility reference, if one exists' adapters/codex/README.md; then

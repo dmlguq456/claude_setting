@@ -459,6 +459,7 @@ if PATH="$TMP/codex-stubbin:$PATH" CODEX_HOME="$TMP/codex_headless_home" CODEX_S
   && grep -q 'Read adapters/codex/AGENTS.md first' "$TMP/codex-logs/nested/codex-start.codex.prompt.txt" \
   && grep -q 'preflight.sh route autopilot-code . codex-headless' "$TMP/codex-logs/nested/codex-start.codex.prompt.txt" \
   && grep -q 'preflight.sh mode-info dev/backend' "$TMP/codex-logs/nested/codex-start.codex.prompt.txt" \
+  && grep -q 'preflight.sh qa-policy standard code' "$TMP/codex-logs/nested/codex-start.codex.prompt.txt" \
   && grep -q 'Autopilot-code execution contract' "$TMP/codex-logs/nested/codex-start.codex.prompt.txt" \
   && grep -q 'code-plan -> code-execute -> code-test -> code-report' "$TMP/codex-logs/nested/codex-start.codex.prompt.txt" \
   && grep -q 'preflight.sh mode-info qa/plan-review' "$TMP/codex-logs/nested/codex-start.codex.prompt.txt" \
@@ -688,6 +689,19 @@ if AGENT_EXTERNAL_CMD="missing-external-adversary-command --review" "$CODEX" rol
   ok "codex role wrapper reports missing external adversary command"
 else
   bad "codex role wrapper should report missing external adversary command"
+fi
+if "$CODEX" qa-policy adversarial code >/tmp/codex_qa_policy.out 2>/tmp/codex_qa_policy.err \
+  && grep -q '^runtime_surface=codex-qa-policy$' /tmp/codex_qa_policy.out \
+  && grep -q '^source=core/CONVENTIONS.md$' /tmp/codex_qa_policy.out \
+  && grep -q '^qa_level=adversarial$' /tmp/codex_qa_policy.out \
+  && grep -q '^qa_track=code$' /tmp/codex_qa_policy.out \
+  && grep -q '^fact_checker=skip-code-track$' /tmp/codex_qa_policy.out \
+  && grep -q '^external_adversary=1x-external-adversary$' /tmp/codex_qa_policy.out \
+  && grep -q '^codex_role_checks=.*preflight.sh role external adversary' /tmp/codex_qa_policy.out \
+  && grep -q '^independent_delegation_policy=claim-only-if-separate-codex-agent-headless-or-external-pass-ran$' /tmp/codex_qa_policy.out; then
+  ok "codex qa-policy maps QA level to reviewer and fallback contract"
+else
+  bad "codex qa-policy should map QA level to reviewer and fallback contract"
 fi
 if "$CODEX" capability-info autopilot-code >/tmp/cap.out 2>/tmp/cap.err \
   && grep -q '^capability=autopilot-code$' /tmp/cap.out \

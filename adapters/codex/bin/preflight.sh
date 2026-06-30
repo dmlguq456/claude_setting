@@ -39,6 +39,7 @@ usage: preflight.sh write <file> [session-id]
        preflight.sh tui-config
        preflight.sh headless [--check] <worktree>
        preflight.sh dispatch [--dry-run|--register|--start] --worktree <path> --slug <slug> --capability <name> --mode <family/mode> --qa <level> [--prompt-file <file>|--prompt-text <text>] [--jobs <jobs.log>]
+       preflight.sh qa-policy <quick|light|standard|thorough|adversarial> [code|research|doc|general]
        preflight.sh liveness [jobs.log]
        preflight.sh harvest [--jobs <jobs.log>] [--slug <slug>|--worktree <path>] [--status open|done|all] [--mark-done]
        preflight.sh mcp [--check]
@@ -409,6 +410,75 @@ EOF
   dispatch)
     shift
     AGENT_HOME="$AGENT_ROOT" "$ROOT/adapters/codex/bin/dispatch-headless.py" "$@"
+    ;;
+  qa-policy)
+    [ "$#" -ge 2 ] || { echo "codex preflight: qa-policy requires a QA level" >&2; exit 64; }
+    level=$2
+    track=${3:-general}
+    case "$level" in
+      quick)
+        quality_reviewers="1x-fast-reviewer"
+        fact_checker="skip"
+        external_adversary="skip"
+        max_round="1"
+        role_checks="preflight.sh role fast reviewer"
+        ;;
+      light)
+        quality_reviewers="2x-fast-reviewers"
+        fact_checker="skip"
+        external_adversary="skip"
+        max_round="1"
+        role_checks="preflight.sh role fast reviewer"
+        ;;
+      standard)
+        quality_reviewers="1x-deep-reviewer+2x-fast-reviewers"
+        fact_checker="1x-fast-fact-checker"
+        external_adversary="skip"
+        max_round="1"
+        role_checks="preflight.sh role deep reviewer;preflight.sh role fast reviewer"
+        ;;
+      thorough)
+        quality_reviewers="2x-deep-reviewers+2x-fast-reviewers"
+        fact_checker="1x-fast-fact-checker"
+        external_adversary="skip"
+        max_round="2"
+        role_checks="preflight.sh role deep reviewer;preflight.sh role fast reviewer"
+        ;;
+      adversarial)
+        quality_reviewers="2x-deep-reviewers+2x-fast-reviewers"
+        fact_checker="1x-fast-fact-checker"
+        external_adversary="1x-external-adversary"
+        max_round="2+external-1"
+        role_checks="preflight.sh role deep reviewer;preflight.sh role fast reviewer;preflight.sh role external adversary"
+        ;;
+      *)
+        echo "codex preflight: unknown QA level: $level" >&2
+        exit 64
+        ;;
+    esac
+    case "$track" in
+      code)
+        fact_checker="skip-code-track"
+        ;;
+      research|doc|general)
+        ;;
+      *)
+        echo "codex preflight: unknown QA track: $track" >&2
+        exit 64
+        ;;
+    esac
+    printf 'adapter=codex\n'
+    printf 'runtime_surface=codex-qa-policy\n'
+    printf 'source=core/CONVENTIONS.md\n'
+    printf 'qa_level=%s\n' "$level"
+    printf 'qa_track=%s\n' "$track"
+    printf 'quality_reviewers=%s\n' "$quality_reviewers"
+    printf 'fact_checker=%s\n' "$fact_checker"
+    printf 'external_adversary=%s\n' "$external_adversary"
+    printf 'max_round=%s\n' "$max_round"
+    printf 'codex_role_checks=%s\n' "$role_checks"
+    printf 'independent_delegation_policy=claim-only-if-separate-codex-agent-headless-or-external-pass-ran\n'
+    printf 'fallback=report-inline-review-if-independent-agent-unavailable\n'
     ;;
   mcp)
     shift

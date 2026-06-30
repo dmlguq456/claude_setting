@@ -60,8 +60,19 @@ def task_prompt(args: argparse.Namespace) -> tuple[str, str]:
     )
 
 
+def qa_track(capability: str) -> str:
+    if capability.startswith("code-") or capability == "autopilot-code":
+        return "code"
+    if capability in {"autopilot-research"} or capability.startswith("analyze-"):
+        return "research"
+    if capability in {"autopilot-draft", "autopilot-refine"} or capability.startswith("draft-"):
+        return "doc"
+    return "general"
+
+
 def dispatch_prompt(args: argparse.Namespace) -> tuple[str, str]:
     task, source = task_prompt(args)
+    track = qa_track(args.capability)
     execution_contract = ""
     if args.capability == "autopilot-code":
         execution_contract = (
@@ -83,6 +94,7 @@ def dispatch_prompt(args: argparse.Namespace) -> tuple[str, str]:
         f"- Run adapters/codex/bin/preflight.sh route {args.capability} . codex-headless.\n"
         f"- Read adapters/codex/skills/{args.capability}/SKILL.md when present.\n"
         f"- Run adapters/codex/bin/preflight.sh mode-info {args.mode} and read the reported native_mode_path when present.\n"
+        f"- Run adapters/codex/bin/preflight.sh qa-policy {args.qa} {track} and obey the reported reviewer, external-adversary, and fallback policy.\n"
         "- If you actually read .agent_reports/spec/prd.md or legacy .claude_reports/spec/prd.md, run adapters/codex/bin/preflight.sh read <prd.md> codex-headless after the read.\n"
         "- Before edits, run adapters/codex/bin/preflight.sh write <file> codex-headless.\n"
         "- Do not use adapters/claude, claude_setting, Claude slash commands, or Claude hook/statusline files as Codex-native input.\n\n"
