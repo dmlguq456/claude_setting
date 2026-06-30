@@ -1202,6 +1202,11 @@ check_opencode_bin_wrappers() {
   if ! grep -Fq 'preflight.sh track' adapters/opencode/AGENTS.md; then
     fail_msg "adapters/opencode/AGENTS.md must document the OpenCode workflow toggle wrapper"
   fi
+  if ! grep -Fq 'utilities/workflow-toggle.sh' adapters/opencode/ADAPTATION.md \
+    || ! grep -Fq 'preflight.sh track' adapters/opencode/ADAPTATION.md \
+    || grep -Fq 'Claude session id fallback' adapters/opencode/ADAPTATION.md; then
+    fail_msg "adapters/opencode/ADAPTATION.md must map Claude track-toggle semantics to portable workflow-toggle plus OpenCode preflight track"
+  fi
 
   for p in 'preflight.sh start' 'preflight.sh mode' 'preflight.sh track' 'preflight.sh memory' 'preflight.sh recall' 'preflight.sh briefing' 'preflight.sh worklog' 'preflight.sh distill-delta' 'preflight.sh distill-propose'; do
     if ! grep -Fq "$p" adapters/opencode/AGENTS.md; then
