@@ -294,6 +294,7 @@ if "$CODEX" headless >/tmp/codex_headless.out 2>/tmp/codex_headless.err \
   && grep -q '^adapter=codex$' /tmp/codex_headless.out \
   && grep -q '^runtime_surface=codex-exec-headless$' /tmp/codex_headless.out \
   && grep -q '^tool_contract=headless-dispatch$' /tmp/codex_headless.out \
+  && grep -q '^runtime_projection_requires=agent-harness,AGENTS.md,hooks.json,native-skills,native-agents,native-modes$' /tmp/codex_headless.out \
   && grep -q '^claude_headless=unsupported$' /tmp/codex_headless.out \
   && grep -q '^liveness_surface=codex-session-jsonl-mtime$' /tmp/codex_headless.out \
   && grep -q '^liveness_check=adapters/codex/bin/preflight.sh liveness \[jobs.log\]$' /tmp/codex_headless.out \

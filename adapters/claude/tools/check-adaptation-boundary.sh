@@ -541,6 +541,7 @@ check_codex_bin_wrappers() {
   fi
   if ! grep -Fq 'runtime_surface=codex-exec-headless' adapters/codex/bin/preflight.sh \
     || ! grep -Fq 'preflight.sh dispatch [--dry-run|--register|--start]' adapters/codex/bin/preflight.sh \
+    || ! grep -Fq 'runtime_projection_requires=agent-harness,AGENTS.md,hooks.json,native-skills,native-agents,native-modes' adapters/codex/bin/preflight.sh \
     || ! grep -Fq 'liveness_surface=codex-session-jsonl-mtime' adapters/codex/bin/preflight.sh \
     || ! grep -Fq 'liveness_check=adapters/codex/bin/preflight.sh liveness [jobs.log]' adapters/codex/bin/preflight.sh \
     || ! grep -Fq 'harvest_check=adapters/codex/bin/preflight.sh harvest' adapters/codex/bin/preflight.sh \
@@ -548,6 +549,10 @@ check_codex_bin_wrappers() {
     || ! grep -Fq '$codex_home/agent-modes/dev/backend.md' adapters/codex/bin/preflight.sh \
     || ! grep -Fq 'claude_headless=unsupported' adapters/codex/bin/preflight.sh; then
     fail_msg "adapters/codex/bin/preflight.sh must report the Codex headless dispatch contract without Claude headless assumptions"
+  fi
+  if ! grep -Fq 'native Skills, native Agents, and native Modes' adapters/codex/README.md \
+    || ! grep -Fq 'native Skills, native Agents, and native Modes' adapters/codex/ADAPTATION.md; then
+    fail_msg "Codex headless docs must include native mode projection in runtime projection checks"
   fi
 
   if ! grep -Fq -- '--event start' adapters/codex/bin/preflight.sh; then

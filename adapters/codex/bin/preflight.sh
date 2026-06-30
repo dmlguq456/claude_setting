@@ -301,6 +301,7 @@ status=tool-contract
 tool_contract=headless-dispatch
 tool_contract_check=adapters/codex/bin/preflight.sh headless --check <worktree>
 command_template=codex exec --cd <worktree> --sandbox workspace-write --ask-for-approval never --json -
+runtime_projection_requires=agent-harness,AGENTS.md,hooks.json,native-skills,native-agents,native-modes
 job_registry=<agent-home>/.dispatch/jobs.log
 liveness_surface=codex-session-jsonl-mtime
 liveness_check=adapters/codex/bin/preflight.sh liveness [jobs.log]
