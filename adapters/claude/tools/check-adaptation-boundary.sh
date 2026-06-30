@@ -2154,6 +2154,13 @@ check_adaptation_inventory_native_surfaces() {
     || ! grep -Fq 'Claude slash commands' core/ADAPTATION_INVENTORY.md; then
     fail_msg "core/ADAPTATION_INVENTORY.md must distinguish Claude slash commands, Codex command-like Skills/plugins, and OpenCode commands"
   fi
+  if grep -Fq 'adapters/codex/.agents/plugins/marketplace.json' core/ADAPTATION_INVENTORY.md \
+    || ! grep -Fq 'adapters/codex/plugin-marketplace/.agents/plugins/marketplace.json' core/ADAPTATION_INVENTORY.md; then
+    fail_msg "core/ADAPTATION_INVENTORY.md must point Codex plugin marketplace inventory at adapters/codex/plugin-marketplace, not obsolete adapters/codex/.agents"
+  fi
+  if ! grep -Fq 'PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile tools/build-manifest.py tools/memory/mem.py' INSTALL_LAYOUT.md; then
+    fail_msg "INSTALL_LAYOUT.md py_compile validation must avoid writing __pycache__"
+  fi
   if ! grep -Fq 'Codex/OpenCode `preflight.sh loop-info`' core/ADAPTATION_INVENTORY.md \
     || ! grep -Fq 'without executing Claude-coupled loop scripts' core/ADAPTATION_INVENTORY.md \
     || ! grep -Fq 'unsupported/manual-contract' core/ADAPTATION_INVENTORY.md; then
