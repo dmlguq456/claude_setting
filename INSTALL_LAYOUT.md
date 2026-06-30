@@ -172,7 +172,10 @@ tools/check-adaptation-boundary.sh
 adapters/codex/bin/sync-native-skills.py --check
 adapters/codex/bin/sync-native-agents.py --check
 adapters/codex/bin/sync-native-plugin.py --check
-codex_setting/bin/preflight.sh capability-info autopilot-code
+codex_setting/bin/preflight.sh capability-info autopilot-code >/tmp/codex-capability.txt
+rg '^native_skill_path=adapters/codex/skills/autopilot-code/SKILL.md$' /tmp/codex-capability.txt
+rg '^native_plugin_skill_path=adapters/codex/plugins/agent-harness-codex/skills/autopilot-code/SKILL.md$' /tmp/codex-capability.txt
+rg '^compat_reference=not-projected$' /tmp/codex-capability.txt
 codex_setting/bin/preflight.sh role fast reviewer >/tmp/codex-role.txt
 rg '^adapter=codex$' /tmp/codex-role.txt
 rg '^source=roles/README.md$' /tmp/codex-role.txt
@@ -286,7 +289,10 @@ for agent in agents:
     assert re.search(r'^developer_instructions = """\n.+\n"""$', body, re.MULTILINE | re.DOTALL), agent
 PY
 ! rg 'adapters/claude/agents' "$tmp_codex_agent_home/agents"
-opencode_setting/bin/preflight.sh capability-info autopilot-code
+opencode_setting/bin/preflight.sh capability-info autopilot-code >/tmp/opencode-capability.txt
+rg '^native_skill_path=adapters/opencode/skills/autopilot-code/SKILL.md$' /tmp/opencode-capability.txt
+rg '^native_command_path=adapters/opencode/commands/autopilot-code.md$' /tmp/opencode-capability.txt
+rg '^compat_reference=not-projected$' /tmp/opencode-capability.txt
 adapters/opencode/bin/sync-native-skills.py --check
 adapters/opencode/bin/sync-native-agents.py --check
 adapters/opencode/bin/sync-native-commands.py --check

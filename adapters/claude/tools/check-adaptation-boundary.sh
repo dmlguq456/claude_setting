@@ -279,6 +279,12 @@ check_install_layout_codex_projection() {
     || ! grep -Fq "rg 'adapters/claude/hooks|statusline.sh|settings.json'" INSTALL_LAYOUT.md; then
     fail_msg "INSTALL_LAYOUT.md must validate Codex native hook projection installation"
   fi
+  if ! grep -Fq 'codex_setting/bin/preflight.sh capability-info autopilot-code >/tmp/codex-capability.txt' INSTALL_LAYOUT.md \
+    || ! grep -Fq "rg '^native_skill_path=adapters/codex/skills/autopilot-code/SKILL.md$' /tmp/codex-capability.txt" INSTALL_LAYOUT.md \
+    || ! grep -Fq "rg '^native_plugin_skill_path=adapters/codex/plugins/agent-harness-codex/skills/autopilot-code/SKILL.md$' /tmp/codex-capability.txt" INSTALL_LAYOUT.md \
+    || ! grep -Fq "rg '^compat_reference=not-projected$' /tmp/codex-capability.txt" INSTALL_LAYOUT.md; then
+    fail_msg "INSTALL_LAYOUT.md must validate Codex capability-info native projections without root Skill compat references"
+  fi
   if ! grep -Fq 'codex_setting/bin/preflight.sh role fast reviewer >/tmp/codex-role.txt' INSTALL_LAYOUT.md \
     || ! grep -Fq "rg '^adapter=codex$' /tmp/codex-role.txt" INSTALL_LAYOUT.md \
     || ! grep -Fq "rg '^source=roles/README.md$' /tmp/codex-role.txt" INSTALL_LAYOUT.md \
@@ -368,6 +374,12 @@ check_install_layout_opencode_projection() {
     || ! grep -Fq 'opencode debug config >/tmp/opencode-plugin.json' INSTALL_LAYOUT.md \
     || ! grep -Fq "rg 'agent-harness-guards.js' /tmp/opencode-plugin.json" INSTALL_LAYOUT.md; then
     fail_msg "INSTALL_LAYOUT.md must validate the OpenCode native plugin projection"
+  fi
+  if ! grep -Fq 'opencode_setting/bin/preflight.sh capability-info autopilot-code >/tmp/opencode-capability.txt' INSTALL_LAYOUT.md \
+    || ! grep -Fq "rg '^native_skill_path=adapters/opencode/skills/autopilot-code/SKILL.md$' /tmp/opencode-capability.txt" INSTALL_LAYOUT.md \
+    || ! grep -Fq "rg '^native_command_path=adapters/opencode/commands/autopilot-code.md$' /tmp/opencode-capability.txt" INSTALL_LAYOUT.md \
+    || ! grep -Fq "rg '^compat_reference=not-projected$' /tmp/opencode-capability.txt" INSTALL_LAYOUT.md; then
+    fail_msg "INSTALL_LAYOUT.md must validate OpenCode capability-info native projections without root Skill compat references"
   fi
   if ! grep -Fq 'opencode_setting/bin/preflight.sh role fast reviewer >/tmp/opencode-role.txt' INSTALL_LAYOUT.md \
     || ! grep -Fq "rg '^adapter=opencode$' /tmp/opencode-role.txt" INSTALL_LAYOUT.md \
