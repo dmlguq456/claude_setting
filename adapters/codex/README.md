@@ -57,6 +57,7 @@ project Claude Skill, Agent, command, hook, or statusline files into Codex.
 | tracked/untracked signal | Codex `UserPromptSubmit` hook bridge runs `adapters/codex/bin/preflight.sh mode [cwd] [session-id]`; run it manually when hooks are unavailable |
 | tracked/untracked toggle | Portable `utilities/workflow-toggle.sh`; run `adapters/codex/bin/preflight.sh track [cwd] [session-id]` only on explicit user request |
 | artifact-order gate | `core/HOOKS.md` defines the invariant; run `adapters/codex/bin/preflight.sh write <file> [session-id]` before writes |
+| material data script | Tool-contract check: `adapters/codex/bin/preflight.sh data-script --check <script.py>` verifies generated Python analysis scripts through the adapter-owned launcher before using `roles/modes/material/data-script.md` |
 | design post-write verification | `core/HOOKS.md` defines the invariant; run `adapters/codex/bin/preflight.sh design <file>` after design HTML writes |
 | design visual harness | Tool-contract check: `adapters/codex/bin/preflight.sh visual-harness <file.html>` runs the adapter-owned render/screenshot/console wrapper. Inspect the reported screenshot before claiming visual completion. Do not project Claude Design MCP files into Codex |
 | spec read gate | `core/HOOKS.md` defines marker/check semantics; run `adapters/codex/bin/preflight.sh read <prd.md> [session-id]` after actual reads and `adapters/codex/bin/preflight.sh capability <name> [cwd] [session-id]` before spec/code capabilities |
@@ -75,12 +76,13 @@ project Claude Skill, Agent, command, hook, or statusline files into Codex.
 ## Tool Projection
 
 `codex_setting/tools` intentionally points at `adapters/codex/tools/`, not the
-full shared `tools/` directory. The adapter currently exposes only memory tools
-that Codex wrappers use directly:
+full shared `tools/` directory. The adapter currently exposes only tools that
+Codex wrappers use directly:
 
 - `memory/mem.py` (Codex-owned launcher for the shared memory CLI)
 - `memory/apply-distill-actions.py`
 - `memory/recall.sh` (Codex-owned launcher for recall)
+- `material/data-script.sh` (Codex-owned launcher for Python data-analysis scripts)
 - `design/visual-harness.sh` (Codex-owned launcher for render/screenshot/console checks)
 
 Harness development tools and Claude-coupled helper surfaces such as

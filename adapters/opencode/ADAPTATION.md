@@ -76,9 +76,13 @@ Before adding or changing OpenCode-native skills, commands, or agents:
    false pass.
 
 Design capabilities are a tool-contract exception: OpenCode has native Skill
-guidance for them, but must provide or map an adapter visual harness before
-claiming full support. `capability-info` reports `status=tool-contract` for
-those entries.
+guidance for them, but must run the adapter visual harness before claiming full
+support. `capability-info` reports `status=tool-contract` for those entries.
+
+`roles/modes/material/data-script.md` is the first material mode with an
+OpenCode-owned executable tool-contract surface:
+`adapters/opencode/bin/preflight.sh data-script --check <script.py>` verifies
+generated Python analysis scripts through `adapters/opencode/tools/material/`.
 
 ## Native Plugin Hook Surface
 
@@ -205,6 +209,7 @@ shared `tools/` directory. The current allowlist is:
 - `memory/mem.py` (OpenCode-owned launcher for the shared memory CLI)
 - `memory/apply-distill-actions.py`
 - `memory/recall.sh` (OpenCode-owned launcher for recall)
+- `material/data-script.sh` (OpenCode-owned launcher for Python data-analysis scripts)
 - `design/visual-harness.sh` (OpenCode-owned launcher for render/screenshot/console checks)
 
 Do not project `build-manifest.py`: it is a harness development tool that reads

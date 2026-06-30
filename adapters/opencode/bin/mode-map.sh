@@ -54,13 +54,21 @@ case "$family" in
     fallback="satisfy-tool-contract-or-report-unavailable"
     case "$name" in
       browser-fetch) tool_contract=browser-fetch ;;
-      data-script) tool_contract=data-script ;;
+      data-script)
+        tool_contract=data-script
+        tool_contract_check="adapters/opencode/bin/preflight.sh data-script --check <script.py>"
+        runtime_surface=adapter-owned-data-script
+        ;;
       figure-gen) tool_contract=figure-gen ;;
       pdf-extract) tool_contract=pdf-extract ;;
       web-image-search) tool_contract=web-image-search ;;
       *) tool_contract=material-tooling ;;
     esac
-    requirement="provide the named browser/pdf/script/web tool contract or report unavailable"
+    if [ "$name" = "data-script" ]; then
+      requirement="run the adapter-owned Python data-script launcher for generated analysis scripts, or report unavailable"
+    else
+      requirement="provide the named browser/pdf/script/web tool contract or report unavailable"
+    fi
     ;;
   design)
     status=unsupported

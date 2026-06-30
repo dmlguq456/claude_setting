@@ -26,6 +26,7 @@ adapter bootstrap, not the portable source of truth. Load it through the
 - Before using a `roles/modes/` fragment, run `adapters/opencode/bin/preflight.sh mode-info <family/mode>` and obey portable/tool-contract/unsupported status plus any named `tool_contract`, `tool_contract_check`, `runtime_surface`, and `fallback`.
 - Run deterministic guard scripts directly when OpenCode plugins are unavailable or untrusted. The adapter provides a JS plugin for prompt lifecycle context, write/edit/patch guards, and design post-write checks; use explicit preflight wrappers when that plugin is not installed or trusted.
 - Before edits, run `adapters/opencode/bin/preflight.sh write <file> [session-id]`.
+- For `material/data-script` outputs, run `adapters/opencode/bin/preflight.sh data-script --check <script.py>` before treating the generated analysis script as satisfying the mode tool contract.
 - After design HTML writes, run `adapters/opencode/bin/preflight.sh design <file>`.
 - Before claiming full design/autopilot-design support, run `adapters/opencode/bin/preflight.sh visual-harness <file.html>` and inspect the reported screenshot. Exit 69 means the local Playwright-backed checker is unavailable.
 - After actually reading `<artifact-root>/spec/prd.md`, run `adapters/opencode/bin/preflight.sh read <prd.md> [session-id]`; before spec-changing capability work, run `adapters/opencode/bin/preflight.sh capability <name> [cwd] [session-id]`.
@@ -34,7 +35,7 @@ adapter bootstrap, not the portable source of truth. Load it through the
 - Use `adapters/opencode/bin/preflight.sh track [cwd] [session-id]` only when the user explicitly wants to toggle the tracked/untracked workflow escape hatch.
 - Use `adapters/opencode/bin/preflight.sh worklog [cwd]` before worklog-board or agent-notes work to inspect configured notes/app paths without mutating data.
 - Use `adapters/opencode/bin/preflight.sh distill-delta <session-id>` to read transcript deltas through `opencode export`. Use `adapters/opencode/bin/preflight.sh distill-propose <session-id> [cwd]` only for explicit proposal attempts; it is disabled by default and reports the remaining OpenCode no-tools worker tool-contract instead of auto-applying memory distillation.
-- Treat `opencode_setting/tools` as a selective memory-tool projection. Do not assume every shared tool is OpenCode-supported.
+- Treat `opencode_setting/tools` as a selective memory/material/design tool projection. Do not assume every shared tool is OpenCode-supported.
 - Treat `opencode_setting/utilities` as a selective utility projection. Do not assume every shared utility is OpenCode-supported.
 - Keep OpenCode-owned credentials, sessions, DB state, logs, caches, and local databases outside the harness repo.
 

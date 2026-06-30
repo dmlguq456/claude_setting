@@ -64,6 +64,7 @@ guards and tool-contract reporting.
 | tracked/untracked signal | OpenCode plugin system transform runs `adapters/opencode/bin/preflight.sh mode [cwd] [session-id]`; run it manually when plugins are unavailable |
 | tracked/untracked toggle | Portable `utilities/workflow-toggle.sh`; run `adapters/opencode/bin/preflight.sh track [cwd] [session-id]` only on explicit user request |
 | artifact-order gate | `core/HOOKS.md` defines the invariant; run `adapters/opencode/bin/preflight.sh write <file> [session-id]` before writes |
+| material data script | Tool-contract check: `adapters/opencode/bin/preflight.sh data-script --check <script.py>` verifies generated Python analysis scripts through the adapter-owned launcher before using `roles/modes/material/data-script.md` |
 | design post-write verification | `core/HOOKS.md` defines the invariant; run `adapters/opencode/bin/preflight.sh design <file>` after design HTML writes |
 | design visual harness | Tool-contract check: `adapters/opencode/bin/preflight.sh visual-harness <file.html>` runs the adapter-owned render/screenshot/console wrapper. Inspect the reported screenshot before claiming visual completion. Do not project Claude Design MCP files into OpenCode |
 | spec read gate | `core/HOOKS.md` defines marker/check semantics; run `adapters/opencode/bin/preflight.sh read <prd.md> [session-id]` after actual reads and `adapters/opencode/bin/preflight.sh capability <name> [cwd] [session-id]` before spec/code capabilities |
@@ -85,11 +86,12 @@ guards and tool-contract reporting.
 
 `opencode_setting/tools` intentionally points at `adapters/opencode/tools/`,
 not the full shared `tools/` directory. The adapter currently exposes only
-memory tools that OpenCode wrappers use directly:
+tools that OpenCode wrappers use directly:
 
 - `memory/mem.py` (OpenCode-owned launcher for the shared memory CLI)
 - `memory/apply-distill-actions.py`
 - `memory/recall.sh` (OpenCode-owned launcher for recall)
+- `material/data-script.sh` (OpenCode-owned launcher for Python data-analysis scripts)
 - `design/visual-harness.sh` (OpenCode-owned launcher for render/screenshot/console checks)
 
 Harness development tools and Claude-coupled helper surfaces such as

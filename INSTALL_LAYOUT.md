@@ -178,6 +178,10 @@ rg '^family=fast$' /tmp/codex-role.txt
 codex_setting/bin/preflight.sh mode-info dev/backend >/tmp/codex-mode.txt
 rg '^adapter=codex$' /tmp/codex-mode.txt
 rg '^status=portable$' /tmp/codex-mode.txt
+codex_setting/bin/preflight.sh mode-info material/data-script >/tmp/codex-data-script-mode.txt
+rg '^tool_contract=data-script$' /tmp/codex-data-script-mode.txt
+rg '^runtime_surface=adapter-owned-data-script$' /tmp/codex-data-script-mode.txt
+test -x codex_setting/tools/material/data-script.sh
 codex_setting/bin/preflight.sh visual-harness >/tmp/codex-visual-contract.txt
 rg '^adapter=codex$' /tmp/codex-visual-contract.txt
 rg '^runtime_surface=adapter-owned-visual-harness$' /tmp/codex-visual-contract.txt
@@ -249,6 +253,10 @@ rg '^family=fast$' /tmp/opencode-role.txt
 opencode_setting/bin/preflight.sh mode-info dev/backend >/tmp/opencode-mode.txt
 rg '^adapter=opencode$' /tmp/opencode-mode.txt
 rg '^status=portable$' /tmp/opencode-mode.txt
+opencode_setting/bin/preflight.sh mode-info material/data-script >/tmp/opencode-data-script-mode.txt
+rg '^tool_contract=data-script$' /tmp/opencode-data-script-mode.txt
+rg '^runtime_surface=adapter-owned-data-script$' /tmp/opencode-data-script-mode.txt
+test -x opencode_setting/tools/material/data-script.sh
 opencode_setting/bin/preflight.sh visual-harness >/tmp/opencode-visual-contract.txt
 rg '^adapter=opencode$' /tmp/opencode-visual-contract.txt
 rg '^runtime_surface=adapter-owned-visual-harness$' /tmp/opencode-visual-contract.txt

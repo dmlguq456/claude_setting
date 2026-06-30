@@ -21,6 +21,7 @@ usage: preflight.sh write <file> [session-id]
        preflight.sh recall <prompt> [cwd]
        preflight.sh briefing [cwd]
        preflight.sh worklog [cwd]
+       preflight.sh data-script [--check] <script.py> [-- args...]
        preflight.sh design <file>
        preflight.sh visual-harness [file.html]
        preflight.sh distill-delta <session-id>
@@ -95,6 +96,10 @@ case "$cmd" in
       WORKLOG_BOARD_APP="${WORKLOG_BOARD_APP:-}" \
       WORKLOG_BOARD_WT="${WORKLOG_BOARD_WT:-}" \
       "$ROOT/utilities/agent-worklog-state.sh" "$cwd"
+    ;;
+  data-script)
+    shift
+    "$ROOT/adapters/opencode/tools/material/data-script.sh" "$@"
     ;;
   design)
     [ "$#" -ge 2 ] || { echo "opencode preflight: design requires a file path" >&2; exit 64; }

@@ -328,6 +328,22 @@ else
     bad "codex visual harness should render or report unavailable checker dependency"
   fi
 fi
+cat >"$TMP/codex-data-script.py" <<'EOF'
+import sys
+
+print("rows=3")
+print("args=" + ",".join(sys.argv[1:]))
+EOF
+if "$CODEX" data-script --check "$TMP/codex-data-script.py" >/tmp/codex_data_script.out 2>/tmp/codex_data_script.err \
+  && grep -q '^adapter=codex$' /tmp/codex_data_script.out \
+  && grep -q '^tool_contract=data-script$' /tmp/codex_data_script.out \
+  && grep -q '^runtime_surface=adapter-owned-data-script$' /tmp/codex_data_script.out \
+  && grep -q '^check=python-compile$' /tmp/codex_data_script.out \
+  && grep -q '^status=ok$' /tmp/codex_data_script.out; then
+  ok "codex data-script wrapper checks Python analysis scripts"
+else
+  bad "codex data-script wrapper should check Python analysis scripts"
+fi
 if command -v codex >/dev/null 2>&1; then
   mkdir -p "$TMP/codex_bootstrap_home"
   ln -s "$ROOT/codex_setting/AGENTS.md" "$TMP/codex_bootstrap_home/AGENTS.md"
@@ -472,6 +488,17 @@ if "$CODEX" mode-info design/maker >/tmp/mode.out 2>/tmp/mode.err \
   ok "codex mode wrapper marks adapter-coupled design mode unsupported"
 else
   bad "codex mode wrapper should mark adapter-coupled design mode unsupported"
+fi
+if "$CODEX" mode-info material/data-script >/tmp/mode.out 2>/tmp/mode.err \
+  && grep -q '^status=tool-contract$' /tmp/mode.out \
+  && grep -q '^realization=portable-with-tool-contract$' /tmp/mode.out \
+  && grep -q '^tool_contract=data-script$' /tmp/mode.out \
+  && grep -q '^tool_contract_check=adapters/codex/bin/preflight.sh data-script --check <script.py>$' /tmp/mode.out \
+  && grep -q '^runtime_surface=adapter-owned-data-script$' /tmp/mode.out \
+  && grep -q '^fallback=satisfy-tool-contract-or-report-unavailable$' /tmp/mode.out; then
+  ok "codex mode wrapper reports material data-script contract surface"
+else
+  bad "codex mode wrapper should report material data-script contract surface"
 fi
 if "$CODEX" mode-info material/browser-fetch >/tmp/mode.out 2>/tmp/mode.err \
   && grep -q '^status=tool-contract$' /tmp/mode.out \
@@ -895,6 +922,22 @@ else
     bad "opencode visual harness should render or report unavailable checker dependency"
   fi
 fi
+cat >"$TMP/opencode-data-script.py" <<'EOF'
+import sys
+
+print("rows=3")
+print("args=" + ",".join(sys.argv[1:]))
+EOF
+if "$OPENCODE" data-script --check "$TMP/opencode-data-script.py" >/tmp/opencode_data_script.out 2>/tmp/opencode_data_script.err \
+  && grep -q '^adapter=opencode$' /tmp/opencode_data_script.out \
+  && grep -q '^tool_contract=data-script$' /tmp/opencode_data_script.out \
+  && grep -q '^runtime_surface=adapter-owned-data-script$' /tmp/opencode_data_script.out \
+  && grep -q '^check=python-compile$' /tmp/opencode_data_script.out \
+  && grep -q '^status=ok$' /tmp/opencode_data_script.out; then
+  ok "opencode data-script wrapper checks Python analysis scripts"
+else
+  bad "opencode data-script wrapper should check Python analysis scripts"
+fi
 if command -v opencode >/dev/null 2>&1; then
   if OPENCODE_DISABLE_CLAUDE_CODE_SKILLS=1 \
     OPENCODE_CONFIG_CONTENT="{\"skills\":{\"paths\":[\"$ROOT/opencode_setting/opencode-skills\"]}}" \
@@ -931,6 +974,17 @@ if "$OPENCODE" mode-info design/maker >/tmp/opencode_mode.out 2>/tmp/opencode_mo
   ok "opencode mode wrapper marks adapter-coupled design mode unsupported"
 else
   bad "opencode mode wrapper should mark adapter-coupled design mode unsupported"
+fi
+if "$OPENCODE" mode-info material/data-script >/tmp/opencode_mode.out 2>/tmp/opencode_mode.err \
+  && grep -q '^status=tool-contract$' /tmp/opencode_mode.out \
+  && grep -q '^realization=portable-with-tool-contract$' /tmp/opencode_mode.out \
+  && grep -q '^tool_contract=data-script$' /tmp/opencode_mode.out \
+  && grep -q '^tool_contract_check=adapters/opencode/bin/preflight.sh data-script --check <script.py>$' /tmp/opencode_mode.out \
+  && grep -q '^runtime_surface=adapter-owned-data-script$' /tmp/opencode_mode.out \
+  && grep -q '^fallback=satisfy-tool-contract-or-report-unavailable$' /tmp/opencode_mode.out; then
+  ok "opencode mode wrapper reports material data-script contract surface"
+else
+  bad "opencode mode wrapper should report material data-script contract surface"
 fi
 if "$OPENCODE" mode-info material/browser-fetch >/tmp/opencode_mode.out 2>/tmp/opencode_mode.err \
   && grep -q '^status=tool-contract$' /tmp/opencode_mode.out \

@@ -81,9 +81,13 @@ Before adding or changing Codex-native skills or plugins:
    Claude files.
 
 Design capabilities are a tool-contract exception: Codex has native Skill
-guidance for them, but must provide or map an adapter visual harness before
-claiming full support. `capability-info` reports `status=tool-contract` for
-those entries.
+guidance for them, but must run the adapter visual harness before claiming full
+support. `capability-info` reports `status=tool-contract` for those entries.
+
+`roles/modes/material/data-script.md` is the first material mode with a
+Codex-owned executable tool-contract surface:
+`adapters/codex/bin/preflight.sh data-script --check <script.py>` verifies
+generated Python analysis scripts through `adapters/codex/tools/material/`.
 
 The boundary guard checks that generated Codex skills and the generated Codex
 plugin remain in sync, and that neither surface is built from Claude Skill
@@ -228,6 +232,7 @@ could consume them.
 - `memory/mem.py` (Codex-owned launcher for the shared memory CLI)
 - `memory/apply-distill-actions.py`
 - `memory/recall.sh` (Codex-owned launcher for recall)
+- `material/data-script.sh` (Codex-owned launcher for Python data-analysis scripts)
 - `design/visual-harness.sh` (Codex-owned launcher for render/screenshot/console checks)
 
 Do not project `build-manifest.py`: it is a harness development tool that reads

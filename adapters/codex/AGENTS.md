@@ -26,6 +26,7 @@ This file maps the shared agent harness onto Codex-style sessions. It is an adap
 - Run deterministic guard scripts directly when Codex hooks are unavailable or untrusted.
 - Expose Codex hook bridges through `codex_setting/codex-hooks`; do not project Claude `settings.json` or hook payloads.
 - Before edits, run `adapters/codex/bin/preflight.sh write <file> [session-id]`.
+- For `material/data-script` outputs, run `adapters/codex/bin/preflight.sh data-script --check <script.py>` before treating the generated analysis script as satisfying the mode tool contract.
 - After design HTML writes, run `adapters/codex/bin/preflight.sh design <file>`.
 - Before claiming full design/autopilot-design support, run `adapters/codex/bin/preflight.sh visual-harness <file.html>` and inspect the reported screenshot. Exit 69 means the local Playwright-backed checker is unavailable.
 - After actually reading `<artifact-root>/spec/prd.md`, run `adapters/codex/bin/preflight.sh read <prd.md> [session-id]`; before spec-changing capability work, run `adapters/codex/bin/preflight.sh capability <name> [cwd] [session-id]`.
@@ -34,7 +35,7 @@ This file maps the shared agent harness onto Codex-style sessions. It is an adap
 - Use `adapters/codex/bin/preflight.sh track [cwd] [session-id]` only when the user explicitly wants to toggle the tracked/untracked workflow escape hatch.
 - Use `adapters/codex/bin/preflight.sh worklog [cwd]` before worklog-board or agent-notes work to inspect configured notes/app paths without mutating data.
 - Use `adapters/codex/bin/preflight.sh distill-delta <session-id>` to inspect Codex transcript deltas. Use `CODEX_DISTILL_ENABLE=1 adapters/codex/bin/preflight.sh distill-propose <session-id> [cwd]` only for explicit proposal generation; do not auto-apply memory distillation until a Codex no-tools worker contract exists.
-- Treat `codex_setting/tools` as a selective memory-tool projection. Do not assume every shared tool is Codex-supported.
+- Treat `codex_setting/tools` as a selective memory/material/design tool projection. Do not assume every shared tool is Codex-supported.
 - Treat `codex_setting/utilities` as a selective utility projection. Do not assume every shared utility is Codex-supported.
 - Keep Codex-owned credentials, sessions, logs, caches, and local databases outside the harness repo.
 
