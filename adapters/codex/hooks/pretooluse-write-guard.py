@@ -38,12 +38,22 @@ def nested_mapping(payload: dict[str, Any], *keys: str) -> dict[str, Any]:
 
 
 def tool_name(payload: dict[str, Any]) -> str:
-    tool = nested_mapping(payload, "tool")
-    return first_string(payload, "tool_name", "toolName", "matcher") or first_string(tool, "name")
+    direct = first_string(payload, "tool_name", "toolName", "matcher")
+    if direct:
+        return direct
+    raw_tool = payload.get("tool")
+    if isinstance(raw_tool, str) and raw_tool:
+        return raw_tool
+    tool = nested_mapping(payload, "tool", "toolUse", "tool_use")
+    return first_string(tool, "name", "tool_name", "toolName")
 
 
 def tool_input(payload: dict[str, Any]) -> dict[str, Any]:
-    return nested_mapping(payload, "tool_input", "toolInput", "input", "arguments", "args", "params")
+    direct = nested_mapping(payload, "tool_input", "toolInput", "input", "arguments", "args", "params")
+    if direct:
+        return direct
+    tool = nested_mapping(payload, "tool", "toolUse", "tool_use")
+    return nested_mapping(tool, "tool_input", "toolInput", "input", "arguments", "args", "params")
 
 
 def cwd(payload: dict[str, Any]) -> Path:

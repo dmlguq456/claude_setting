@@ -996,6 +996,13 @@ if python3 -m json.tool "$TMP/codex_hook_home/.codex/hooks.json" >/tmp/codex_hoo
 else
   bad "codex native hook projection should bridge clean writes to preflight"
 fi
+if printf '{"tool":"Write","input":{"path":"%s"},"session_id":"nestedpayloadsid","cwd":"%s"}\n' "$TMP/repo/nested-f" "$TMP/repo" \
+  | HOME="$TMP/codex_hook_home" python3 "$TMP/codex_hook_home/.codex/agent-harness/adapters/codex/hooks/pretooluse-write-guard.py" >/tmp/codex_hook_nested.out 2>/tmp/codex_hook_nested.err \
+  && [ ! -s /tmp/codex_hook_nested.out ]; then
+  ok "codex native hook projection accepts string-tool nested input payloads"
+else
+  bad "codex native hook projection should accept string-tool nested input payloads"
+fi
 codex_hook_command=$(python3 - "$TMP/codex_hook_home/.codex/hooks.json" <<'PY'
 import json
 import sys
@@ -1057,6 +1064,13 @@ if printf '{"tool_name":"Read","tool_input":{"file_path":"%s"},"session_id":"tes
 else
   bad "codex native hook projection should record spec read markers"
 fi
+if printf '{"tool":{"name":"Read","input":{"path":"%s"}},"session_id":"nestedreadsid","cwd":"%s"}\n' "$TMP/repo/.agent_reports/spec/prd.md" "$TMP/repo" \
+  | AGENT_HOME="$TMP/codex_marker_home" HOME="$TMP/codex_hook_home" python3 "$TMP/codex_hook_home/.codex/agent-harness/adapters/codex/hooks/posttooluse-read-marker.py" >/tmp/codex_read_hook_nested.out 2>/tmp/codex_read_hook_nested.err \
+  && find "$TMP/codex_marker_home/.spec-grounding" -type f -name 'nestedreadsid__*' -print -quit | grep -q .; then
+  ok "codex native read hook accepts nested tool input payloads"
+else
+  bad "codex native read hook should accept nested tool input payloads"
+fi
 if printf '{"tool_name":"Write","tool_input":{"file_path":"%s"},"session_id":"testsid","cwd":"%s"}\n' "$TMP/runtime/projects/abc/memory/MEMORY.md" "$TMP/runtime" \
   | HOME="$TMP/codex_hook_home" python3 "$TMP/codex_hook_home/.codex/agent-harness/adapters/codex/hooks/pretooluse-write-guard.py" >/tmp/codex_hook_block.out 2>/tmp/codex_hook_block.err \
   && grep -q '"decision": "block"' /tmp/codex_hook_block.out \
@@ -1074,6 +1088,14 @@ if printf '{"tool_name":"Write","tool_input":{"file_path":"%s"},"session_id":"te
   ok "codex native hook projection bridges design post-write checks"
 else
   bad "codex native hook projection should bridge design post-write checks"
+fi
+if printf '{"toolUse":{"name":"Write","input":{"path":"%s"}},"session_id":"testsid","cwd":"%s"}\n' "$TMP/repo/spec/design/preview.html" "$TMP/repo" \
+  | DESIGN_POSTWRITE_HOOK=0 HOME="$TMP/codex_hook_home" python3 "$TMP/codex_hook_home/.codex/agent-harness/adapters/codex/hooks/posttooluse-design-check.py" >/tmp/codex_design_hook_nested.out 2>/tmp/codex_design_hook_nested.err \
+  && [ ! -s /tmp/codex_design_hook_nested.out ] \
+  && [ ! -s /tmp/codex_design_hook_nested.err ]; then
+  ok "codex native design hook accepts toolUse input payloads"
+else
+  bad "codex native design hook should accept toolUse input payloads"
 fi
 if "$CODEX" mode-info dev/backend >/tmp/mode.out 2>/tmp/mode.err \
   && grep -q '^status=portable$' /tmp/mode.out \

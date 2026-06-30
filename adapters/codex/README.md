@@ -246,9 +246,11 @@ projection:
 ln -sfn "$AGENT_HOME/codex_setting/codex-hooks/hooks.json" "$HOME/.codex/hooks.json"
 ```
 
-The pre-write bridge accepts Codex hook stdin JSON and returns a
-`decision=block` hook result when the shared guard fails. The read bridge is a
-marker path only, and the design bridge is a post-write alert path only.
+The pre-write bridge accepts Codex hook stdin JSON across top-level and nested
+tool payload shapes (`tool_name`/`tool_input`, `tool` + `input`, or
+`toolUse.input`) and returns a `decision=block` hook result when the shared
+guard fails. The read bridge is a marker path only, and the design bridge is a
+post-write alert path only.
 Neither bridge consumes Claude `settings.json` or Claude hook payloads.
 
 ## Runtime Home Projection

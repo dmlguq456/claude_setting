@@ -1280,6 +1280,12 @@ check_codex_native_hook_projection() {
       fail_msg "$bridge must call the Codex preflight wrapper"
     fi
   done
+  for bridge in "$pre_bridge" "$post_bridge" "$read_bridge"; do
+    if ! grep -Fq 'raw_tool = payload.get("tool")' "$bridge" \
+      || ! grep -Fq 'nested_mapping(payload, "tool", "toolUse", "tool_use")' "$bridge"; then
+      fail_msg "$bridge must tolerate Codex hook tool payload variants"
+    fi
+  done
   if ! grep -Fq '"design"' "$post_bridge"; then
     fail_msg "$post_bridge must call the Codex design preflight"
   fi
