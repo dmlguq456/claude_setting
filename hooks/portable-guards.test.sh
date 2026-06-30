@@ -540,6 +540,15 @@ if "$CODEX" mode-info dev/backend >/tmp/mode.out 2>/tmp/mode.err \
 else
   bad "codex mode wrapper should map portable mode"
 fi
+if "$CODEX" mode-info qa/security-review >/tmp/mode.out 2>/tmp/mode.err \
+  && grep -q '^status=portable$' /tmp/mode.out \
+  && grep -q '^realization=portable-persona$' /tmp/mode.out \
+  && grep -q 'read-only security review with Codex file and git diff tools' /tmp/mode.out \
+  && ! grep -q '^tool_contract=' /tmp/mode.out; then
+  ok "codex mode wrapper treats security-review as portable read-only guidance"
+else
+  bad "codex mode wrapper should treat security-review as portable read-only guidance"
+fi
 if "$CODEX" mode-info design/maker >/tmp/mode.out 2>/tmp/mode.err \
   && grep -q '^status=unsupported$' /tmp/mode.out \
   && grep -q '^realization=adapter-coupled$' /tmp/mode.out \
@@ -1111,6 +1120,15 @@ if "$OPENCODE" mode-info dev/backend >/tmp/opencode_mode.out 2>/tmp/opencode_mod
   ok "opencode mode wrapper maps portable mode"
 else
   bad "opencode mode wrapper should map portable mode"
+fi
+if "$OPENCODE" mode-info qa/security-review >/tmp/opencode_mode.out 2>/tmp/opencode_mode.err \
+  && grep -q '^status=portable$' /tmp/opencode_mode.out \
+  && grep -q '^realization=portable-persona$' /tmp/opencode_mode.out \
+  && grep -q 'read-only security review with OpenCode file and git diff tools' /tmp/opencode_mode.out \
+  && ! grep -q '^tool_contract=' /tmp/opencode_mode.out; then
+  ok "opencode mode wrapper treats security-review as portable read-only guidance"
+else
+  bad "opencode mode wrapper should treat security-review as portable read-only guidance"
 fi
 if "$OPENCODE" mode-info design/maker >/tmp/opencode_mode.out 2>/tmp/opencode_mode.err \
   && grep -q '^status=unsupported$' /tmp/opencode_mode.out \

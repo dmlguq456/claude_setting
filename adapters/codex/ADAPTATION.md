@@ -101,6 +101,10 @@ tool-contract surface:
 local PDF text extraction through `adapters/codex/tools/material/` and reports
 exit 69 when the local extractor is unavailable.
 
+`roles/modes/qa/security-review.md` is portable read-only mode guidance for
+Codex. It is consumed with Codex file and git diff tools and does not project
+or invoke Claude's `/security-review` slash command.
+
 `roles/modes/qa/test.md` has a Codex-owned executable tool-contract surface:
 `adapters/codex/bin/preflight.sh verification-runner --check -- <command>`
 checks explicit verification commands and the same wrapper can execute them

@@ -93,23 +93,19 @@ case "$family" in
     ;;
   qa)
     case "$name" in
-      security-review|test)
+      test)
         status=tool-contract
         realization=portable-with-tool-contract
         fallback="satisfy-tool-contract-or-report-unavailable"
-        case "$name" in
-          security-review) tool_contract=security-review ;;
-          test)
-            tool_contract=verification-runner
-            tool_contract_check="adapters/opencode/bin/preflight.sh verification-runner --check -- <command>"
-            runtime_surface=adapter-owned-verification-runner
-            ;;
-        esac
-        if [ "$name" = "test" ]; then
-          requirement="run explicit verification commands through the adapter-owned verification runner, or report unavailable"
-        else
-          requirement="replace Claude-derived security-review notes with OpenCode-native commands"
-        fi
+        tool_contract=verification-runner
+        tool_contract_check="adapters/opencode/bin/preflight.sh verification-runner --check -- <command>"
+        runtime_surface=adapter-owned-verification-runner
+        requirement="run explicit verification commands through the adapter-owned verification runner, or report unavailable"
+        ;;
+      security-review)
+        status=portable
+        realization=portable-persona
+        requirement="perform read-only security review with OpenCode file and git diff tools; do not invoke Claude slash-command surfaces"
         ;;
       *)
         status=portable

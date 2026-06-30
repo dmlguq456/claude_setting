@@ -1702,7 +1702,7 @@ check_codex_mode_map() {
           fail_msg "Codex mode map must report visual-harness contract metadata for unsupported design mode $rel"
         fi
         ;;
-      material/*|qa/security-review|qa/test|research/claim-verify)
+      material/*|qa/test|research/claim-verify)
         if ! grep -Fq 'status=tool-contract' "$out" || ! grep -Fq 'realization=portable-with-tool-contract' "$out"; then
           fail_msg "Codex mode map must mark $rel as portable-with-tool-contract"
         fi
@@ -1740,6 +1740,12 @@ check_codex_mode_map() {
       *)
         if ! grep -Fq 'status=portable' "$out" || ! grep -Fq 'realization=portable-persona' "$out"; then
           fail_msg "Codex mode map must mark $rel as portable-persona"
+        fi
+        if [ "$rel" = "qa/security-review" ]; then
+          if grep -Fq 'tool_contract=' "$out" \
+            || ! grep -Fq 'read-only security review with Codex file and git diff tools' "$out"; then
+            fail_msg "Codex mode map must treat qa/security-review as portable read-only guidance"
+          fi
         fi
         ;;
     esac
@@ -1796,7 +1802,7 @@ check_opencode_mode_map() {
           fail_msg "OpenCode mode map must report visual-harness contract metadata for unsupported design mode $rel"
         fi
         ;;
-      material/*|qa/security-review|qa/test|research/claim-verify)
+      material/*|qa/test|research/claim-verify)
         if ! grep -Fq 'status=tool-contract' "$out" || ! grep -Fq 'realization=portable-with-tool-contract' "$out"; then
           fail_msg "OpenCode mode map must mark $rel as portable-with-tool-contract"
         fi
@@ -1834,6 +1840,12 @@ check_opencode_mode_map() {
       *)
         if ! grep -Fq 'status=portable' "$out" || ! grep -Fq 'realization=portable-persona' "$out"; then
           fail_msg "OpenCode mode map must mark $rel as portable-persona"
+        fi
+        if [ "$rel" = "qa/security-review" ]; then
+          if grep -Fq 'tool_contract=' "$out" \
+            || ! grep -Fq 'read-only security review with OpenCode file and git diff tools' "$out"; then
+            fail_msg "OpenCode mode map must treat qa/security-review as portable read-only guidance"
+          fi
         fi
         ;;
     esac

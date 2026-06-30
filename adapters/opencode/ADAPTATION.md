@@ -96,6 +96,10 @@ tool-contract surface:
 local PDF text extraction through `adapters/opencode/tools/material/` and
 reports exit 69 when the local extractor is unavailable.
 
+`roles/modes/qa/security-review.md` is portable read-only mode guidance for
+OpenCode. It is consumed with OpenCode file and git diff tools and does not
+project or invoke Claude's `/security-review` slash command.
+
 `roles/modes/qa/test.md` has an OpenCode-owned executable tool-contract
 surface:
 `adapters/opencode/bin/preflight.sh verification-runner --check -- <command>`
