@@ -18,6 +18,11 @@ This is adapter-owned output generated from `capabilities/autopilot-design.md`, 
 5. If the command receives arguments, map them to the portable argument shape:
    `<design task or app path> [--scope ui|webapp|slide|icon|diagram|mixed] [--artifact standalone|project] [--from <phase>] [--qa quick|standard|thorough]`.
 
+Portable contract excerpt:
+
+- Invocation semantics: Unified design pipeline — orchestrates design-init → design-refs → design-tokens → design-components → design-review → design-handoff. For visual artifacts across UI/UX, slides, diagrams, icons, logos. Can be invoked standalone or auto-delegated from autopilot-spec Phase 2. Distinct from autopilot-draft (text-only documents) — autopilot-design handles visual deliverables. A runtime design harness must render every output for visual self-verification (preview/screenshot/console/eval_js/view_image where supported), run a separate-context verifier gate for console/layout breakage, apply shared design rules and reusable scaffold assets, and support PDF/PPTX/single-HTML bundle export where available. Outputs can be a self-contained single-file HTML preview viewable without any project stack. Adapters may expose this capability through native commands, skill files, prompt instructions, or explicit wrappers. The adapter must report unsupported runtime mechanics instead of silently treating another runtime's native file format as portable.
+
+
 User arguments from OpenCode: `$ARGUMENTS`
 
 Do not use non-OpenCode command files or runtime-specific slash-command files

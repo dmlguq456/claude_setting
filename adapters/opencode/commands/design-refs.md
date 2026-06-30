@@ -18,6 +18,11 @@ This is adapter-owned output generated from `capabilities/design-refs.md`, not a
 5. If the command receives arguments, map them to the portable argument shape:
    `<design task> [--design <path>] [--refs <image paths>] [--no-web]`.
 
+Portable contract excerpt:
+
+- Invocation semantics: Reference collection and brief — gathers user-provided images, external web references (via 자료팀 web-image-search), existing design system assets. Writes a brief that informs subsequent phases. Adapters may expose this capability through native commands, skill files, prompt instructions, or explicit wrappers. The adapter must report unsupported runtime mechanics instead of silently treating another runtime's native file format as portable.
+
+
 User arguments from OpenCode: `$ARGUMENTS`
 
 Do not use non-OpenCode command files or runtime-specific slash-command files

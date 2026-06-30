@@ -33,6 +33,11 @@ capability contract. It is adapter-owned output, not a legacy compatibility Skil
 - Argument shape: `<plan name or path>`
 - Portable meaning: plan 단계별 구현 실행. 개발 role에 작업을 위임하고 execution log를 남긴다.
 
+## Portable Contract
+
+- Invocation semantics: Execute an implementation plan with progress tracking Adapters may expose this capability through native commands, skill files, prompt instructions, or explicit wrappers. The adapter must report unsupported runtime mechanics instead of silently treating another runtime's native file format as portable.
+
+
 ## Required Guards
 
 - Before edits: `adapters/opencode/bin/preflight.sh write <file> [session-id]`

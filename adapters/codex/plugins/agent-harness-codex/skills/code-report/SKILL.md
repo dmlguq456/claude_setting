@@ -30,6 +30,11 @@ contract. It is adapter-owned output, not a legacy compatibility Skill copy.
 - Argument shape: `<plan name or path>`
 - Portable meaning: 코드 작업 사이클 결과를 사용자-facing 보고서로 조립한다.
 
+## Portable Contract
+
+- Invocation semantics: Generate a detailed change report from plan + dev logs — focuses on key changes, principles, and insights for future reference Adapters may expose this capability through native commands, skill files, prompt instructions, or explicit wrappers. The adapter must report unsupported runtime mechanics instead of silently treating another runtime's native file format as portable.
+
+
 ## Required Guards
 
 - Before edits: `adapters/codex/bin/preflight.sh write <file> [session-id]`

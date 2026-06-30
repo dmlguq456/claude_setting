@@ -818,6 +818,9 @@ check_codex_native_skill_projection() {
     if ! grep -Fq "not a legacy compatibility Skill copy" "$skill"; then
       fail_msg "$skill must state that it is not a legacy compatibility Skill copy"
     fi
+    if ! grep -Fq "Invocation semantics:" "$skill"; then
+      fail_msg "$skill must include the portable invocation semantics excerpt"
+    fi
     if ! grep -Fq 'named `tool_contract`' "$skill" \
       || ! grep -Fq '`tool_contract_check`' "$skill" \
       || ! grep -Fq '`runtime_surface` / `fallback`' "$skill" \
@@ -885,6 +888,9 @@ check_codex_native_plugin_projection() {
   fi
   if [ ! -f "$plugin_root/skills/autopilot-code/SKILL.md" ]; then
     fail_msg "Codex native plugin must include generated capability skills"
+  fi
+  if ! grep -Fq "_RUNLOG" "$plugin_root/skills/autopilot-lab/SKILL.md"; then
+    fail_msg "Codex native plugin skill projection must preserve the autopilot-lab _RUNLOG invariant"
   fi
   for skill in "$plugin_root"/skills/*/SKILL.md; do
     [ -f "$skill" ] || continue
@@ -1443,6 +1449,9 @@ check_opencode_native_skill_projection() {
     if ! grep -Fq "not a legacy compatibility Skill copy" "$skill"; then
       fail_msg "$skill must state that it is not a legacy compatibility Skill copy"
     fi
+    if ! grep -Fq "Invocation semantics:" "$skill"; then
+      fail_msg "$skill must include the portable invocation semantics excerpt"
+    fi
     if ! grep -Fq 'named `tool_contract`' "$skill" \
       || ! grep -Fq '`tool_contract_check`' "$skill" \
       || ! grep -Fq '`runtime_surface` / `fallback`' "$skill" \
@@ -1555,6 +1564,9 @@ check_opencode_native_command_projection() {
     if ! grep -Fq "not a runtime-specific command copy" "$command"; then
       fail_msg "$command must state that it is not a runtime-specific command copy"
     fi
+    if ! grep -Fq "Invocation semantics:" "$command"; then
+      fail_msg "$command must include the portable invocation semantics excerpt"
+    fi
     if ! grep -Fq '$ARGUMENTS' "$command"; then
       fail_msg "$command must pass OpenCode command arguments through $ARGUMENTS"
     fi
@@ -1581,6 +1593,11 @@ check_opencode_native_command_projection() {
   if ! grep -Fq 'native_command_path=' adapters/opencode/bin/capability-map.sh \
     || ! grep -Fq 'opencode-native-skill-command' adapters/opencode/bin/capability-map.sh; then
     fail_msg "adapters/opencode/bin/capability-map.sh must report OpenCode native command realization"
+  fi
+  if ! grep -Fq "_RUNLOG" adapters/opencode/skills/autopilot-lab/SKILL.md \
+    || ! grep -Fq "_RUNLOG" adapters/opencode/commands/autopilot-lab.md \
+    || ! grep -Fq "_RUNLOG" adapters/codex/skills/autopilot-lab/SKILL.md; then
+    fail_msg "native autopilot-lab projections must preserve the portable _RUNLOG invariant"
   fi
 }
 

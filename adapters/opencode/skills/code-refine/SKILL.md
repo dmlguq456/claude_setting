@@ -33,6 +33,11 @@ capability contract. It is adapter-owned output, not a legacy compatibility Skil
 - Argument shape: `<plan name or path> [--qa quick|light|standard|thorough|adversarial]`
 - Portable meaning: 사용자 메모·QA 피드백을 반영해 기존 plan을 정정한다.
 
+## Portable Contract
+
+- Invocation semantics: Reflect user memos/comments in a plan and update it (do NOT implement) Adapters may expose this capability through native commands, skill files, prompt instructions, or explicit wrappers. The adapter must report unsupported runtime mechanics instead of silently treating another runtime's native file format as portable.
+
+
 ## Required Guards
 
 - Before edits: `adapters/opencode/bin/preflight.sh write <file> [session-id]`

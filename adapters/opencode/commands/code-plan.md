@@ -18,6 +18,11 @@ This is adapter-owned output generated from `capabilities/code-plan.md`, not a r
 5. If the command receives arguments, map them to the portable argument shape:
    `<task description> [--qa quick|light|standard|thorough|adversarial]`.
 
+Portable contract excerpt:
+
+- Invocation semantics: Create a detailed implementation plan based on actual codebase Adapters may expose this capability through native commands, skill files, prompt instructions, or explicit wrappers. The adapter must report unsupported runtime mechanics instead of silently treating another runtime's native file format as portable.
+
+
 User arguments from OpenCode: `$ARGUMENTS`
 
 Do not use non-OpenCode command files or runtime-specific slash-command files

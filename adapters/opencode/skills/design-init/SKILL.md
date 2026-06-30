@@ -33,6 +33,11 @@ capability contract. It is adapter-owned output, not a legacy compatibility Skil
 - Argument shape: `<design task description> [--scope ui|slide|icon|diagram|mixed]`
 - Portable meaning: 디자인 환경과 state를 bootstrap한다.
 
+## Portable Contract
+
+- Invocation semantics: Design environment check and bootstrap — self-provisions the runtime design harness that powers visual self-verification, plus optional Figma MCP, shadcn/ui, Tailwind tokens, SVG rasterizer, and image-generation integration where supported. Adapter-native files own concrete MCP registration commands and runtime paths. Per spec §0.5 it installs what is missing rather than stopping. Creates design_state.yaml. Adapters may expose this capability through native commands, skill files, prompt instructions, or explicit wrappers. The adapter must report unsupported runtime mechanics instead of silently treating another runtime's native file format as portable.
+
+
 ## Required Guards
 
 - Before edits: `adapters/opencode/bin/preflight.sh write <file> [session-id]`

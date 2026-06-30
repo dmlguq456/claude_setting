@@ -30,6 +30,11 @@ contract. It is adapter-owned output, not a legacy compatibility Skill copy.
 - Argument shape: `<design path or app path>`
 - Portable meaning: 색·타이포·간격 등 디자인 토큰을 정의한다.
 
+## Portable Contract
+
+- Invocation semantics: Design tokens decision — color palette, typography scale, spacing scale, radius, shadow, motion. Writes tokens.css / tailwind.config.ts. Extends existing tokens (never silently overwrites). Versions every change — snapshots prior tokens to _internal/versions/v{N}/ + logs reason to design_summary.md (mirrors spec versioning), so later token edits stay traceable. Adapters may expose this capability through native commands, skill files, prompt instructions, or explicit wrappers. The adapter must report unsupported runtime mechanics instead of silently treating another runtime's native file format as portable.
+
+
 ## Required Guards
 
 - Before edits: `adapters/codex/bin/preflight.sh write <file> [session-id]`

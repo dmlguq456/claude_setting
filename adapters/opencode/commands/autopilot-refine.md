@@ -18,6 +18,11 @@ This is adapter-owned output generated from `capabilities/autopilot-refine.md`, 
 5. If the command receives arguments, map them to the portable argument shape:
    `\"<prompt>\" [--qa quick|light|standard|thorough|adversarial] [--review-only|--memo <file>] [--confirm] [--no-fact-check] [--no-style-audit]`.
 
+Portable contract excerpt:
+
+- Invocation semantics: Autopilot family — post-creation iteration pipeline for research and doc artifacts (NOT code). Prompt-driven: target artifact identified via prompt fuzzy match against `<artifact-root>/{research,documents}/*`, then auto-discovers the artifact's file structure, plans edits, shows a diff preview in chat, and on user confirm applies edits with versioning + integrated history logging in `pipeline_summary.md` (single source of truth — no separate CHANGELOG). Default `--qa quick` (1-pass review, fastest path); escalate to light/standard/thorough/adversarial for multi-round review, fact-check, or external adversary pass. Optional `--memo <file>` falls back to file-memo style for deferred reviews. Adapters may expose this capability through native commands, skill files, prompt instructions, or explicit wrappers. The adapter must report unsupported runtime mechanics instead of silently treating another runtime's native file format as portable.
+
+
 User arguments from OpenCode: `$ARGUMENTS`
 
 Do not use non-OpenCode command files or runtime-specific slash-command files

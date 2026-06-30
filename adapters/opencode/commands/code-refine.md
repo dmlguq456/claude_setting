@@ -18,6 +18,11 @@ This is adapter-owned output generated from `capabilities/code-refine.md`, not a
 5. If the command receives arguments, map them to the portable argument shape:
    `<plan name or path> [--qa quick|light|standard|thorough|adversarial]`.
 
+Portable contract excerpt:
+
+- Invocation semantics: Reflect user memos/comments in a plan and update it (do NOT implement) Adapters may expose this capability through native commands, skill files, prompt instructions, or explicit wrappers. The adapter must report unsupported runtime mechanics instead of silently treating another runtime's native file format as portable.
+
+
 User arguments from OpenCode: `$ARGUMENTS`
 
 Do not use non-OpenCode command files or runtime-specific slash-command files

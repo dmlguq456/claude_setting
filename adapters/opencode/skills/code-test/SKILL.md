@@ -33,6 +33,11 @@ capability contract. It is adapter-owned output, not a legacy compatibility Skil
 - Argument shape: `<plan name, path, or test scope>`
 - Portable meaning: 구현 결과를 단계별로 검증하고 evidence를 기록한다.
 
+## Portable Contract
+
+- Invocation semantics: Run functional tests after code-execute or on demand to verify code correctness Adapters may expose this capability through native commands, skill files, prompt instructions, or explicit wrappers. The adapter must report unsupported runtime mechanics instead of silently treating another runtime's native file format as portable.
+
+
 ## Required Guards
 
 - Before edits: `adapters/opencode/bin/preflight.sh write <file> [session-id]`

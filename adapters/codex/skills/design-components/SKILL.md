@@ -30,6 +30,11 @@ contract. It is adapter-owned output, not a legacy compatibility Skill copy.
 - Argument shape: `<design path or app path>`
 - Portable meaning: UI component/mockup 구현과 preview artifact를 만든다.
 
+## Portable Contract
+
+- Invocation semantics: Component / visual asset creation — invokes 디자인팀 maker mode. Produces shadcn/Tailwind components (ui), composed full-screen pages (webapp), slide visual guides (slide), SVG icons (icon), or mermaid/direct-SVG/excalidraw diagrams (diagram). Every output is rendered and visually self-verified (render → Read → fix loop), and can be emitted as a self-contained single-file HTML preview artifact (--artifact standalone). Adapters may expose this capability through native commands, skill files, prompt instructions, or explicit wrappers. The adapter must report unsupported runtime mechanics instead of silently treating another runtime's native file format as portable.
+
+
 ## Required Guards
 
 - Before edits: `adapters/codex/bin/preflight.sh write <file> [session-id]`

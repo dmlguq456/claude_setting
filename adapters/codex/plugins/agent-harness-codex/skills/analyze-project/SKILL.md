@@ -30,6 +30,11 @@ contract. It is adapter-owned output, not a legacy compatibility Skill copy.
 - Argument shape: `[--mode code|paper|doc] [<scope/target/input-folder>] [--skip-qa]`
 - Portable meaning: 사전 분석. 코드·논문·문서 primary 자료를 구조화해 다운스트림 입력으로 만든다.
 
+## Portable Contract
+
+- Invocation semantics: Pre-work analysis skill — analyzes the project's primary materials and writes structured artifacts to <artifact-root>/analysis_project/. Three modes — code (codebase), paper (academic PDFs), doc (miscellaneous doc materials like reviewer comments, format templates, samples, internal notes). Mode auto-detects between code and doc when omitted; paper requires explicit --mode paper. Output is the persistent input source for downstream autopilot-{draft,code,research} skills. Adapters may expose this capability through native commands, skill files, prompt instructions, or explicit wrappers. The adapter must report unsupported runtime mechanics instead of silently treating another runtime's native file format as portable.
+
+
 ## Required Guards
 
 - Before edits: `adapters/codex/bin/preflight.sh write <file> [session-id]`

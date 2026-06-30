@@ -30,6 +30,11 @@ contract. It is adapter-owned output, not a legacy compatibility Skill copy.
 - Argument shape: `<design path or app path>`
 - Portable meaning: 디자인 결과물을 품질·토큰 계약·breakage 관점으로 점검한다.
 
+## Portable Contract
+
+- Invocation semantics: Visual review — two gates. (1) verifier (디자인팀 verifier mode, separate context, adapter visual harness) screens for breakage — console errors, layout collapse, intent mismatch — and must pass before critique. (2) critic (디자인팀 critic mode) gives a 6-axis quality critique (hierarchy, alignment, accessibility, responsiveness, UX flow, tone). Both render through the adapter-provided visual harness and inspect the image. Read-only — no auto-fix. Adapters may expose this capability through native commands, skill files, prompt instructions, or explicit wrappers. The adapter must report unsupported runtime mechanics instead of silently treating another runtime's native file format as portable.
+
+
 ## Required Guards
 
 - Before edits: `adapters/codex/bin/preflight.sh write <file> [session-id]`

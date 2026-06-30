@@ -18,6 +18,11 @@ This is adapter-owned output generated from `capabilities/design-review.md`, not
 5. If the command receives arguments, map them to the portable argument shape:
    `<design path or app path>`.
 
+Portable contract excerpt:
+
+- Invocation semantics: Visual review — two gates. (1) verifier (디자인팀 verifier mode, separate context, adapter visual harness) screens for breakage — console errors, layout collapse, intent mismatch — and must pass before critique. (2) critic (디자인팀 critic mode) gives a 6-axis quality critique (hierarchy, alignment, accessibility, responsiveness, UX flow, tone). Both render through the adapter-provided visual harness and inspect the image. Read-only — no auto-fix. Adapters may expose this capability through native commands, skill files, prompt instructions, or explicit wrappers. The adapter must report unsupported runtime mechanics instead of silently treating another runtime's native file format as portable.
+
+
 User arguments from OpenCode: `$ARGUMENTS`
 
 Do not use non-OpenCode command files or runtime-specific slash-command files

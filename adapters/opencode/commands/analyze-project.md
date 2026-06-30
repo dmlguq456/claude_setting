@@ -18,6 +18,11 @@ This is adapter-owned output generated from `capabilities/analyze-project.md`, n
 5. If the command receives arguments, map them to the portable argument shape:
    `[--mode code|paper|doc] [<scope/target/input-folder>] [--skip-qa]`.
 
+Portable contract excerpt:
+
+- Invocation semantics: Pre-work analysis skill — analyzes the project's primary materials and writes structured artifacts to <artifact-root>/analysis_project/. Three modes — code (codebase), paper (academic PDFs), doc (miscellaneous doc materials like reviewer comments, format templates, samples, internal notes). Mode auto-detects between code and doc when omitted; paper requires explicit --mode paper. Output is the persistent input source for downstream autopilot-{draft,code,research} skills. Adapters may expose this capability through native commands, skill files, prompt instructions, or explicit wrappers. The adapter must report unsupported runtime mechanics instead of silently treating another runtime's native file format as portable.
+
+
 User arguments from OpenCode: `$ARGUMENTS`
 
 Do not use non-OpenCode command files or runtime-specific slash-command files

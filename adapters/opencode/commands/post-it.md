@@ -18,6 +18,11 @@ This is adapter-owned output generated from `capabilities/post-it.md`, not a run
 5. If the command receives arguments, map them to the portable argument shape:
    `[show]|add <category> <text>|resolve <hint>|decide <text>|handoff [--no-confirm]|sweep [--no-confirm]|promote [<hint>] [--scope project|user [<aspect>]]`.
 
+Portable contract excerpt:
+
+- Invocation semantics: Manually-controlled working-memory layer, two scopes. `--scope project` (default): `mem note`/`mem add` (working tier, per-cwd) — thread/decision/convention/reference records in DB. `--scope user <aspect>`: `mem add` (durable, global, profile-adjacent) — splices a note into the `## 사용자 수동 메모` block of the profile record (`source user-profile:<stem>`), shared with analyze-user. All entries are designed to graduate (into artifacts/profiles) or expire — `sweep` flags stale working records; `promote` graduates user notes into the profile record. DB working tier is injected at session start by `mem inject` (not a file read). Adapters may expose this capability through native commands, skill files, prompt instructions, or explicit wrappers. The adapter must report unsupported runtime mechanics instead of silently treating another runtime's native file format as portable.
+
+
 User arguments from OpenCode: `$ARGUMENTS`
 
 Do not use non-OpenCode command files or runtime-specific slash-command files

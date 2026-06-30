@@ -18,6 +18,11 @@ This is adapter-owned output generated from `capabilities/code-report.md`, not a
 5. If the command receives arguments, map them to the portable argument shape:
    `<plan name or path>`.
 
+Portable contract excerpt:
+
+- Invocation semantics: Generate a detailed change report from plan + dev logs — focuses on key changes, principles, and insights for future reference Adapters may expose this capability through native commands, skill files, prompt instructions, or explicit wrappers. The adapter must report unsupported runtime mechanics instead of silently treating another runtime's native file format as portable.
+
+
 User arguments from OpenCode: `$ARGUMENTS`
 
 Do not use non-OpenCode command files or runtime-specific slash-command files

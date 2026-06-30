@@ -30,6 +30,24 @@ def compact(text: str) -> str:
     return re.sub(r"\s+", " ", text.strip()).replace('"', "'")
 
 
+def markdown_section(text: str, heading: str) -> str:
+    marker = f"## {heading}"
+    lines = text.splitlines()
+    start = None
+    for index, line in enumerate(lines):
+        if line.strip() == marker:
+            start = index + 1
+            break
+    if start is None:
+        return ""
+    body: list[str] = []
+    for line in lines[start:]:
+        if line.startswith("## "):
+            break
+        body.append(line)
+    return compact("\n".join(body))
+
+
 def render(capability_file: Path) -> tuple[str, str]:
     slug = capability_file.stem
     source = capability_file.read_text(encoding="utf-8")
@@ -37,6 +55,14 @@ def render(capability_file: Path) -> tuple[str, str]:
     identifier = rows.get("Identifier", f"`{slug}`").strip("`")
     argument_shape = rows.get("Argument shape", "").strip("`")
     meaning = compact(rows.get("Portable meaning", identifier))
+    invocation_semantics = markdown_section(source, "Invocation Semantics")
+    portable_contract = ""
+    if invocation_semantics:
+        portable_contract = f"""
+Portable contract excerpt:
+
+- Invocation semantics: {invocation_semantics}
+"""
     description = compact(
         f"Run the portable {identifier} capability through the OpenCode adapter. "
         f"Meaning: {meaning}"
@@ -60,6 +86,7 @@ This is adapter-owned output generated from `capabilities/{identifier}.md`, not 
    `adapters/opencode/bin/preflight.sh capability {identifier} [cwd] [session-id]`.
 5. If the command receives arguments, map them to the portable argument shape:
    `{argument_shape}`.
+{portable_contract}
 
 User arguments from OpenCode: `$ARGUMENTS`
 

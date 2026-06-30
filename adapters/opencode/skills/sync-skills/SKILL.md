@@ -33,6 +33,11 @@ capability contract. It is adapter-owned output, not a legacy compatibility Skil
 - Argument shape: `[--check] [--force] [--auto-fix [--dry-run]]`
 - Portable meaning: 정의 변경을 읽어 README/manifest/cross-doc invariant drift를 점검·동기화한다.
 
+## Portable Contract
+
+- Invocation semantics: Skills + Agents 정의 변경을 감지해 <agent-home>/README.md (GitHub) 의 대시보드 (워크플로우 map + cheat-sheet + 통합 가이드라인) 를 동기화한다. drift 체크 전용 모드도 지원. Adapters may expose this capability through native commands, skill files, prompt instructions, or explicit wrappers. The adapter must report unsupported runtime mechanics instead of silently treating another runtime's native file format as portable.
+
+
 ## Required Guards
 
 - Before edits: `adapters/opencode/bin/preflight.sh write <file> [session-id]`

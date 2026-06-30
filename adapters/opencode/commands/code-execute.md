@@ -18,6 +18,11 @@ This is adapter-owned output generated from `capabilities/code-execute.md`, not 
 5. If the command receives arguments, map them to the portable argument shape:
    `<plan name or path>`.
 
+Portable contract excerpt:
+
+- Invocation semantics: Execute an implementation plan with progress tracking Adapters may expose this capability through native commands, skill files, prompt instructions, or explicit wrappers. The adapter must report unsupported runtime mechanics instead of silently treating another runtime's native file format as portable.
+
+
 User arguments from OpenCode: `$ARGUMENTS`
 
 Do not use non-OpenCode command files or runtime-specific slash-command files

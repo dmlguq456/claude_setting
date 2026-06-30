@@ -18,6 +18,11 @@ This is adapter-owned output generated from `capabilities/sync-skills.md`, not a
 5. If the command receives arguments, map them to the portable argument shape:
    `[--check] [--force] [--auto-fix [--dry-run]]`.
 
+Portable contract excerpt:
+
+- Invocation semantics: Skills + Agents 정의 변경을 감지해 <agent-home>/README.md (GitHub) 의 대시보드 (워크플로우 map + cheat-sheet + 통합 가이드라인) 를 동기화한다. drift 체크 전용 모드도 지원. Adapters may expose this capability through native commands, skill files, prompt instructions, or explicit wrappers. The adapter must report unsupported runtime mechanics instead of silently treating another runtime's native file format as portable.
+
+
 User arguments from OpenCode: `$ARGUMENTS`
 
 Do not use non-OpenCode command files or runtime-specific slash-command files
