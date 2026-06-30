@@ -172,6 +172,12 @@ adapters/codex/bin/sync-native-skills.py --check
 adapters/codex/bin/sync-native-agents.py --check
 adapters/codex/bin/sync-native-plugin.py --check
 codex_setting/bin/preflight.sh capability-info autopilot-code
+codex_setting/bin/preflight.sh role fast reviewer >/tmp/codex-role.txt
+rg '^adapter=codex$' /tmp/codex-role.txt
+rg '^family=fast$' /tmp/codex-role.txt
+codex_setting/bin/preflight.sh mode-info dev/backend >/tmp/codex-mode.txt
+rg '^adapter=codex$' /tmp/codex-mode.txt
+rg '^status=portable$' /tmp/codex-mode.txt
 tmp_codex_bootstrap_home=$(mktemp -d)
 ln -s "$PWD/codex_setting/AGENTS.md" "$tmp_codex_bootstrap_home/AGENTS.md"
 CODEX_HOME="$tmp_codex_bootstrap_home" codex debug prompt-input 'bootstrap check' >/tmp/codex-bootstrap.json
@@ -229,6 +235,12 @@ adapters/opencode/bin/sync-native-skills.py --check
 adapters/opencode/bin/sync-native-agents.py --check
 adapters/opencode/bin/sync-native-commands.py --check
 tmp_opencode_bootstrap_home=$(mktemp -d)
+opencode_setting/bin/preflight.sh role fast reviewer >/tmp/opencode-role.txt
+rg '^adapter=opencode$' /tmp/opencode-role.txt
+rg '^family=fast$' /tmp/opencode-role.txt
+opencode_setting/bin/preflight.sh mode-info dev/backend >/tmp/opencode-mode.txt
+rg '^adapter=opencode$' /tmp/opencode-mode.txt
+rg '^status=portable$' /tmp/opencode-mode.txt
 mkdir -p "$tmp_opencode_bootstrap_home/.config/opencode" "$tmp_opencode_bootstrap_home/.local/share"
 OPENCODE_CONFIG_CONTENT="{\"instructions\":[\"$PWD/opencode_setting/AGENTS.md\"],\"skills\":{\"paths\":[\"$PWD/opencode_setting/opencode-skills\"]}}" \
   HOME="$tmp_opencode_bootstrap_home" \

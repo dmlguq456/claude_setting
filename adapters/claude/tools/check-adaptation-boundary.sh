@@ -211,6 +211,14 @@ check_install_layout_codex_projection() {
     || ! grep -Fq "rg 'adapters/claude/hooks|statusline.sh|settings.json'" INSTALL_LAYOUT.md; then
     fail_msg "INSTALL_LAYOUT.md must validate Codex native hook projection installation"
   fi
+  if ! grep -Fq 'codex_setting/bin/preflight.sh role fast reviewer >/tmp/codex-role.txt' INSTALL_LAYOUT.md \
+    || ! grep -Fq "rg '^adapter=codex$' /tmp/codex-role.txt" INSTALL_LAYOUT.md \
+    || ! grep -Fq "rg '^family=fast$' /tmp/codex-role.txt" INSTALL_LAYOUT.md \
+    || ! grep -Fq 'codex_setting/bin/preflight.sh mode-info dev/backend >/tmp/codex-mode.txt' INSTALL_LAYOUT.md \
+    || ! grep -Fq "rg '^adapter=codex$' /tmp/codex-mode.txt" INSTALL_LAYOUT.md \
+    || ! grep -Fq "rg '^status=portable$' /tmp/codex-mode.txt" INSTALL_LAYOUT.md; then
+    fail_msg "INSTALL_LAYOUT.md must validate Codex role and mode mapping surfaces"
+  fi
 }
 
 check_install_layout_opencode_projection() {
@@ -240,6 +248,14 @@ check_install_layout_opencode_projection() {
     || ! grep -Fq 'opencode debug config >/tmp/opencode-plugin.json' INSTALL_LAYOUT.md \
     || ! grep -Fq "rg 'agent-harness-guards.js' /tmp/opencode-plugin.json" INSTALL_LAYOUT.md; then
     fail_msg "INSTALL_LAYOUT.md must validate the OpenCode native plugin projection"
+  fi
+  if ! grep -Fq 'opencode_setting/bin/preflight.sh role fast reviewer >/tmp/opencode-role.txt' INSTALL_LAYOUT.md \
+    || ! grep -Fq "rg '^adapter=opencode$' /tmp/opencode-role.txt" INSTALL_LAYOUT.md \
+    || ! grep -Fq "rg '^family=fast$' /tmp/opencode-role.txt" INSTALL_LAYOUT.md \
+    || ! grep -Fq 'opencode_setting/bin/preflight.sh mode-info dev/backend >/tmp/opencode-mode.txt' INSTALL_LAYOUT.md \
+    || ! grep -Fq "rg '^adapter=opencode$' /tmp/opencode-mode.txt" INSTALL_LAYOUT.md \
+    || ! grep -Fq "rg '^status=portable$' /tmp/opencode-mode.txt" INSTALL_LAYOUT.md; then
+    fail_msg "INSTALL_LAYOUT.md must validate OpenCode role and mode mapping surfaces"
   fi
 }
 
