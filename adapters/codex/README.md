@@ -210,7 +210,10 @@ bootstrap/Skill/plugin discovery, but it does not expose a `codex debug agent` l
 `adapters/codex/modes/` contains Codex-owned mode realization guides generated
 from `roles/modes/`. These files are not copied from another runtime. They keep
 the portable mode source visible while mapping each mode through
-`adapters/codex/bin/preflight.sh mode-info <family/mode>`.
+`adapters/codex/bin/preflight.sh mode-info <family/mode>`. Each generated guide
+also embeds a sanitized projected portable mode contract so Codex sees the
+actual procedure, with non-Codex runtime surfaces rewritten to Codex
+preflight/tool-contract wording.
 
 ```bash
 adapters/codex/bin/sync-native-modes.py --check

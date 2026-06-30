@@ -1299,10 +1299,26 @@ check_codex_native_mode_projection() {
     if ! grep -Fq "Treat \`adapters/codex/modes/$mode.md\` as the adapter-owned mode guide" "$native"; then
       fail_msg "$native must report its adapter-owned native mode path"
     fi
+    if ! grep -Fq "Projected Portable Mode Contract" "$native"; then
+      fail_msg "$native must embed the sanitized portable mode contract"
+    fi
     if grep -Eq "$CLAUDE_NATIVE_SURFACE_PATTERN" "$native"; then
       fail_msg "$native must not expose Claude-native surfaces"
     fi
   done
+
+  if ! grep -Fq "Test Levels (execute in order, stop on failure)" adapters/codex/modes/qa/test.md \
+    || ! grep -Fq "Level 5b: Behavioral runtime observation" adapters/codex/modes/qa/test.md \
+    || ! grep -Fq "verification-runner" adapters/codex/modes/qa/test.md; then
+    fail_msg "adapters/codex/modes/qa/test.md must project the QA graduated test contract"
+  fi
+  if ! grep -Fq "Codex visual harness" adapters/codex/modes/design/maker.md \
+    || ! grep -Fq "preflight.sh visual-harness <file.html>" adapters/codex/modes/design/maker.md; then
+    fail_msg "adapters/codex/modes/design/maker.md must project the design visual harness contract"
+  fi
+  if ! grep -Fq "adapter skill projections" adapters/codex/modes/research/plan-review.md; then
+    fail_msg "adapters/codex/modes/research/plan-review.md must sanitize runtime adapter projection references"
+  fi
 
   for native in adapters/codex/modes/*/*.md; do
     [ -f "$native" ] || continue

@@ -90,7 +90,9 @@ support. `capability-info` reports `status=tool-contract` for those capability
 entries. Design mode fragments now have Codex-owned guides under
 `adapters/codex/modes/design/`; `mode-info` reports the guide path and the
 `visual-harness` contract, and Codex must report unavailable if the harness
-cannot run.
+cannot run. All generated mode guides embed sanitized projected portable mode
+contracts so Codex sees the actual procedure while non-Codex runtime surfaces
+are rewritten to Codex preflight/tool-contract wording.
 
 `roles/modes/material/browser-fetch.md` has a Codex-owned executable
 tool-contract surface:

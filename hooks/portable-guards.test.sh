@@ -1042,6 +1042,7 @@ for source in sources:
         f"adapters/codex/bin/preflight.sh mode-info {mode}",
         f"adapters/codex/modes/{mode}.md",
         "not a legacy runtime mode copy",
+        "Projected Portable Mode Contract",
     ]
     for item in required:
         if item not in body:
@@ -1054,6 +1055,16 @@ then
   ok "codex native mode projection covers portable modes without Claude paths"
 else
   bad "codex native mode projection should cover portable modes without Claude paths"
+fi
+if grep -q 'Test Levels (execute in order, stop on failure)' "$ROOT/codex_setting/codex-modes/qa/test.md" \
+  && grep -q 'Level 5b: Behavioral runtime observation' "$ROOT/codex_setting/codex-modes/qa/test.md" \
+  && grep -q 'verification-runner' "$ROOT/codex_setting/codex-modes/qa/test.md" \
+  && grep -q 'Codex visual harness' "$ROOT/codex_setting/codex-modes/design/maker.md" \
+  && grep -q 'preflight.sh visual-harness <file.html>' "$ROOT/codex_setting/codex-modes/design/maker.md" \
+  && grep -q 'adapter skill projections' "$ROOT/codex_setting/codex-modes/research/plan-review.md"; then
+  ok "codex native mode projection embeds sanitized portable mode contracts"
+else
+  bad "codex native mode projection should embed sanitized portable mode contracts"
 fi
 mkdir -p "$TMP/codex_hook_home/.codex"
 ln -s "$ROOT" "$TMP/codex_hook_home/.codex/agent-harness"

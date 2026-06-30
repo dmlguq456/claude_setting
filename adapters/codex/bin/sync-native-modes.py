@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -39,6 +40,29 @@ def title_for(mode: str) -> str:
     return f"Codex {family.title()} {name.replace('-', ' ').title()} Mode"
 
 
+def sanitize_portable_contract(text: str) -> str:
+    """Project portable mode text without leaking non-Codex runtime surfaces."""
+    replacements = {
+        "<agent-home>/agent-modes/": "roles/modes/",
+        "agent-modes/": "roles/modes/",
+        "Design MCP": "Codex visual harness",
+        "Claude Code 내장": "legacy runtime reference",
+        "Claude Design": "legacy design guidance",
+        "nas_Uihyeop/claude-meta-spec/reverse_engineering/deep-research.md": "legacy reverse-engineering notes",
+        "nas_Uihyeop/claude-meta-spec/reverse_engineering/security-review.md": "legacy reverse-engineering notes",
+        "`skills/draft-strategy/SKILL.md`": "`capabilities/draft-strategy.md`",
+        "`adapters/<runtime>/skills/*`": "adapter skill projections",
+        "`adapters/<runtime>/agents/*`": "adapter agent projections",
+        "adapters/<runtime>/skills/*": "adapter skill projections",
+        "adapters/<runtime>/agents/*": "adapter agent projections",
+    }
+    for old, new in replacements.items():
+        text = text.replace(old, new)
+    text = re.sub(r"`?mcp__design__[A-Za-z_]+(?:\([^`]*\))?`?", "`adapters/codex/bin/preflight.sh visual-harness <file.html>`", text)
+    text = re.sub(r"`?mcp__design__\*`?", "`adapters/codex/bin/preflight.sh visual-harness <file.html>`", text)
+    return text.rstrip()
+
+
 def render(mode_file: Path) -> tuple[Path, str]:
     rel = mode_file.relative_to(MODES)
     mode = rel.with_suffix("").as_posix()
@@ -62,6 +86,7 @@ def render(mode_file: Path) -> tuple[Path, str]:
     if note:
         contract_lines.append(f"- Note: {note}")
 
+    portable_contract = sanitize_portable_contract(mode_file.read_text(encoding="utf-8"))
     body = f"""# {title_for(mode)}
 
 This is a Codex-native realization guide generated from the portable mode
@@ -85,6 +110,13 @@ inventory. It is adapter-owned output, not a legacy runtime mode copy.
 - For `tool-contract` modes, run the named contract check before claiming the tool-backed result.
 - If a required local provider or executable is unavailable, report the unavailable contract instead of silently downgrading.
 - Treat `{native_mode_path}` as the adapter-owned mode guide for this runtime.
+
+## Projected Portable Mode Contract
+
+The following contract is projected from `{source}` with non-Codex runtime
+surfaces rewritten to Codex-native preflight/tool-contract wording.
+
+{portable_contract}
 """
     return OUT / rel, body
 
