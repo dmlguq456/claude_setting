@@ -37,6 +37,9 @@ status=unsupported
 realization=compat-reference
 requirement=""
 tool_contract=""
+tool_contract_check=""
+runtime_surface=""
+fallback=""
 note=""
 
 case "$family" in
@@ -48,6 +51,7 @@ case "$family" in
   material)
     status=tool-contract
     realization=portable-with-tool-contract
+    fallback="satisfy-tool-contract-or-report-unavailable"
     case "$name" in
       browser-fetch) tool_contract=browser-fetch ;;
       data-script) tool_contract=data-script ;;
@@ -61,6 +65,10 @@ case "$family" in
   design)
     status=unsupported
     realization=adapter-coupled
+    tool_contract=visual-harness
+    tool_contract_check="adapters/opencode/bin/preflight.sh visual-harness"
+    runtime_surface=not-materialized
+    fallback=reference-only
     requirement="opencode-native visual/browser verification harness required"
     ;;
   qa)
@@ -68,6 +76,7 @@ case "$family" in
       security-review|test)
         status=tool-contract
         realization=portable-with-tool-contract
+        fallback="satisfy-tool-contract-or-report-unavailable"
         case "$name" in
           security-review) tool_contract=security-review ;;
           test) tool_contract=verification-runner ;;
@@ -86,6 +95,7 @@ case "$family" in
       claim-verify)
         status=tool-contract
         realization=portable-with-tool-contract
+        fallback="satisfy-tool-contract-or-report-unavailable"
         tool_contract=external-claim-verification
         requirement="provide webfetch/websearch or cite unavailable external verification"
         ;;
@@ -122,6 +132,15 @@ printf 'status=%s\n' "$status"
 printf 'realization=%s\n' "$realization"
 if [ -n "$tool_contract" ]; then
   printf 'tool_contract=%s\n' "$tool_contract"
+fi
+if [ -n "$tool_contract_check" ]; then
+  printf 'tool_contract_check=%s\n' "$tool_contract_check"
+fi
+if [ -n "$runtime_surface" ]; then
+  printf 'runtime_surface=%s\n' "$runtime_surface"
+fi
+if [ -n "$fallback" ]; then
+  printf 'fallback=%s\n' "$fallback"
 fi
 printf 'requirement=%s\n' "$requirement"
 printf 'note=%s\n' "$note"

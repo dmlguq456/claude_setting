@@ -1457,6 +1457,12 @@ check_codex_mode_map() {
         if ! grep -Fq 'status=unsupported' "$out" || ! grep -Fq 'realization=adapter-coupled' "$out"; then
           fail_msg "Codex mode map must mark $rel as unsupported adapter-coupled"
         fi
+        if ! grep -Fq 'tool_contract=visual-harness' "$out" \
+          || ! grep -Fq 'tool_contract_check=adapters/codex/bin/preflight.sh visual-harness' "$out" \
+          || ! grep -Fq 'runtime_surface=not-materialized' "$out" \
+          || ! grep -Fq 'fallback=reference-only' "$out"; then
+          fail_msg "Codex mode map must report visual-harness contract metadata for unsupported design mode $rel"
+        fi
         ;;
       material/*|qa/security-review|qa/test|research/claim-verify)
         if ! grep -Fq 'status=tool-contract' "$out" || ! grep -Fq 'realization=portable-with-tool-contract' "$out"; then
@@ -1464,6 +1470,9 @@ check_codex_mode_map() {
         fi
         if ! grep -Eq '^tool_contract=[^[:space:]]+' "$out"; then
           fail_msg "Codex mode map must report a named tool_contract for $rel"
+        fi
+        if ! grep -Fq 'fallback=satisfy-tool-contract-or-report-unavailable' "$out"; then
+          fail_msg "Codex mode map must report a fallback for tool-contract mode $rel"
         fi
         ;;
       *)
@@ -1518,6 +1527,12 @@ check_opencode_mode_map() {
         if ! grep -Fq 'status=unsupported' "$out" || ! grep -Fq 'realization=adapter-coupled' "$out"; then
           fail_msg "OpenCode mode map must mark $rel as unsupported adapter-coupled"
         fi
+        if ! grep -Fq 'tool_contract=visual-harness' "$out" \
+          || ! grep -Fq 'tool_contract_check=adapters/opencode/bin/preflight.sh visual-harness' "$out" \
+          || ! grep -Fq 'runtime_surface=not-materialized' "$out" \
+          || ! grep -Fq 'fallback=reference-only' "$out"; then
+          fail_msg "OpenCode mode map must report visual-harness contract metadata for unsupported design mode $rel"
+        fi
         ;;
       material/*|qa/security-review|qa/test|research/claim-verify)
         if ! grep -Fq 'status=tool-contract' "$out" || ! grep -Fq 'realization=portable-with-tool-contract' "$out"; then
@@ -1525,6 +1540,9 @@ check_opencode_mode_map() {
         fi
         if ! grep -Eq '^tool_contract=[^[:space:]]+' "$out"; then
           fail_msg "OpenCode mode map must report a named tool_contract for $rel"
+        fi
+        if ! grep -Fq 'fallback=satisfy-tool-contract-or-report-unavailable' "$out"; then
+          fail_msg "OpenCode mode map must report a fallback for tool-contract mode $rel"
         fi
         ;;
       *)

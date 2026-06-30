@@ -427,7 +427,11 @@ else
 fi
 if "$CODEX" mode-info design/maker >/tmp/mode.out 2>/tmp/mode.err \
   && grep -q '^status=unsupported$' /tmp/mode.out \
-  && grep -q '^realization=adapter-coupled$' /tmp/mode.out; then
+  && grep -q '^realization=adapter-coupled$' /tmp/mode.out \
+  && grep -q '^tool_contract=visual-harness$' /tmp/mode.out \
+  && grep -q '^tool_contract_check=adapters/codex/bin/preflight.sh visual-harness$' /tmp/mode.out \
+  && grep -q '^runtime_surface=not-materialized$' /tmp/mode.out \
+  && grep -q '^fallback=reference-only$' /tmp/mode.out; then
   ok "codex mode wrapper marks adapter-coupled design mode unsupported"
 else
   bad "codex mode wrapper should mark adapter-coupled design mode unsupported"
@@ -435,7 +439,8 @@ fi
 if "$CODEX" mode-info material/browser-fetch >/tmp/mode.out 2>/tmp/mode.err \
   && grep -q '^status=tool-contract$' /tmp/mode.out \
   && grep -q '^realization=portable-with-tool-contract$' /tmp/mode.out \
-  && grep -q '^tool_contract=browser-fetch$' /tmp/mode.out; then
+  && grep -q '^tool_contract=browser-fetch$' /tmp/mode.out \
+  && grep -q '^fallback=satisfy-tool-contract-or-report-unavailable$' /tmp/mode.out; then
   ok "codex mode wrapper reports named material tool contract"
 else
   bad "codex mode wrapper should report named material tool contract"
@@ -836,7 +841,11 @@ else
 fi
 if "$OPENCODE" mode-info design/maker >/tmp/opencode_mode.out 2>/tmp/opencode_mode.err \
   && grep -q '^status=unsupported$' /tmp/opencode_mode.out \
-  && grep -q '^realization=adapter-coupled$' /tmp/opencode_mode.out; then
+  && grep -q '^realization=adapter-coupled$' /tmp/opencode_mode.out \
+  && grep -q '^tool_contract=visual-harness$' /tmp/opencode_mode.out \
+  && grep -q '^tool_contract_check=adapters/opencode/bin/preflight.sh visual-harness$' /tmp/opencode_mode.out \
+  && grep -q '^runtime_surface=not-materialized$' /tmp/opencode_mode.out \
+  && grep -q '^fallback=reference-only$' /tmp/opencode_mode.out; then
   ok "opencode mode wrapper marks adapter-coupled design mode unsupported"
 else
   bad "opencode mode wrapper should mark adapter-coupled design mode unsupported"
@@ -844,7 +853,8 @@ fi
 if "$OPENCODE" mode-info material/browser-fetch >/tmp/opencode_mode.out 2>/tmp/opencode_mode.err \
   && grep -q '^status=tool-contract$' /tmp/opencode_mode.out \
   && grep -q '^realization=portable-with-tool-contract$' /tmp/opencode_mode.out \
-  && grep -q '^tool_contract=browser-fetch$' /tmp/opencode_mode.out; then
+  && grep -q '^tool_contract=browser-fetch$' /tmp/opencode_mode.out \
+  && grep -q '^fallback=satisfy-tool-contract-or-report-unavailable$' /tmp/opencode_mode.out; then
   ok "opencode mode wrapper reports named material tool contract"
 else
   bad "opencode mode wrapper should report named material tool contract"
