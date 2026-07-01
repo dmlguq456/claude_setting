@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Custom statusline (의존성 없음, python3 로 stdin JSON 파싱).
-# 표시: 디렉토리 │ git 브랜치 │ spec-gate │ context │ 모델 + 5h/7d 사용량 (세로선 파티션).
+# 표시: 디렉토리 │ git 브랜치 │ spec-gate │ context │ 모델·effort + 5h/7d 사용량 (세로선 파티션).
 # 입력: stdin JSON (Claude Code statusLine schema). 출력: 한 줄.
 # 5h/7d 사용량 = stdin 의 rate_limits.{five_hour,seven_day}.used_percentage — /usage 와 동일한 공식 값.
 # context     = stdin 의 context_window.used_percentage (공식 값) — 부재 시 current_usage/context_window_size, 최후 fallback 만 id "1m" 추측.
@@ -17,6 +17,7 @@ cwd = d.get("cwd") or (d.get("workspace") or {}).get("current_dir") or "."
 m = d.get("model") or {}
 model = m.get("display_name") or m.get("id") or "?"
 mid = (m.get("id") or "").lower()
+effort = ((d.get("effort") or {}).get("level") or "")  # reasoning effort: low|medium|high|xhigh|max
 sid = d.get("session_id") or ""
 rl = d.get("rate_limits") or {}
 def rlpct(k):
@@ -39,6 +40,7 @@ win = cwin.get("context_window_size") or (1_000_000 if "1m" in mid else 200_000)
 cpct = min(99, round(up)) if isinstance(up, (int, float)) else (min(99, round(100 * ctok / win)) if ctok else -1)
 print("S_CWD=" + shlex.quote(cwd))
 print("S_MODEL=" + shlex.quote(model))
+print("S_EFFORT=" + shlex.quote(effort))
 print("S_SID=" + shlex.quote(sid))
 print("S_5H=" + shlex.quote(rlpct("five_hour")))
 print("S_7D=" + shlex.quote(rlpct("seven_day")))
@@ -46,7 +48,7 @@ print("S_5H_RST=" + shlex.quote(rlrem("five_hour")))
 print("S_7D_RST=" + shlex.quote(rlrem("seven_day")))
 print("S_CTX=" + shlex.quote(str(cpct)))
 ' 2>/dev/null)"
-: "${S_CWD:=$PWD}" "${S_MODEL:=?}" "${S_SID:=}" "${S_5H:=}" "${S_7D:=}" "${S_5H_RST:=}" "${S_7D_RST:=}" "${S_CTX:=-1}"
+: "${S_CWD:=$PWD}" "${S_MODEL:=?}" "${S_EFFORT:=}" "${S_SID:=}" "${S_5H:=}" "${S_7D:=}" "${S_5H_RST:=}" "${S_7D_RST:=}" "${S_CTX:=-1}"
 
 dir=$(basename "$S_CWD")
 
@@ -86,7 +88,7 @@ for _ in $(seq 1 40); do
 done
 
 # ANSI 색 + 퍼센트 색 헬퍼 (녹 <50 / 황 <80 / 적 ≥80)
-DIM=$'\033[2m'; CYAN=$'\033[36m'; YEL=$'\033[33m'; GRN=$'\033[32m'; RED=$'\033[31m'; RST=$'\033[0m'
+DIM=$'\033[2m'; CYAN=$'\033[36m'; YEL=$'\033[33m'; GRN=$'\033[32m'; RED=$'\033[31m'; MAG=$'\033[35m'; RST=$'\033[0m'
 pcol(){ if [ "${1:-0}" -ge 80 ] 2>/dev/null; then printf '%s' "$RED"; elif [ "${1:-0}" -ge 50 ] 2>/dev/null; then printf '%s' "$YEL"; else printf '%s' "$GRN"; fi; }
 
 # --- 세그먼트 배열 → 세로선(│) 파티션으로 join ---
@@ -229,8 +231,21 @@ if [ "${S_CTX}" -ge 0 ] 2>/dev/null; then
   segs_arr+=("${DIM}🧠${RST} ${cc}${bar} ${S_CTX}%${RST}")
 fi
 
-# 모델 │ 5h/7d 사용량+리셋 잔여시간 (stdin rate_limits = /usage 공식 값, 분모 추측 없음)
-segs_arr+=("✨ ${DIM}${S_MODEL}${RST}")
+# 모델·effort │ 5h/7d 사용량+리셋 잔여시간 (stdin rate_limits = /usage 공식 값, 분모 추측 없음)
+# effort = reasoning effort(low→max) — 모델 옆 강도별 색(dim→적)으로 시각 구분
+eff_disp=""
+if [ -n "$S_EFFORT" ]; then
+  case "$S_EFFORT" in
+    low)    ecol="$DIM"; etxt="low" ;;
+    medium) ecol="$GRN"; etxt="med" ;;
+    high)   ecol="$YEL"; etxt="high" ;;
+    xhigh)  ecol="$MAG"; etxt="xhigh" ;;
+    max)    ecol="$RED"; etxt="max" ;;
+    *)      ecol="$DIM"; etxt="$S_EFFORT" ;;
+  esac
+  eff_disp="${DIM}·${RST}${ecol}${etxt}${RST}"
+fi
+segs_arr+=("✨ ${DIM}${S_MODEL}${RST}${eff_disp}")
 u=""
 [ -n "$S_5H" ] && { u="${u} ${DIM}5h${RST} $(pcol "$S_5H")${S_5H}%${RST}"; [ -n "$S_5H_RST" ] && u="${u}${DIM}(↻ ${S_5H_RST})${RST}"; }
 [ -n "$S_7D" ] && { u="${u} ${DIM}7d${RST} $(pcol "$S_7D")${S_7D}%${RST}"; [ -n "$S_7D_RST" ] && u="${u}${DIM}(↻ ${S_7D_RST})${RST}"; }
