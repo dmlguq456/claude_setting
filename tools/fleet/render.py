@@ -77,9 +77,10 @@ def _init_colors():
             n += 1
         except Exception:
             _COLOR[key] = 0
-    # badges: bold colored TEXT (no reverse-video background block — the filled span read badly)
+    # badges: harness color as BACKGROUND (reverse-video chip). Applied to the badge TEXT only
+    # (the padding stays uncolored) so the fill doesn't smear across the row.
     for k in ("badge_claude", "badge_codex", "badge_opencode"):
-        _COLOR[k] = _COLOR.get(k, 0) | curses.A_BOLD
+        _COLOR[k] = _COLOR.get(k, 0) | curses.A_REVERSE | curses.A_BOLD
     # percentages read at a glance — bold so ctx%/rate% stand out (user: '% 표기가 잘 안보인다')
     for k in ("pct_g", "pct_y", "pct_r", "m_opus", "m_sonnet", "m_haiku", "m_fable", "m_gpt", "m_glm"):
         _COLOR[k] = _COLOR.get(k, 0) | curses.A_BOLD
@@ -238,8 +239,12 @@ def _session_row(s, narrow, is_parent=False):
     model = dash(s.model)
     gch, gkey = _glyph(live)
 
+    # glyph → type-icon → badge → name (same order as dispatch's └▸ glyph 🚀 badge). Parent icon
+    # sits in a fixed 2-cell slot before the badge (🛰️ or spaces) so badges stay column-aligned.
+    ptype = _ICON_PARENT if is_parent else "  "
     segs = [("  ", None), (gch, gkey), (" ", None),
-            (_pad(badge, 10), bkey), (" ", None),                # whole badge in the harness color (text, not bg)
+            (ptype, None), (" ", None),
+            (badge, bkey), (" " * max(0, 10 - len(badge)), None), (" ", None),  # bg color on badge TEXT only
             (_pad(slug, 18), None)]
 
     # git branch (⎇) — same info the statusline shows, per session (and per dispatch worktree)
@@ -271,8 +276,6 @@ def _session_row(s, narrow, is_parent=False):
     if not narrow:                                                   # rate limit is per-account (top bar), not per row
         segs.append(("  %8s" % dash(s.cost, lambda v: "$%.2f" % v), "dim"))
     segs.append(("  ⏳" + el, "dim"))                                 # liveness shown by leading glyph
-    if is_parent:
-        segs.append(("  🛰️", None))                                  # orchestrator marker at end (no column shift)
     if s.app_server:
         segs.append(("  ⚙app-server", "dim"))
     if s.orphan:
