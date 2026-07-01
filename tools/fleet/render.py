@@ -156,14 +156,17 @@ def _clean_model(name):
     return name.split(" (", 1)[0] if name else name
 
 
-_BAR_FULL, _BAR_EMPTY = "█", "░"
+# mid-height bar (━ filled / ─ empty): the glyphs sit at the cell's vertical centre, so gauges on
+# adjacent rows keep an above/below gap and never merge into a solid vertical wall (no blank line
+# needed). Filled carries the level color; the empty track is dim — the fill reads by color too.
+_BAR_FULL, _BAR_EMPTY = "━", "─"
 
 
-def _bar(pct, width=5):
-    """Compact filled gauge, e.g. 58% width5 → '███░░'. Clamped 0-100."""
+def _gauge_segs(pct, width):
+    """Two colored segments — filled ━ (level color) + empty ─ track (dim). Fills exactly `width`."""
     p = max(0, min(100, int(pct or 0)))
     filled = min(width, int(round(p / 100.0 * width)))
-    return _BAR_FULL * filled + _BAR_EMPTY * (width - filled)
+    return [(_BAR_FULL * filled, _pct_key(pct)), (_BAR_EMPTY * (width - filled), "dim")]
 
 
 def _pad(s, w):
@@ -333,11 +336,11 @@ def _session_row(s, narrow, is_parent=False, child_count=0):
     segs.append(_branch_seg(s.cwd, s.branch))
     segs += _model_segs(s.harness, s.model, s.effort, _MW)
 
-    # STATUS-ZONE — ctx gauge (meaningful level color); widened so the context reading is legible
+    # STATUS-ZONE — ctx gauge (mid-line ━/─, level color); widened so the context reading is legible
     if s.ctx_pct is not None and not dim_tel:
-        segs += [("  ", None), (_bar(s.ctx_pct, _CTX_W), _pct_key(s.ctx_pct)), (" %3d%%" % s.ctx_pct, _pct_key(s.ctx_pct))]
+        segs += [("  ", None)] + _gauge_segs(s.ctx_pct, _CTX_W) + [(" %3d%%" % s.ctx_pct, _pct_key(s.ctx_pct))]
     else:
-        segs += [("  ", None), ("░" * _CTX_W, "dim"), (" %4s" % dash(s.ctx_pct, lambda v: "%d%%" % v), "dim")]
+        segs += [("  ", None), ("─" * _CTX_W, "dim"), (" %4s" % dash(s.ctx_pct, lambda v: "%d%%" % v), "dim")]
     if s.app_server:
         segs.append(("  app-server", "dim"))
     if s.orphan:
@@ -480,9 +483,9 @@ def _build_lines(sessions, jobs, section, narrow, malformed):
                    (_pad(h, 11), _BADGE_KEY.get(h, "dim"))]
             for gi, (lbl, v) in enumerate((("5h ", r5), ("7d ", r7))):
                 pctstr = ("%d%%" % v) if v is not None else "—"
-                row += [("     " + lbl if gi else lbl, "dim"),          # wide gap between the 5h/7d windows
-                        (_bar(v, 16) if v is not None else "·" * 16, _pct_key(v)),
-                        (" %4s" % pctstr, _pct_key(v))]
+                row.append(("     " + lbl if gi else lbl, "dim"))        # wide gap between the 5h/7d windows
+                row += _gauge_segs(v, 16) if v is not None else [("·" * 16, "dim")]
+                row.append((" %4s" % pctstr, _pct_key(v)))
             lines.append(row)
         lines.append(None)
         lines.append([(_COL_HEAD, "head")])            # column labels once → no per-cell emoji needed
@@ -539,12 +542,9 @@ def _build_lines(sessions, jobs, section, narrow, malformed):
             head_segs.append(("──", "head"))
         lines.append(head_segs)
 
-        # one blank line BETWEEN session blocks so the stacked context gauges get vertical
-        # breathing room (user: the bars across rows were touching into a solid wall). The tree
-        # keeps each parent's children attached; the blank only separates sibling session blocks.
-        for si, s in enumerate(_sort_group_sessions(shown)):
-            if si:
-                lines.append(None)
+        # rows stay tight (no blank line — that spread them too far apart); the mid-line gauge
+        # glyph (━/─) is what keeps the stacked context bars from merging into a solid wall.
+        for s in _sort_group_sessions(shown):
             kids = _sort_group_jobs(children.get(s.session_id, []))
             lines.append(_session_row(s, narrow, is_parent=bool(kids), child_count=len(kids)))
             for i, cj in enumerate(kids):
