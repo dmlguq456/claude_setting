@@ -589,6 +589,8 @@ check_codex_bin_wrappers() {
     || ! grep -Fq 'harvest_check=adapters/codex/bin/preflight.sh harvest' adapters/codex/bin/preflight.sh \
     || ! grep -Fq 'dispatch_prompt_contract=codex-harness-autopilot-prompt' adapters/codex/bin/preflight.sh \
     || ! grep -Fq 'dispatch_input_validation=capability-info,mode-info,qa-level' adapters/codex/bin/preflight.sh \
+    || ! grep -Fq 'worker_startup_signal=status,prompt-signal,mode' adapters/codex/bin/preflight.sh \
+    || ! grep -Fq 'worker_startup_signal_contract=preflight.sh status . codex-headless; preflight.sh prompt-signal . codex-headless; preflight.sh mode . codex-headless' adapters/codex/bin/preflight.sh \
     || ! grep -Fq 'check-runtime-projection.sh' adapters/codex/bin/preflight.sh \
     || ! grep -Fq 'CODEX_RUNTIME_PROJECTION_SKIP_CLI_DISCOVERY=1' adapters/codex/bin/preflight.sh \
     || ! grep -Fq 'claude_headless=unsupported' adapters/codex/bin/preflight.sh; then

@@ -417,6 +417,8 @@ if "$CODEX" headless >/tmp/codex_headless.out 2>/tmp/codex_headless.err \
   && grep -q '^liveness_check=adapters/codex/bin/preflight.sh liveness \[jobs.log\]$' /tmp/codex_headless.out \
   && grep -q '^dispatch_prompt_contract=codex-harness-autopilot-prompt$' /tmp/codex_headless.out \
   && grep -q '^dispatch_input_validation=capability-info,mode-info,qa-level$' /tmp/codex_headless.out \
+  && grep -q '^worker_startup_signal=status,prompt-signal,mode$' /tmp/codex_headless.out \
+  && grep -q '^worker_startup_signal_contract=preflight.sh status . codex-headless; preflight.sh prompt-signal . codex-headless; preflight.sh mode . codex-headless$' /tmp/codex_headless.out \
   && grep -q '^constraints=main-only,max-depth-1,register-open-job,explicit-capability-mode-qa,transcript-liveness-required$' /tmp/codex_headless.out; then
   ok "codex headless wrapper reports dispatch contract"
 else
