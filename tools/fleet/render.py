@@ -239,7 +239,7 @@ def _session_row(s, narrow, is_parent=False):
     gch, gkey = _glyph(live)
 
     segs = [("  ", None), (gch, gkey), (" ", None),
-            ("▌", bkey), (_pad(badge, 10), bkey), (" ", None),   # harness color block chip + badge text
+            (_pad(badge, 10), bkey), (" ", None),                # whole badge in the harness color (text, not bg)
             (_pad(slug, 18), None)]
 
     # git branch (⎇) — same info the statusline shows, per session (and per dispatch worktree)
