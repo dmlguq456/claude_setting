@@ -69,8 +69,8 @@ def _init_colors():
             n += 1
         except Exception:
             _COLOR[key] = 0
-    # status dots (no blink — noise)
-    _COLOR["g_work"] = _COLOR.get("green", 0) | curses.A_BOLD
+    # status dots — working blinks (live-LED, user preference)
+    _COLOR["g_work"] = _COLOR.get("green", 0) | curses.A_BOLD | curses.A_BLINK
     _COLOR["g_idle"] = _COLOR.get("yellow", 0)
     _COLOR["g_stale"] = curses.A_DIM
     _COLOR["g_dead"] = _COLOR.get("red", 0) | curses.A_BOLD
