@@ -6,6 +6,7 @@
 
 1. **이전 연수 복기**: `/home/nas/user/Uihyeop/notes/study/` 의 최근 보고 1~2개 Read — 같은 제안 반복 금지, 미채택 항목은 "재상정 가치 있을 때만" 한 줄 갱신.
 2. **외부 동향 조사** (WebSearch·WebFetch):
+   - **[1순위] 하네스 내장 기능 벤치마킹 → 자체 내재화** (2026-07-02, 사용자 지정 주요사항): Claude Code·Codex(GPT) 등 주요 하네스의 _새로 업데이트된 내장 기능_ 을 changelog·릴리스 노트에서 찾아, 그 요소를 우리 자체 하네스(skills·agents·hooks·loops)로 내재화하는 제안을 최우선으로 낸다. 판단 축: 우리 세팅의 어느 마찰을 줄이나 + 특정 하네스 종속 없이 크로스-하네스로 옮길 수 있나. (사례: Claude Code 내장 design 기능 → 디자인팀 agent 내재화)
    - 현재 주 runtime adapter 관련 공식 changelog·engineering 글 (Claude Code adapter 사용 중이면 Anthropic/Claude Code 자료 포함)
    - agent engineering 실무 패턴 신간 (harness·context·loop engineering, 멀티에이전트, eval)
    - 커뮤니티에서 자리 잡는 컨벤션 (헛소문·과장 글은 출처 품질로 거름)
