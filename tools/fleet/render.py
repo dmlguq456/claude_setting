@@ -26,6 +26,7 @@ Module-global state invariants (single-process / single-thread only — no concu
     stale toggle map never survives to the next click.
 """
 import curses
+import glob
 import os
 import sys
 import time
@@ -98,6 +99,17 @@ def _live_key(state):
             "stale": "stale", "dead": "dead"}.get(state, "unknown")
 
 
+# leading status glyph — the row's primary at-a-glance anchor (working/idle stand out; user 2026-07-01)
+_LIVE_GLYPH = {"working": "●", "idle": "○", "blocked": "◑", "done": "✓",
+               "stale": "◌", "dead": "✕", "unknown": "·"}
+_GLYPH_KEY = {"working": "work", "idle": "warn", "blocked": "warn", "done": "done",
+              "stale": "stale", "dead": "dead", "unknown": "dim"}
+
+
+def _glyph(state):
+    return _LIVE_GLYPH.get(state, "·"), _GLYPH_KEY.get(state, "dim")
+
+
 def _pct_key(v):
     if v is None:
         return "dim"
@@ -119,6 +131,49 @@ def _model_key(name):
     return "model"
 
 
+_BAR_FULL, _BAR_EMPTY = "█", "░"
+
+
+def _bar(pct, width=5):
+    """Compact filled gauge, e.g. 58% width5 → '███░░'. Clamped 0-100."""
+    p = max(0, min(100, int(pct or 0)))
+    filled = min(width, int(round(p / 100.0 * width)))
+    return _BAR_FULL * filled + _BAR_EMPTY * (width - filled)
+
+
+_GATE_TTL = 3.0
+_GATE_CACHE = {"ts": 0.0, "map": {}}
+
+
+def _project_gate(cwd):
+    """spec-gate for a project cwd: 'tracked' / 'untracked' / None (no artifact root).
+    Walks up to the nearest .agent_reports/.claude_reports; untracked if a .untracked* marker
+    is present (session-scoped or global). Cached per cwd for a few seconds (per-tick reuse)."""
+    if not cwd:
+        return None
+    now = time.time()
+    if now - _GATE_CACHE["ts"] > _GATE_TTL:
+        _GATE_CACHE.update(ts=now, map={})
+    cache = _GATE_CACHE["map"]
+    if cwd in cache:
+        return cache[cwd]
+    d = cwd
+    result = None
+    for _ in range(40):
+        for rd in (".agent_reports", ".claude_reports"):
+            base = os.path.join(d, rd)
+            if os.path.isdir(base):
+                untracked = os.path.exists(os.path.join(base, ".untracked")) or \
+                    bool(glob.glob(os.path.join(base, ".untracked.*")))
+                result = "untracked" if untracked else "tracked"
+                break
+        if result is not None or d in ("/", ""):
+            break
+        d = os.path.dirname(d)
+    cache[cwd] = result
+    return result
+
+
 # ---------- row builders (return a single segment-line: [(text, color_key), ...]) ----------
 def _session_row(s, narrow, is_parent=False):
     """Single segment-line per session (PRD §4 v2 — the wide 3-line panel is retired).
@@ -137,8 +192,9 @@ def _session_row(s, narrow, is_parent=False):
     dim_telemetry = live in ("stale", "dead") or s.app_server
     tkey = "dim" if dim_telemetry else None
 
-    # icon BEFORE badge — consistent slot with the dispatch row's leading 🚀 (user 2026-07-01)
-    segs = [("  ", None)]
+    # leading status glyph (●/○/◌/✕) then icon BEFORE badge — consistent slot with dispatch row
+    gch, gkey = _glyph(live)
+    segs = [("  ", None), (gch + " ", gkey)]
     if is_parent:
         segs.append((_ICON_PARENT + " ", None))
     segs.append((badge, bkey))
@@ -164,8 +220,12 @@ def _session_row(s, narrow, is_parent=False):
         segs.append((model, "dim" if dim_telemetry else _model_key(s.model)))   # per-model color when live
         if s.effort and show_effort:
             segs.append((" ·" + s.effort, "dim" if dim_telemetry else _EFFORT_KEY.get(s.effort, "dim")))
-    segs.append(("  🧠", "dim"))
-    segs.append((ctx, "dim" if dim_telemetry else _pct_key(s.ctx_pct)))  # bold+colored ctx%
+    if s.ctx_pct is not None and not dim_telemetry:                     # visual context gauge
+        segs.append(("  🧠", "dim"))
+        segs.append((_bar(s.ctx_pct), _pct_key(s.ctx_pct)))
+        segs.append((" %d%%" % s.ctx_pct, _pct_key(s.ctx_pct)))
+    else:
+        segs.append(("  🧠" + ctx, "dim"))
     if show_cost_rl:
         if dim_telemetry:
             segs.append(("  5h" + r5 + "/7d" + r7, "dim"))
@@ -173,8 +233,7 @@ def _session_row(s, narrow, is_parent=False):
             segs.append(("  5h", "dim")); segs.append((r5, _pct_key(s.rl_5h)))
             segs.append(("/7d", "dim")); segs.append((r7, _pct_key(s.rl_7d)))
         segs.append(("  " + cost, "dim"))
-    segs.append(("  ⏳" + el, "dim"))
-    segs.append(("  " + live, lkey))
+    segs.append(("  ⏳" + el, "dim"))                                   # liveness shown by leading glyph now
     if s.orphan:
         segs.append(("  ⚠worktree-gone", "dead"))
     return segs
@@ -203,7 +262,8 @@ def _dispatch_row(j, orphan=False, parent_model=None):
     el = fmt_min(j.elapsed_min)
     lkey = _live_key(j.liveness)
     name = j.slug or key
-    segs = [("    └▸" + _ICON_CHILD + " ", "dim")]
+    gch, gkey = _glyph(j.liveness)                    # leading status glyph, same slot idea as session
+    segs = [("    └▸", "dim"), (gch, gkey), (" " + _ICON_CHILD + " ", "dim")]
     if j.harness:                                    # dispatch = headless → weaker: badge dim (no reverse-video)
         segs.append((_BADGE_TEXT.get(j.harness, "[?]"), "dim"))
     segs.append((" " + name, None))                  # name right after badge — same slot as a session's slug (order consistency)
@@ -222,8 +282,7 @@ def _dispatch_row(j, orphan=False, parent_model=None):
     dmodel = j.model or parent_model                 # own model if resolvable, else parent's (same config for now — per-dispatch later)
     if dmodel:
         segs.append(("  ✨", "dim")); segs.append((dmodel, _model_key(dmodel)))
-    segs.append(("  ⏳" + el, "dim"))
-    segs.append(("  " + j.liveness, lkey))
+    segs.append(("  ⏳" + el, "dim"))                 # liveness shown by leading glyph now
     if orphan:
         segs.append(("  (orphan)", "dim"))
     return segs
@@ -344,11 +403,17 @@ def _build_lines(sessions, jobs, section, narrow, malformed):
             lc[s.liveness] = lc.get(s.liveness, 0) + 1
         counts_str = " ".join("%s%d" % (k[0], lc[k])
                                for k in ("working", "idle", "stale", "dead") if lc.get(k))
-        head = "━━ 📁 %s  (%d sessions%s)" % (
-            name, len(group_sessions),
-            ("  " + counts_str) if counts_str else "",
-        )
-        lines.append([(head, "head")])
+        gcwd = (group_sessions[0].cwd if group_sessions else
+                (group_jobs[0].cwd if group_jobs else ""))
+        gate = _project_gate(gcwd)                     # spec-gate: 📌 tracked / ⚡ untracked
+        head_segs = [("━━ 📁 %s" % name, "head")]
+        if gate == "tracked":
+            head_segs.append((" 📌", "work"))
+        elif gate == "untracked":
+            head_segs.append((" ⚡", "warn"))
+        head_segs.append(("  (%d sessions%s)" % (
+            len(group_sessions), ("  " + counts_str) if counts_str else ""), "head"))
+        lines.append(head_segs)
 
         for si, s in enumerate(_sort_group_sessions(shown)):
             if si:
