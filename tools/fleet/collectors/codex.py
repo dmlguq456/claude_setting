@@ -11,6 +11,11 @@ context% = last_token_usage.input_tokens / model_context_window (each turn resen
 context as input, so the last request's input ≈ current context occupancy — validated 2026-07-01;
 cumulative total_token_usage is NOT context occupancy).
 
+Empirical (25 live rollouts, 2026-07-01): last_token_usage.input_tokens ALREADY includes
+cached_input_tokens (cached ≤ input in every case); (input+cached)/window yields impossible
+121-178% — additive hypothesis REJECTED. Formula stays input_tokens/model_context_window with
+min(99) clamp (see _apply_token_count). Do NOT change the formula.
+
 A per-tick cache (cwd → newest rollout path) is built from cheap line-1 reads of all rollouts
 (≈200 files); the expensive last-token-count parse touches only a 64 KB tail of the matched file.
 """
@@ -113,6 +118,9 @@ def _tail_token_count(path, chunk=65536):
 
 
 def _apply_token_count(sess, line):
+    # Formula is input_tokens/model_context_window (min(99) clamp) — NOT (input+cached)/window.
+    # See module docstring: 25-rollout empirical check (2026-07-01) rejected the additive
+    # hypothesis (it produced impossible 121-178% values). input_tokens already includes cache.
     try:
         p = json.loads(line).get("payload") or {}
     except Exception:
@@ -150,6 +158,17 @@ def enrich(sess):
     path = _index(home).get(sess.cwd)
     if not path:
         return                                       # no matching rollout → telemetry stays '—'
+    if sess.app_server:
+        # app-server companion: sess.cwd here is the leaf's OWN cwd (/proc/<pid>/cwd),
+        # NOT the project --cwd — the real --cwd lives on the sibling node broker process,
+        # a different comm that procscan does not scan. So _index(home).get(sess.cwd) may
+        # match a WRONG/OLD interactive rollout purely by cwd coincidence. Attaching that
+        # rollout's mtime as a liveness signal would be dishonest (it belongs to an
+        # unrelated session), so we set only what's honest: skip session_id + the token
+        # block entirely, and explicitly null out mtime rather than inherit the mismatched
+        # value. With mtime=None, liveness falls back to alive-process → idle.
+        sess.mtime = None
+        return
     sid = _SID_RE.search(os.path.basename(path))
     if sid:
         sess.session_id = sid.group(1)

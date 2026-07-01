@@ -5,6 +5,7 @@ Collectors fill them; no harness-specific logic lives here. Any field a harness
 cannot provide stays `None` and renders as `—` (an explicit "not available",
 never a blank — PRD §4 결손 칸 규칙).
 """
+import re
 from dataclasses import dataclass, field, asdict
 from typing import Optional
 
@@ -56,6 +57,51 @@ def dash(v, fmt=None):
 LIVENESS_STATES = ("working", "idle", "blocked", "done", "stale", "dead", "unknown")
 
 
+def project_of(cwd):
+    """Grouping key for the render v2 cwd-project groups — one group per parent repo.
+
+    Rule precedence (documented, not accidental): `-wt` OUTRANKS `_worktrees`, and both
+    passes are OUTERMOST-COMPONENT-FIRST (left→right). This is a TWO-PASS scan (all
+    components checked for `-wt` before ANY component is checked for `_worktrees`) —
+    a single interleaved pass would let an outer `_worktrees` component win over an
+    inner `-wt` component, which is the wrong precedence (see the mixed 7th test case
+    below). Edge cases verified — see plan Verification §1 / dev_logs/step_01_model.md:
+      /x/agent_setting-wt/fleet-dashboard              -> agent_setting
+      /x/.claude/worklog-board-wt/studio-c2            -> worklog-board
+      /x/.claude-wt/definitions-manifest               -> .claude
+      /x/Stream_Diar_Baselines_worktrees/m5b_ls_eend_engine -> Stream_Diar_Baselines
+      /x/worklog-board.broken-20260629-151852          -> worklog-board
+      ''                                                -> (unknown)
+      /a/foo_worktrees/bar-wt/leaf                     -> bar   (outer `_worktrees` component
+                                                                   loses to inner `-wt` component
+                                                                   because of the two-pass order)
+
+    Known accepted edge: basename-only merge means `/home/Uihyeop` and
+    `/home/nas/user/Uihyeop` both project to `Uihyeop` (same human, different mount —
+    treated as one group; acceptable, not a bug).
+
+    Quirk (not a bug, a consequence of rule 1 being unable to distinguish a worktree
+    PARENT from a leaf literally named `<x>-wt`): a non-worktree directory named
+    e.g. `/x/my-cool-wt` (no children, not actually a worktree root) still truncates
+    to `my-cool` — rule 1 has no way to tell the two apart from the path alone.
+    """
+    if not cwd:
+        return "(unknown)"
+    parts = [p for p in cwd.rstrip("/").split("/") if p]
+    # pass 1 (outermost-first): `-wt` suffix — takes precedence over `_worktrees`.
+    for comp in parts:
+        if len(comp) > 3 and comp.endswith("-wt"):
+            return comp[: -len("-wt")]
+    # pass 2 (outermost-first): `_worktrees` suffix.
+    for comp in parts:
+        if len(comp) > len("_worktrees") and comp.endswith("_worktrees"):
+            return comp[: -len("_worktrees")]
+    # fallback: basename, with a trailing `.broken*` marker stripped.
+    base = parts[-1] if parts else ""
+    base = re.sub(r"\.broken.*$", "", base)
+    return base or "(root)"
+
+
 @dataclass
 class Session:
     """One live harness session (backbone = one per matched process)."""
@@ -63,6 +109,7 @@ class Session:
     pid: int
     cwd: str = ""
     orphan: bool = False               # /proc/<pid>/cwd had ' (deleted)' (worktree gone)
+    app_server: bool = False           # codex app-server companion (procscan-detected — see collectors/procscan.py)
     elapsed_min: int = 0               # ps etime
     # --- enrichment (None = harness doesn't expose it → render '—') ---
     session_id: Optional[str] = None

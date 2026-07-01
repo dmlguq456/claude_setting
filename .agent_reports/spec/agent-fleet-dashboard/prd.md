@@ -51,6 +51,8 @@
 
 ## 3. [cli] 명령·옵션·I/O
 
+> **[minor edit · render v2 cycle, 2026-07-01]** 아래 옵션 표·키·런처 설명은 render v2 재구성 반영(cwd-group 레이아웃·스크롤·stale 토글). v1 원본은 `plans/2026-07-01_agent-fleet-dashboard/` 참조.
+
 단일 진입 명령. 서브명령 없음(모니터 도구).
 
 | 옵션 | 기본 | 의미 |
@@ -58,43 +60,69 @@
 | `--interval <sec>` | `2` | 라이브 tick 주기(초). 백본 프로세스 스캔·enrichment 재수집 주기. |
 | `--once` | off | 1회 스냅샷 렌더 후 종료(스크립트·디버그용, curses 미진입 시 plain 출력). |
 | `--no-tmux` | off | tmux split 없이 현재 터미널에서 직접 실행(런처가 아니라 TUI 직접). |
-| `--section <fleet\|dispatch\|both>` | `both` | 표시 섹션 선택. |
+| `--section <fleet\|dispatch\|both>` | `both` | **(v2 의미 변경)** 더 이상 화면 전체를 2섹션으로 쪼개지 않는다 — project(cwd) 그룹 _안에서_ 어떤 row-type 을 보여줄지 필터한다. `fleet`=그룹 안 세션 행만, `dispatch`=그룹 안 dispatch 행만, `both`=전체(기본). 필터 후 행이 0개가 된 그룹은 헤더째 생략(빈 그룹 미출력). |
 | `--harness <list>` | all | 특정 하네스만(예: `claude,codex`). |
 | `--json` | off | curses 대신 수집 결과를 JSON 으로 stdout(파이프·디버그·테스트). |
 | `--all` | off | fleet 리스트에 stale/dead 세션도 표시. **기본은 숨김**(활성 working/idle 만; 헤더 카운트·`+N hidden` 요약은 유지). |
 
+**(v2 신설) 라이브 조작 키**:
+
+| 키 | 동작 |
+|---|---|
+| `↑`/`↓`, `j`/`k` | 1줄 스크롤 |
+| `PgUp`/`PgDn` | 페이지 단위 스크롤 |
+| `Home`/`g`, `End`/`G` | 맨 위 / 맨 아래로 이동(뷰포트는 항상 맨 아래까지 도달) |
+| `a` | stale/dead 세션 + codex app-server companion 표시↔숨김 토글(`--all` 과 동일 효과, 라이브 재토글 가능) |
+| 마우스 클릭(`+N hidden` 줄) | `a` 와 동일한 토글. `tmux set -g mouse on` 필요 |
+| `q` | 종료 |
+| `r` | 즉시 새로고침 |
+
+- **마우스 트레이드오프(1줄 메모)**: 키보드 스크롤(`jk`/`PgUp,Dn`/`g,G`)이 기본(primary) 조작 경로다. tmux 마우스(`set -g mouse on`)를 켜면 `+N hidden` 클릭 토글이 되지만, 그 대가로 터미널 네이티브 클릭-선택·복사가 막힌다 — 그래서 마우스는 opt-in.
 - **Input**: 없음(디스크·프로세스 관찰만). 환경변수 `AGENT_HOME`/`CLAUDE_HOME`(기본 `~/.claude`), `AGENT_DISPATCH_JOBS`(기본 `<AGENT_HOME>/.dispatch/jobs.log`) 존중.
 - **Output**: curses full-screen(기본) / `--once`·`--json` 시 plain stdout.
 - **Exit code**: `0` 정상 종료(q/Ctrl-C) · `1` 초기화 실패(터미널 아님·의존 누락) · `2` 인자 오류.
-- **런처**: `fleet.sh` 가 tmux 세로 사이드 페인을 만들고 그 안에서 `fleet.py` 실행(§9). tmux 세션 안이면 split, 밖이면 `--no-tmux` 안내.
+- **런처 (v2: normal-terminal 비율)**: 세로 사이드 페인 강제 배치는 폐기(retire). `fleet.sh` 기본 동작은 현재 터미널에서 `fleet.py` 를 **전체 크기(full-terminal)** 로 직접 실행. `--window` 옵션 시 tmux 안이면 새 tmux 창(역시 full-size)으로 열고, tmux 밖이면 direct 실행으로 degrade.
 
-## 4. UI — 2섹션 레이아웃 + 렌더 모델
+## 4. UI — project(cwd) 그룹 레이아웃 + 렌더 모델
 
-### (A) fleet 섹션 — 전 하네스 활성 세션, 세션당 패널
-세로 스택(사이드 페인은 폭 좁음 → 세로가 자연). 패널 1개 = 세션 1개:
+> **[minor edit · render v2 cycle, 2026-07-01]** 아래는 v1 의 "(A) fleet 섹션 / (B) dispatch 섹션" 2섹션 분리 모델을 **project(cwd) 그룹** 모델로 대체한다. v1 원본 레이아웃은 `plans/2026-07-01_agent-fleet-dashboard/`(v1 빌드 사이클) 참조. §1 아키텍처 다이어그램의 "2섹션" 표기는 개념상 이 그룹 모델로 대체된 것으로 읽는다(다이어그램 자체는 미변경, §9-11 도 동일).
+
+### project(cwd) 그룹 — 부모 repo 당 그룹 1개
+세션과 그 프로젝트의 dispatch 잡을 **같은 그룹**에 묶는다. 그룹핑 키 = 부모 repo:
+- worktree cwd (`<repo>-wt/<slug>`, `<repo>_worktrees/<slug>`) → 부모 repo 이름으로 역매핑.
+- loops 잡(cwd 없음, key ∈ {oncall,note,study,drill}) → `loops` 그룹.
+- 그 외 → cwd basename(`.broken*` 접미사는 제거).
+
+각 그룹은 **세션 행 먼저, 그 다음 dispatch 행** 순서로 구성된다. 그룹 정렬은 활동도(working 포함 그룹 우선) → 최근성 → 이름순.
+
+### 세션 행 — harness 배지 + 1줄 패널
 ```
-<harness-badge> <slug/cwd basename>          <liveness>
-  ✨ <model> ·<effort>          🧠 <ctx%>
-  5h <r%>  7d <r%>   $<cost>    ⏳<elapsed>
+[Claude] <slug>  ✨<model> ·<effort>  🧠<ctx%>  5h<r>/7d<r>  ⏳<elapsed>  <liveness>
 ```
-- harness badge: `C`(claude)/`X`(codex)/`O`(opencode) 색 구분.
-- **결손 칸 규칙**: 하네스가 안 주는 값(opencode 의 rate-limit·effort 등)은 `—` 로 표시(빈칸 아님 — "없음"을 명시).
+- **harness 배지(v2: 풀네임 로고, 단일 문자 C/X/O 폐기)**: `[Claude]`/`[Codex]`/`[opencode]` 텍스트를 하네스별 색상 + reverse-video 블록으로 표시. codex app-server companion 프로세스는 배지 옆에 `⚙app-server` 마커를 추가로 붙인다.
+- **결손 칸 규칙(불변)**: 하네스가 안 주는 값(opencode 의 rate-limit·effort 등)은 `—` 로 표시(빈칸 아님 — "없음"을 명시).
 - liveness: herdr 4-상태 어휘 재사용 — `idle`/`working`/`blocked`/`done`(+ `stale`/`dead`, §7). 색: working=녹, idle=dim, blocked=황, stale/dead=적.
-- 정렬: 기본 harness→liveness(working 먼저)→elapsed. (커스텀 정렬은 스코프 밖.)
+- 정렬(그룹 내): working→idle→stale→dead→최근성.
 
-### (B) dispatch 섹션 — 프로젝트별 headless 잡 (uncapped)
-statusline 잡스캔 로직 재사용하되 **top-3 cap 제거**(전부 표시) + `.dispatch/jobs.log` 병합:
+### dispatch 행 — 그룹 안 `dispatch:` 서브 라벨 아래
+statusline 잡스캔 로직 재사용하되 **top-3 cap 제거**(전부 표시) + `.dispatch/jobs.log` 병합. 세션 행과의 시각적 구분을 위해 dim `dispatch:` 서브 라벨 + `▸` 로 들여쓴다:
 ```
-<pipe-key>▸<stage>  (<mode>·<qa>)  ⏳<elapsed>  <liveness>  <slug>
+dispatch:
+  ▸<pipe-key>▸<stage>  (<mode>·<qa>)  ⏳<elapsed>  <liveness>  <slug>
 ```
 - stage = `live_stage()` 재사용(plan→exec→test→done, `statusline.sh:131-171`).
 - 소스 = (a) 프로세스 스캔의 Claude autopilot/loops 잡 + (b) jobs.log 의 running/open 행(codex/opencode dispatch 는 여기서만 보임 — §6).
-- 잡 없으면 섹션 헤더만("no active dispatch").
+- 그룹에 dispatch 잡이 없으면 `dispatch:` 서브 라벨 자체를 생략(v1 의 "no active dispatch" 문구는 그룹 모델에서 그룹 단위 생략으로 대체).
+
+### stale/companion 표시 비대칭 (v2 신설 — 세션 ≠ dispatch)
+- **세션**: stale/dead 상태 또는 codex app-server companion 은 그룹별로 **기본 숨김**, 그룹 하단에 `+N stale/companion hidden` 요약 행(클릭·`a` 토글 가능). 표시로 전환 시 telemetry(모델/ctx%/rl/effort/cost)는 **dim(어둡게)** 처리 — last-observed 값이며 라이브 값이 아님을 시각적으로 구분. codex app-server 는 표시 전환 시 ctx%/rl 이 대시(`—`)로 남는다(companion 오귀속 문제 — §7 참조).
+- **dispatch**: stale/dead 잡은 `--all` 여부와 무관하게 **항상 표시**(숨김 폴드 없음) — 잡 실패·중단 신호를 놓치지 않기 위함.
 
 ### 렌더 모델 (zero-dep curses)
-- 단일 `curses` 루프, `--interval` 마다 재수집→재그림. `KEY_RESIZE` 처리(폭/높이 재계산). flicker 는 이 규모에서 무시(전체 지우고 다시 그림, 또는 `erase()`+`noutrefresh()`).
-- 키: `q`=종료, `r`=즉시 새로고침. (그 외 인터랙션은 스코프 밖.)
-- 폭이 아주 좁으면(사이드 페인) 한 줄 축약, 넓으면 2열 그리드로 승격(선택 — MVP 는 세로 스택 단일).
+- 단일 `curses` 루프, `--interval` 마다 재수집→재그림. `KEY_RESIZE` 처리(폭/높이 재계산, 스크롤 위치는 재클램프만 하고 리셋하지 않음). flicker 는 이 규모에서 무시(전체 지우고 다시 그림, 또는 `erase()`+`noutrefresh()`).
+- **뷰포트 스크롤(v2 핵심 수정)**: 전체 라인이 화면 높이를 넘으면 v1 은 `+N more (resize)` 로 잘려 맨 아래에 도달할 수 없었다(핵심 버그). v2 는 offset 기반 뷰포트 렌더러로 교체 — 스크롤(§3 키 표)로 **항상 맨 아래까지 도달**. 푸터에 `↑{above}`/`↓{below}` 인디케이터 + 키 힌트 표시.
+- 키: `q`=종료, `r`=즉시 새로고침, 스크롤/`a`/마우스는 §3 참조.
+- 폭이 아주 좁으면(<~70열) cost/rl → effort → model 순으로 필드를 줄인다(배지·slug·liveness 는 정체성·상태 앵커라 항상 유지). 2열 그리드 승격은 MVP 밖(변경 없음).
 
 ## 5. 능동 변경 — Claude per-session statusline tap (유일한 write)
 

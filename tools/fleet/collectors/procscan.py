@@ -58,6 +58,7 @@ def scan(harness_filter=None):
         if len(parts) < 3:
             continue
         pid_s, comm, etime = parts[0], parts[1], parts[2]
+        args = parts[3] if len(parts) > 3 else ""
         if comm not in HARNESSES:
             continue
         if harness_filter and comm not in harness_filter:
@@ -67,11 +68,18 @@ def scan(harness_filter=None):
         except ValueError:
             continue
         cwd, orphan = _read_cwd(pid)
+        # app-server companion marker: codex-only, literal "app-server" token in args.
+        # Interactive `codex`/`codex exec` never carries this token, so the gate cannot
+        # false-positive on interactive sessions. COLUMNS is pinned to 100000 for the ps
+        # call (see _ps_lines), so args are never truncated and the token stays visible
+        # even for long command lines.
+        app_server = comm == "codex" and "app-server" in args
         sessions.append(Session(
             harness=comm,
             pid=pid,
             cwd=cwd,
             orphan=orphan,
+            app_server=app_server,
             elapsed_min=etime_to_min(etime),
             slug=os.path.basename(cwd.rstrip("/")) if cwd else None,
         ))

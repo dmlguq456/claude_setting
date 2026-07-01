@@ -37,7 +37,8 @@ def parse_args(argv):
     p.add_argument("--no-tmux", action="store_true",
                    help="run the TUI directly (this flag is honored by fleet.sh, not fleet.py)")
     p.add_argument("--section", choices=["fleet", "dispatch", "both"], default="both",
-                   help="which section(s) to show (default both)")
+                   help="row-type filter within each project group: fleet=session rows only, "
+                        "dispatch=dispatch rows only, both=full group (default both)")
     p.add_argument("--harness", default=None,
                    help="comma list to restrict harnesses, e.g. claude,codex")
     p.add_argument("--json", action="store_true",
@@ -95,6 +96,7 @@ def main(argv=None):
     render.set_show_all(args.show_all)
     if args.once:
         return render.render_once(collect_all, hfilter, args.section)
+    render.reset_scroll()   # fresh launch starts scrolled to top (belt-and-suspenders)
     return render.run_live(collect_all, hfilter, args.section, args.interval)
 
 
