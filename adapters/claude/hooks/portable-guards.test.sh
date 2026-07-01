@@ -585,7 +585,9 @@ if "$CODEX" dispatch --register --worktree "$TMP/repo" --slug codex-dispatch --c
   && grep -q '^status=register$' /tmp/codex_dispatch.out \
   && grep -q '^registered=1$' /tmp/codex_dispatch.out \
   && grep -q '^started=0$' /tmp/codex_dispatch.out \
+  && grep -q '^registry_lock=.*/codex-dispatch.log.lock$' /tmp/codex_dispatch.out \
   && grep -q '^prompt_file=.*/codex-register-logs/codex-dispatch.codex.prompt.txt$' /tmp/codex_dispatch.out \
+  && [ -f "$TMP/codex-dispatch.log.lock" ] \
   && [ -f "$TMP/codex-register-logs/codex-dispatch.codex.prompt.txt" ] \
   && grep -q 'role planning, role implementation, role verification, and role report' "$TMP/codex-register-logs/codex-dispatch.codex.prompt.txt" \
   && grep -q $'open\t.*/repo\t.*/repo\tcodex-dispatch\tcapability=autopilot-code,mode=dev/backend,qa=standard' "$TMP/codex-dispatch.log"; then
@@ -596,6 +598,7 @@ fi
 if "$CODEX" harvest --jobs "$TMP/codex-dispatch.log" --slug codex-dispatch >/tmp/codex_harvest.out 2>/tmp/codex_harvest.err \
   && grep -q '^adapter=codex$' /tmp/codex_harvest.out \
   && grep -q '^runtime_surface=codex-dispatch-harvest$' /tmp/codex_harvest.out \
+  && grep -q '^registry_lock=.*/codex-dispatch.log.lock$' /tmp/codex_harvest.out \
   && grep -q '^matched=1$' /tmp/codex_harvest.out \
   && grep -q '^marked_done=0$' /tmp/codex_harvest.out \
   && grep -q '^job_status=open$' /tmp/codex_harvest.out \
@@ -606,6 +609,7 @@ else
 fi
 if "$CODEX" harvest --jobs "$TMP/codex-dispatch.log" --slug codex-dispatch --mark-done >/tmp/codex_harvest_done.out 2>/tmp/codex_harvest_done.err \
   && grep -q '^marked_done=1$' /tmp/codex_harvest_done.out \
+  && grep -q '^registry_lock=.*/codex-dispatch.log.lock$' /tmp/codex_harvest_done.out \
   && grep -q $'done\t.*/repo\t.*/repo\tcodex-dispatch\tcapability=autopilot-code,mode=dev/backend,qa=standard' "$TMP/codex-dispatch.log"; then
   ok "codex harvest wrapper marks selected jobs done"
 else

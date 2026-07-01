@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import argparse
+from contextlib import contextmanager
+import fcntl
 import os
 import sys
 import tempfile
@@ -27,6 +29,7 @@ def emit_header(args: argparse.Namespace, jobs: Path, matched: int, marked_done:
     print("runtime_surface=codex-dispatch-harvest")
     print("status=harvest")
     print(f"job_registry={jobs}")
+    print(f"registry_lock={jobs}.lock")
     print(f"selector_slug={args.slug or '*'}")
     print(f"selector_worktree={args.worktree or '*'}")
     print(f"status_filter={args.status}")
@@ -58,6 +61,18 @@ def resolve_agent_home() -> Path:
     return ROOT
 
 
+@contextmanager
+def jobs_lock(jobs: Path):
+    jobs.parent.mkdir(parents=True, exist_ok=True)
+    lock_path = Path(f"{jobs}.lock")
+    with lock_path.open("a", encoding="utf-8") as lock:
+        fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+        try:
+            yield lock_path
+        finally:
+            fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
+
+
 def main(argv: list[str]) -> int:
     args = parser().parse_args(argv[1:])
     if args.mark_done and not (args.slug or args.worktree):
@@ -68,48 +83,48 @@ def main(argv: list[str]) -> int:
 
     agent_home = resolve_agent_home()
     jobs = Path(args.jobs) if args.jobs else agent_home / ".dispatch" / "jobs.log"
-    if not jobs.exists():
-        emit_header(args, jobs, 0, 0, 0)
-        return 0
+    with jobs_lock(jobs):
+        if not jobs.exists():
+            emit_header(args, jobs, 0, 0, 0)
+            return 0
 
-    original = jobs.read_text(encoding="utf-8").splitlines(keepends=True)
-    rewritten: list[str] = []
-    matched_jobs: list[list[str]] = []
-    matched = 0
-    marked_done = 0
-    malformed = 0
+        original = jobs.read_text(encoding="utf-8").splitlines(keepends=True)
+        rewritten: list[str] = []
+        matched_jobs: list[list[str]] = []
+        matched = 0
+        marked_done = 0
+        malformed = 0
 
-    for line in original:
-        bare = line.rstrip("\n")
-        fields = bare.split("\t")
-        if len(fields) != 6:
-            malformed += 1
+        for line in original:
+            bare = line.rstrip("\n")
+            fields = bare.split("\t")
+            if len(fields) != 6:
+                malformed += 1
+                rewritten.append(line)
+                continue
+            if matches(args, fields):
+                matched += 1
+                matched_jobs.append(fields.copy())
+                if args.mark_done and fields[1] == "open":
+                    fields[1] = "done"
+                    marked_done += 1
+                    line = "\t".join(fields) + "\n"
             rewritten.append(line)
-            continue
-        if matches(args, fields):
-            matched += 1
-            matched_jobs.append(fields.copy())
-            if args.mark_done and fields[1] == "open":
-                fields[1] = "done"
-                marked_done += 1
-                line = "\t".join(fields) + "\n"
-        rewritten.append(line)
 
-    if args.mark_done:
-        jobs.parent.mkdir(parents=True, exist_ok=True)
-        with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=str(jobs.parent), delete=False) as tmp:
-            tmp.writelines(rewritten)
-            tmp_name = tmp.name
-        Path(tmp_name).replace(jobs)
+        if args.mark_done:
+            with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=str(jobs.parent), delete=False) as tmp:
+                tmp.writelines(rewritten)
+                tmp_name = tmp.name
+            Path(tmp_name).replace(jobs)
 
-    emit_header(args, jobs, matched, marked_done, malformed)
-    for fields in matched_jobs:
-        _, state, repo, worktree, slug, pipe = fields
-        print(f"job_status={state}")
-        print(f"job_repo={repo}")
-        print(f"job_worktree={worktree}")
-        print(f"job_slug={slug}")
-        print(f"job_pipe={pipe}")
+        emit_header(args, jobs, matched, marked_done, malformed)
+        for fields in matched_jobs:
+            _, state, repo, worktree, slug, pipe = fields
+            print(f"job_status={state}")
+            print(f"job_repo={repo}")
+            print(f"job_worktree={worktree}")
+            print(f"job_slug={slug}")
+            print(f"job_pipe={pipe}")
     return 0
 
 

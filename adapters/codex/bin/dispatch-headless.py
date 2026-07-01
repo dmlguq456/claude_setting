@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import argparse
+from contextlib import contextmanager
+import fcntl
 import os
 import shutil
 import shlex
@@ -134,13 +136,25 @@ def shell_command(args: argparse.Namespace, prompt_path: Path, log_path: Path) -
     return " ".join(shlex.quote(x) for x in cmd) + f" < {shlex.quote(str(prompt_path))} >> {shlex.quote(str(log_path))} 2>&1"
 
 
-def append_job(jobs: Path, args: argparse.Namespace) -> None:
+@contextmanager
+def jobs_lock(jobs: Path):
     jobs.parent.mkdir(parents=True, exist_ok=True)
+    lock_path = Path(f"{jobs}.lock")
+    with lock_path.open("a", encoding="utf-8") as lock:
+        fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+        try:
+            yield lock_path
+        finally:
+            fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
+
+
+def append_job(jobs: Path, args: argparse.Namespace) -> None:
     repo = subprocess.check_output(["git", "-C", args.worktree, "rev-parse", "--show-toplevel"], text=True).strip()
     pipe = f"capability={args.capability},mode={args.mode},qa={args.qa}"
     ts = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-    with jobs.open("a", encoding="utf-8") as f:
-        f.write(f"{ts}\topen\t{repo}\t{args.worktree}\t{args.slug}\t{pipe}\n")
+    with jobs_lock(jobs):
+        with jobs.open("a", encoding="utf-8") as f:
+            f.write(f"{ts}\topen\t{repo}\t{args.worktree}\t{args.slug}\t{pipe}\n")
 
 
 def resolve_agent_home() -> Path:
@@ -250,6 +264,7 @@ def main(argv: list[str]) -> int:
     print(f"mode={args.mode}")
     print(f"qa={args.qa}")
     print(f"job_registry={jobs}")
+    print(f"registry_lock={jobs}.lock")
     print(f"registered={1 if action in ('register', 'start') else 0}")
     print(f"started={1 if action == 'start' else 0}")
     print(f"require_hook_trust={1 if args.require_hook_trust else 0}")

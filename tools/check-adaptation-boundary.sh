@@ -621,7 +621,11 @@ check_codex_bin_wrappers() {
     || ! grep -Fq 'prompt_path.write_text(prompt_text, encoding="utf-8")' adapters/codex/bin/dispatch-headless.py \
     || ! grep -Fq 'pipeline_summary.md' adapters/codex/bin/dispatch-headless.py \
     || ! grep -Fq 'Do not claim independent QA delegation' adapters/codex/bin/dispatch-headless.py \
-    || ! grep -Fq 'Do not use adapters/claude' adapters/codex/bin/dispatch-headless.py; then
+    || ! grep -Fq 'Do not use adapters/claude' adapters/codex/bin/dispatch-headless.py \
+    || ! grep -Fq 'fcntl.flock' adapters/codex/bin/dispatch-headless.py \
+    || ! grep -Fq 'registry_lock={jobs}.lock' adapters/codex/bin/dispatch-headless.py \
+    || ! grep -Fq 'fcntl.flock' adapters/codex/bin/dispatch-harvest.py \
+    || ! grep -Fq 'registry_lock={jobs}.lock' adapters/codex/bin/dispatch-harvest.py; then
     fail_msg "adapters/codex/bin/dispatch-headless.py must validate dispatch inputs and wrap worker prompts with Codex harness bootstrap/preflight gates"
   fi
   if ! grep -Fq 'native Skills, native Agents, and native Modes' adapters/codex/README.md \
@@ -630,6 +634,8 @@ check_codex_bin_wrappers() {
     || ! grep -Fq 'headless [--check] [--require-hook-trust]' adapters/codex/AGENTS.md \
     || ! grep -Fq 'dispatch --dry-run|--register|--start [--require-hook-trust]' adapters/codex/ADAPTATION.md \
     || ! grep -Fq 'missing hook trust fails before registry writes' adapters/codex/README.md \
+    || ! grep -Fq 'registry writes and harvest rewrites are serialized with a `.lock` file' adapters/codex/README.md \
+    || ! grep -Fq 'registry writes and harvest rewrites are serialized with a `.lock` file' adapters/codex/ADAPTATION.md \
     || ! grep -Fq 'Codex harness prompt' adapters/codex/README.md \
     || ! grep -Fq 'Codex harness prompt' adapters/codex/ADAPTATION.md \
     || ! grep -Fq 'validates `capability-info`, `mode-info`, and the portable QA level before writing `.dispatch/jobs.log`' adapters/codex/README.md \
