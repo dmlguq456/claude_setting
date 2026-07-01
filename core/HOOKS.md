@@ -30,6 +30,7 @@ checks to their own event model.
 | memory distillation trigger | `hooks/mem-turn-nudge.sh`, `hooks/mem-distill-dispatch.sh` | `adapter-coupled-automation` | Periodically distill session deltas into DB memory through a no-tools worker. The shared dispatcher uses `MEM_DISTILL_WORKER=<executable>` with `<mode> <model> <prompt-file>` arguments. | Provide session transcript source (`mem.py distill --source <adapter>`), detached worker invocation, and no-tools/action contract before automatic memory mutation. |
 | oncall briefing injection | `hooks/mem-briefing-inject.sh` | `portable-check` | On the dedicated agent desk, inject daily oncall report once per day. | Run `hooks/mem-briefing-inject.sh --cwd <dir> [--format text]` before prompt handling, or attach it to a prompt-submit event. |
 | worklog state signal | `utilities/agent-worklog-state.sh` | `portable-check` | Surface configured `<agent-notes-root>` / `<worklog-board-app>` inventory without mutating data. | Run `utilities/agent-worklog-state.sh [cwd]` or an adapter wrapper before worklog-board or agent-notes work. |
+| runtime hook output protocol | adapter hook bridges | `adapter-payload-wrapper` | Hook stdout must match the owning runtime's hook protocol exactly. Context-injection hooks emit the runtime's structured context object; side-effect-only lifecycle hooks keep stdout empty unless that runtime explicitly accepts a structured success object. Portable helper text is never forwarded as raw hook stdout. | Each adapter must document its hook output contract, test the exact stdout shape for every native hook bridge, and route diagnostic/helper text to logs or stderr only when the runtime accepts it. |
 | Herdr state integration | `hooks/herdr-agent-state.sh` | `external-integration` | Publish working/idle/blocked/release state to Herdr. | Optional external integration; not a core invariant. |
 
 ## Adapter Rule
@@ -37,6 +38,14 @@ checks to their own event model.
 Adapters may reuse scripts directly only when they can supply the expected input
 payload and consume the expected output decision. Otherwise, the invariant must
 be wrapped or reimplemented behind an adapter-native event bridge.
+
+Adapter hook bridges own the final runtime output protocol. A portable helper can
+print human-readable status for explicit CLI use, but a native runtime hook must
+not forward that text unless the runtime accepts it for that hook event. For
+example, a context hook may emit `hookSpecificOutput.additionalContext` when the
+runtime supports it, while a lifecycle side-effect hook such as a session-end
+sync may need to perform the mutation with empty stdout so the runtime does not
+attempt to parse helper text as hook JSON.
 
 Current Claude Code registration lives in `adapters/claude/settings.json` and
 executes concrete hook projection files under `adapters/claude/hooks/` via the

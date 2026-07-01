@@ -2512,6 +2512,14 @@ check_adaptation_inventory_native_surfaces() {
     || ! grep -Fq 'unsupported/manual-contract' core/ADAPTATION_INVENTORY.md; then
     fail_msg "core/ADAPTATION_INVENTORY.md must describe Codex/OpenCode loop-info native support/fallback contracts"
   fi
+  if ! grep -Fq 'runtime hook output protocol' core/HOOKS.md \
+    || ! grep -Fq 'Hook stdout must match the owning runtime' core/HOOKS.md \
+    || ! grep -Fq 'Portable helper text is never forwarded as raw hook stdout' core/HOOKS.md \
+    || ! grep -Fq 'Runtime hook output contract' core/ADAPTATION_INVENTORY.md \
+    || ! grep -Fq 'Helper CLI text must not leak into native hook stdout' core/ADAPTATION_INVENTORY.md \
+    || ! grep -Fq 'final stdout protocol' core/ADAPTATION_INVENTORY.md; then
+    fail_msg "core hook docs must record the adapter-owned native hook stdout protocol invariant"
+  fi
   if ! grep -Fq 'adapters/codex/bin/preflight.sh liveness [jobs.log]' core/OPERATIONS.md \
     || ! grep -Fq 'adapters/opencode/bin/preflight.sh liveness [jobs.log]' core/OPERATIONS.md \
     || ! grep -Fq 'adapter liveness wrapper' core/OPERATIONS.md; then
