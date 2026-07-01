@@ -656,6 +656,9 @@ def _loop(stdscr, collect_all, hfilter, section, interval):
     last = time.time()
     _draw(stdscr, sessions, jobs, section, malformed)
     while True:
+        # wake exactly at the next 0.5s blink boundary (regular period) but stay key-responsive (≤200ms)
+        _nb = (int(time.time() * 2) + 1) / 2.0
+        stdscr.timeout(max(30, min(200, int((_nb - time.time()) * 1000) + 1)))
         ch = stdscr.getch()
         if ch in (ord("q"), ord("Q")):
             return 0
