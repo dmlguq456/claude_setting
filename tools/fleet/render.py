@@ -539,7 +539,12 @@ def _build_lines(sessions, jobs, section, narrow, malformed):
             head_segs.append(("──", "head"))
         lines.append(head_segs)
 
-        for s in _sort_group_sessions(shown):          # sessions tight (tree marks the children)
+        # one blank line BETWEEN session blocks so the stacked context gauges get vertical
+        # breathing room (user: the bars across rows were touching into a solid wall). The tree
+        # keeps each parent's children attached; the blank only separates sibling session blocks.
+        for si, s in enumerate(_sort_group_sessions(shown)):
+            if si:
+                lines.append(None)
             kids = _sort_group_jobs(children.get(s.session_id, []))
             lines.append(_session_row(s, narrow, is_parent=bool(kids), child_count=len(kids)))
             for i, cj in enumerate(kids):
