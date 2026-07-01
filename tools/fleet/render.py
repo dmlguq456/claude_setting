@@ -85,6 +85,11 @@ def _init_colors():
     for k in ("pct_g", "pct_y", "pct_r", "m_opus", "m_sonnet", "m_haiku", "m_fable", "m_gpt", "m_glm"):
         _COLOR[k] = _COLOR.get(k, 0) | curses.A_BOLD
     _COLOR["model"] = curses.A_BOLD              # default/unknown model name — bold (user: 모델명 더 눈에 띄게)
+    # status glyphs pop: working = blinking green ● (live-LED signal), others bold (user: 점멸 신호)
+    _COLOR["g_work"] = _COLOR.get("work", 0) | curses.A_BOLD | curses.A_BLINK
+    _COLOR["g_idle"] = _COLOR.get("warn", 0) | curses.A_BOLD
+    _COLOR["g_stale"] = _COLOR.get("stale", 0) | curses.A_BOLD
+    _COLOR["g_dead"] = _COLOR.get("dead", 0) | curses.A_BOLD
     _COLOR["idle"] = curses.A_DIM
     _COLOR["dim"] = curses.A_DIM
     _COLOR["unknown"] = curses.A_DIM
@@ -102,8 +107,8 @@ def _live_key(state):
 # leading status glyph — the row's primary at-a-glance anchor (working/idle stand out; user 2026-07-01)
 _LIVE_GLYPH = {"working": "●", "idle": "○", "blocked": "◑", "done": "✓",
                "stale": "◌", "dead": "✕", "unknown": "·"}
-_GLYPH_KEY = {"working": "work", "idle": "warn", "blocked": "warn", "done": "done",
-              "stale": "stale", "dead": "dead", "unknown": "dim"}
+_GLYPH_KEY = {"working": "g_work", "idle": "g_idle", "blocked": "g_idle", "done": "done",
+              "stale": "g_stale", "dead": "g_dead", "unknown": "dim"}
 
 
 def _glyph(state):
@@ -141,22 +146,30 @@ def _bar(pct, width=5):
     return _BAR_FULL * filled + _BAR_EMPTY * (width - filled)
 
 
+def _pad(s, w):
+    """Pad/truncate ASCII text to exactly w cells (columns align across rows)."""
+    s = s or ""
+    return s[:w].ljust(w)
+
+
 _GATE_TTL = 3.0
 _GATE_CACHE = {"ts": 0.0, "map": {}}
 
 
-def _project_gate(cwd):
-    """spec-gate for a project cwd: 'tracked' / 'untracked' / None (no artifact root).
-    Walks up to the nearest .agent_reports/.claude_reports; untracked if a .untracked* marker
-    is present (session-scoped or global). Cached per cwd for a few seconds (per-tick reuse)."""
+def _project_gate(cwd, sid=None):
+    """spec-gate: 'tracked' / 'untracked' / None (no artifact root). Walks up to the nearest
+    .agent_reports/.claude_reports. untracked if the GLOBAL `.untracked` marker exists, or (when
+    sid given) this session's `.untracked.<sid>` — so tracked mode is per-session, matching the
+    statusline. sid=None → project-level (global marker only). Cached per (cwd,sid) per tick."""
     if not cwd:
         return None
     now = time.time()
     if now - _GATE_CACHE["ts"] > _GATE_TTL:
         _GATE_CACHE.update(ts=now, map={})
     cache = _GATE_CACHE["map"]
-    if cwd in cache:
-        return cache[cwd]
+    ck = (cwd, sid)
+    if ck in cache:
+        return cache[ck]
     d = cwd
     result = None
     for _ in range(40):
@@ -164,13 +177,13 @@ def _project_gate(cwd):
             base = os.path.join(d, rd)
             if os.path.isdir(base):
                 untracked = os.path.exists(os.path.join(base, ".untracked")) or \
-                    bool(glob.glob(os.path.join(base, ".untracked.*")))
+                    bool(sid and os.path.exists(os.path.join(base, ".untracked." + sid)))
                 result = "untracked" if untracked else "tracked"
                 break
         if result is not None or d in ("/", ""):
             break
         d = os.path.dirname(d)
-    cache[cwd] = result
+    cache[ck] = result
     return result
 
 
@@ -192,48 +205,43 @@ def _session_row(s, narrow, is_parent=False):
     dim_telemetry = live in ("stale", "dead") or s.app_server
     tkey = "dim" if dim_telemetry else None
 
-    # leading status glyph (●/○/◌/✕) then icon BEFORE badge — consistent slot with dispatch row
-    gch, gkey = _glyph(live)
-    segs = [("  ", None), (gch + " ", gkey)]
-    if is_parent:
-        segs.append((_ICON_PARENT + " ", None))
-    segs.append((badge, bkey))
-    if s.app_server:
-        segs.append((" ⚙app-server", "dim"))
-    segs.append((" " + slug, None))
-
-    model = dash(s.model)
-    ctx = dash(s.ctx_pct, lambda v: "%d%%" % v)
-    r5 = dash(s.rl_5h, lambda v: "%d%%" % v)
-    r7 = dash(s.rl_7d, lambda v: "%d%%" % v)
+    # aligned columns (fixed-width pad) — glyph · gate · parent · badge · name · model+effort · ctx · rate · cost · ⏳
     el = fmt_min(s.elapsed_min)
-    cost = dash(s.cost, lambda v: "$%.2f" % v)
+    model = dash(s.model)
+    gch, gkey = _glyph(live)
+    gate = _project_gate(s.cwd, s.session_id)                         # per-session spec-gate
+    gate_ch, gate_key = {"tracked": ("📌", "work"), "untracked": ("⚡", "warn")}.get(gate, ("  ", "dim"))
+    parent_ch = _ICON_PARENT if is_parent else "  "
 
-    # narrow drop priority: (1) cost/rl first, (2) then effort, (3) then model.
-    # badge/slug/liveness never drop.
-    show_cost_rl = not narrow
-    show_effort = True
-    show_model = True
+    segs = [("  ", None), (gch, gkey), (" ", None),
+            (gate_ch, gate_key), (" ", None),
+            (parent_ch, None), (" ", None),
+            (_pad(badge, 10), bkey), (" ", None),
+            (_pad(slug, 18), None),
+            ("  ✨", "dim"),
+            (model, "dim" if dim_telemetry else _model_key(s.model))]
+    used = len(model)
+    if s.effort:
+        eff = " ·" + s.effort
+        segs.append((eff, "dim" if dim_telemetry else _EFFORT_KEY.get(s.effort, "dim")))
+        used += len(eff)
+    segs.append((" " * max(1, 22 - used), None))                      # pad model+effort → 🧠 column aligns
 
-    if show_model:
-        segs.append(("  ✨", "dim"))
-        segs.append((model, "dim" if dim_telemetry else _model_key(s.model)))   # per-model color when live
-        if s.effort and show_effort:
-            segs.append((" ·" + s.effort, "dim" if dim_telemetry else _EFFORT_KEY.get(s.effort, "dim")))
-    if s.ctx_pct is not None and not dim_telemetry:                     # visual context gauge
-        segs.append(("  🧠", "dim"))
-        segs.append((_bar(s.ctx_pct), _pct_key(s.ctx_pct)))
-        segs.append((" %d%%" % s.ctx_pct, _pct_key(s.ctx_pct)))
+    ctx_str = dash(s.ctx_pct, lambda v: "%d%%" % v)
+    if s.ctx_pct is not None and not dim_telemetry:                  # visual context gauge
+        segs += [("🧠", "dim"), (_bar(s.ctx_pct), _pct_key(s.ctx_pct)), (" %4s" % ctx_str, _pct_key(s.ctx_pct))]
     else:
-        segs.append(("  🧠" + ctx, "dim"))
-    if show_cost_rl:
-        if dim_telemetry:
-            segs.append(("  5h" + r5 + "/7d" + r7, "dim"))
-        else:                                                           # rate % bold+colored (was all-dim → invisible)
-            segs.append(("  5h", "dim")); segs.append((r5, _pct_key(s.rl_5h)))
-            segs.append(("/7d", "dim")); segs.append((r7, _pct_key(s.rl_7d)))
-        segs.append(("  " + cost, "dim"))
-    segs.append(("  ⏳" + el, "dim"))                                   # liveness shown by leading glyph now
+        segs += [("🧠", "dim"), ("░░░░░", "dim"), (" %4s" % ctx_str, "dim")]
+
+    if not narrow:
+        r5s = dash(s.rl_5h, lambda v: "%d%%" % v)
+        r7s = dash(s.rl_7d, lambda v: "%d%%" % v)
+        segs += [("  5h", "dim"), ("%4s" % r5s, "dim" if dim_telemetry else _pct_key(s.rl_5h)),
+                 (" 7d", "dim"), ("%4s" % r7s, "dim" if dim_telemetry else _pct_key(s.rl_7d)),
+                 ("  %8s" % dash(s.cost, lambda v: "$%.2f" % v), "dim")]
+    segs.append(("  ⏳" + el, "dim"))                                 # liveness shown by leading glyph
+    if s.app_server:
+        segs.append(("  ⚙app-server", "dim"))
     if s.orphan:
         segs.append(("  ⚠worktree-gone", "dead"))
     return segs
@@ -395,24 +403,14 @@ def _build_lines(sessions, jobs, section, narrow, malformed):
             else:
                 orphans.append(j)
 
-        by_harness = {}
-        for s in group_sessions:
-            by_harness[s.harness] = by_harness.get(s.harness, 0) + 1
-        lc = {}
-        for s in group_sessions:
-            lc[s.liveness] = lc.get(s.liveness, 0) + 1
-        counts_str = " ".join("%s%d" % (k[0], lc[k])
-                               for k in ("working", "idle", "stale", "dead") if lc.get(k))
         gcwd = (group_sessions[0].cwd if group_sessions else
                 (group_jobs[0].cwd if group_jobs else ""))
-        gate = _project_gate(gcwd)                     # spec-gate: 📌 tracked / ⚡ untracked
-        head_segs = [("━━ 📁 %s" % name, "head")]
+        gate = _project_gate(gcwd)                     # project spec-gate (word = the explanation)
+        head_segs = [("━━ 📁 %s" % name, "head")]      # session count dropped — glyphs carry status
         if gate == "tracked":
-            head_segs.append((" 📌", "work"))
+            head_segs.append(("  📌 tracked", "work"))
         elif gate == "untracked":
-            head_segs.append((" ⚡", "warn"))
-        head_segs.append(("  (%d sessions%s)" % (
-            len(group_sessions), ("  " + counts_str) if counts_str else ""), "head"))
+            head_segs.append(("  ⚡ untracked", "warn"))
         lines.append(head_segs)
 
         for si, s in enumerate(_sort_group_sessions(shown)):
@@ -438,6 +436,19 @@ def _build_lines(sessions, jobs, section, narrow, malformed):
     if malformed:
         lines.append(None)
         lines.append([("  +%d malformed jobs.log rows skipped" % malformed, "dim")])
+
+    # legend — explains the visual encoding
+    lines.append(None)
+    lines.append([
+        ("  ", None), ("●", "g_work"), (" working  ", "dim"),
+        ("○", "g_idle"), (" idle  ", "dim"),
+        ("◌", "g_stale"), (" stale  ", "dim"),
+        ("✕", "g_dead"), (" dead     ", "dim"),
+        ("📌", "work"), (" tracked  ", "dim"),
+        ("⚡", "warn"), (" untracked     ", "dim"),
+        ("🛰️", None), (" orchestrator  ", "dim"),
+        ("🚀", None), (" dispatch", "dim"),
+    ])
 
     return lines
 
@@ -465,6 +476,29 @@ def _malformed():
 
 
 # ---------- curses (live) ----------
+# display-width aware clipping — emoji/CJK render 2 cells but len()==1, so advancing col by
+# len() drew the next segment 1 col early and overwrote the previous field's last char
+# (e.g. the directory name lost a char after the 📁). Count real cells instead.
+_WIDE = set("🧠✨⏳📁🚀🛰📌⚡📋⚙📊🐛📈🔬💻")
+
+
+def _cw(ch):
+    o = ord(ch)
+    if o == 0xFE0F or 0x200B <= o <= 0x200F or o == 0x2060:   # VS16 / zero-width → 0 cells
+        return 0
+    if ch in _WIDE:
+        return 2
+    if (0x1100 <= o <= 0x115F or 0x2E80 <= o <= 0xA4CF or 0xAC00 <= o <= 0xD7A3
+            or 0xF900 <= o <= 0xFAFF or 0xFF00 <= o <= 0xFF60 or 0xFFE0 <= o <= 0xFFE6
+            or 0x1F000 <= o <= 0x1FAFF):                       # CJK / Hangul / fullwidth / emoji
+        return 2
+    return 1
+
+
+def _dw(s):
+    return sum(_cw(c) for c in s)
+
+
 def _addline(stdscr, row, segs, w):
     if segs is None:
         return
@@ -472,12 +506,21 @@ def _addline(stdscr, row, segs, w):
     for text, color in segs:
         if col >= w - 1:
             break
-        piece = text[: (w - 1 - col)]
-        try:
-            stdscr.addstr(row, col, piece, _attr(color))
-        except curses.error:
-            pass
-        col += len(piece)
+        avail = w - 1 - col
+        piece = ""
+        pw = 0
+        for ch in text:                                       # clip by display width, not len
+            cw = _cw(ch)
+            if pw + cw > avail:
+                break
+            piece += ch
+            pw += cw
+        if piece:
+            try:
+                stdscr.addstr(row, col, piece, _attr(color))
+            except curses.error:
+                pass
+        col += pw
 
 
 _OFFSET = 0                 # scroll offset — READ only in _draw (see module docstring)

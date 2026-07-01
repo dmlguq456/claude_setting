@@ -45,6 +45,8 @@ def parse_args(argv):
                    help="emit collected state as JSON to stdout")
     p.add_argument("--all", dest="show_all", action="store_true",
                    help="include stale/dead sessions in the fleet list (hidden by default)")
+    p.add_argument("--demo", action="store_true",
+                   help="render synthetic fixture data (all harnesses + states) for rendering checks")
     return p.parse_args(argv)   # argparse exits 2 on bad args (matches PRD §3 exit codes)
 
 
@@ -78,8 +80,16 @@ def main(argv=None):
     args = parse_args(argv if argv is not None else sys.argv[1:])
     hfilter = _harness_filter(args.harness)
 
+    collector = collect_all
+    if args.demo:
+        if __package__ in (None, ""):
+            from fleet import demo
+        else:
+            from . import demo
+        collector = demo.collect
+
     if args.json:
-        sessions, jobs = collect_all(harness_filter=hfilter)
+        sessions, jobs = collector(harness_filter=hfilter)
         print(_snapshot_json(sessions, jobs))
         return 0
 
@@ -95,9 +105,9 @@ def main(argv=None):
 
     render.set_show_all(args.show_all)
     if args.once:
-        return render.render_once(collect_all, hfilter, args.section)
+        return render.render_once(collector, hfilter, args.section)
     render.reset_scroll()   # fresh launch starts scrolled to top (belt-and-suspenders)
-    return render.run_live(collect_all, hfilter, args.section, args.interval)
+    return render.run_live(collector, hfilter, args.section, args.interval)
 
 
 if __name__ == "__main__":
