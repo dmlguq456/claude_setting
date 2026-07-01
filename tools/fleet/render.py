@@ -253,20 +253,33 @@ _BRANCH_COL = 43              # absolute col where ⎇branch starts (both row ty
 _NW_S = _BRANCH_COL - 13      # session name field  (prefix 4 + harness 9 = 13)
 _NW_D = _BRANCH_COL - 16      # dispatch name field (prefix 7 + harness 9 = 16, deeper indent)
 _BRW = 14                     # ⎇branch field (always ≥1 trailing space so it never touches model)
-_MW = 22                      # model · effort field
+_MW = 24                      # model + effort field
+_EFF_W = 6                    # effort sub-column (right of the model, no dot — a gap separates them)
+_CTX_W = 14                   # context-window gauge width (the metric the user reads most)
 _CLOCK = "⏱ "                 # elapsed-time marker before uptime (⏱ = 2 cells, see _WIDE)
 
 _COL_HEAD = ("    " + "harness".ljust(_HW) + "session".ljust(_NW_S)
-             + "branch".ljust(_BRW) + "model · effort".ljust(_MW) + " context / job")
+             + "branch".ljust(_BRW) + "model".ljust(_MW - _EFF_W) + "effort".ljust(_EFF_W)
+             + " context / job")
+
+
+def _gate_word(gate, pipe):
+    """Canonical spec-gate vocabulary (matches the statusline 📌tracked / ⚡untracked):
+      untracked  — a `.untracked` marker is set (⚡, /track)
+      spec       — tracked AND a spec/pipeline_state.yaml pipeline is present (📌 spec-backed)
+      tracked    — artifact root present but no spec pipeline (research/docs-only)
+    Returns (word, color_key); ('', None) when there is no artifact root."""
+    if gate == "untracked":
+        return "untracked", "gate_u"
+    if gate == "tracked":
+        return ("spec" if pipe else "tracked"), "gate_t"
+    return "", None
 
 
 def _gate_tag(gate, pipe):
     """(text, color_key) for the dim gate tag shown after a session name, or ('', None)."""
-    word, key = {"tracked": ("tracked", "gate_t"),
-                 "untracked": ("adhoc", "gate_u")}.get(gate, ("", None))
-    if not word:
-        return "", None
-    return " " + word + ("·pipe" if pipe else ""), key
+    word, key = _gate_word(gate, pipe)
+    return (" " + word, key) if word else ("", None)
 
 
 def _branch_seg(cwd, branch):
@@ -276,14 +289,15 @@ def _branch_seg(cwd, branch):
 
 
 def _model_segs(harness, model, effort, width):
-    """model (harness-tinted dim) + effort (same hue, intensity ramp) filling exactly `width`."""
+    """model (harness-tinted dim) + effort as its OWN aligned sub-column (no ' · ' dot — a plain
+    gap separates them, per the user). effort ramps intensity (low→dim … max→bold). Fills `width`."""
     model = _clean_model(dash(model))
-    efftxt = (" · " + effort) if effort else ""
-    mw = max(1, width - len(efftxt))
-    out = [(_pad(model[:mw], mw), _model_key(harness))]
-    if efftxt:
-        out.append((efftxt, _eff_key(harness, effort)))
-    return out
+    mkey = _model_key(harness)
+    if effort:
+        mw = max(1, width - _EFF_W - 1)
+        return [(_pad(model[:mw], mw + 1), mkey),
+                (_pad(effort, _EFF_W), _eff_key(harness, effort))]
+    return [(_pad(model[: max(1, width - 1)], width), mkey)]
 
 
 def _session_row(s, narrow, is_parent=False, child_count=0):
@@ -318,11 +332,11 @@ def _session_row(s, narrow, is_parent=False, child_count=0):
     segs.append(_branch_seg(s.cwd, s.branch))
     segs += _model_segs(s.harness, s.model, s.effort, _MW)
 
-    # STATUS-ZONE — ctx gauge (meaningful level color)
+    # STATUS-ZONE — ctx gauge (meaningful level color); widened so the context reading is legible
     if s.ctx_pct is not None and not dim_tel:
-        segs += [("  ", None), (_bar(s.ctx_pct), _pct_key(s.ctx_pct)), (" %3d%%" % s.ctx_pct, _pct_key(s.ctx_pct))]
+        segs += [("  ", None), (_bar(s.ctx_pct, _CTX_W), _pct_key(s.ctx_pct)), (" %3d%%" % s.ctx_pct, _pct_key(s.ctx_pct))]
     else:
-        segs += [("  ", None), ("░░░░░", "dim"), (" %4s" % dash(s.ctx_pct, lambda v: "%d%%" % v), "dim")]
+        segs += [("  ", None), ("░" * _CTX_W, "dim"), (" %4s" % dash(s.ctx_pct, lambda v: "%d%%" % v), "dim")]
     if s.app_server:
         segs.append(("  app-server", "dim"))
     if s.orphan:
@@ -515,11 +529,11 @@ def _build_lines(sessions, jobs, section, narrow, malformed):
 
         gcwd = (group_sessions[0].cwd if group_sessions else
                 (group_jobs[0].cwd if group_jobs else ""))
-        gate = _project_gate(gcwd)                     # project spec-gate (word after the rule)
-        gword = {"tracked": "tracked", "untracked": "adhoc"}.get(gate, "")
+        ggate, gpipe = _gate_info(gcwd)                # project spec-gate (word after the rule)
+        gword, gwkey = _gate_word(ggate, gpipe)
         head_segs = [("── ", "head"), ("📁 ", "dim"), ("%s " % name, "head"), (_HFILL, None)]
         if gword:
-            head_segs += [("  ", None), (gword, "gate_t" if gate == "tracked" else "gate_u"), (" ──", "head")]
+            head_segs += [("  ", None), (gword, gwkey), (" ──", "head")]
         else:
             head_segs.append(("──", "head"))
         lines.append(head_segs)
