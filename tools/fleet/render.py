@@ -215,7 +215,7 @@ def _project_gate(cwd, sid=None):
 _COL_HEAD = ("  " + " " + "  "
              + "harness".ljust(9) + " " + "session".ljust(20) + " " + "".ljust(3) + " "
              + "branch".ljust(9) + "gate".ljust(9) + "model · effort".ljust(23)
-             + "ctx")
+             + " context")
 
 
 def _session_row(s, narrow, is_parent=False, child_count=0):
@@ -248,9 +248,9 @@ def _session_row(s, narrow, is_parent=False, child_count=0):
     segs.append((_pad(me, MW + 1), "dim"))
 
     if s.ctx_pct is not None and not dim_tel:                        # ctx gauge — a meaningful color
-        segs += [(_bar(s.ctx_pct), _pct_key(s.ctx_pct)), (" %3d%%" % s.ctx_pct, _pct_key(s.ctx_pct))]
+        segs += [(" ", None), (_bar(s.ctx_pct), _pct_key(s.ctx_pct)), (" %3d%%" % s.ctx_pct, _pct_key(s.ctx_pct))]
     else:
-        segs += [("░░░░░", "dim"), (" %4s" % dash(s.ctx_pct, lambda v: "%d%%" % v), "dim")]
+        segs += [(" ", None), ("░░░░░", "dim"), (" %4s" % dash(s.ctx_pct, lambda v: "%d%%" % v), "dim")]
     if s.app_server:
         segs.append(("  app-server", "dim"))
     if s.orphan:
@@ -376,13 +376,13 @@ def _build_lines(sessions, jobs, section, narrow, malformed):
         hs = [h for h in ("claude", "codex", "opencode") if h in _rl]
         for i, h in enumerate(hs):
             if i:
-                bar.append(("    │    ", "dim"))
+                bar.append(("      │      ", "dim"))
             r5, r7 = _rl[h]
             bar.append((_pad(h, 9), _BADGE_KEY.get(h, "dim")))
-            for lbl, v in (("5h ", r5), ("7d ", r7)):
-                bar += [(lbl, "dim"),
+            for j, (lbl, v) in enumerate((("5h ", r5), ("7d ", r7))):
+                bar += [("      " + lbl if j else lbl, "dim"),          # gap between the 5h and 7d gauges
                         (_bar(v, 8) if v is not None else "········", _pct_key(v)),
-                        (" %3s   " % dash(v, lambda x: "%d%%" % x), _pct_key(v))]
+                        (" %3s" % dash(v, lambda x: "%d%%" % x), _pct_key(v))]
         lines.append(bar)
         lines.append(None)
         lines.append([(_COL_HEAD, "head")])            # column labels once → no per-cell emoji needed
@@ -432,9 +432,7 @@ def _build_lines(sessions, jobs, section, narrow, malformed):
                 (group_jobs[0].cwd if group_jobs else ""))
         gate = _project_gate(gcwd)                     # project spec-gate (word after the rule)
         gword = {"tracked": "tracked", "untracked": "adhoc"}.get(gate, "")
-        left = "── %s " % name
-        gtail_w = (_dw(gword) + 4) if gword else 2
-        head_segs = [(left, "head"), ("─" * max(3, 74 - _dw(left) - gtail_w), "head")]
+        head_segs = [("── ", "head"), ("📁 ", "dim"), ("%s " % name, "head"), (_HFILL, None)]
         if gword:
             head_segs += [("  ", None), (gword, "gate_t" if gate == "tracked" else "gate_u"), (" ──", "head")]
         else:
@@ -482,7 +480,7 @@ def _build_lines(sessions, jobs, section, narrow, malformed):
 def _plain(segs):
     if segs is None:
         return ""
-    return "".join("   " if t == _RFLUSH else t for t, _ in segs)   # no true right-align without a width
+    return "".join(("─────" if t == _HFILL else "   ") if _is_fill(t) else t for t, _ in segs)
 
 
 def render_once(collect_all, hfilter, section):
@@ -526,16 +524,24 @@ def _dw(s):
     return sum(_cw(c) for c in s)
 
 
-_RFLUSH = "\x00R\x00"   # sentinel segment: everything after it is flushed to the right edge
+# fill sentinels (3-char \x00<fill>\x00): everything after is right-aligned to the edge; the gap
+# is filled with <fill> — space for _RFLUSH (invisible), ─ for _HFILL (a full-width rule).
+_RFLUSH = "\x00 \x00"
+_HFILL = "\x00─\x00"
+
+
+def _is_fill(t):
+    return len(t) == 3 and t[0] == "\x00" and t[2] == "\x00"
 
 
 def _addline(stdscr, row, segs, w):
     if segs is None:
         return
-    right = []
-    left = segs
-    for i, seg in enumerate(segs):
-        if seg[0] == _RFLUSH:
+    fillch = None
+    left, right = segs, []
+    for i, (t, _c) in enumerate(segs):
+        if _is_fill(t):
+            fillch = t[1]
             left, right = segs[:i], segs[i + 1:]
             break
 
@@ -564,7 +570,10 @@ def _addline(stdscr, row, segs, w):
     endcol = _draw(left, 0)
     if right:
         rw = sum(_dw(t) for t, _ in right)
-        _draw(right, max(endcol + 2, w - 1 - rw))             # flush right, min 2-col gap after left
+        rcol = max(endcol + (0 if fillch == "─" else 2), w - 1 - rw)
+        if fillch == "─" and rcol > endcol:
+            _draw([("─" * (rcol - endcol), "head")], endcol)  # fill the gap to make a full-width rule
+        _draw(right, rcol)
 
 
 _OFFSET = 0                 # scroll offset — READ only in _draw (see module docstring)
