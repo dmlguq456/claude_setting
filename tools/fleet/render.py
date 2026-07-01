@@ -258,9 +258,10 @@ _EFF_W = 6                    # effort sub-column (right of the model, no dot �
 _CTX_W = 14                   # context-window gauge width (the metric the user reads most)
 _CLOCK = "⏱ "                 # elapsed-time marker before uptime (⏱ = 2 cells, see _WIDE)
 
-_COL_HEAD = ("    " + "harness".ljust(_HW) + "session".ljust(_NW_S)
-             + "branch".ljust(_BRW) + "model".ljust(_MW - _EFF_W) + "effort".ljust(_EFF_W)
-             + " context / job")
+# subtle dim glyphs label each column (1 cell each — geometric, not emoji; ⎇ matches the rows)
+_COL_HEAD = ("    " + "harness".ljust(_HW) + "❯ session".ljust(_NW_S)
+             + "⎇ branch".ljust(_BRW) + "◈ model".ljust(_MW - _EFF_W) + "effort".ljust(_EFF_W)
+             + " ▣ context / job")
 
 
 def _gate_word(gate, pipe):
@@ -475,7 +476,7 @@ def _build_lines(sessions, jobs, section, narrow, malformed):
         hs = [h for h in ("claude", "codex", "opencode") if h in _rl]
         for idx, h in enumerate(hs):
             r5, r7, _mt = _rl[h]
-            row = [(" usage " if idx == 0 else "       ", "head"),
+            row = [("◷ usage " if idx == 0 else "        ", "head"),   # ◷ = time-windowed rate
                    (_pad(h, 11), _BADGE_KEY.get(h, "dim"))]
             for gi, (lbl, v) in enumerate((("5h ", r5), ("7d ", r7))):
                 pctstr = ("%d%%" % v) if v is not None else "—"
