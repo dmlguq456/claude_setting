@@ -268,15 +268,15 @@ _COL_HEAD = ("    " + "harness".ljust(_HW) + "❯ session".ljust(_NW_S)
 
 
 def _gate_word(gate, pipe):
-    """Canonical spec-gate vocabulary (matches the statusline 📌tracked / ⚡untracked):
-      untracked  — a `.untracked` marker is set (⚡, /track)
-      spec       — tracked AND a spec/pipeline_state.yaml pipeline is present (📌 spec-backed)
-      tracked    — artifact root present but no spec pipeline (research/docs-only)
-    Returns (word, color_key); ('', None) when there is no artifact root."""
+    """Binary spec-gate vocabulary — EXACTLY the statusline's 📌tracked / ⚡untracked, nothing
+    else (a third 'spec' state confused the mental model). `pipe` is accepted but not shown.
+      tracked    — under the agent pipeline (no `.untracked` marker)
+      untracked  — a `.untracked` marker is set (⚡, /track) — ad-hoc, bypasses the pipeline
+    Returns (word, color_key); ('', None) when there is no artifact root at all."""
     if gate == "untracked":
         return "untracked", "gate_u"
     if gate == "tracked":
-        return ("spec" if pipe else "tracked"), "gate_t"
+        return "tracked", "gate_t"
     return "", None
 
 
