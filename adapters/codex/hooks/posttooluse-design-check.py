@@ -125,17 +125,85 @@ def shell_write_files(base: Path, command: str) -> list[str]:
 
     files: list[str] = []
     redirects = {">", ">>", "1>", "1>>", "2>", "2>>", "&>", "&>>", ">|"}
+    separators = {"|", "&&", "||", ";"}
+    mutation_commands = {"tee", "touch", "cp", "mv", "rm", "install", "rsync"}
+
+    def add_file(raw: str) -> None:
+        file = normalize(base, raw)
+        if file:
+            files.append(file)
+
+    def split_command_operands(start: int) -> tuple[list[str], int]:
+        operands: list[str] = []
+        idx = start
+        while idx < len(tokens):
+            token = tokens[idx]
+            if token in separators:
+                break
+            if token == "--":
+                idx += 1
+                continue
+            if token.startswith("-"):
+                idx += 1
+                continue
+            operands.append(token)
+            idx += 1
+        return operands, idx
+
     for idx, token in enumerate(tokens):
         if token in redirects and idx + 1 < len(tokens):
-            file = normalize(base, tokens[idx + 1])
-            if file:
-                files.append(file)
+            add_file(tokens[idx + 1])
             continue
         match = re.match(r"^(?:[0-9]?>|[0-9]?>>|&>|&>>|>\|)(.+)$", token)
         if match:
-            file = normalize(base, match.group(1))
-            if file:
-                files.append(file)
+            add_file(match.group(1))
+        if token.startswith("of=") and len(token) > 3:
+            add_file(token[3:])
+
+    idx = 0
+    while idx < len(tokens):
+        command_name = Path(tokens[idx]).name
+        if command_name == "sed":
+            inline = False
+            saw_script = False
+            idx += 1
+            while idx < len(tokens):
+                token = tokens[idx]
+                if token in separators:
+                    break
+                if token == "--":
+                    idx += 1
+                    continue
+                if token == "-i" or token.startswith("-i."):
+                    inline = True
+                    idx += 1
+                    continue
+                if token in {"-e", "--expression", "-f", "--file"}:
+                    idx += 2
+                    continue
+                if token.startswith("-"):
+                    idx += 1
+                    continue
+                if not saw_script:
+                    saw_script = True
+                    idx += 1
+                    continue
+                if inline:
+                    add_file(token)
+                idx += 1
+            continue
+
+        if command_name not in mutation_commands:
+            idx += 1
+            continue
+
+        operands, idx = split_command_operands(idx + 1)
+        if command_name in {"cp", "install", "rsync"}:
+            if len(operands) >= 2:
+                add_file(operands[-1])
+            continue
+        for operand in operands:
+            add_file(operand)
 
     return files
 

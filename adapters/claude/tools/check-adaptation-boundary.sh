@@ -1557,8 +1557,13 @@ check_codex_native_hook_projection() {
   fi
   if ! grep -Fq 'def is_shell_tool' "$post_bridge" \
     || ! grep -Fq 'def shell_write_files' "$post_bridge" \
-    || ! grep -Fq 'shell_write_files(base, shell_command(payload, args))' "$post_bridge"; then
-    fail_msg "$post_bridge must route targeted shell HTML write redirects through the design preflight"
+    || ! grep -Fq 'shell_write_files(base, shell_command(payload, args))' "$post_bridge" \
+    || ! grep -Fq 'mutation_commands = {"tee", "touch", "cp", "mv", "rm", "install", "rsync"}' "$post_bridge" \
+    || ! grep -Fq 'if command_name in {"cp", "install", "rsync"}' "$post_bridge" \
+    || ! grep -Fq 'if token.startswith("of=") and len(token) > 3' "$post_bridge" \
+    || ! grep -Fq 'if command_name == "sed"' "$post_bridge" \
+    || ! grep -Fq 'codex native design hook marks targeted shell design writes' hooks/portable-guards.test.sh; then
+    fail_msg "$post_bridge must route targeted shell HTML writes through the design preflight"
   fi
   if ! grep -Fq 'mutation_commands = {"tee", "touch", "cp", "mv", "rm", "install", "rsync"}' "$pre_bridge" \
     || ! grep -Fq 'def shell_write_files' "$pre_bridge" \

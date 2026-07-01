@@ -1491,11 +1491,23 @@ payload = {
     "cwd": cwd,
 }
 assert ns["target_files"](payload) == [f"{cwd}/spec/design/preview.html"]
+payload["tool_input"]["command"] = "printf '<!doctype html>' | tee spec/design/tee.html"
+assert ns["target_files"](payload) == [f"{cwd}/spec/design/tee.html"]
+payload["tool_input"]["command"] = "cp source.html spec/design/copied.html"
+assert ns["target_files"](payload) == [f"{cwd}/spec/design/copied.html"]
+payload["tool_input"]["command"] = "install source.html spec/design/installed.html"
+assert ns["target_files"](payload) == [f"{cwd}/spec/design/installed.html"]
+payload["tool_input"]["command"] = "rsync source.html spec/design/rsynced.html"
+assert ns["target_files"](payload) == [f"{cwd}/spec/design/rsynced.html"]
+payload["tool_input"]["command"] = "dd if=source.html of=spec/design/dd.html"
+assert ns["target_files"](payload) == [f"{cwd}/spec/design/dd.html"]
+payload["tool_input"]["command"] = "sed -i s/a/b/ spec/design/preview.html"
+assert ns["target_files"](payload) == [f"{cwd}/spec/design/preview.html"]
 PY
 then
-  ok "codex native design hook marks obvious shell design writes"
+  ok "codex native design hook marks targeted shell design writes"
 else
-  bad "codex native design hook should mark obvious shell design writes"
+  bad "codex native design hook should mark targeted shell design writes"
 fi
 codex_design_patch_payload=$(python3 - "$TMP/repo" <<'PY'
 import json
