@@ -1235,6 +1235,26 @@ if printf '{"tool_name":"Bash","tool_input":{"command":"cp %s %s"},"session_id":
 else
   bad "codex native hook projection should treat cp destination as the shell write target"
 fi
+if printf '{"tool_name":"Bash","tool_input":{"command":"install %s %s"},"session_id":"shellinstallsid","cwd":"%s"}\n' "$TMP/repo/source.md" "$TMP/runtime/projects/abc/memory/INSTALLED.md" "$TMP/runtime" \
+  | HOME="$TMP/codex_hook_home" python3 "$TMP/codex_hook_home/.codex/agent-harness/adapters/codex/hooks/pretooluse-write-guard.py" >/tmp/codex_shell_install_hook.out 2>/tmp/codex_shell_install_hook.err \
+  && python3 -c 'import json,sys; d=json.load(open(sys.argv[1],encoding="utf-8")); assert d["decision"]=="block"; assert "memory" in d["reason"].lower() or "기억" in d["reason"]' /tmp/codex_shell_install_hook.out \
+  && printf '{"tool_name":"Bash","tool_input":{"command":"rsync %s %s"},"session_id":"shellrsyncsid","cwd":"%s"}\n' "$TMP/repo/source.md" "$TMP/runtime/projects/abc/memory/RSYNCED.md" "$TMP/runtime" \
+    | HOME="$TMP/codex_hook_home" python3 "$TMP/codex_hook_home/.codex/agent-harness/adapters/codex/hooks/pretooluse-write-guard.py" >/tmp/codex_shell_rsync_hook.out 2>/tmp/codex_shell_rsync_hook.err \
+  && python3 -c 'import json,sys; d=json.load(open(sys.argv[1],encoding="utf-8")); assert d["decision"]=="block"; assert "memory" in d["reason"].lower() or "기억" in d["reason"]' /tmp/codex_shell_rsync_hook.out; then
+  ok "codex native hook projection blocks install and rsync destinations"
+else
+  bad "codex native hook projection should block install and rsync destinations"
+fi
+if printf '{"tool_name":"Bash","tool_input":{"command":"dd if=%s of=%s"},"session_id":"shellddsid","cwd":"%s"}\n' "$TMP/repo/source.md" "$TMP/runtime/projects/abc/memory/DD.md" "$TMP/runtime" \
+  | HOME="$TMP/codex_hook_home" python3 "$TMP/codex_hook_home/.codex/agent-harness/adapters/codex/hooks/pretooluse-write-guard.py" >/tmp/codex_shell_dd_hook.out 2>/tmp/codex_shell_dd_hook.err \
+  && python3 -c 'import json,sys; d=json.load(open(sys.argv[1],encoding="utf-8")); assert d["decision"]=="block"; assert "memory" in d["reason"].lower() or "기억" in d["reason"]' /tmp/codex_shell_dd_hook.out \
+  && printf '{"tool_name":"Bash","tool_input":{"command":"sed -i s/a/b/ %s"},"session_id":"shellsedisid","cwd":"%s"}\n' "$TMP/runtime/projects/abc/memory/SED.md" "$TMP/runtime" \
+    | HOME="$TMP/codex_hook_home" python3 "$TMP/codex_hook_home/.codex/agent-harness/adapters/codex/hooks/pretooluse-write-guard.py" >/tmp/codex_shell_sedi_hook.out 2>/tmp/codex_shell_sedi_hook.err \
+  && python3 -c 'import json,sys; d=json.load(open(sys.argv[1],encoding="utf-8")); assert d["decision"]=="block"; assert "memory" in d["reason"].lower() or "기억" in d["reason"]' /tmp/codex_shell_sedi_hook.out; then
+  ok "codex native hook projection blocks dd output and sed inline edits"
+else
+  bad "codex native hook projection should block dd output and sed inline edits"
+fi
 if printf '{"tool":"Write","input":{"path":"%s"},"session_id":"nestedpayloadsid","cwd":"%s"}\n' "$TMP/repo/nested-f" "$TMP/repo" \
   | HOME="$TMP/codex_hook_home" python3 "$TMP/codex_hook_home/.codex/agent-harness/adapters/codex/hooks/pretooluse-write-guard.py" >/tmp/codex_hook_nested.out 2>/tmp/codex_hook_nested.err \
   && [ ! -s /tmp/codex_hook_nested.out ]; then
