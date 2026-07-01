@@ -68,8 +68,6 @@ def run_preflight(*args: str) -> None:
         stderr=subprocess.PIPE,
         check=False,
     )
-    if result.stdout:
-        sys.stdout.write(result.stdout)
     if result.stderr:
         sys.stderr.write(result.stderr)
 

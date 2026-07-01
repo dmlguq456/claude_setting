@@ -67,6 +67,7 @@ user_profile/assets/
 .cwm_removal_backup/
 .cache/
 loops/*.log
+adapters/*/loops/*.log
 loops/drill/results/
 loops/drill/metrics.csv
 .statusline-last.json
