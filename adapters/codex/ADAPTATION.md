@@ -206,8 +206,9 @@ payloads, and calls `adapters/codex/bin/preflight.sh design
 
 Current Codex hook coverage includes structured tools plus targeted shell
 detection, not arbitrary shell I/O coverage. Shell/Bash/`functions.exec_command`
-commands with obvious write redirects, direct `spec/prd.md` reads, and design
-HTML save paths are routed through adapter hooks; target-ambiguous shell
+commands with obvious write redirects, common mutation commands (`tee`, `touch`,
+`cp`, `mv`, `rm`), direct `spec/prd.md` reads, and design HTML save paths are
+routed through adapter hooks; target-ambiguous shell
 reads/writes still require the agent to run the matching `preflight.sh write`,
 `preflight.sh read`, or `preflight.sh design` wrapper. `preflight.sh prompt-signal` and
 `preflight.sh permissions` report this as

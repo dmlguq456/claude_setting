@@ -1175,6 +1175,16 @@ if printf '{"tool_name":"Bash","tool_input":{"command":"printf x > %s"},"session
 else
   bad "codex native hook projection should block obvious shell write targets"
 fi
+if printf '{"tool_name":"Bash","tool_input":{"command":"printf x | tee %s"},"session_id":"shellteesid","cwd":"%s"}\n' "$TMP/runtime/projects/abc/memory/TEE.md" "$TMP/runtime" \
+  | HOME="$TMP/codex_hook_home" python3 "$TMP/codex_hook_home/.codex/agent-harness/adapters/codex/hooks/pretooluse-write-guard.py" >/tmp/codex_shell_tee_hook.out 2>/tmp/codex_shell_tee_hook.err \
+  && python3 -c 'import json,sys; d=json.load(open(sys.argv[1],encoding="utf-8")); assert d["decision"]=="block"; assert "memory" in d["reason"].lower() or "기억" in d["reason"]' /tmp/codex_shell_tee_hook.out \
+  && printf '{"tool_name":"Bash","tool_input":{"command":"rm %s"},"session_id":"shellrmsid","cwd":"%s"}\n' "$TMP/runtime/projects/abc/memory/RM.md" "$TMP/runtime" \
+    | HOME="$TMP/codex_hook_home" python3 "$TMP/codex_hook_home/.codex/agent-harness/adapters/codex/hooks/pretooluse-write-guard.py" >/tmp/codex_shell_rm_hook.out 2>/tmp/codex_shell_rm_hook.err \
+  && python3 -c 'import json,sys; d=json.load(open(sys.argv[1],encoding="utf-8")); assert d["decision"]=="block"; assert "memory" in d["reason"].lower() or "기억" in d["reason"]' /tmp/codex_shell_rm_hook.out; then
+  ok "codex native hook projection blocks common shell mutation targets"
+else
+  bad "codex native hook projection should block common shell mutation targets"
+fi
 if printf '{"tool":"Write","input":{"path":"%s"},"session_id":"nestedpayloadsid","cwd":"%s"}\n' "$TMP/repo/nested-f" "$TMP/repo" \
   | HOME="$TMP/codex_hook_home" python3 "$TMP/codex_hook_home/.codex/agent-harness/adapters/codex/hooks/pretooluse-write-guard.py" >/tmp/codex_hook_nested.out 2>/tmp/codex_hook_nested.err \
   && [ ! -s /tmp/codex_hook_nested.out ]; then

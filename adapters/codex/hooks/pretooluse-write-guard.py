@@ -131,6 +131,8 @@ def shell_write_files(base: Path, command: str) -> list[str]:
 
     files: list[str] = []
     redirects = {">", ">>", "1>", "1>>", "2>", "2>>", "&>", "&>>", ">|"}
+    separators = {"|", "&&", "||", ";"}
+    mutation_commands = {"tee", "touch", "cp", "mv", "rm"}
     for idx, token in enumerate(tokens):
         if token in redirects and idx + 1 < len(tokens):
             file = normalize(base, tokens[idx + 1])
@@ -142,6 +144,29 @@ def shell_write_files(base: Path, command: str) -> list[str]:
             file = normalize(base, match.group(1))
             if file:
                 files.append(file)
+
+    idx = 0
+    while idx < len(tokens):
+        command_name = Path(tokens[idx]).name
+        if command_name not in mutation_commands:
+            idx += 1
+            continue
+
+        idx += 1
+        while idx < len(tokens):
+            token = tokens[idx]
+            if token in separators:
+                break
+            if token == "--":
+                idx += 1
+                continue
+            if token.startswith("-"):
+                idx += 1
+                continue
+            file = normalize(base, token)
+            if file:
+                files.append(file)
+            idx += 1
 
     return files
 

@@ -703,9 +703,11 @@ check_codex_bin_wrappers() {
   if ! grep -Fq 'hook_boundary=shell-read-write-targeted-detection-explicit-preflight-fallback' adapters/codex/bin/preflight.sh \
     || ! grep -Fq 'shell_read_write_hooks=targeted-detection' adapters/codex/bin/preflight.sh \
     || ! grep -Fq 'targeted_shell_hooks=Bash,Shell,functions.exec_command' adapters/codex/bin/preflight.sh \
+    || ! grep -Fq 'targeted_shell_write_patterns=redirect,tee,touch,cp,mv,rm' adapters/codex/bin/preflight.sh \
     || ! grep -Fq 'structured_write_hooks=Write,Edit,MultiEdit,apply_patch,functions.apply_patch' adapters/codex/bin/preflight.sh \
     || ! grep -Fq 'Shell/Bash/`functions.exec_command` reads and writes have targeted hook coverage' adapters/codex/AGENTS.md \
     || ! grep -Fq 'Shell/Bash/`functions.exec_command` gets targeted detection' adapters/codex/README.md \
+    || ! grep -Fq 'common mutation commands (`tee`, `touch`, `cp`, `mv`, `rm`)' adapters/codex/README.md \
     || ! grep -Fq 'design HTML save paths' adapters/codex/README.md \
     || ! grep -Fq 'shell-read-write-targeted-detection-explicit-preflight-fallback' adapters/codex/ADAPTATION.md; then
     fail_msg "Codex adapter must document and report targeted shell/exec read-write hook coverage with explicit preflight fallback"
@@ -1530,6 +1532,11 @@ check_codex_native_hook_projection() {
     || ! grep -Fq 'def shell_write_files' "$post_bridge" \
     || ! grep -Fq 'shell_write_files(base, shell_command(payload, args))' "$post_bridge"; then
     fail_msg "$post_bridge must route targeted shell HTML write redirects through the design preflight"
+  fi
+  if ! grep -Fq 'mutation_commands = {"tee", "touch", "cp", "mv", "rm"}' "$pre_bridge" \
+    || ! grep -Fq 'def shell_write_files' "$pre_bridge" \
+    || ! grep -Fq 'codex native hook projection blocks common shell mutation targets' hooks/portable-guards.test.sh; then
+    fail_msg "$pre_bridge must route common shell mutation command targets through the write preflight"
   fi
   if ! grep -Fq '"read"' "$read_bridge"; then
     fail_msg "$read_bridge must call the Codex read preflight"
