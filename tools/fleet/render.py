@@ -276,7 +276,7 @@ def _project_gate(cwd, sid=None):
 _HW = 9                       # harness field (incl trailing space)
 _BRANCH_COL = 43              # absolute col where ⎇branch starts (both row types)
 _NW_S = _BRANCH_COL - 13      # session name field  (prefix 4 + harness 9 = 13)
-_DLEFT = _BRANCH_COL - 4      # dispatch left cluster (prefix 4, aligned with sessions): harness name (mode·qa)
+_DLEFT = _BRANCH_COL - 6      # dispatch left cluster (prefix 6 = 2-col nested indent): harness name (mode·qa)
 _BRW = 14                     # ⎇branch field (always ≥1 trailing space so it never touches model)
 _EFF_W = 6                    # effort sub-column (session effort: low..max)
 _MW = 16 + _EFF_W             # model + effort field: model 16 + effort 6
@@ -428,7 +428,7 @@ def _mq_tag(mode, qa_text, qa_key):
         out.append((mode, "dim")); w += len(mode)
     if qa_text:
         if mode:
-            out.append((" · ", "dim")); w += 3
+            out.append(("·", "dim")); w += 1        # flush middle dot (tighter than ' · ')
         out.append((qa_text, qa_key)); w += len(qa_text)
     out.append((")", "dim")); w += 1
     return out, w
@@ -453,9 +453,9 @@ def _dispatch_row(j, orphan=False, parent_model=None, parent_harness=None, is_la
     hn = _BADGE_TEXT.get(j.harness, "—") if j.harness else "—"
     qa_key = "qa_" + qa_base if qa_base in _QA_INT else "dim"
 
-    # prefix 4 (↳ replaces the session's 2 leading spaces → harness/name align with sessions, so
-    # the board is one clean grid; row TYPE reads from the ↳ + DIM harness/name, not indentation).
-    segs = [("↳ ", "dim"), (gch, gkey), (" ", None),
+    # prefix 6 → harness/name indented 2 cols under the parent (nesting), ↳ in the gutter; branch
+    # onward still aligns with sessions. harness stays DIM (weight cue vs the session's bright one).
+    segs = [("  ↳ ", "dim"), (gch, gkey), (" ", None),
             (_pad(hn, _HW), _BADGE_KEY.get(j.harness, "dim"))]
     avail = _DLEFT - _HW
     tag_segs, tagw = _mq_tag(j.mode, qa_text, qa_key)
