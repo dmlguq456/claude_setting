@@ -202,11 +202,14 @@ def _dispatch_row(j, orphan=False, parent_model=None):
             qa_text = j.qa
     el = fmt_min(j.elapsed_min)
     lkey = _live_key(j.liveness)
+    name = j.slug or key
     segs = [("    └▸" + _ICON_CHILD + " ", "dim")]
     if j.harness:                                    # dispatch = headless → weaker: badge dim (no reverse-video)
         segs.append((_BADGE_TEXT.get(j.harness, "[?]"), "dim"))
-        segs.append((" ", None))
-    segs += [(key, "head"), (stage, "done")]
+    segs.append((" " + name, None))                  # name right after badge — same slot as a session's slug (order consistency)
+    if key and key != name:                          # pipe key/stage as detail AFTER the name (loops: key==name → skip)
+        segs.append(("  " + key, "head"))
+    segs.append((stage, "done"))
     if j.mode or qa_text:
         segs.append((" (", "dim"))
         if j.mode:
@@ -221,7 +224,6 @@ def _dispatch_row(j, orphan=False, parent_model=None):
         segs.append(("  ✨", "dim")); segs.append((dmodel, _model_key(dmodel)))
     segs.append(("  ⏳" + el, "dim"))
     segs.append(("  " + j.liveness, lkey))
-    segs.append(("  " + (j.slug or ""), None))
     if orphan:
         segs.append(("  (orphan)", "dim"))
     return segs
