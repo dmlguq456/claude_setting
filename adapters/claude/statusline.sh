@@ -50,6 +50,18 @@ print("S_CTX=" + shlex.quote(str(cpct)))
 ' 2>/dev/null)"
 : "${S_CWD:=$PWD}" "${S_MODEL:=?}" "${S_EFFORT:=}" "${S_SID:=}" "${S_5H:=}" "${S_7D:=}" "${S_5H_RST:=}" "${S_7D_RST:=}" "${S_CTX:=-1}"
 
+# §5 per-session statusline tap (agent-fleet-dashboard) — 멀티세션 대시보드(tools/fleet)가
+# 세션별 telemetry 를 읽게 stdin JSON 을 세션별 파일로도 dump. 단일 .statusline-last.json 은
+# last-writer-wins(모든 세션 덮어씀)이라 세션 구분 불가 → 세션별 파일이 필요. 우리 소유 파일 write
+# 라 zero-injection 원칙 위배 아님(§0.5). 기존 렌더·단일파일 무영향(순수 추가).
+if [ -n "$S_SID" ]; then
+  sldir="$AGENT_HOME/.statusline"
+  mkdir -p "$sldir" 2>/dev/null || true
+  printf '%s' "$input" > "$sldir/$S_SID.json" 2>/dev/null || true
+  # stale 청소: mtime > 1일 세션 파일 제거(디렉토리 폭증 방지 — 종료된 세션 잔존물). find 없으면 skip.
+  find "$sldir" -maxdepth 1 -name '*.json' -mtime +1 -delete 2>/dev/null || true
+fi
+
 dir=$(basename "$S_CWD")
 
 # git 브랜치 + 위험 상태 플래그 (⚠️ merge/rebase 진행 중 · 💀 머지 완료된 죽은 브랜치)
