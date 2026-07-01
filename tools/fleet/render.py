@@ -33,17 +33,14 @@ import time
 
 from .model import fmt_min, dash, project_of
 
-_BADGE_TEXT = {"claude": "[Claude]", "codex": "[Codex]", "opencode": "[opencode]"}
-_BADGE_KEY = {"claude": "badge_claude", "codex": "badge_codex", "opencode": "badge_opencode"}
+# harness = dim lowercase word in its identity color (no bracket chip, no reverse-video)
+_BADGE_TEXT = {"claude": "claude", "codex": "codex", "opencode": "opencode"}
+_BADGE_KEY = {"claude": "h_claude", "codex": "h_codex", "opencode": "h_opencode"}
 _LIVE_RANK = {"working": 0, "idle": 1, "blocked": 2, "done": 3, "stale": 4, "dead": 5, "unknown": 6}
 _JOB_LIVE_RANK = {"working": 0, "stale": 1, "dead": 2, "unknown": 3}
-_EFFORT_KEY = {"low": "dim", "medium": "ok", "high": "warn", "xhigh": "blocked", "max": "dead"}
+_EFFORT_KEY = {"low": "dim", "medium": "dim", "high": "dim", "xhigh": "dim", "max": "dim"}  # metadata → dim
 _NARROW_CUTOFF = 70
 _LOOPS_KEYS = ("oncall", "note", "study", "drill")
-# command-center / launch icons (R5) — single source; degrade to ASCII (e.g. "⌘"/"▸") here in
-# ONE place if double-width alignment breaks in a target terminal.
-_ICON_PARENT = "🛰️"   # command-center: a session that spawned ≥1 child dispatch job
-_ICON_CHILD = "🚀"     # launch: a child dispatch job row nested under its parent session
 
 _COLOR = {}   # color_key → curses attr (filled by _init_colors); empty ⇒ plain mode
 
@@ -57,17 +54,12 @@ def _init_colors():
         bg = -1
     except Exception:
         bg = curses.COLOR_BLACK
+    # color discipline (design review 2026-07-01): one meaning per color.
+    #   green/yellow/red = status + level ONLY · cyan/magenta/blue = harness identity ONLY
+    #   white bold = the row's single focal point (session name) · dim = all metadata
     spec = {
-        "work": curses.COLOR_GREEN, "ok": curses.COLOR_GREEN, "done": curses.COLOR_CYAN,
-        "warn": curses.COLOR_YELLOW, "blocked": curses.COLOR_YELLOW,
-        "stale": curses.COLOR_RED, "dead": curses.COLOR_RED,
-        "badge_claude": curses.COLOR_CYAN, "badge_codex": curses.COLOR_MAGENTA,
-        "badge_opencode": curses.COLOR_GREEN,
-        "head": curses.COLOR_CYAN,
-        "pct_g": curses.COLOR_GREEN, "pct_y": curses.COLOR_YELLOW, "pct_r": curses.COLOR_RED,
-        # per-model colors so different models are distinguishable at a glance (user 2026-07-01)
-        "m_opus": curses.COLOR_MAGENTA, "m_sonnet": curses.COLOR_CYAN, "m_haiku": curses.COLOR_GREEN,
-        "m_fable": curses.COLOR_YELLOW, "m_gpt": curses.COLOR_BLUE, "m_glm": curses.COLOR_RED,
+        "green": curses.COLOR_GREEN, "yellow": curses.COLOR_YELLOW, "red": curses.COLOR_RED,
+        "h_claude": curses.COLOR_CYAN, "h_codex": curses.COLOR_MAGENTA, "h_opencode": curses.COLOR_BLUE,
     }
     n = 1
     for key, fg in spec.items():
@@ -77,21 +69,28 @@ def _init_colors():
             n += 1
         except Exception:
             _COLOR[key] = 0
-    # badges: harness color as BACKGROUND (reverse-video chip). Applied to the badge TEXT only
-    # (the padding stays uncolored) so the fill doesn't smear across the row.
-    for k in ("badge_claude", "badge_codex", "badge_opencode"):
-        _COLOR[k] = _COLOR.get(k, 0) | curses.A_REVERSE | curses.A_BOLD
-    # percentages read at a glance — bold so ctx%/rate% stand out (user: '% 표기가 잘 안보인다')
-    for k in ("pct_g", "pct_y", "pct_r", "m_opus", "m_sonnet", "m_haiku", "m_fable", "m_gpt", "m_glm"):
-        _COLOR[k] = _COLOR.get(k, 0) | curses.A_BOLD
-    _COLOR["model"] = curses.A_BOLD              # default/unknown model name — bold (user: 모델명 더 눈에 띄게)
-    # status glyphs pop: working = blinking green ● (live-LED signal), others bold (user: 점멸 신호)
-    _COLOR["g_work"] = _COLOR.get("work", 0) | curses.A_BOLD | curses.A_BLINK
-    _COLOR["g_idle"] = _COLOR.get("warn", 0) | curses.A_BOLD
-    _COLOR["g_stale"] = _COLOR.get("stale", 0) | curses.A_BOLD
-    _COLOR["g_dead"] = _COLOR.get("dead", 0) | curses.A_BOLD
-    _COLOR["idle"] = curses.A_DIM
+    # status dots (no blink — noise)
+    _COLOR["g_work"] = _COLOR.get("green", 0) | curses.A_BOLD
+    _COLOR["g_idle"] = _COLOR.get("yellow", 0)
+    _COLOR["g_stale"] = curses.A_DIM
+    _COLOR["g_dead"] = _COLOR.get("red", 0) | curses.A_BOLD
+    # level bars (ctx / usage): green <50 / yellow <80 / red ≥80 (red bold = alarm)
+    _COLOR["lvl_g"] = _COLOR.get("green", 0)
+    _COLOR["lvl_y"] = _COLOR.get("yellow", 0)
+    _COLOR["lvl_r"] = _COLOR.get("red", 0) | curses.A_BOLD
+    # harness identity = dim colored text (color lives ONLY here for identity)
+    for h in ("claude", "codex", "opencode"):
+        _COLOR["h_" + h] = _COLOR.get("h_" + h, 0) | curses.A_DIM
+    # session name = the single focal point per row
+    _COLOR["name_work"] = curses.A_BOLD
+    _COLOR["name_idle"] = 0
+    _COLOR["name_dim"] = curses.A_DIM
+    # gate words · cost alarm · structure
+    _COLOR["gate_t"] = _COLOR.get("green", 0) | curses.A_DIM
+    _COLOR["gate_u"] = _COLOR.get("yellow", 0) | curses.A_DIM
+    _COLOR["cost_hi"] = curses.A_BOLD
     _COLOR["dim"] = curses.A_DIM
+    _COLOR["head"] = curses.A_DIM
     _COLOR["unknown"] = curses.A_DIM
 
 
@@ -100,14 +99,14 @@ def _attr(key):
 
 
 def _live_key(state):
-    return {"working": "work", "idle": "idle", "blocked": "blocked", "done": "done",
-            "stale": "stale", "dead": "dead"}.get(state, "unknown")
+    return {"working": "g_work", "idle": "g_idle", "stale": "g_stale",
+            "dead": "g_dead"}.get(state, "dim")
 
 
-# leading status glyph — the row's primary at-a-glance anchor (working/idle stand out; user 2026-07-01)
+# monochrome status dot (● working / ○ idle / ◦ stale / × dead) — color carries the meaning
 _LIVE_GLYPH = {"working": "●", "idle": "○", "blocked": "◑", "done": "✓",
-               "stale": "◌", "dead": "✕", "unknown": "·"}
-_GLYPH_KEY = {"working": "g_work", "idle": "g_idle", "blocked": "g_idle", "done": "done",
+               "stale": "◦", "dead": "×", "unknown": "·"}
+_GLYPH_KEY = {"working": "g_work", "idle": "g_idle", "blocked": "g_idle", "done": "green",
               "stale": "g_stale", "dead": "g_dead", "unknown": "dim"}
 
 
@@ -118,22 +117,16 @@ def _glyph(state):
 def _pct_key(v):
     if v is None:
         return "dim"
-    return "pct_r" if v >= 80 else ("pct_y" if v >= 50 else "pct_g")
-
-
-_MODEL_COLORS = (("opus", "m_opus"), ("sonnet", "m_sonnet"), ("haiku", "m_haiku"),
-                 ("fable", "m_fable"), ("gpt", "m_gpt"), ("glm", "m_glm"))
+    return "lvl_r" if v >= 80 else ("lvl_y" if v >= 50 else "lvl_g")
 
 
 def _model_key(name):
-    """Color key by model family substring — different models render in different colors."""
-    if not name:
-        return "model"
-    low = name.lower()
-    for sub, key in _MODEL_COLORS:
-        if sub in low:
-            return key
-    return "model"
+    return "dim"   # model is metadata (design review) — muted, no per-model color
+
+
+def _clean_model(name):
+    """'Opus 4.8 (1M context)' → 'Opus 4.8' (drop the trailing parenthetical — redundant, ugly when truncated)."""
+    return name.split(" (", 1)[0] if name else name
 
 
 _BAR_FULL, _BAR_EMPTY = "█", "░"
@@ -216,124 +209,93 @@ def _project_gate(cwd, sid=None):
 
 
 # ---------- row builders (return a single segment-line: [(text, color_key), ...]) ----------
-def _session_row(s, narrow, is_parent=False):
-    """Single segment-line per session (PRD §4 v2 — the wide 3-line panel is retired).
+# column layout (design review 2026-07-01): status dot · harness · NAME(focus) · ▾children ·
+# branch · gate · model·effort · ctx-gauge   —— then right-flushed cost · uptime. No cell emoji;
+# the column header row labels each field once, color carries the meaning.
+_COL_HEAD = ("  " + " " + "  "
+             + "harness".ljust(9) + " " + "session".ljust(20) + " " + "".ljust(3) + " "
+             + "branch".ljust(9) + "gate".ljust(9) + "model · effort".ljust(23)
+             + "ctx")
 
-    Format: `  [Badge] <slug>  ✨<model> ·<effort>  🧠<ctx%>  5h<r>/7d<r>  ⏳<elapsed>  <liveness>`
-    app_server codex appends a dim `⚙app-server` marker right after the badge. Dim rule (§6/§7):
-    stale/dead/app_server sessions render telemetry segments dim (last-observed, not live) —
-    badge/slug/liveness always keep normal coloring. `is_parent=True` (R5, caller-computed —
-    this row has ≥1 nested child job) prepends the command-center icon after badge/slug.
-    """
-    badge = _BADGE_TEXT.get(s.harness, "[?]")
-    bkey = _BADGE_KEY.get(s.harness, "head")
-    slug = s.slug or (s.cwd.rsplit("/", 1)[-1] if s.cwd else "?")
+
+def _session_row(s, narrow, is_parent=False, child_count=0):
     live = s.liveness
-    lkey = _live_key(live)
-    dim_telemetry = live in ("stale", "dead") or s.app_server
-    tkey = "dim" if dim_telemetry else None
-
-    # aligned columns — leading is ONLY glyph+badge+name (all fixed/ASCII → clean vertical lines).
-    # branch·gate go after the name (padded by display width); parent/markers go to the very end.
-    el = fmt_min(s.elapsed_min)
-    model = dash(s.model)
+    slug = s.slug or (s.cwd.rsplit("/", 1)[-1] if s.cwd else "?")
+    dim_tel = live in ("stale", "dead") or s.app_server
+    name_key = ("name_work" if live == "working"
+                else ("name_dim" if dim_tel else "name_idle"))
     gch, gkey = _glyph(live)
+    hn = _BADGE_TEXT.get(s.harness, "?")
+    hk = _BADGE_KEY.get(s.harness, "dim")
+    orch = ("▾%d" % child_count) if (is_parent and child_count) else ""
 
-    # glyph → type-icon → badge → name (same order as dispatch's └▸ glyph 🚀 badge). Parent icon
-    # sits in a fixed 2-cell slot before the badge (🛰️ or spaces) so badges stay column-aligned.
-    ptype = _ICON_PARENT if is_parent else "  "
-    segs = [("  ", None), (gch, gkey), (" ", None),
-            (ptype, None), (" ", None),
-            (badge, bkey), (" " * max(0, 10 - len(badge)), None), (" ", None),  # bg color on badge TEXT only
-            (_pad(slug, 18), None)]
+    segs = [("  ", None), (gch, gkey), ("  ", None),
+            (_pad(hn, 9), hk), (" ", None),
+            (_pad(slug, 20), name_key), (" ", None),
+            (_pad(orch, 3), "dim"), (" ", None)]
 
-    # git branch (⎇), narrow column + truncated; '⎇ —' when the cwd is not a git repo
     br = s.branch or _git_branch(s.cwd)
-    br_txt = ("⎇ " + br[:10]) if br else "⎇ —"
-    segs += [("  ", None), (br_txt, "warn" if br else "dim"), (" " * max(1, 13 - _dw(br_txt)), None)]
+    segs.append((_pad((br or "—")[:8], 9), "dim"))
 
-    # per-session spec-gate, full label after the name (a tracked repo can host untracked work)
     gate = s.gate or _project_gate(s.cwd, s.session_id)
-    gate_full, gate_c = {"tracked": ("📌 tracked(pipeline)", "work"),
-                         "untracked": ("⚡ untracked(ad-hoc)", "warn")}.get(gate, ("", "dim"))
-    segs += [(gate_full, gate_c), (" " * max(1, 21 - _dw(gate_full)), None)]
+    gword, gkey2 = {"tracked": ("tracked", "gate_t"), "untracked": ("adhoc", "gate_u")}.get(gate, ("", "dim"))
+    segs.append((_pad(gword, 9), gkey2))
 
-    # model + effort — fixed width so 🧠 aligns (truncate long names like 'Opus 4.8 (1M context)')
-    MW = 28
-    eff = (" ·" + s.effort) if s.effort else ""
-    mtrunc = model[: max(1, MW - len(eff))]
-    segs += [("✨", "dim"), (mtrunc, "dim" if dim_telemetry else _model_key(s.model))]
-    if eff:
-        segs.append((eff, "dim" if dim_telemetry else _EFFORT_KEY.get(s.effort, "dim")))
-    segs.append((" " * max(0, MW - len(mtrunc) - len(eff)), None))   # exact MW; separator is the ' 🧠' below
+    model = _clean_model(dash(s.model))
+    MW = 22
+    eff = (" · " + s.effort) if s.effort else ""
+    me = (model[: max(1, MW - len(eff))] + eff)
+    segs.append((_pad(me, MW + 1), "dim"))
 
-    ctx_str = dash(s.ctx_pct, lambda v: "%d%%" % v)
-    if s.ctx_pct is not None and not dim_telemetry:                  # visual context gauge
-        segs += [(" 🧠", "dim"), (_bar(s.ctx_pct), _pct_key(s.ctx_pct)), (" %4s" % ctx_str, _pct_key(s.ctx_pct))]
+    if s.ctx_pct is not None and not dim_tel:                        # ctx gauge — a meaningful color
+        segs += [(_bar(s.ctx_pct), _pct_key(s.ctx_pct)), (" %3d%%" % s.ctx_pct, _pct_key(s.ctx_pct))]
     else:
-        segs += [(" 🧠", "dim"), ("░░░░░", "dim"), (" %4s" % ctx_str, "dim")]
-
-    segs.append((_RFLUSH, None))                                     # cost · elapsed flush to the right edge
-    if not narrow:
-        segs.append(("%9s" % dash(s.cost, lambda v: "$%.2f" % v), "dim"))
-        segs.append(("   ", None))
-    segs.append(("⏳" + el, "dim"))                                   # liveness shown by leading glyph
+        segs += [("░░░░░", "dim"), (" %4s" % dash(s.ctx_pct, lambda v: "%d%%" % v), "dim")]
     if s.app_server:
-        segs.append(("  ⚙app-server", "dim"))
+        segs.append(("  app-server", "dim"))
     if s.orphan:
-        segs.append(("  ⚠worktree-gone", "dead"))
+        segs.append(("  worktree-gone", "g_dead"))
+
+    segs.append((_RFLUSH, None))                                     # cost · uptime flush right
+    if not narrow:
+        cost = dash(s.cost, lambda v: "$%.2f" % v)
+        ck = "cost_hi" if (isinstance(s.cost, (int, float)) and s.cost > 100) else "dim"
+        segs += [("%9s" % cost, ck), ("  ", None)]
+    segs.append(("%7s" % fmt_min(s.elapsed_min), "dim"))
     return segs
 
 
-def _dispatch_row(j, orphan=False, parent_model=None):
-    """Single segment-line per dispatch job, nested under its parent session (R1) or
-    surfaced as a project-level orphan (`orphan=True`, R2) — same builder, one code path
-    so `--section dispatch` degrade (nesting suppressed, sessions absent) stays flat via
-    this same function.
-
-    Format: `    └▸🚀<key>▸<stage> (<mode>·~<qa>)  ⏳<elapsed>  <liveness>  <slug>  (orphan)`
-    qa is dim + `~`-prefixed when NOT argv-explicit (`j.qa_source` in jobslog/plan/default —
-    i.e. inferred, not user-specified); argv-source qa renders normal, no `~`.
+def _dispatch_row(j, orphan=False, parent_model=None, is_last=True):
+    """A dispatch job nested under its parent session, drawn as a dim tree row:
+    `      ├─ ● harness  name  key▸stage  mode·~qa  model  branch  (orphan)   uptime`
+    tree line (├─ mid / └─ last) carries 'this is a child'; no launch icon. qa '~' = inferred.
     """
     key = j.key or "?"
     stage = ("▸" + j.stage) if j.stage else ""
-    qa_text = None
-    qa_dim = False
+    qa_text = ""
     if j.qa:
-        if j.qa_source in ("jobslog", "plan", "default"):
-            qa_text = "~" + j.qa
-            qa_dim = True
-        else:
-            qa_text = j.qa
-    el = fmt_min(j.elapsed_min)
-    lkey = _live_key(j.liveness)
+        qa_text = ("~" + j.qa) if j.qa_source in ("jobslog", "plan", "default") else j.qa
     name = j.slug or key
-    gch, gkey = _glyph(j.liveness)                    # leading status glyph, same slot idea as session
-    segs = [("    └▸", "dim"), (gch, gkey), (" " + _ICON_CHILD + " ", "dim")]
-    if j.harness:                                    # dispatch badge in the harness color too (same as session)
-        segs.append((_BADGE_TEXT.get(j.harness, "[?]"), _BADGE_KEY.get(j.harness, "head")))
-    segs.append((" " + name, None))                  # name right after badge — same slot as a session's slug (order consistency)
-    if key and key != name:                          # pipe key/stage as detail AFTER the name (loops: key==name → skip)
-        segs.append(("  " + key, "head"))
-    segs.append((stage, "done"))
-    if j.mode or qa_text:
-        segs.append((" (", "dim"))
-        if j.mode:
-            segs.append((j.mode, None))
-        if j.mode and qa_text:
-            segs.append(("·", "dim"))
-        if qa_text:
-            segs.append((qa_text, "dim" if qa_dim else None))
-        segs.append((")", "dim"))
-    dmodel = j.model or parent_model                 # own model if resolvable, else parent's (same config for now — per-dispatch later)
-    if dmodel:
-        segs.append(("  ✨", "dim")); segs.append((dmodel, _model_key(dmodel)))
-    br = j.branch or _git_branch(j.cwd)               # dispatch worktree branch (wt/branch); '—' if none
-    segs.append(("  ⎇ " + (br or "—"), "warn" if br else "dim"))
+    gch, gkey = _glyph(j.liveness)
+    tree = "└─" if is_last else "├─"
+
+    segs = [("      ", None), (tree + " ", "dim"), (gch, gkey), (" ", None)]
+    if j.harness:
+        segs.append((_pad(_BADGE_TEXT.get(j.harness, "?"), 9), _BADGE_KEY.get(j.harness, "dim")))
+        segs.append((" ", None))
+    segs.append((_pad(name, 18), "name_dim" if j.liveness in ("stale", "dead") else "name_idle"))
+    segs.append((" ", None))
+    segs.append((_pad((key if key != name else "") + stage, 13), "dim"))   # task flow
+    opts = (j.mode or "") + ("·" if (j.mode and qa_text) else "") + qa_text
+    segs.append((_pad(opts, 15), "dim"))
+    dmodel = j.model or parent_model
+    segs.append((_pad(_clean_model(dash(dmodel)), 20), "dim"))
+    br = j.branch or _git_branch(j.cwd)
+    segs.append((_pad((br or "—")[:8], 9), "dim"))
     if orphan:
-        segs.append(("  (orphan)", "dim"))
+        segs.append(("(orphan)", "gate_u"))
     segs.append((_RFLUSH, None))
-    segs.append(("⏳" + el, "dim"))                   # elapsed flush right (matches session rows)
+    segs.append(("%7s" % fmt_min(j.elapsed_min), "dim"))
     return segs
 
 
@@ -404,22 +366,26 @@ def _build_lines(sessions, jobs, section, narrow, malformed):
     order = sorted(groups.keys(), key=lambda name: _group_sort_key(name, groups[name]))
 
     lines = []
-    # account-level usage bar — rate limits are shared per harness/account, so shown ONCE at the top
+    # account-level usage bar — shared per harness/account, shown ONCE; harnesses split by │, mini gauges
     _rl = {}
     for s in sessions:
         if s.harness not in _rl and (s.rl_5h is not None or s.rl_7d is not None):
             _rl[s.harness] = (s.rl_5h, s.rl_7d)
     if _rl:
-        bar = [("  usage   ", "head")]
-        for h in ("claude", "codex", "opencode"):
-            if h in _rl:
-                r5, r7 = _rl[h]
-                bar += [(_BADGE_TEXT.get(h, h), _BADGE_KEY.get(h, "head")),
-                        (" 5h ", "dim"), (dash(r5, lambda v: "%d%%" % v), _pct_key(r5)),
-                        ("  7d ", "dim"), (dash(r7, lambda v: "%d%%" % v), _pct_key(r7)),
-                        ("      ", None)]
+        bar = [(" usage   ", "head")]
+        hs = [h for h in ("claude", "codex", "opencode") if h in _rl]
+        for i, h in enumerate(hs):
+            if i:
+                bar.append(("    │    ", "dim"))
+            r5, r7 = _rl[h]
+            bar.append((_pad(h, 9), _BADGE_KEY.get(h, "dim")))
+            for lbl, v in (("5h ", r5), ("7d ", r7)):
+                bar += [(lbl, "dim"),
+                        (_bar(v, 8) if v is not None else "········", _pct_key(v)),
+                        (" %3s   " % dash(v, lambda x: "%d%%" % x), _pct_key(v))]
         lines.append(bar)
         lines.append(None)
+        lines.append([(_COL_HEAD, "head")])            # column labels once → no per-cell emoji needed
 
     first = True
     for name in order:
@@ -440,7 +406,8 @@ def _build_lines(sessions, jobs, section, narrow, malformed):
         first = False
 
         if fold:
-            lines.append([("━━ 📁 %s  (+%d folded)" % (name, len(group_sessions)), "dim")])
+            lines.append([("── %s  (+%d folded) " % (name, len(group_sessions)), "dim"),
+                          ("─" * max(3, 70 - _dw(name) - 14), "dim")])
             continue
 
         shown = (group_sessions if _SHOW_ALL else
@@ -463,26 +430,28 @@ def _build_lines(sessions, jobs, section, narrow, malformed):
 
         gcwd = (group_sessions[0].cwd if group_sessions else
                 (group_jobs[0].cwd if group_jobs else ""))
-        gate = _project_gate(gcwd)                     # project spec-gate (word = the explanation)
-        head_segs = [("━━ 📁 %s" % name, "head")]      # session count dropped — glyphs carry status
-        if gate == "tracked":
-            head_segs.append(("  📌 tracked", "work"))
-        elif gate == "untracked":
-            head_segs.append(("  ⚡ untracked", "warn"))
+        gate = _project_gate(gcwd)                     # project spec-gate (word after the rule)
+        gword = {"tracked": "tracked", "untracked": "adhoc"}.get(gate, "")
+        left = "── %s " % name
+        gtail_w = (_dw(gword) + 4) if gword else 2
+        head_segs = [(left, "head"), ("─" * max(3, 74 - _dw(left) - gtail_w), "head")]
+        if gword:
+            head_segs += [("  ", None), (gword, "gate_t" if gate == "tracked" else "gate_u"), (" ──", "head")]
+        else:
+            head_segs.append(("──", "head"))
         lines.append(head_segs)
 
-        for s in _sort_group_sessions(shown):       # sessions tight (no blank between — sparse read badly)
-            has_children = bool(children.get(s.session_id))
-            lines.append(_session_row(s, narrow, is_parent=has_children))
-            for cj in _sort_group_jobs(children.get(s.session_id, [])):
-                lines.append(_dispatch_row(cj, orphan=False, parent_model=s.model))
-            if has_children:
-                lines.append(None)                  # only separate a nested (parent+children) block
+        for s in _sort_group_sessions(shown):          # sessions tight (no blank between)
+            kids = _sort_group_jobs(children.get(s.session_id, []))
+            lines.append(_session_row(s, narrow, is_parent=bool(kids), child_count=len(kids)))
+            for i, cj in enumerate(kids):
+                lines.append(_dispatch_row(cj, orphan=False, parent_model=s.model, is_last=(i == len(kids) - 1)))
+            if kids:
+                lines.append(None)                     # separate a nested (parent+children) block
         if group_sessions and hidden:
-            lines.append([("  +%d stale/companion hidden" % hidden, "dim")])
+            lines.append([("     +%d stale/companion hidden" % hidden, "dim")])
 
-        # orphans: project-level fallback, marker suppressed when nesting is intentionally
-        # off (`--section dispatch` — sessions absent, every job would otherwise "orphan").
+        # orphans / loops: project-level fallback (standalone tree rows)
         for oj in _sort_group_jobs(orphans):
             lines.append(_dispatch_row(oj, orphan=show_sessions))
         for lj in _sort_group_jobs(loops_jobs):
@@ -495,17 +464,15 @@ def _build_lines(sessions, jobs, section, narrow, malformed):
         lines.append(None)
         lines.append([("  +%d malformed jobs.log rows skipped" % malformed, "dim")])
 
-    # legend — explains the visual encoding
+    # legend — status dots (columns are labelled by the header row)
     lines.append(None)
     lines.append([
-        ("  ", None), ("●", "g_work"), (" working  ", "dim"),
-        ("○", "g_idle"), (" idle  ", "dim"),
-        ("◌", "g_stale"), (" stale  ", "dim"),
-        ("✕", "g_dead"), (" dead     ", "dim"),
-        ("📌", "work"), (" tracked  ", "dim"),
-        ("⚡", "warn"), (" untracked     ", "dim"),
-        ("🛰️", None), (" orchestrator  ", "dim"),
-        ("🚀", None), (" dispatch", "dim"),
+        ("  ", None), ("●", "g_work"), (" working   ", "dim"),
+        ("○", "g_idle"), (" idle   ", "dim"),
+        ("◦", "g_stale"), (" stale   ", "dim"),
+        ("×", "g_dead"), (" dead     ", "dim"),
+        ("▾N", "dim"), (" child jobs   ", "dim"),
+        ("├─", "dim"), (" dispatch", "dim"),
     ])
 
     return lines
