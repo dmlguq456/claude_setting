@@ -783,23 +783,18 @@ check_codex_bin_wrappers() {
     || ! grep -Fq 'hookSpecificOutput' adapters/codex/hooks/sessionstart-lifecycle.py \
     || ! grep -Fq 'run_preflight("session-end"' adapters/codex/hooks/sessionend-lifecycle.py \
     || grep -Fq 'sys.stdout.write(result.stdout)' adapters/codex/hooks/sessionend-lifecycle.py \
-    || ! grep -Fq 'run_preflight("status"' adapters/codex/hooks/userprompt-lifecycle.py \
     || ! grep -Fq 'run_preflight("prompt-signal"' adapters/codex/hooks/userprompt-lifecycle.py \
     || ! grep -Fq 'run_preflight("mode"' adapters/codex/hooks/userprompt-lifecycle.py \
     || ! grep -Fq 'run_preflight("recall"' adapters/codex/hooks/userprompt-lifecycle.py \
     || ! grep -Fq 'run_preflight("briefing"' adapters/codex/hooks/userprompt-lifecycle.py \
     || ! grep -Fq 'run_preflight("turn-nudge"' adapters/codex/hooks/userprompt-lifecycle.py \
     || ! grep -Fq 'emit_context("UserPromptSubmit"' adapters/codex/hooks/userprompt-lifecycle.py \
-    || ! grep -Fq 'run_preflight("status"' adapters/codex/hooks/permissionrequest-lifecycle.py \
-    || ! grep -Fq 'emit_context("PermissionRequest"' adapters/codex/hooks/permissionrequest-lifecycle.py \
-    || ! grep -Fq 'hookSpecificOutput' adapters/codex/hooks/permissionrequest-lifecycle.py \
     || ! grep -Fq 'hookSpecificOutput' adapters/codex/hooks/userprompt-lifecycle.py; then
     fail_msg "Codex lifecycle hook bridges must route through preflight.sh lifecycle commands"
   fi
   if ! grep -Fq '세션 시작 기억 주입 확인' hooks/portable-guards.test.sh \
     || ! grep -Fq 'out["hookEventName"]=="SessionStart"' hooks/portable-guards.test.sh \
     || ! grep -Fq 'out["hookEventName"]=="UserPromptSubmit"' hooks/portable-guards.test.sh \
-    || ! grep -Fq 'out["hookEventName"]=="PermissionRequest"' hooks/portable-guards.test.sh \
     || ! grep -Fq 'valid minimal hook JSON' hooks/portable-guards.test.sh \
     || ! grep -Fq 'adapter loop runtime logs are ignored' hooks/portable-guards.test.sh \
     || ! grep -Fq 'adapters/*/loops/*.log' .gitignore \
@@ -1556,7 +1551,7 @@ check_codex_native_hook_projection() {
   if ! grep -Fq '"PostToolUse"' "$hook_json" || ! grep -Fq 'posttooluse-read-marker.py' "$hook_json"; then
     fail_msg "$hook_json must register the Codex PostToolUse read marker"
   fi
-  for bridge in "$session_bridge" "$sessionend_bridge" "$prompt_bridge" "$permission_bridge" "$pre_bridge" "$post_bridge" "$read_bridge"; do
+  for bridge in "$session_bridge" "$sessionend_bridge" "$prompt_bridge" "$pre_bridge" "$post_bridge" "$read_bridge"; do
     if ! grep -Fq 'adapters" / "codex" / "bin" / "preflight.sh' "$bridge"; then
       fail_msg "$bridge must call the Codex preflight wrapper"
     fi
@@ -1613,9 +1608,6 @@ check_codex_native_hook_projection() {
   fi
   if ! grep -Fq '"session-end"' "$sessionend_bridge"; then
     fail_msg "$sessionend_bridge must call the Codex session-end preflight"
-  fi
-  if ! grep -Fq '"status"' "$permission_bridge"; then
-    fail_msg "$permission_bridge must call the Codex status preflight"
   fi
   if ! grep -Fq 'PreToolUse' adapters/codex/README.md \
     || ! grep -Fq 'PostToolUse' adapters/codex/README.md \
