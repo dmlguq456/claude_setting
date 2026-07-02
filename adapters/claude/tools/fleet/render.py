@@ -1048,12 +1048,13 @@ def _addline(stdscr, row, segs, w):
             left, right = segs[:i], segs[i + 1:]
             break
 
-    def _draw(seglist, start):
+    def _draw(seglist, start, lim=None):
+        edge = (w - 1) if lim is None else lim
         col = start
         for text, color in seglist:
-            if col >= w - 1:
+            if col >= edge:
                 break
-            avail = w - 1 - col
+            avail = edge - col
             piece = ""
             pw = 0
             for ch in text:                                   # clip by display width, not len
@@ -1071,20 +1072,22 @@ def _addline(stdscr, row, segs, w):
         return col
 
     endcol = _draw(left, 0)
-    # htop bar lines (first segment keyed hdr_bar) paint their background to FULL width — the
-    # gap between left and right (and any tail) is CYAN spaces, not bare cells (round-4).
+    # htop bar lines (first segment keyed hdr_bar) paint their background to the TRUE full width
+    # (lim=w — the default w-1 text clip left a bare notch column at the right edge, visible as
+    # a black gap on the white bar; user 2026-07-02: "헤더 안이어지는데"). The bottom-right cell
+    # write raises curses.error and is swallowed — the footer bar loses only that one corner.
     bar = bool(segs) and segs[0][1] == "hdr_bar"
     if fillch is not None:              # right may be EMPTY (a bare full-width rule line) — the
         rw = sum(_dw(t) for t, _ in right)   # fill itself must still draw (bug: divider invisible)
-        rcol = max(endcol + (0 if fillch == "─" else 2), w - 1 - rw)
+        rcol = max(endcol + (0 if fillch == "─" else 2), (w if bar else w - 1) - rw)
         if fillch == "─" and rcol > endcol:
             _draw([("─" * (rcol - endcol), "head")], endcol)  # fill the gap to make a full-width rule
         elif bar and rcol > endcol:
-            _draw([(" " * (rcol - endcol), "hdr_bar")], endcol)
+            _draw([(" " * (rcol - endcol), "hdr_bar")], endcol, lim=w)
         if right:
-            _draw(right, rcol)
-    elif bar and endcol < w - 1:
-        _draw([(" " * (w - 1 - endcol), "hdr_bar")], endcol)
+            _draw(right, rcol, lim=w if bar else None)
+    elif bar and endcol < w:
+        _draw([(" " * (w - endcol), "hdr_bar")], endcol, lim=w)
 
 
 _OFFSET = 0                 # scroll offset — READ only in _draw (see module docstring)
