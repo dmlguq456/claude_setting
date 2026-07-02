@@ -657,21 +657,14 @@ def _build_lines(sessions, jobs, section, narrow, malformed):
                 (group_jobs[0].cwd if group_jobs else ""))
         ggate, gpipe = _gate_info(gcwd)                # project spec-gate (word after the name)
         gword, gwkey = _gate_word(ggate, gpipe)
-        # ▍-anchored section header (bold name) — no per-group full-width rule (heavy stripes).
-        # Header carries a dim state ROLL-UP (●N working · ○N idle · ↳N jobs) so group-level
-        # scanning needs no row-reading; ▍ turns green when the group has work running.
+        # ▍-anchored section header (bold name) — no per-group full-width rule (heavy stripes),
+        # no count roll-up (2026-07-02 user: 세션 개수 불필요 — the rows below say it already);
+        # ▍ turns green when the group has work running.
         n_work = sum(1 for s in live_sessions if s.liveness == "working") + \
                  sum(1 for j in group_jobs if j.liveness == "working")
-        n_idle = sum(1 for s in live_sessions if s.liveness != "working")
-        n_jobs = len(group_jobs)
         head_segs = [("▍ ", "grp_live" if n_work else "head"), (name, "grp")]
         if gword:
             head_segs += [("  ", None), (gword, gwkey)]
-        roll = "".join((" ●%d" % n_work if n_work else "",
-                        " ○%d" % n_idle if n_idle else "",
-                        " ↳%d" % n_jobs if n_jobs else ""))
-        if roll:
-            head_segs += [("  ", None), (roll.strip(), "dim")]
         lines.append(head_segs)
 
         # rows stay tight (no blank line — that spread them too far apart); the mid-line gauge
