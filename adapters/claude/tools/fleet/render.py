@@ -897,6 +897,8 @@ def _build_lines(sessions, jobs, section, narrow, malformed, layout="wide"):
         if gword:
             head_segs += [("  ", None), (gword, gwkey)]
         lines.append(head_segs)
+        _g0 = len(lines)                # group-content start — railified below (block feel)
+        _rail_key = "grp_live" if n_work else "dim"
 
         # rows stay tight (no blank line — that spread them too far apart); the mid-line gauge
         # glyph (━/─) is what keeps the stacked context bars from merging into a solid wall.
@@ -928,6 +930,16 @@ def _build_lines(sessions, jobs, section, narrow, malformed, layout="wide"):
                 lines.extend(_jrow(lj, orphan=False))
             else:
                 lines.append(_dispatch_row(lj, orphan=False))
+
+        # group left rail (user 2026-07-02: 디렉토리별 구분감) — the header's ▍ continues down
+        # every row of the group as a thin ▏, green while the group is working. The group reads
+        # as one BLOCK without reintroducing per-group full-width rules (rejected: heavy stripes)
+        # or extra background bars (design V4: chrome bars only).
+        for _i in range(_g0, len(lines)):
+            ln = lines[_i]
+            if ln and not _is_fill(ln[0][0]) and ln[0][1] in (None, "dim") \
+                    and ln[0][0].startswith(" "):
+                lines[_i] = [("▏", _rail_key), (ln[0][0][1:], ln[0][1])] + ln[1:]
 
     # dormant dirs — one aggregated line, clearly set apart from the active board (blank + dim).
     # Contains the word 'folded' so the click-toggle map and `a` both still reveal them.
