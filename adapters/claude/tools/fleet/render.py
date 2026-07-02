@@ -828,11 +828,14 @@ def _build_lines(sessions, jobs, section, narrow, malformed, layout="wide"):
     # opencode-go has no usage API (gateway 404s; docs: console-only), so say so on the board.
     _live_h = set(s.harness for s in sessions
                   if s.liveness not in ("stale", "dead") and not s.app_server and not s.is_child)
+    _pad_i = [(_TINT_INTEL, None), ("  ", None)]   # tinted padding row (panel 위아래 여백 — user)
+    if _TINT_OK:
+        lines.append(list(_pad_i))                 # intel panel top padding
     if _rl or _live_h:
         hs = [h for h in ("claude", "codex", "opencode") if h in _rl or h in _live_h]
         for idx, h in enumerate(hs):
             hn = _BADGE_TEXT.get(h, h)
-            row = [(" usage " if idx == 0 else "       ", "head"),
+            row = [("  usage " if idx == 0 else "        ", "head"),
                    (_pad(hn, 14), "hb_" + h if h in _BADGE_TEXT else "hb_other")]  # bright = account
             if h not in _rl:
                 row.append(("no usage api — plan quota is console-only", "dim"))
@@ -868,7 +871,7 @@ def _build_lines(sessions, jobs, section, narrow, malformed, layout="wide"):
     n_id = sum(1 for s in _real if s.liveness == "idle")
     n_dt = sum(1 for s in _real if s.detached and s.liveness not in ("stale", "dead"))
     jw = sum(1 for j in jobs if j.liveness == "working")
-    pulse = [(" fleet ", "head"),
+    pulse = [("  fleet ", "head"),
              ("● %d" % n_wk, "g_work"), (" working   ", "dim"),
              ("○ %d" % n_id, "g_idle"), (" idle   ", "dim")]
     if n_dt:
@@ -892,12 +895,14 @@ def _build_lines(sessions, jobs, section, narrow, malformed, layout="wide"):
         elif j.liveness == "dead":
             alerts.append(("job dead %s" % (j.slug or j.key), "lvl_r"))
     if alerts:
-        arow = [(_TINT_INTEL, None), (" alert ", "head")]
+        arow = [(_TINT_INTEL, None), ("  alert ", "head")]
         for ai, (txt, akey) in enumerate(alerts[:6]):
             if ai:
                 arow.append(("   ", None))
             arow.append(("⚠ " + txt, akey))
         lines.append(arow)
+    if _TINT_OK:
+        lines.append(list(_pad_i))                 # intel panel bottom padding
 
     # header bar REPLACES the `──` zone divider — htop separates meters from the process list
     # with its bar, not a rule. One blank line above it (user 2026-07-02: header 위에 한칸) so
@@ -1015,6 +1020,11 @@ def _build_lines(sessions, jobs, section, narrow, malformed, layout="wide"):
                 lines[_i] = [(_body_tint, None)] + ln
             elif ln[0][1] in (None, "dim") and ln[0][0].startswith(" "):
                 lines[_i] = [("▍", _rail_key), (ln[0][0][1:], ln[0][1])] + ln[1:]
+        if _TINT_OK:
+            # panel top/bottom padding rows (user: 블록 위아래 간격) — inserted AFTER the tint
+            # loop so they carry exactly one sentinel.
+            lines.insert(_g0, [(_body_tint, None), ("  ", None)])
+            lines.append([(_body_tint, None), ("  ", None)])
 
     # dormant dirs — one aggregated line, clearly set apart from the active board (blank + dim).
     # Contains the word 'folded' so the click-toggle map and `a` both still reveal them.
@@ -1142,14 +1152,16 @@ def _addline(stdscr, row, segs, w):
     if segs and _is_fill(segs[0][0]) and segs[0][0][1] in _TINT_CHARS:
         tint = segs[0][0][1] if _TINT_OK else None
         segs = segs[1:]
-    # tinted panels are INSET one column on both sides (user 2026-07-02: 양끝으로 안 퍼지고
-    # 블록처럼 감싸지게) — col 0 and col w-1 stay on the default bg, so each panel reads as a
-    # card hugging the board. Rows are built with a leading blank, consumed here for the margin.
+    # tinted panels are INSET two columns on both sides (user 2026-07-02: 양끝으로 안 퍼지고
+    # 블록처럼 감싸지게 + 양옆 간격) — the outer cols stay on the default bg, so each panel
+    # reads as a floating card. Rows are built with a leading blank, consumed for the margin.
     start_col = 0
-    if tint is not None and segs and segs[0][0].startswith(" "):
+    if tint is not None and segs:
         t0, k0 = segs[0]
-        segs = [(t0[1:], k0)] + list(segs[1:])
-        start_col = 1
+        eat = 2 if t0.startswith("  ") else (1 if t0.startswith(" ") else 0)
+        if eat:
+            segs = [(t0[eat:], k0)] + list(segs[1:])
+            start_col = eat
     fillch = None
     left, right = segs, []
     for i, (t, _c) in enumerate(segs):
@@ -1186,7 +1198,7 @@ def _addline(stdscr, row, segs, w):
     # background across; tint rows stop at w-1 so the right margin stays on the default bg.
     bar = bool(segs) and segs[0][1] == "hdr_bar"
     band = bar or tint is not None
-    band_lim = w if bar else (w - 1)
+    band_lim = w if bar else (w - 2)
     fill_key = "hdr_bar" if bar else None      # tint rows fill with the default-hue tint pair
     if fillch is not None:              # right may be EMPTY (a bare full-width rule line) — the
         rw = sum(_dw(t) for t, _ in right)   # fill itself must still draw (bug: divider invisible)
