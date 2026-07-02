@@ -228,7 +228,7 @@ def _init_colors():
             # shown to ignore init_color — the green attempt stayed bright, hence the hue move).
             try:
                 if curses.can_change_color():
-                    curses.init_color(17, 50, 60, 190)
+                    curses.init_color(17, 28, 32, 100)   # ≈ #07081a — near-bg midnight (user: 더 은은·어둡게)
             except Exception:
                 pass
             hues = {"d": -1, "g": curses.COLOR_GREEN, "y": curses.COLOR_YELLOW,
@@ -836,7 +836,7 @@ def _build_lines(sessions, jobs, section, narrow, malformed, layout="wide"):
         hs = [h for h in ("claude", "codex", "opencode") if h in _rl or h in _live_h]
         for idx, h in enumerate(hs):
             hn = _BADGE_TEXT.get(h, h)
-            row = [("usage  " if idx == 0 else "       ", "head"),
+            row = [(" usage " if idx == 0 else "       ", "head"),
                    (_pad(hn, 14), "hb_" + h if h in _BADGE_TEXT else "hb_other")]  # bright = account
             if h not in _rl:
                 row.append(("no usage api — plan quota is console-only", "dim"))
@@ -872,7 +872,7 @@ def _build_lines(sessions, jobs, section, narrow, malformed, layout="wide"):
     n_id = sum(1 for s in _real if s.liveness == "idle")
     n_dt = sum(1 for s in _real if s.detached and s.liveness not in ("stale", "dead"))
     jw = sum(1 for j in jobs if j.liveness == "working")
-    pulse = [("fleet  ", "head"),
+    pulse = [(" fleet ", "head"),
              ("● %d" % n_wk, "g_work"), (" working   ", "dim"),
              ("○ %d" % n_id, "g_idle"), (" idle   ", "dim")]
     if n_dt:
@@ -896,7 +896,7 @@ def _build_lines(sessions, jobs, section, narrow, malformed, layout="wide"):
         elif j.liveness == "dead":
             alerts.append(("job dead %s" % (j.slug or j.key), "lvl_r"))
     if alerts:
-        arow = [(_TINT_INTEL, None), ("alert  ", "head")]
+        arow = [(_TINT_INTEL, None), (" alert ", "head")]
         for ai, (txt, akey) in enumerate(alerts[:6]):
             if ai:
                 arow.append(("   ", None))
@@ -1146,6 +1146,14 @@ def _addline(stdscr, row, segs, w):
     if segs and _is_fill(segs[0][0]) and segs[0][0][1] in _TINT_CHARS:
         tint = segs[0][0][1] if _TINT_OK else None
         segs = segs[1:]
+    # tinted panels are INSET one column on both sides (user 2026-07-02: 양끝으로 안 퍼지고
+    # 블록처럼 감싸지게) — col 0 and col w-1 stay on the default bg, so each panel reads as a
+    # card hugging the board. Rows are built with a leading blank, consumed here for the margin.
+    start_col = 0
+    if tint is not None and segs and segs[0][0].startswith(" "):
+        t0, k0 = segs[0]
+        segs = [(t0[1:], k0)] + list(segs[1:])
+        start_col = 1
     fillch = None
     left, right = segs, []
     for i, (t, _c) in enumerate(segs):
@@ -1177,22 +1185,24 @@ def _addline(stdscr, row, segs, w):
             col += pw
         return col
 
-    endcol = _draw(left, 0)
-    # band lines (htop WHITE bars + round-5 tint panels) paint their background to full width.
+    endcol = _draw(left, start_col)
+    # band lines (htop WHITE bars = full width · round-5 tint panels = inset cards) paint their
+    # background across; tint rows stop at w-1 so the right margin stays on the default bg.
     bar = bool(segs) and segs[0][1] == "hdr_bar"
     band = bar or tint is not None
+    band_lim = w if bar else (w - 1)
     fill_key = "hdr_bar" if bar else None      # tint rows fill with the default-hue tint pair
     if fillch is not None:              # right may be EMPTY (a bare full-width rule line) — the
         rw = sum(_dw(t) for t, _ in right)   # fill itself must still draw (bug: divider invisible)
-        rcol = max(endcol + (0 if fillch == "─" else 2), (w if band else w - 1) - rw)
+        rcol = max(endcol + (0 if fillch == "─" else 2), (band_lim if band else w - 1) - rw)
         if fillch == "─" and rcol > endcol:
             _draw([("─" * (rcol - endcol), "head")], endcol)  # fill the gap to make a full-width rule
         elif band and rcol > endcol:
-            _draw([(" " * (rcol - endcol), fill_key)], endcol, lim=w)
+            _draw([(" " * (rcol - endcol), fill_key)], endcol, lim=band_lim)
         if right:
-            _draw(right, rcol, lim=w if band else None)
-    elif band and endcol < w:
-        _draw([(" " * (w - endcol), fill_key)], endcol, lim=w)
+            _draw(right, rcol, lim=band_lim if band else None)
+    elif band and endcol < band_lim:
+        _draw([(" " * (band_lim - endcol), fill_key)], endcol, lim=band_lim)
 
 
 _OFFSET = 0                 # scroll offset — READ only in _draw (see module docstring)
