@@ -223,13 +223,12 @@ def _init_colors():
     _TINT_PAIR.clear()
     try:
         if curses.COLORS >= 256:
-            # the 256 cube's darkest green (22 = #005f00) is still too bright for a herdr-grade
-            # subtle tint (user 2026-07-02: 너무 밝은데) — redefine it darker (~#143814) where
-            # the terminal allows palette changes; terminals that ignore init_color simply keep
-            # the stock 22, so the worst case is today's look, never worse.
+            # deepen the midnight-blue active tint (~#0c0f30) where the terminal honors palette
+            # redefinition; ignored → stock 17 (#00005f), already subtle (user's terminal was
+            # shown to ignore init_color — the green attempt stayed bright, hence the hue move).
             try:
                 if curses.can_change_color():
-                    curses.init_color(22, 80, 220, 80)
+                    curses.init_color(17, 50, 60, 190)
             except Exception:
                 pass
             hues = {"d": -1, "g": curses.COLOR_GREEN, "y": curses.COLOR_YELLOW,
@@ -1129,8 +1128,9 @@ _TINT_INTEL = "\x00i\x00"
 _TINT_CHARS = {"b", "c", "B", "C", "i"}
 # 256-color background levels per sentinel char. Base panels = dark GREY (235/238); the
 # ACTIVE-group variants are a dark COLORED tint (user 2026-07-02 최종: 기본은 어둡게, 활성
-# 디렉토리만 컬러) — 22 = darkest green in the 256 cube, matching the working-state hue.
-_TINT_LVL = {"b": 235, "c": 238, "B": 22, "C": 22, "i": 235}
+# 디렉토리만 컬러 — 미드나잇 블루). 17 = #00005f, the cube's darkest blue: natively subtle
+# even where init_color is ignored (green 22 #005f00 read too bright — user ×2).
+_TINT_LVL = {"b": 235, "c": 238, "B": 17, "C": 17, "i": 235}
 
 
 def _is_fill(t):
