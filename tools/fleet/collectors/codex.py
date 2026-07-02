@@ -136,8 +136,18 @@ def _apply_token_count(sess, line):
     rl = p.get("rate_limits") or {}
 
     def rp(k):
-        v = (rl.get(k) or {}).get("used_percent")
-        return round(v) if isinstance(v, (int, float)) else None
+        """used_percent for a window, EXPIRY-AWARE: rollout samples freeze at the last activity,
+        so a window whose resets_at has since passed shows its PRE-reset value (e.g. a 17h-old 3%
+        — or 94% — for the 5h window). No newer sample ⇒ no local consumption since ⇒ the current
+        window is effectively 0%. (2026-07-02 user: codex usage looked wrong — stale-window bug.)"""
+        d = rl.get(k) or {}
+        v = d.get("used_percent")
+        if not isinstance(v, (int, float)):
+            return None
+        rs = d.get("resets_at")
+        if isinstance(rs, (int, float)) and rs < time.time():
+            return 0
+        return round(v)
 
     p5, p7 = rp("primary"), rp("secondary")         # 300min ≈ 5h · 10080min = 7d
     if p5 is not None:
