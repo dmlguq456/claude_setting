@@ -788,7 +788,7 @@ def _build_lines(sessions, jobs, section, narrow, malformed, layout="wide"):
                     row += [("·" * gw, "dim"), ("   —", "dim")]
                 row.append(("]", "dim"))
                 if rs and rs > now_ts:
-                    row.append((" ↻" + fmt_min(int((rs - now_ts) / 60)), "dim"))
+                    row.append((" ↻ " + fmt_min(int((rs - now_ts) / 60)), "dim"))
             lines.append(row)
     # fleet pulse — htop's "Tasks: N, M running" analogue: whole-board census + live spend Σ
     # (round-4b, user: "일단 띄우고 필요없으면 쳐내지뭐"). Counts skip app-server companions.
@@ -993,7 +993,7 @@ def _malformed():
 # display-width aware clipping — emoji/CJK render 2 cells but len()==1, so advancing col by
 # len() drew the next segment 1 col early and overwrote the previous field's last char
 # (e.g. the directory name lost a char after the 📁). Count real cells instead.
-_WIDE = set("🧠✨⏳📁🚀🛰📌⚡📋⚙📊🐛📈🔬💻⏱")
+_WIDE = set("🧠✨⏳📁🚀🛰📌⚡📋⚙📊🐛📈🔬💻⏱↻")
 
 
 def _cw(ch):
