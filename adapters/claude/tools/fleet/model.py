@@ -128,6 +128,7 @@ class Session:
     rl_5h: Optional[int] = None        # claude five_hour / codex primary  used %
     rl_7d: Optional[int] = None        # claude seven_day / codex secondary used %
     rl_ms: Optional[list] = None       # model-scoped buckets [[label, pct], ...] e.g. [["fable", 57]]
+    rl_rs: Optional[tuple] = None      # (reset_epoch_5h, reset_epoch_7d) — ↻ countdown in the meters
     cost: Optional[float] = None
     tokens: Optional[int] = None
     status: Optional[str] = None        # raw harness status (claude idle/shell/busy)

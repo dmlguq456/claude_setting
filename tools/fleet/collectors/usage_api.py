@@ -27,6 +27,19 @@ def _home():
             or os.path.expanduser("~/.claude"))
 
 
+def _epoch(v):
+    """resets_at → epoch seconds; accepts epoch numbers or ISO-8601 strings, else None."""
+    if isinstance(v, (int, float)):
+        return float(v)
+    if isinstance(v, str):
+        try:
+            from datetime import datetime
+            return datetime.fromisoformat(v.replace("Z", "+00:00")).timestamp()
+        except Exception:
+            return None
+    return None
+
+
 def _token():
     try:
         with open(os.path.join(_home(), ".credentials.json")) as f:
@@ -51,7 +64,7 @@ def _fetch():
         return None
     if not isinstance(d, dict):
         return None
-    out = {"rl_5h": None, "rl_7d": None, "rl_ms": []}
+    out = {"rl_5h": None, "rl_7d": None, "rl_ms": [], "rs_5h": None, "rs_7d": None}
     for lim in (d.get("limits") or []):
         if not isinstance(lim, dict) or not isinstance(lim.get("percent"), (int, float)):
             continue
@@ -59,17 +72,20 @@ def _fetch():
         kind = lim.get("kind")
         if kind == "session":
             out["rl_5h"] = pct
+            out["rs_5h"] = _epoch(lim.get("resets_at"))
         elif kind == "weekly_all":
             out["rl_7d"] = pct
+            out["rs_7d"] = _epoch(lim.get("resets_at"))
         elif kind == "weekly_scoped":
             name = (((lim.get("scope") or {}).get("model") or {}).get("display_name")) or "model"
             lbl = name.split()[0].lower()
             if not any(x[0] == lbl for x in out["rl_ms"]):
                 out["rl_ms"].append([lbl, pct])
     # fallback to the top-level objects if limits[] was missing/partial
-    for key, fld in (("five_hour", "rl_5h"), ("seven_day", "rl_7d")):
+    for key, fld, rs in (("five_hour", "rl_5h", "rs_5h"), ("seven_day", "rl_7d", "rs_7d")):
         if out[fld] is None and isinstance((d.get(key) or {}).get("utilization"), (int, float)):
             out[fld] = round(d[key]["utilization"])
+            out[rs] = _epoch(d[key].get("resets_at"))
     if out["rl_5h"] is None and out["rl_7d"] is None and not out["rl_ms"]:
         return None
     return out

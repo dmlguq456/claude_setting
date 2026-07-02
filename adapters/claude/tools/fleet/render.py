@@ -45,17 +45,25 @@ _QA_INT = {"quick": curses.A_DIM, "light": curses.A_DIM, "standard": 0,
            "thorough": curses.A_BOLD, "adversarial": curses.A_BOLD}
 _NARROW_CUTOFF = 70
 _TWO_LINE_CUTOFF = 110      # width below which sessions render as 2-line cards (round-4 responsive)
-_LAYOUT = "auto"            # 'auto' (width decides) | 'wide' | 'narrow' — cycled by the `w` key
+_LAYOUT = "auto"            # 'auto' (width decides) | 'wide' | 'narrow' | 'stack' — `w` key cycles
 _LOOPS_KEYS = ("oncall", "note", "study", "drill")
 
 
 def _cycle_layout():
     global _LAYOUT
-    _LAYOUT = {"auto": "narrow", "narrow": "wide", "wide": "auto"}[_LAYOUT]
+    _LAYOUT = {"auto": "wide", "wide": "narrow", "narrow": "stack", "stack": "auto"}[_LAYOUT]
 
 
-def _two_line(w):
-    return _LAYOUT == "narrow" or (_LAYOUT == "auto" and w < _TWO_LINE_CUTOFF)
+def _layout_mode(w):
+    """wide (1-line grid) / narrow (2-line cards) / stack (ultra-narrow, fields stacked
+    vertically — user 2026-07-02: '세로로 나열하는 느낌'). auto: width decides."""
+    if _LAYOUT != "auto":
+        return _LAYOUT
+    if w < _NARROW_CUTOFF:
+        return "stack"
+    if w < _TWO_LINE_CUTOFF:
+        return "narrow"
+    return "wide"
 
 _COLOR = {}   # color_key → curses attr (filled by _init_colors); empty ⇒ plain mode
 
@@ -559,7 +567,7 @@ def _dispatch_row(j, orphan=False, parent_model=None, parent_harness=None, is_la
 # L1 = identity (dot · harness · name · ▾N · gate · branch) / L2 = telemetry (model · effort ·
 # bracket gauge · cost · ⏱). model keeps its fixed width so gauges align vertically across cards
 # (the nvtop column feel). Same segment parts as the 1-line rows — zero new color keys.
-def _session_row_2line(s, is_parent=False, child_count=0):
+def _session_row_2line(s, is_parent=False, child_count=0, _split=False):
     live = s.liveness
     slug = s.slug or (s.cwd.rsplit("/", 1)[-1] if s.cwd else "?")
     dim_tel = live in ("stale", "dead") or s.app_server
@@ -579,8 +587,9 @@ def _session_row_2line(s, is_parent=False, child_count=0):
     if gtag:
         l1.append((gtag, gk))
     br = s.branch or _git_branch(s.cwd)
-    if br:
-        l1.append(("  " + br, "dim" if dim_tel else "branch_s"))
+    br_seg = ("  " + br, "dim" if dim_tel else "branch_s") if br else None
+    if not _split and br_seg:
+        l1.append(br_seg)
     if s.app_server:
         l1.append(("  app-server", "dim"))
     if s.orphan:
@@ -598,10 +607,36 @@ def _session_row_2line(s, is_parent=False, child_count=0):
     ck = "cost_hi" if (isinstance(s.cost, (int, float)) and s.cost > 100) else "dim"
     l2 += [("%9s" % cost, ck), ("   ", None),
            (_CLOCK, "dim"), ("%6s" % fmt_min(s.elapsed_min), "dim")]
+    if _split:
+        return l1, l2, br_seg
     return l1, l2
 
 
-def _dispatch_row_2line(j, orphan=False, parent_model=None):
+def _session_row_stack(s, is_parent=False, child_count=0):
+    """Ultra-narrow stacked card (user: '세로로 나열하는 느낌') — one field group per line:
+    harness+session / branch / model+effort / context gauge+cost+⏱."""
+    l1, l2, br_seg = _session_row_2line(s, is_parent, child_count, _split=True)
+    out = [l1]
+    if br_seg:
+        out.append([("      ", None), (br_seg[0].strip(), br_seg[1])])
+    cut = 3   # l2 = [indent, model, effort | gauge…, RFLUSH, cost, ⏱] → split after effort
+    out.append(l2[:cut])
+    out.append([("      ", None)] + l2[cut:])
+    return out
+
+
+def _dispatch_row_stack(j, orphan=False, parent_model=None):
+    l1, l2, br_seg = _dispatch_row_2line(j, orphan=orphan, parent_model=parent_model, _split=True)
+    out = [l1]
+    if br_seg:
+        out.append([("      ", None), (br_seg[0].strip(), br_seg[1])])
+    cut = 3   # l2 = [indent, model, effort-pad | stage…, RFLUSH, ⏱] → split after the model cell
+    out.append(l2[:cut])
+    out.append([("      ", None)] + l2[cut:])
+    return out
+
+
+def _dispatch_row_2line(j, orphan=False, parent_model=None, _split=False):
     key = j.key or "?"
     name = j.slug or key
     gch, gkey = _glyph(j.liveness)
@@ -617,14 +652,17 @@ def _dispatch_row_2line(j, orphan=False, parent_model=None):
     if orphan:
         l1.append(("  (orphan)", "gate_u"))
     br = j.branch or _git_branch(j.cwd)
-    if br:
-        l1.append(("  " + br, "dim"))
+    br_seg = ("  " + br, "dim") if br else None
+    if not _split and br_seg:
+        l1.append(br_seg)
 
     l2 = [("      ", None)] + _model_cell(j.model or parent_model, None, _MW, dim=True)
     if key and key != name:
         l2.append((key + ": ", "name_dim"))
     l2 += _stage_segs(key, j.stage or "", working=(j.liveness == "working"))
     l2 += [(_RFLUSH, None), (_CLOCK, "dim"), ("%6s" % fmt_min(j.elapsed_min), "dim")]
+    if _split:
+        return l1, l2, br_seg
     return l1, l2
 
 
@@ -672,7 +710,7 @@ def set_show_all(v):
     _SHOW_ALL = bool(v)
 
 
-def _build_lines(sessions, jobs, section, narrow, malformed, two_line=False):
+def _build_lines(sessions, jobs, section, narrow, malformed, layout="wide"):
     """Return a flat list of segment-lines for the whole screen (None = blank line).
 
     Same contract consumed by BOTH `render_once` (plain, full output) and `_draw` (viewport
@@ -699,12 +737,12 @@ def _build_lines(sessions, jobs, section, narrow, malformed, two_line=False):
     # "모든 윈도우가 쭉 붙어있다 → 서로 간격 띄우고 게이지 길게"): long gauges, generous gaps, aligned.
     # rate is account-shared → take the FRESHEST session's value per harness (a stale session's
     # per-file rate is old; e.g. a 16-min-old file showed 7d 100% while the live rate was 15%).
-    _rl = {}   # harness -> (rl_5h, rl_7d, rl_ms, mtime)
+    _rl = {}   # harness -> (rl_5h, rl_7d, rl_ms, mtime, rl_rs)
     for s in sessions:
         if s.rl_5h is not None or s.rl_7d is not None or s.rl_ms:
             cur = _rl.get(s.harness)
             if cur is None or (s.mtime or 0) > (cur[3] or 0):
-                _rl[s.harness] = (s.rl_5h, s.rl_7d, s.rl_ms, s.mtime)
+                _rl[s.harness] = (s.rl_5h, s.rl_7d, s.rl_ms, s.mtime, s.rl_rs)
     # harnesses with LIVE sessions but no rate source still get a row with an explicit note —
     # a silently missing row read as a bug (2026-07-02 user: "opencode go 공급자로서 안뜨는거야?").
     # opencode-go has no usage API (gateway 404s; docs: console-only), so say so on the board.
@@ -720,13 +758,17 @@ def _build_lines(sessions, jobs, section, narrow, malformed, two_line=False):
                 row.append(("no usage api — plan quota is console-only", "dim"))
                 lines.append(row)
                 continue
-            r5, r7, rms, _mt = _rl[h]
+            r5, r7, rms, _mt, rrs = _rl[h]
             # 5h/7d + per-model buckets — ALL labels dim (a colored 'fable' read like a harness).
             # htop BRACKET METERS (round-4): `[━━━━──────── 33%]` — the bracket draws the capacity
             # vessel, % sits inside. Session-row ctx gauges stay bare (htop's list bars are bare too).
-            gw = 8 if two_line else 12
-            gauges = [("5h ", r5), ("7d ", r7)] + [(lbl + " ", v) for lbl, v in (rms or [])]
-            for gi, (lbl, v) in enumerate(gauges):
+            # ↻ = time until the window resets (API resets_at — was collected and discarded).
+            gw = 8 if layout != "wide" else 12
+            rs5, rs7 = (rrs or (None, None))[0], (rrs or (None, None))[1]
+            gauges = [("5h ", r5, rs5), ("7d ", r7, rs7)] + \
+                     [(lbl + " ", v, None) for lbl, v in (rms or [])]
+            now_ts = time.time()
+            for gi, (lbl, v, rs) in enumerate(gauges):
                 row.append(("   ", None) if gi else ("", None))          # 3-col gap between meters
                 row.append((lbl, "dim"))
                 row.append(("[", "dim"))
@@ -736,15 +778,58 @@ def _build_lines(sessions, jobs, section, narrow, malformed, two_line=False):
                 else:
                     row += [("·" * gw, "dim"), ("   —", "dim")]
                 row.append(("]", "dim"))
+                if rs and rs > now_ts:
+                    row.append((" ↻" + fmt_min(int((rs - now_ts) / 60)), "dim"))
             lines.append(row)
-        # CYAN column-header bar REPLACES the `──` zone divider — htop separates meters from the
-        # process list with its header bar, not a rule. Narrow mode's 2-line cards have no single
-        # column mapping → the bar degrades to a zone label + current-mode hint.
-        if two_line:
-            lines.append([("  SESSIONS", "hdr_bar"), (_RFLUSH, None),
-                          ("narrow · press w for wide  ", "hdr_bar")])
-        else:
-            lines.append([(_COL_HEAD, "hdr_bar")])
+    # fleet pulse — htop's "Tasks: N, M running" analogue: whole-board census + live spend Σ
+    # (round-4b, user: "일단 띄우고 필요없으면 쳐내지뭐"). Counts skip app-server companions.
+    _real = [s for s in sessions if not s.app_server]
+    n_wk = sum(1 for s in _real if s.liveness == "working")
+    n_id = sum(1 for s in _real if s.liveness == "idle")
+    n_dt = sum(1 for s in _real if s.detached and s.liveness not in ("stale", "dead"))
+    jw = sum(1 for j in jobs if j.liveness == "working")
+    tot_cost = sum(s.cost for s in _real if isinstance(s.cost, (int, float)))
+    pulse = [("fleet  ", "head"),
+             ("● %d" % n_wk, "g_work"), (" working   ", "dim"),
+             ("○ %d" % n_id, "g_idle"), (" idle   ", "dim")]
+    if n_dt:
+        pulse += [(_DETACHED_GLYPH + " %d" % n_dt, "g_idle"), (" detached   ", "dim")]
+    if jobs:
+        pulse += [("↳ %d" % len(jobs), "dim"),
+                  (" job%s (%d working)   " % ("s" if len(jobs) != 1 else "", jw), "dim")]
+    if tot_cost:
+        pulse += [("Σ $%.0f" % tot_cost, "cost_hi" if tot_cost > 500 else "dim")]
+    lines.append(pulse)
+
+    # alert strip — CONDITIONAL (zero lines when healthy): compaction-imminent contexts and
+    # stalled dispatches (the stealth-death guard §5.10, surfaced on the board instead of only
+    # in dispatch-liveness.sh runs). dead jobs = red, warnings = yellow.
+    alerts = []
+    for s in _real:
+        if s.ctx_pct is not None and s.ctx_pct >= 80 and s.liveness in ("working", "idle"):
+            alerts.append(("ctx %d%% %s" % (s.ctx_pct, s.slug or "?"),
+                           "lvl_r" if s.ctx_pct >= 90 else "lvl_y"))
+    for j in jobs:
+        if j.liveness == "stale":
+            alerts.append(("job stale %s" % (j.slug or j.key), "lvl_y"))
+        elif j.liveness == "dead":
+            alerts.append(("job dead %s" % (j.slug or j.key), "lvl_r"))
+    if alerts:
+        arow = [("alert  ", "head")]
+        for ai, (txt, akey) in enumerate(alerts[:6]):
+            if ai:
+                arow.append(("   ", None))
+            arow.append(("⚠ " + txt, akey))
+        lines.append(arow)
+
+    # CYAN column-header bar REPLACES the `──` zone divider — htop separates meters from the
+    # process list with its header bar, not a rule. Narrow mode's 2-line cards have no single
+    # column mapping → the bar degrades to a zone label + current-mode hint.
+    if layout != "wide":
+        lines.append([("  SESSIONS", "hdr_bar"), (_RFLUSH, None),
+                      ("%s · press w to cycle  " % layout, "hdr_bar")])
+    else:
+        lines.append([(_COL_HEAD, "hdr_bar")])
 
     first = True
     folded_groups = []       # dormant dirs — aggregated into ONE line at the bottom (user: the
@@ -804,15 +889,17 @@ def _build_lines(sessions, jobs, section, narrow, malformed, two_line=False):
 
         # rows stay tight (no blank line — that spread them too far apart); the mid-line gauge
         # glyph (━/─) is what keeps the stacked context bars from merging into a solid wall.
+        _srow = {"wide": None, "narrow": _session_row_2line, "stack": _session_row_stack}[layout]
+        _jrow = {"wide": None, "narrow": _dispatch_row_2line, "stack": _dispatch_row_stack}[layout]
         for s in _sort_group_sessions(shown):
             kids = _sort_group_jobs(children.get(s.session_id, []))
-            if two_line:
-                lines.extend(_session_row_2line(s, is_parent=bool(kids), child_count=len(kids)))
+            if _srow:
+                lines.extend(_srow(s, is_parent=bool(kids), child_count=len(kids)))
             else:
                 lines.append(_session_row(s, narrow, is_parent=bool(kids), child_count=len(kids)))
             for i, cj in enumerate(kids):
-                if two_line:
-                    lines.extend(_dispatch_row_2line(cj, orphan=False, parent_model=s.model))
+                if _jrow:
+                    lines.extend(_jrow(cj, orphan=False, parent_model=s.model))
                 else:
                     lines.append(_dispatch_row(cj, orphan=False, parent_model=s.model,
                                                parent_harness=s.harness, is_last=(i == len(kids) - 1)))
@@ -821,13 +908,13 @@ def _build_lines(sessions, jobs, section, narrow, malformed, two_line=False):
 
         # orphans / loops: project-level fallback (standalone tree rows)
         for oj in _sort_group_jobs(orphans):
-            if two_line:
-                lines.extend(_dispatch_row_2line(oj, orphan=show_sessions))
+            if _jrow:
+                lines.extend(_jrow(oj, orphan=show_sessions))
             else:
                 lines.append(_dispatch_row(oj, orphan=show_sessions))
         for lj in _sort_group_jobs(loops_jobs):
-            if two_line:
-                lines.extend(_dispatch_row_2line(lj, orphan=False))
+            if _jrow:
+                lines.extend(_jrow(lj, orphan=False))
             else:
                 lines.append(_dispatch_row(lj, orphan=False))
 
@@ -879,7 +966,7 @@ def render_once(collect_all, hfilter, section):
     except Exception:
         tw = 200
     lines = _build_lines(sessions, jobs, section, narrow=False, malformed=malformed,
-                         two_line=_two_line(tw))
+                         layout=_layout_mode(tw))
     out = "\n".join(_plain(l) for l in lines)
     sys.stdout.write(out + "\n")
     return 0
@@ -996,7 +1083,7 @@ def _draw(stdscr, sessions, jobs, section, malformed):
     h, w = stdscr.getmaxyx()
     stdscr.erase()
     narrow = w < _NARROW_CUTOFF
-    lines = _build_lines(sessions, jobs, section, narrow, malformed, two_line=_two_line(w))
+    lines = _build_lines(sessions, jobs, section, narrow, malformed, layout=_layout_mode(w))
     body_h = max(1, h - 1)   # reserve 1 footer row
     _OFFSET = _clamp_offset(_OFFSET, len(lines), body_h)
 

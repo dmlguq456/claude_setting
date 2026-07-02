@@ -49,6 +49,8 @@ def collect_all(harness_filter=None, jobs_path=None):
                         s.rl_7d = au["rl_7d"]
                     if au["rl_ms"]:
                         s.rl_ms = au["rl_ms"]
+                    if au.get("rs_5h") or au.get("rs_7d"):
+                        s.rl_rs = (au.get("rs_5h"), au.get("rs_7d"))
     except Exception:
         pass
 
@@ -64,6 +66,8 @@ def collect_all(harness_filter=None, jobs_path=None):
                         s.rl_5h = cu[0]
                     if cu[1] is not None:
                         s.rl_7d = cu[1]
+                    if len(cu) > 3 and (cu[2] or cu[3]):
+                        s.rl_rs = (cu[2], cu[3])
     except Exception:
         pass
 

@@ -192,11 +192,14 @@ def _api_usage():
     rl = (d if isinstance(d, dict) else {}).get("rate_limit") or {}
 
     def rp(k):
-        v = (rl.get(k) or {}).get("used_percent")
-        return round(v) if isinstance(v, (int, float)) else None
+        w = rl.get(k) or {}
+        v = w.get("used_percent")
+        rs = w.get("reset_at")            # epoch seconds (probed 2026-07-02)
+        return (round(v) if isinstance(v, (int, float)) else None,
+                float(rs) if isinstance(rs, (int, float)) else None)
 
-    p5, p7 = rp("primary_window"), rp("secondary_window")
-    return (p5, p7) if (p5 is not None or p7 is not None) else None
+    (p5, rs5), (p7, rs7) = rp("primary_window"), rp("secondary_window")
+    return (p5, p7, rs5, rs7) if (p5 is not None or p7 is not None) else None
 
 
 def account_usage():
@@ -230,7 +233,7 @@ def account_usage():
         if payload.get("rate_limits"):
             p5, p7 = _rates_from_payload(payload)
             if p5 is not None or p7 is not None:
-                _ACCT["data"] = (p5, p7)
+                _ACCT["data"] = (p5, p7, None, None)   # rollout fallback: no reliable reset time
                 break
     return _ACCT["data"]
 
