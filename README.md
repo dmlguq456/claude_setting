@@ -10,7 +10,7 @@
 
 <div align="center">
 
-[📌/⚡ 모드](#-작동-방식--tracked--untracked) · [mental model](#-mental-model) · [4 트랙](#-큰-갈래-4-트랙--흐름의-의미) · [Skills](#-skill-카탈로그--의의핵심) · [산출물](#-산출물의-구조적-의미) · [부르는 법](#-부르는-법) · [Agents](#-agents) · [더 깊이](#-더-깊이) · [디렉토리 맵](#%EF%B8%8F-전체-디렉토리-맵)
+[📌/⚡ 모드](#-작동-방식--tracked--untracked) · [mental model](#-mental-model) · [4 트랙](#-큰-갈래-4-트랙--흐름의-의미) · [Skills](#-skill-카탈로그--의의핵심) · [산출물](#-산출물의-구조적-의미) · [부르는 법](#-부르는-법) · [**🛰️ 관제 fleet**](#%EF%B8%8F-관제--fleet-크로스-하네스-대시보드) · [Agents](#-agents) · [더 깊이](#-더-깊이) · [디렉토리 맵](#%EF%B8%8F-전체-디렉토리-맵)
 
 </div>
 
@@ -186,6 +186,32 @@ Skills/commands + capability/mode map wrapper)에서 확인한다.
 
 ---
 
+## 🛰️ 관제 — fleet (크로스-하네스 대시보드)
+
+> **이 세팅의 관제탑.** 위 4 트랙·분사가 여러 세션/하네스에 퍼져 돌아가기 시작하면, _지금 무엇이 어디서 도는지_ 를 한 화면으로 보는 창이 필요하다 — 그게 `fleet` 이다. htop 이 프로세스를 보여주듯, fleet 은 **에이전트 세션**을 보여준다.
+
+```bash
+fleet            # 라이브 TUI (~/.local/bin/fleet → tools/fleet/fleet.sh)
+fleet --once     # 한 장 스냅샷 (파이프 가능) · --json 수집 결과 · --all 휴면 포함
+```
+
+```text
+usage  claude code   5h ━━──────  14%   7d ──────  3%   fable ━─────  4%   ← 계정 사용량 (oauth API 라이브)
+─────────────────────────────────────────────────────────────────────────
+▍ my-app  tracked  ●1 ○2 ↳2                                               ← 프로젝트(디렉토리)별 그룹 + 상태 롤업
+  ● claude code   my-app-a7 ▾2 tracked   main    Opus 4.8  xhigh  ━━━━━━──── 45%  $12.30  ⏱1h35m
+  ↳ ● claude code feat-x (dev·standard)  feat-x  Opus 4.8         plan › exec › test       ⏱22m
+```
+
+- **모든 활성 세션** (Claude Code · Codex · opencode 프로세스 스캔) — model·effort·context 게이지·비용·경과, 상태 점(● working 점멸 / ○ idle / ◍ detached / · stale / ✕ dead)
+- **분사 job 을 부모 세션 밑에 트리로** — [`OPERATIONS §5.10`](core/OPERATIONS.md) worktree 디스패치의 라이브 뷰. `(mode·qa)` + 파이프라인 stage 브레드크럼(`plan › exec › test`, 현재 단계 점멸)까지
+- **계정 사용량** — 5h/7d + 모델별 버킷(Fable 등)을 `/usage` 와 같은 소스에서
+- 순수 외부 관찰자 (zero-injection) — 하네스에 아무것도 주입하지 않고 프로세스 테이블·디스크 산출물만 읽는다 (유일한 예외: usage API read-only 조회)
+
+**언제 쓰나**: 병렬 분사를 띄웠을 때 (§5.10 — 분사 직후 에이전트가 fleet 안내), 밤새 돌린 headless 를 아침에 점검할 때, 어느 세션이 context/사용량을 태우는지 볼 때. 소스: [`tools/fleet/`](tools/fleet/).
+
+---
+
 ## 🤝 Agents
 
 autopilot-\* 가 내부에서 자동 라우팅하는 전문 팀. Portable 의미는
@@ -299,7 +325,7 @@ autopilot-\* 가 내부에서 자동 라우팅하는 전문 팀. Portable 의미
 ├── .agent_reports/         스킬셋 자기개선 산출물 — 표준 artifact root, 이 repo 만 예외로 커밋 (research·audit·plans 이력 = 자산, §5.1 예외)
 ├── user_profile/           cross-project 사용자 성향 6 aspect (figure·writing·발표·분석·도메인·코딩) — 통합 store 에 profile tier 로 mirror
 ├── memory/                 통합 기억 store → 전용 private memory repo (memory.db SoT + dump.jsonl mirror, gitignore) — 세션 주입 source (§7)
-├── tools/                  자체 도구 — design-mcp (Claude visual harness 구현) · memory (통합 기억 mem CLI) · web-bundle
+├── tools/                  자체 도구 — 🛰️ fleet (크로스-하네스 관제 대시보드, `fleet` 명령 — §관제) · design-mcp (Claude visual harness 구현) · memory (통합 기억 mem CLI) · web-bundle
 ├── scaffolds/              디자인 재사용 골격 (deck_stage 등)
 ├── utilities/              보조 스크립트 (workflow-guard-hook · workflow-toggle · extract_web_figures)
 │
