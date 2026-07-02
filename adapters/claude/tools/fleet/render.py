@@ -1118,8 +1118,10 @@ _TINT_BODY, _TINT_CAP = "\x00b\x00", "\x00c\x00"
 _TINT_BODY_HOT, _TINT_CAP_HOT = "\x00B\x00", "\x00C\x00"
 _TINT_INTEL = "\x00i\x00"
 _TINT_CHARS = {"b", "c", "B", "C", "i"}
-# 256-color greyscale levels per sentinel char (spec §1.2 + active variants)
-_TINT_LVL = {"b": 235, "c": 238, "B": 237, "C": 241, "i": 235}
+# 256-color background levels per sentinel char. Base panels = dark GREY (235/238); the
+# ACTIVE-group variants are a dark COLORED tint (user 2026-07-02 최종: 기본은 어둡게, 활성
+# 디렉토리만 컬러) — 22 = darkest green in the 256 cube, matching the working-state hue.
+_TINT_LVL = {"b": 235, "c": 238, "B": 22, "C": 22, "i": 235}
 
 
 def _is_fill(t):
