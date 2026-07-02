@@ -163,15 +163,52 @@ def _rates_from_payload(p):
 _ACCT = {"ts": 0.0, "data": None}
 
 
+def _api_usage():
+    """LIVE account usage via the same endpoint the codex TUI itself uses (`/wham/usage`,
+    bundle: account/usage/read) — read-only GET with the user's own OAuth token from auth.json.
+    Rollout samples only update when a session is actually USED (user 2026-07-02: '세션을 켜서
+    한번 써야 업데이트'), so an active probe is the reliable primary source. None on any failure
+    (expired token, offline, schema change) — the rollout scan below remains the fallback."""
+    try:
+        with open(os.path.join(_home(), "auth.json")) as f:
+            a = json.load(f)
+        toks = a.get("tokens") or {}
+        tok, acc = toks.get("access_token"), toks.get("account_id")
+    except Exception:
+        return None
+    if not tok:
+        return None
+    import urllib.request
+    req = urllib.request.Request(
+        "https://chatgpt.com/backend-api/wham/usage",
+        headers={"Authorization": "Bearer " + tok,
+                 "chatgpt-account-id": acc or "",
+                 "User-Agent": "codex-cli"})
+    try:
+        with urllib.request.urlopen(req, timeout=3) as r:
+            d = json.load(r)
+    except Exception:
+        return None
+    rl = (d if isinstance(d, dict) else {}).get("rate_limit") or {}
+
+    def rp(k):
+        v = (rl.get(k) or {}).get("used_percent")
+        return round(v) if isinstance(v, (int, float)) else None
+
+    p5, p7 = rp("primary_window"), rp("secondary_window")
+    return (p5, p7) if (p5 is not None or p7 is not None) else None
+
+
 def account_usage():
-    """Account-level (rl_5h, rl_7d) from the NEWEST rollout that carries rate_limits — usage is
-    account-shared, so it stays valid even when no interactive codex session is alive (the live
-    app-servers carry no rollout). Expiry rule applied. TTL-cached 60s; None when nothing found."""
+    """Account-level (rl_5h, rl_7d): live API first (see _api_usage), then the NEWEST on-disk
+    rollout carrying rate_limits (expiry rule applied) as offline fallback. TTL-cached 60s."""
     now = time.time()
     if now - _ACCT["ts"] <= 60.0:
         return _ACCT["data"]
     _ACCT["ts"] = now
-    _ACCT["data"] = None
+    _ACCT["data"] = _api_usage()
+    if _ACCT["data"] is not None:
+        return _ACCT["data"]
     files = []
     root = os.path.join(_home(), "sessions")
     for dirpath, _dirs, names in os.walk(root):
