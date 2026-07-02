@@ -52,6 +52,21 @@ def collect_all(harness_filter=None, jobs_path=None):
     except Exception:
         pass
 
+    # --- codex account usage from the newest rollout on disk (account-shared) — keeps the codex
+    # usage row alive/correct even when only app-servers (no rollout) are running.
+    try:
+        from . import codex as _codex
+        cu = _codex.account_usage()
+        if cu:
+            for s in sessions:
+                if s.harness == "codex":
+                    if cu[0] is not None:
+                        s.rl_5h = cu[0]
+                    if cu[1] is not None:
+                        s.rl_7d = cu[1]
+    except Exception:
+        pass
+
     # --- liveness → 4-state ---
     try:
         from . import liveness

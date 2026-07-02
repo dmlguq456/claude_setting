@@ -133,13 +133,21 @@ def _apply_token_count(sess, line):
         sess.tokens = int(cur_in)
         if isinstance(win, (int, float)) and win:
             sess.ctx_pct = min(99, round(100 * cur_in / win))
+    p5, p7 = _rates_from_payload(p)                 # 300min ≈ 5h · 10080min = 7d
+    if p5 is not None:
+        sess.rl_5h = p5
+    if p7 is not None:
+        sess.rl_7d = p7
+
+
+def _rates_from_payload(p):
+    """(rl_5h, rl_7d) from a token_count payload, EXPIRY-AWARE: rollout samples freeze at the
+    last activity, so a window whose resets_at has since passed shows its PRE-reset value (e.g.
+    a 17h-old 3% — or 94% — for the 5h window). No newer sample ⇒ no local consumption since ⇒
+    the current window is effectively 0%. (2026-07-02 user: codex usage looked wrong.)"""
     rl = p.get("rate_limits") or {}
 
     def rp(k):
-        """used_percent for a window, EXPIRY-AWARE: rollout samples freeze at the last activity,
-        so a window whose resets_at has since passed shows its PRE-reset value (e.g. a 17h-old 3%
-        — or 94% — for the 5h window). No newer sample ⇒ no local consumption since ⇒ the current
-        window is effectively 0%. (2026-07-02 user: codex usage looked wrong — stale-window bug.)"""
         d = rl.get(k) or {}
         v = d.get("used_percent")
         if not isinstance(v, (int, float)):
@@ -149,11 +157,45 @@ def _apply_token_count(sess, line):
             return 0
         return round(v)
 
-    p5, p7 = rp("primary"), rp("secondary")         # 300min ≈ 5h · 10080min = 7d
-    if p5 is not None:
-        sess.rl_5h = p5
-    if p7 is not None:
-        sess.rl_7d = p7
+    return rp("primary"), rp("secondary")
+
+
+_ACCT = {"ts": 0.0, "data": None}
+
+
+def account_usage():
+    """Account-level (rl_5h, rl_7d) from the NEWEST rollout that carries rate_limits — usage is
+    account-shared, so it stays valid even when no interactive codex session is alive (the live
+    app-servers carry no rollout). Expiry rule applied. TTL-cached 60s; None when nothing found."""
+    now = time.time()
+    if now - _ACCT["ts"] <= 60.0:
+        return _ACCT["data"]
+    _ACCT["ts"] = now
+    _ACCT["data"] = None
+    files = []
+    root = os.path.join(_home(), "sessions")
+    for dirpath, _dirs, names in os.walk(root):
+        for n in names:
+            if n.endswith(".jsonl"):
+                p = os.path.join(dirpath, n)
+                try:
+                    files.append((os.path.getmtime(p), p))
+                except OSError:
+                    pass
+    for _mt, path in sorted(files, reverse=True)[:12]:   # newest first, first rate hit wins
+        line = _tail_token_count(path)
+        if not line:
+            continue
+        try:
+            payload = json.loads(line).get("payload") or {}
+        except Exception:
+            continue
+        if payload.get("rate_limits"):
+            p5, p7 = _rates_from_payload(payload)
+            if p5 is not None or p7 is not None:
+                _ACCT["data"] = (p5, p7)
+                break
+    return _ACCT["data"]
 
 
 def enrich(sess):
