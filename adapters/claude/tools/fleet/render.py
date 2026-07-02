@@ -228,7 +228,9 @@ def _init_colors():
             # shown to ignore init_color — the green attempt stayed bright, hence the hue move).
             try:
                 if curses.can_change_color():
-                    curses.init_color(17, 28, 32, 100)   # ≈ #07081a — near-bg midnight (user: 더 은은·어둡게)
+                    # ≈ #0f123d — midnight character kept, one step brighter (user 튜닝 이력:
+                    # #005f00 너무 밝음 → 17 → #07081a 너무 어두움 → 이 값)
+                    curses.init_color(17, 60, 70, 240)
             except Exception:
                 pass
             hues = {"d": -1, "g": curses.COLOR_GREEN, "y": curses.COLOR_YELLOW,
@@ -1197,8 +1199,11 @@ def _addline(stdscr, row, segs, w):
         rcol = max(endcol + (0 if fillch == "─" else 2), (band_lim if band else w - 1) - rw)
         if fillch == "─" and rcol > endcol:
             _draw([("─" * (rcol - endcol), "head")], endcol)  # fill the gap to make a full-width rule
-        elif band and rcol > endcol:
-            _draw([(" " * (rcol - endcol), fill_key)], endcol, lim=band_lim)
+        elif band and band_lim > endcol:
+            # paint the ENTIRE gap to the band edge first, then draw `right` over it — glyph
+            # width disagreements (⏱ = 2 cells in our table, 1 by wcwidth/tmux) otherwise leave
+            # an unpainted hole right before the time (user 2026-07-02: 시간 앞 블록 컬러 잘림).
+            _draw([(" " * (band_lim - endcol), fill_key)], endcol, lim=band_lim)
         if right:
             _draw(right, rcol, lim=band_lim if band else None)
     elif band and endcol < band_lim:
