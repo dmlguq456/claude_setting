@@ -933,14 +933,14 @@ def _build_lines(sessions, jobs, section, narrow, malformed, layout="wide"):
                 lines.append(_dispatch_row(lj, orphan=False))
 
         # group left rail (user 2026-07-02: 디렉토리별 구분감) — the header's ▍ continues down
-        # every row of the group as a thin ▏, green while the group is working. The group reads
-        # as one BLOCK without reintroducing per-group full-width rules (rejected: heavy stripes)
-        # or extra background bars (design V4: chrome bars only).
+        # every row of the group as the SAME ▍ glyph (a thinner ▏ read as disconnected from the
+        # header block — user: 헤더가 안 이어짐), green while the group is working. The group
+        # reads as one BLOCK without per-group full-width rules (rejected) or more bg bars.
         for _i in range(_g0, len(lines)):
             ln = lines[_i]
             if ln and not _is_fill(ln[0][0]) and ln[0][1] in (None, "dim") \
                     and ln[0][0].startswith(" "):
-                lines[_i] = [("▏", _rail_key), (ln[0][0][1:], ln[0][1])] + ln[1:]
+                lines[_i] = [("▍", _rail_key), (ln[0][0][1:], ln[0][1])] + ln[1:]
 
     # dormant dirs — one aggregated line, clearly set apart from the active board (blank + dim).
     # Contains the word 'folded' so the click-toggle map and `a` both still reveal them.
@@ -1072,33 +1072,20 @@ def _addline(stdscr, row, segs, w):
             col += pw
         return col
 
-    # htop bar lines (first segment keyed hdr_bar): every BLANK cell is converted to a white-fg
-    # █ block (hdr_blk) so the band is physically drawn — bg-colored spaces get collapsed by
-    # ncurses into ECH/EL erases, which render BLACK on terminals without working BCE (the bar
-    # broke between words / after the text; user 2026-07-02 ×2). Painted to the TRUE full width
-    # (lim=w); the bottom-right corner write raises curses.error and is swallowed.
-    bar = bool(segs) and segs[0][1] == "hdr_bar"
-    if bar:
-        def _solid(seglist):
-            out = []
-            for t, k in seglist:
-                for part in re.findall(r" +|[^ ]+", t):
-                    out.append(("█" * len(part), "hdr_blk") if part[0] == " " else (part, k))
-            return out
-        left, right = _solid(left), _solid(right)
-
     endcol = _draw(left, 0)
+    # htop bar lines (first segment keyed hdr_bar) paint their background to the full width.
+    bar = bool(segs) and segs[0][1] == "hdr_bar"
     if fillch is not None:              # right may be EMPTY (a bare full-width rule line) — the
         rw = sum(_dw(t) for t, _ in right)   # fill itself must still draw (bug: divider invisible)
         rcol = max(endcol + (0 if fillch == "─" else 2), (w if bar else w - 1) - rw)
         if fillch == "─" and rcol > endcol:
             _draw([("─" * (rcol - endcol), "head")], endcol)  # fill the gap to make a full-width rule
         elif bar and rcol > endcol:
-            _draw([("█" * (rcol - endcol), "hdr_blk")], endcol, lim=w)
+            _draw([(" " * (rcol - endcol), "hdr_bar")], endcol, lim=w)
         if right:
             _draw(right, rcol, lim=w if bar else None)
     elif bar and endcol < w:
-        _draw([("█" * (w - endcol), "hdr_blk")], endcol, lim=w)
+        _draw([(" " * (w - endcol), "hdr_bar")], endcol, lim=w)
 
 
 _OFFSET = 0                 # scroll offset — READ only in _draw (see module docstring)
