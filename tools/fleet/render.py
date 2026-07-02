@@ -508,20 +508,9 @@ def _dispatch_row(j, orphan=False, parent_model=None, parent_harness=None, is_la
     avail = _NW_S
     tag_segs, tagw = _mq_tag(j.mode, qa_text, qa_key)
     otag = "  (orphan)" if orphan else ""
-    budget = max(3, avail - tagw - len(otag) - 1)       # -1 → always ≥1 gap before branch
-    used = 0
-    # capability LEADS the name — `code dispatch-profiles (dev·standard)` (user 2026-07-02:
-    # "code도 앞쪽에 떠야지"). The process kind is the primary identity, the slug secondary;
-    # loops jobs (key == slug) collapse to the single token as before.
-    lead = key if key and key != name else ""
-    if lead:
-        lead = lead[:budget]
-        segs.append((lead, "name_dim")); used = len(lead)
-        if used + 2 <= budget:
-            segs.append((" ", None)); used += 1
-    nm = name[: max(0, budget - used)]
-    if nm:
-        segs.append((nm, "dim" if lead else "name_dim")); used += len(nm)
+    nm = name[: max(3, avail - tagw - len(otag) - 1)]   # -1 → always ≥1 gap before branch
+    used = len(nm)
+    segs.append((nm, "name_dim"))
     segs += tag_segs; used += tagw
     if otag and used + len(otag) <= avail:
         segs.append((otag, "gate_u")); used += len(otag)
@@ -532,8 +521,12 @@ def _dispatch_row(j, orphan=False, parent_model=None, parent_harness=None, is_la
     # model slot → the job's OWN main model (dim family color), same cell a session uses.
     segs += _model_cell(j.model or parent_model, None, _MW, dim=True)
 
-    # gauge slot → stage breadcrumb (process viz): per-stage colors, current bold + blinks if working.
+    # gauge slot → capability-LABELED stage breadcrumb: `code: plan › exec › test` — the process
+    # kind rides the track it names, where the eye reads progress (user 2026-07-02: name 앞보다
+    # 여기가 autopilot-code 정체를 직관적으로 전달). loops jobs (key == slug) skip the label.
     segs.append(("    ", None))                       # 4-col gap (reads separate from effort/qa)
+    if key and key != name:
+        segs.append((key + ": ", "name_dim"))
     segs += _stage_segs(key, stage, working=(j.liveness == "working"))
 
     segs.append((_RFLUSH, None))
