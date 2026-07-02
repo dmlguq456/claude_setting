@@ -653,7 +653,7 @@ def _dispatch_row_2line(j, orphan=False, parent_model=None, _split=False):
     qa_base = j.qa or ""
     qa_text = (("~" + j.qa) if j.qa_source in ("jobslog", "plan", "default") else j.qa) if j.qa else ""
     qa_key = "qa_" + qa_base if qa_base in _QA_INT else "dim"
-    tag_segs, _tw = _mq_tag(j.mode, qa_text, qa_key)
+    tag_segs, _tw = _mq_tag(j.mode, qa_text, qa_key, profile=getattr(j, "profile", None))
 
     l1 = [("  ", None), ("↳ ", "dim"), (gch, gkey), (" ", None),
           (_pad(hn, _HW - 2), _BADGE_KEY.get(j.harness, "dim")), (name, "name_dim")]
