@@ -34,7 +34,7 @@ import time
 from .model import fmt_min, dash, project_of
 
 # harness = dim lowercase word in its identity color (no bracket chip, no reverse-video)
-_BADGE_TEXT = {"claude": "claude", "codex": "codex", "opencode": "opencode"}
+_BADGE_TEXT = {"claude": "claude code", "codex": "codex", "opencode": "opencode"}
 _BADGE_KEY = {"claude": "h_claude", "codex": "h_codex", "opencode": "h_opencode"}
 _LIVE_RANK = {"working": 0, "idle": 1, "blocked": 2, "done": 3, "stale": 4, "dead": 5, "unknown": 6}
 _JOB_LIVE_RANK = {"working": 0, "stale": 1, "dead": 2, "unknown": 3}
@@ -106,7 +106,11 @@ def _init_colors():
         # bright harness color = a TOP-LEVEL session / account; a dispatch job keeps the DIM
         # harness (h_<h>) → main↔spawned weight is carried by font-color intensity (no bg fill).
         _COLOR["hb_" + h] = hue
+        # usage-bar ACCOUNT label = reverse-video badge (word only) — distinguishes the harness
+        # account from the model buckets beside it (fable read like a harness without this).
+        _COLOR["acct_" + h] = hue | curses.A_REVERSE
     _COLOR["hb_other"] = 0
+    _COLOR["acct_other"] = curses.A_REVERSE
     for lvl, it in _LVL_INT.items():
         _COLOR["eff_other_" + lvl] = it
     # harness identity = dim colored text (color lives ONLY here for identity)
@@ -294,12 +298,12 @@ def _project_gate(cwd, sid=None):
 #     gauge slot    context % bar      stage breadcrumb (plan › exec › test)  ← "how far along"
 # main↔dispatch weight is carried by the badge (reverse vs dim font), so the identity columns can
 # stay aligned for comparison. Job flow never sits under branch/gate.
-_HW = 11                      # session harness field — WIDE gap to the name (user widened it)
-_BRANCH_COL = 43              # absolute col where branch starts (both row types)
-_NAME_COL = 15                # absolute col where the NAME starts — SHARED by both row types so
+_HW = 14                      # session harness field ("claude code" = 11 chars + gap)
+_BRANCH_COL = 46              # absolute col where branch starts (both row types)
+_NAME_COL = 18                # absolute col where the NAME starts — SHARED by both row types so
                               # everything from the name onward aligns (session: prefix 4 + harness
-                              # 11; dispatch: prefix 6 + harness 9 — deeper indent, narrower harness)
-_NW_S = _BRANCH_COL - _NAME_COL   # name field (both row types): col 15 → branch 43 = 28
+                              # 14; dispatch: prefix 6 + harness 12 — deeper indent, narrower harness)
+_NW_S = _BRANCH_COL - _NAME_COL   # name field (both row types): col 18 → branch 46 = 28
 _BRW = 14                     # ⎇branch field (always ≥1 trailing space so it never touches model)
 _EFF_W = 6                    # effort sub-column (session effort: low..max)
 _MW = 16 + _EFF_W             # model + effort field: model 16 + effort 6
@@ -591,8 +595,11 @@ def _build_lines(sessions, jobs, section, narrow, malformed):
         hs = [h for h in ("claude", "codex", "opencode") if h in _rl]
         for idx, h in enumerate(hs):
             r5, r7, rms, _mt = _rl[h]
+            hn = _BADGE_TEXT.get(h, h)
             row = [("usage  " if idx == 0 else "       ", "head"),
-                   (_pad(h, 11), "hb_" + h if h in _BADGE_TEXT else "hb_other")]  # bright = account
+                   # reverse-video BADGE on the word only — harness account ≠ model bucket labels
+                   (hn, "acct_" + h if h in _BADGE_TEXT else "acct_other"),
+                   (" " * max(1, 14 - len(hn)), None)]
             # 5h/7d + any per-model buckets (e.g. fable-only weekly) in the same gauge grammar;
             # a bucket label wears its model-family color (fable magenta, opus cyan, …)
             gauges = [("5h ", r5, "dim"), ("7d ", r7, "dim")] + \
